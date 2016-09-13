@@ -1,0 +1,622 @@
+
+Array/add.cu,41
+void Array<T>::AddValue(AddValue36,774
+
+Array/array.cu,126
+Array<T>::Array(Array38,901
+Array<T>::Array(Array65,1629
+Array<T>::Array(Array93,2433
+Array<T>::~Array(~Array121,3209
+
+Array/compact.cu,106
+int Array<T>::RemoveValue(RemoveValue46,977
+devCompact(74,1637
+void Array<T>::Compact(Compact93,2145
+
+Array/diff.cu,43
+void Array<T>::SetToDiff(SetToDiff34,897
+
+Array/equal.cu,198
+devSetEqualComb(35,910
+void Array<T>::SetEqualComb(SetEqualComb56,1459
+void Array<T>::SetEqual(SetEqual89,2398
+void Array<T>::SetEqual(SetEqual105,2891
+void Array<T>::Concat(Concat126,3520
+
+Array/gather.cu,240
+void Array<T>::GatherIf(GatherIf35,804
+devGather(65,1645
+void Array<T>::Gather(Gather81,2003
+devScatter(110,2794
+void Array<T>::Scatter(Scatter126,3153
+devScatterSeries(155,3952
+void Array<T>::ScatterSeries(ScatterSeries174,4422
+
+Array/invert.cu,37
+void Array<T>::Invert(Invert36,846
+
+Array/reduce.cu,384
+T Array<T>::Minimum(Minimum45,985
+T Array<T>::Maximum(Maximum70,1598
+T Array<T>::Maximum(Maximum95,2180
+struct compare_x120,2806
+  bool operator()(compare_x::operator()123,2847
+struct compare_y130,2936
+  bool operator()(compare_y::operator()133,2977
+S Array<T>::MaximumComb(MaximumComb141,3085
+S Array<T>::MinimumComb(MinimumComb174,3926
+T Array<T>::Sum(Sum211,4882
+
+Array/reindex.cu,533
+void Array<T>::Reindex(Reindex34,875
+void Array<T>::Reindex(Reindex76,2006
+devInverseReindex(118,3173
+devInverseReindexInt2Bool(152,4060
+devInverseReindexInt3Bool(202,5315
+devInverseReindexInt(268,6928
+devInverseReindexInt3(288,7511
+void Array<int>::InverseReindex(InverseReindex312,8230
+void Array<int3>::InverseReindex(InverseReindex357,9389
+void Array<int>::InverseReindex(InverseReindex406,10709
+void Array<int2>::InverseReindex(InverseReindex466,12219
+void Array<int3>::InverseReindex(InverseReindex540,14094
+
+Array/removeevery.cu,117
+namespace astrix 8,140
+int Array<T>::RemoveEvery(RemoveEvery31,810
+int Array<T>::RemoveEvery(RemoveEvery73,1972
+
+Array/scan.cu,49
+T Array<T>::ExclusiveScan(ExclusiveScan53,1262
+
+Array/select.cu,155
+int Array<T>::SelectLargerThan(SelectLargerThan37,721
+devSelectWhereDifferent(81,1911
+int Array<T>::SelectWhereDifferent(SelectWhereDifferent100,2332
+
+Array/series.cu,95
+void Array<T>::SetToSeries(SetToSeries34,842
+void Array<T>::SetToSeries(SetToSeries63,1623
+
+Array/single.cu,161
+void Array<T>::SetSingleValue(SetSingleValue34,761
+void Array<T>::GetSingleValue(GetSingleValue51,1203
+void Array<T>::GetSingleValue(GetSingleValue68,1618
+
+Array/size.cu,253
+unsigned int Array<T>::GetRealSize(GetRealSize28,572
+unsigned int Array<T>::GetDimension(GetDimension38,796
+void Array<T>::SetSizeHost(SetSizeHost48,1018
+void Array<T>::SetSizeDevice(SetSizeDevice92,2370
+void Array<T>::SetSize(SetSize147,3912
+
+Array/sort.cu,306
+struct subSortCompare20,462
+  __device__ __host__ bool operator(24,597
+struct subSubSortCompare41,1062
+  __device__ __host__ bool operator()(subSubSortCompare::operator()45,1212
+void Array<T>::SortByKey(SortByKey68,1791
+void Array<T>::SortByKey(SortByKey88,2378
+void Array<T>::Sort(Sort108,2927
+
+Array/transform.cu,161
+void Array<T>::CopyToHost(CopyToHost34,838
+void Array<T>::TransformToDevice(TransformToDevice48,1212
+void Array<T>::TransformToHost(TransformToHost74,1883
+
+Array/unique.cu,51
+void Array<T>::ScatterUnique(ScatterUnique34,820
+
+Array/value.cu,91
+void Array<T>::SetToValue(SetToValue35,903
+void Array<T>::SetToValue(SetToValue64,1727
+
+Common/cudaLow.cpp,66
+namespace astrix 11,165
+void gpuAssert(astrix::gpuAssert17,363
+
+Common/nvtxEvent.cu,60
+nvtxEvent::nvtxEvent(23,430
+nvtxEvent::~nvtxEvent(44,1083
+
+Device/device.cpp,166
+namespace astrix 10,151
+Device::Device(astrix::Device::Device16,349
+Device::~Device(90,3068
+int Device::GetDeviceCount(99,3321
+int Device::GetCudaFlag(109,3572
+
+main.cpp,17
+int main(14,355
+
+Mesh/boundary.cu,686
+namespace astrix 18,380
+void SetVertexInnerBoundarySingle(191,4856
+devSetVertexOuterBoundary(214,5687
+devSetVertexInnerBoundary(246,6740
+void FlagVertexRemoveSingle(273,7654
+devFlagVertexRemove(292,8303
+void FlagTriangleRemoveSingle(318,9180
+devFlagTriangleRemove(370,11045
+void FlagEdgeRemoveSingle(398,11970
+devFlagEdgeRemove(428,12877
+void AdjustTriangleVerticesSingle(450,13559
+devAdjustTriangleVertices(470,14219
+void AdjustEdgeTrianglesSingle(491,14867
+devAdjustEdgeTriangles(512,15522
+void AdjustTriangleEdgesSingle(532,16133
+devAdjustTriangleEdges(548,16728
+void FindEdgeBetween(571,17384
+devFindEdgeBetween(591,18152
+void Mesh::ConstructBoundaries(609,18963
+
+Mesh/Coarsen/adjuststate.cu,98
+namespace astrix 16,403
+void devAdjustStateCoarsen(270,8097
+void Coarsen::AdjustState(307,9527
+
+Mesh/Coarsen/allowedtarget.cu,120
+namespace astrix 18,429
+void devFindAllowedTargetTriangle(211,6847
+void Coarsen::FindAllowedTargetTriangles(243,8237
+
+Mesh/Coarsen/coarsen.cpp,102
+namespace astrix 12,244
+Coarsen::Coarsen(astrix::Coarsen::Coarsen22,619
+Coarsen::~Coarsen(49,1406
+
+Mesh/Coarsen/encroach.cu,103
+namespace astrix 18,455
+void devCheckEncroachCoarsen(393,9988
+void Coarsen::CheckEncroach(418,10971
+
+Mesh/Coarsen/findparalleldeletion.cu,177
+namespace astrix 14,334
+devFillAffectedTriangles(231,6719
+devFillAffectedIndex(257,7802
+void FillAffectedTriangles(290,9593
+void Coarsen::FindParallelDeletionSet(400,13247
+
+Mesh/Coarsen/flagvertex.cu,103
+namespace astrix 16,352
+void devFillVertexRemoveFlag(70,2916
+void Coarsen::FlagVertexRemove(91,3792
+
+Mesh/Coarsen/maxtripervert.cu,100
+namespace astrix 16,376
+void devFillTrianglePerVertex(64,2375
+int Coarsen::MaxTriPerVert(80,3077
+
+Mesh/Coarsen/neighbour.cu,108
+namespace astrix 15,313
+void devFindVertexNeighbour(161,5139
+void Coarsen::FindVertexNeighbours(190,6250
+
+Mesh/Coarsen/reject.cu,94
+namespace astrix 17,397
+void devReject(86,3128
+void Coarsen::RejectLargeTriangles(103,3800
+
+Mesh/Coarsen/remove.cu,213
+namespace astrix 16,340
+void devAdjustEdge(48,1555
+void AdjustTriangleSingle(76,2622
+void devAdjustTriangle(138,4321
+void RemoveVertex(178,5984
+void devRemoveVertex(448,12619
+void Coarsen::Remove(475,13829
+
+Mesh/Coarsen/removevertices.cpp,94
+namespace astrix 17,421
+int Coarsen::RemoveVertices(astrix::Coarsen::RemoveVertices27,1013
+
+Mesh/Coarsen/target.cu,106
+namespace astrix 15,328
+void devFindTargetTriangle(129,4984
+void Coarsen::FindTargetTriangles(158,6307
+
+Mesh/Coarsen/trianglelist.cu,115
+namespace astrix 15,334
+void devFillVertexTriangleList(180,5713
+void Coarsen::CreateVertexTriangleList(203,6711
+
+Mesh/Coarsen/unique_triangle.cu,65
+namespace astrix 9,175
+void FindUniqueTriangleAffected(53,2119
+
+Mesh/Coarsen/vertexarea.cu,92
+namespace astrix 15,374
+devCCalcVertexArea(86,3094
+void Coarsen::CalcVertexArea(104,3738
+
+Mesh/Coarsen/vertextriangle.cu,103
+namespace astrix 16,371
+void devFillVertexTriangle(64,2433
+void Coarsen::FillVertexTriangle(80,3161
+
+Mesh/coarsen.cpp,87
+namespace astrix 17,392
+int Mesh::RemoveVertices(astrix::Mesh::RemoveVertices27,984
+
+Mesh/Connectivity/connectivity.cpp,250
+namespace astrix 12,242
+Connectivity::Connectivity(astrix::Connectivity::Connectivity18,564
+Connectivity::~Connectivity(32,1120
+void Connectivity::Transform(45,1515
+void Connectivity::CopyToHost(65,2104
+void Connectivity::CopyToDevice(76,2425
+
+Mesh/debug.cu,210
+namespace astrix 16,359
+real Mesh::MaximumEdgeLength(54,1600
+void Mesh::CheckEdgeLength(74,2320
+void Mesh::CheckLegalTriangle(123,3942
+void Mesh::OutputStat(171,5496
+void Mesh::CheckEncroachSlow(228,7530
+
+Mesh/Delaunay/adjuststate.cu,87
+namespace astrix 16,462
+devAdjustState(209,5878
+void Delaunay::AdjustState(236,6900
+
+Mesh/Delaunay/checkedge.cu,112
+namespace astrix 15,399
+devCheckEdge(114,3401
+devCheckEdgeLimit(134,3902
+void Delaunay::CheckEdges(163,4834
+
+Mesh/Delaunay/delaunay.cpp,108
+namespace astrix 12,247
+Delaunay::Delaunay(astrix::Delaunay::Delaunay21,579
+Delaunay::~Delaunay(39,1193
+
+Mesh/Delaunay/edgerepair.cu,83
+namespace astrix 12,290
+devEdgeRepair(69,1944
+void Delaunay::EdgeRepair(89,2659
+
+Mesh/Delaunay/fillsub.cu,107
+namespace astrix 12,326
+devFillTriangleSubstitute(57,1985
+void Delaunay::FillTriangleSubstitute(75,2721
+
+Mesh/Delaunay/findparallelflip.cu,169
+namespace astrix 12,308
+devSelectParallelFlip(38,929
+devFillAffectedTriangles(66,1869
+void FillAffectedTriangles(98,3052
+int Delaunay::FindParallelFlipSet(145,4511
+
+Mesh/Delaunay/flipedge.cu,81
+namespace astrix 13,331
+devFlipEdge(156,3690
+void Delaunay::FlipEdge(175,4285
+
+Mesh/Delaunay/makedelaunay.cpp,93
+namespace astrix 14,359
+void Delaunay::MakeDelaunay(astrix::Delaunay::MakeDelaunay26,1329
+
+Mesh/Delaunay/vertexarea.cu,93
+namespace astrix 15,375
+devDCalcVertexArea(86,3092
+void Delaunay::CalcVertexArea(107,3833
+
+Mesh/edgenormal.cu,89
+namespace astrix 15,393
+devCalcNormalEdge(153,4549
+void Mesh::CalcNormalEdge(178,5246
+
+Mesh/error.cu,168
+namespace astrix 15,619
+void CalcErrorEstimateSingle(165,6539
+devCalcOperatorEnergy(213,8722
+devCalcErrorEstimate(253,10512
+void Mesh::CalcErrorEstimate(276,11239
+
+Mesh/findboundaryvertices.cu,159
+namespace astrix 13,311
+devFillBoundaryFlag(60,2711
+void FindBoundariesSingle(94,4028
+devFindBoundaries(152,5908
+void Mesh::FindBoundaryVertices(170,6705
+
+Mesh/improvequality.cpp,88
+namespace astrix 19,430
+int Mesh::ImproveQuality(astrix::Mesh::ImproveQuality29,1204
+
+Mesh/mesh.cpp,657
+namespace astrix 23,521
+Mesh::Mesh(astrix::Mesh::Mesh36,1125
+Mesh::~Mesh(101,2985
+void Mesh::Init(129,3810
+int Mesh::GetNVertex(227,6823
+int Mesh::GetNTriangle(236,7052
+int Mesh::GetNEdge(245,7281
+int Mesh::IsAdaptive(254,7506
+const real2* Mesh::VertexCoordinatesData(260,7577
+const int* Mesh::VertexBoundaryFlagData(265,7681
+const real* Mesh::VertexAreaData(270,7773
+const int3* Mesh::TriangleEdgesData(275,7850
+const int3* Mesh::TriangleVerticesData(280,7945
+const real2* Mesh::TriangleEdgeNormalsData(285,8046
+const real3* Mesh::TriangleEdgeLengthData(290,8152
+const int2* Mesh::EdgeTrianglesData(295,8244
+void Mesh::Transform(300,8339
+
+Mesh/Morton/edge.cu,84
+namespace astrix 12,265
+devFillMortonEdge(53,1754
+void Morton::OrderEdge(71,2497
+
+Mesh/Morton/morton.cpp,96
+namespace astrix 12,241
+Morton::Morton(astrix::Morton::Morton20,562
+Morton::~Morton(34,1002
+
+Mesh/Morton/order.cpp,74
+namespace astrix 13,323
+void Morton::Order(astrix::Morton::Order23,880
+
+Mesh/Morton/triangle.cu,92
+namespace astrix 12,273
+devFillMortonTriangle(65,2054
+void Morton::OrderTriangle(84,2895
+
+Mesh/Morton/values.cu,93
+namespace astrix 12,271
+devCalcMortonValuesVertex(45,1349
+void Morton::CalcValues(65,2039
+
+Mesh/Morton/vertex.cpp,86
+namespace astrix 13,301
+void Morton::OrderVertex(astrix::Morton::OrderVertex22,874
+
+Mesh/Param/checkvalidity.cpp,104
+namespace astrix 12,258
+void MeshParameter::CheckValidity(astrix::MeshParameter::CheckValidity18,561
+
+Mesh/Param/meshparameter.cpp,138
+namespace astrix 11,214
+MeshParameter::MeshParameter(astrix::MeshParameter::MeshParameter17,404
+MeshParameter::~MeshParameter(45,1075
+
+Mesh/Param/readfromfile.cpp,102
+namespace astrix 15,303
+void MeshParameter::ReadFromFile(astrix::MeshParameter::ReadFromFile23,728
+
+Mesh/Predicates/predicates.cu,122
+void InitPredicates(28,777
+devInitPredicates(88,3034
+Predicates::Predicates(100,3347
+Predicates::~Predicates(121,4017
+
+Mesh/Refine/addtoperiodic.cu,87
+namespace astrix 12,316
+devAddToPeriodic(57,2001
+void Refine::AddToPeriodic(74,2684
+
+Mesh/Refine/addvertex.cpp,86
+namespace astrix 15,377
+int Refine::AddVertices(astrix::Refine::AddVertices28,1191
+
+Mesh/Refine/badtriangle.cu,151
+namespace astrix 15,416
+void TestQualitySingle(95,3602
+devTestQualityW(155,5876
+devTestQuality(190,7221
+int Refine::TestTrianglesQuality(215,8529
+
+Mesh/Refine/circum.cu,79
+namespace astrix 15,421
+devCircum(127,3505
+void Refine::FindCircum(150,4442
+
+Mesh/Refine/findparallelinsertion.cu,250
+namespace astrix 18,477
+devLockTriangles(192,5694
+void FindIndependentCavities(232,7467
+devFindIndependentCavities(387,11825
+void FlagEdgesForChecking(426,13452
+devFlagEdgesForChecking(568,17279
+void Refine::FindParallelInsertionSet(597,19009
+
+Mesh/Refine/findtriangles.cu,89
+namespace astrix 18,465
+devFindTriangles(209,7109
+void Refine::FindTriangles(250,8549
+
+Mesh/Refine/flagsegment.cu,84
+namespace astrix 12,327
+devFlagOnSegment(46,1748
+int Refine::FlagSegment(64,2599
+
+Mesh/Refine/improve.cpp,92
+namespace astrix 17,439
+int Refine::ImproveQuality(astrix::Refine::ImproveQuality32,1571
+
+Mesh/Refine/insert.cu,93
+namespace astrix 16,410
+devInsertVertices(649,19943
+void Refine::InsertVertices(688,21519
+
+Mesh/Refine/interpolatestate.cu,95
+namespace astrix 14,353
+devInterpolateState(125,4640
+void Refine::InterpolateState(156,5558
+
+Mesh/Refine/refine.cpp,96
+namespace astrix 12,241
+Refine::Refine(astrix::Refine::Refine22,618
+Refine::~Refine(45,1408
+
+Mesh/Refine/splitsegment.cpp,88
+namespace astrix 14,374
+void Refine::SplitSegment(astrix::Refine::SplitSegment23,886
+
+Mesh/Refine/testencroach.cu,123
+namespace astrix 14,396
+void TestEncroachSingle(110,4298
+devTestEncroach(407,12576
+void Refine::TestEncroach(429,13714
+
+Mesh/save.cpp,102
+namespace astrix 13,305
+void Mesh::Save(astrix::Mesh::Save21,676
+void Mesh::ReadFromDisk(138,4598
+
+Mesh/structured.cpp,100
+namespace astrix 17,377
+void Mesh::CreateStructuredMesh(astrix::Mesh::CreateStructuredMesh23,757
+
+Mesh/vertexarea.cu,88
+namespace astrix 15,354
+devCalcVertexArea(86,3086
+void Mesh::CalcVertexArea(105,3744
+
+Mesh/wantrefine.cu,87
+namespace astrix 12,345
+devFillWantRefine(50,1930
+void Mesh::FillWantRefine(69,2815
+
+Simulation/blend.cu,90
+namespace astrix 12,259
+devCalcBlendFactor(85,2627
+void Simulation::CalcBlend(103,3321
+
+Simulation/blendx.cu,97
+namespace astrix 11,265
+devCalcShockSensor(142,4177
+void Simulation::CalcShockSensor(163,4972
+
+Simulation/boundary_extrapolate.cu,238
+namespace astrix 12,302
+devExtrapolateBoundaries(177,5233
+void SetCornersToZero(200,5970
+devSetCornersToZero(226,6727
+void ExtrapolateCorners(249,7463
+devExtrapolateCorners(332,9799
+void Simulation::ExtrapolateBoundaries(347,10395
+
+Simulation/boundary_nonreflect.cu,117
+namespace astrix 12,294
+devSetNonReflectingBoundaries(44,1555
+void Simulation::SetNonReflectingBoundaries(60,2144
+
+Simulation/boundary_reflect.cu,135
+namespace astrix 11,286
+void SetReflectingSingle(173,5353
+devSetReflecting(236,7274
+void Simulation::ReflectingBoundaries(262,8095
+
+Simulation/boundary_riemann.cu,107
+namespace astrix 12,299
+devSetRiemannBoundaries(114,4130
+void Simulation::SetRiemannBoundaries(132,4861
+
+Simulation/energy.cu,252
+namespace astrix 13,300
+void ReplacePressureWithEnergySingle(41,1199
+devReplaceEnergyWithPressure(58,1746
+devReplacePressureWithEnergy(79,2355
+void Simulation::ReplaceEnergyWithPressure(95,2961
+void Simulation::ReplacePressureWithEnergy(125,4079
+
+Simulation/initial.cu,89
+namespace astrix 13,281
+devSetInitial(414,11869
+void Simulation::SetInitial(431,12428
+
+Simulation/kh.cu,93
+namespace astrix 13,286
+devCalcDiagnostics(42,1139
+void Simulation::KHDiagnostics(58,1631
+
+Simulation/mass.cu,87
+namespace astrix 12,256
+devFillMassArray(40,1164
+real Simulation::TotalMass(56,1636
+
+Simulation/minmaxvel.cu,101
+namespace astrix 12,275
+devFillMinMaxVelocity(57,1556
+void Simulation::FindMinMaxVelocity(76,2154
+
+Simulation/param.cu,101
+namespace astrix 11,263
+devCalcParamVec(60,1741
+void Simulation::CalculateParameterVector(78,2406
+
+Simulation/potential.cu,91
+namespace astrix 12,297
+devCalcPotential(45,1429
+void Simulation::CalcPotential(62,1983
+
+Simulation/refine.cpp,118
+namespace astrix 13,269
+void Simulation::Refine(astrix::Simulation::Refine19,565
+void Simulation::Coarsen(92,2554
+
+Simulation/replaceLDA.cu,87
+namespace astrix 12,299
+devReplaceLDA(102,3743
+void Simulation::ReplaceLDA(128,4763
+
+Simulation/save.cpp,155
+namespace astrix 15,319
+void Simulation::Save(astrix::Simulation::Save26,791
+int Simulation::Restore(113,3874
+void Simulation::FineGrainSave(245,8263
+
+Simulation/simulation.cpp,153
+namespace astrix 17,367
+Simulation::Simulation(astrix::Simulation::Simulation31,939
+Simulation::~Simulation(121,3411
+void Simulation::Init(146,4219
+
+Simulation/spaceres.cu,95
+namespace astrix 15,342
+devCalcSpaceRes(1145,27939
+void Simulation::CalcResidual(1170,28884
+
+Simulation/timeloop.cpp,116
+namespace astrix 17,376
+void Simulation::Run(astrix::Simulation::Run27,819
+void Simulation::DoTimeStep(136,3500
+
+Simulation/timestep.cu,195
+namespace astrix 12,300
+void CalcVmaxSingle(114,2744
+devCalcVmax(154,4139
+void CalcVertexTimeStepSingle(177,4942
+devCalcVertexTimeStep(192,5545
+real Simulation::CalcVertexTimeStep(208,5985
+
+Simulation/totalresLDA.cu,99
+namespace astrix 13,313
+devCalcTotalResLDA(788,20393
+void Simulation::CalcTotalResLDA(810,21210
+
+Simulation/totalresNtot.cu,103
+namespace astrix 13,317
+devCalcTotalResNtot(1097,27044
+void Simulation::CalcTotalResNtot(1125,28022
+
+Simulation/unphysical.cu,93
+namespace astrix 13,312
+devFlagUnphysical(59,1810
+void Simulation::FlagUnphysical(78,2430
+
+Simulation/update.cpp,94
+namespace astrix 11,257
+void Simulation::UpdateState(astrix::Simulation::UpdateState17,788
+
+Simulation/update_addresidue.cu,87
+namespace astrix 13,316
+devAddResidue(231,6418
+void Simulation::AddResidue(256,7273
+
+Simulation/upwind.cu,0
+
+Array/shuffle.cu,0
+
+Array/random.cu,0

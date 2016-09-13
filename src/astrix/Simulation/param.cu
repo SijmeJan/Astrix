@@ -1,0 +1,110 @@
+// -*-c++-*-
+/*! \file param.cu
+\brief File containing function to calculate Roe's parameter vector at vertices.
+*/
+#include "../Common/definitions.h"
+#include "../Array/array.h"
+#include "../Mesh/mesh.h"
+#include "./simulation.h"
+#include "../Common/cudaLow.h"
+
+namespace astrix {   
+
+//######################################################################
+/*! \brief Calculate Roe's parameter vector at vertex \a n. 
+
+This function calculates Roe's parameter vector Z at vertex \a n. 
+
+ \param n index of vertex.
+ \param *pState Pointer to state vector at vertices
+ \param *pVz Pointer to parameter vector at vertices (output)
+ \param G1 Ratio of specific heats - 1*/
+//######################################################################
+
+__host__ __device__
+void CalcParamVecSingle(int n, real4 *pState, real4 *pVz, real G1)
+{
+  real half = (real) 0.5;
+  
+  real dens = pState[n].x;
+  real momx = pState[n].y;
+  real momy = pState[n].z;
+  real ener = pState[n].w;
+  
+  real d = sqrt(dens);
+  real u = momx/dens;
+  real v = momy/dens;
+  
+  // Pressure
+  real p = G1*(ener - half*dens*(u*u + v*v));
+
+  // Roe parameter vector
+  pVz[n].x = d;
+  pVz[n].y = d*u;
+  pVz[n].z = d*v;
+  pVz[n].w = d*(ener + p)/dens;
+}
+
+//######################################################################
+/*! \brief Kernel to calculate Roe's parameter vector at all vertices. 
+
+This kernel function calculates Roe's parameter vector Z for all vertices in the mesh. 
+
+ \param nVertex total number of vertices.
+ \param *pState Pointer to state vector at vertices
+ \param *pVz Pointer to parameter vector at vertices (output)
+ \param G1 Ratio of specific heats - 1*/
+//######################################################################
+
+__global__ void 
+devCalcParamVec(int nVertex, real4 *pState, real4 *pVz, real G1)
+{
+  // n=vertex number
+  int n = blockIdx.x*blockDim.x + threadIdx.x; 
+
+  while (n < nVertex){
+    CalcParamVecSingle(n, pState, pVz, G1);
+    
+    n += blockDim.x*gridDim.x;
+  }
+}
+
+//##############################################################################
+/*! This function calculates Roe's parameter vector Z for all vertices in the mesh, based on either \a vertexState or \a vertexStateOld. 
+    
+  \param useOldFlag flag indicating whether to use \a vertexStateOld (1) or \a vertexState (any other value).*/
+//##############################################################################
+
+void Simulation::CalculateParameterVector(int useOldFlag)	
+{
+  int nVertex = mesh->GetNVertex();
+
+  real4 *pState = vertexState->GetPointer();
+  
+  // Use old state
+  if (useOldFlag == 1) 
+    pState = vertexStateOld->GetPointer();
+  
+  real4 *pVz = vertexParameterVector->GetPointer();
+
+  if (cudaFlag == 1) {
+    int nThreads = 128;
+    int nBlocks  = 128;
+    
+    // Base nThreads and nBlocks on maximum occupancy
+    cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
+				       devCalcParamVec, 
+				       (size_t) 0, 0);
+
+    // Execute kernel... 
+    devCalcParamVec<<<nBlocks,nThreads>>>
+      (nVertex, pState, pVz, specificHeatRatio - 1.0);
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
+  } else {
+    for (int n = 0; n < nVertex; n++)
+      CalcParamVecSingle(n, pState, pVz, specificHeatRatio - 1.0);
+  }
+}
+  
+}

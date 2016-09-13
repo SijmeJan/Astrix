@@ -1,0 +1,14 @@
+/*! \file cast.h
+    \brief Header file for unified casting.
+*/
+#ifndef CAST_H
+#define CAST_H
+
+namespace astrix {
+
+//! Cast int to real
+__host__ __device__ real int2real(int a);
+
+}
+
+#endif
