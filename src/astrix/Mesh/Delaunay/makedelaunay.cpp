@@ -56,6 +56,7 @@ void Delaunay::MakeDelaunay(Connectivity * const connectivity,
       // Check all edges if can be flopped
       CheckEdgesFlop(connectivity, predicates, meshParameter,
 		     edgeNeedsChecking, nEdgeCheck);
+      finished = 1;
     }
     
     delete nvtxTemp;
