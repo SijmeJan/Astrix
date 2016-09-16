@@ -30,4 +30,4 @@ doc:
 clean:
 	cd src/astrix; $(MAKE) clean
 	cd src/visAstrix; $(MAKE) clean
-	cd doc; rm -f -r *
+	rm -f -r doc/*
