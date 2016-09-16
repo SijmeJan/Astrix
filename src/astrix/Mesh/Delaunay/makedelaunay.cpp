@@ -29,7 +29,8 @@ void Delaunay::MakeDelaunay(Connectivity * const connectivity,
 			    const MeshParameter *meshParameter,
 			    const int maxCycle,
 			    Array<int> * const edgeNeedsChecking,
-			    const int nEdgeCheck)
+			    const int nEdgeCheck,
+			    const int flopFlag)
 {  
   nvtxEvent *nvtxDelaunay = new nvtxEvent("Delaunay", 6);
 
@@ -47,10 +48,16 @@ void Delaunay::MakeDelaunay(Connectivity * const connectivity,
   while (!finished) {
     nvtxEvent *nvtxTemp = new nvtxEvent("CheckEdge", 1);
 
-    // Check all edges for Delaunay property
-    CheckEdges(connectivity, predicates, meshParameter,
-	       edgeNeedsChecking, nEdgeCheck);
-
+    if (flopFlag != 1) {
+      // Check all edges for Delaunay property
+      CheckEdges(connectivity, predicates, meshParameter,
+		 edgeNeedsChecking, nEdgeCheck);
+    } else {
+      // Check all edges if can be flopped
+      CheckEdgesFlop(connectivity, predicates, meshParameter,
+		     edgeNeedsChecking, nEdgeCheck);
+    }
+    
     delete nvtxTemp;
     nvtxTemp = new nvtxEvent("Compact", 2);
 

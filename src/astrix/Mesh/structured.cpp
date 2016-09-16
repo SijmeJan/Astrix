@@ -214,7 +214,7 @@ void Mesh::CreateStructuredMesh()
 
   // One cycle of delaunay 
   delaunay->MakeDelaunay(connectivity, 0, predicates,
-			 meshParameter, 1, 0, 0);
+			 meshParameter, 1, 0, 0, 0);
 
   morton->Order(connectivity, triangleWantRefine, 0);
   

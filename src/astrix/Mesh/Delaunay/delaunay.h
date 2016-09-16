@@ -28,7 +28,8 @@ class Delaunay
 		    const MeshParameter *meshParameter,
 		    const int maxCycle,
 		    Array<int> * const edgeNeedsChecking,
-		    const int nEdgeCheck);
+		    const int nEdgeCheck,
+		    const int flopFlag);
 
  private:
   //! Flag whether to use device or host
@@ -53,6 +54,12 @@ class Delaunay
 		  const MeshParameter *meshParameter,
 		  Array<int> * const edgeNeedsChecking,
 		  const int nEdgeCheck);
+  //! Check if edges can be flopped
+  void CheckEdgesFlop(Connectivity * const connectivity,
+		      const Predicates *predicates,
+		      const MeshParameter *meshParameter,
+		      Array<int> * const edgeNeedsChecking,
+		      const int nEdgeCheck);
   //! Find set of edges that can be flipped in parallel
   int FindParallelFlipSet(Connectivity * const connectivity,
 			  const int nNonDel);

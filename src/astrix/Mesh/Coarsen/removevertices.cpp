@@ -170,7 +170,7 @@ int Coarsen::RemoveVertices(Connectivity *connectivity,
 	delete triangleTarget;
 	
 	delaunay->MakeDelaunay(connectivity, vertexState,
-			       predicates, meshParameter, 0, 0, 0);
+			       predicates, meshParameter, 0, 0, 0, 0);
 
 	removedVerticesFlag = 1;
       }

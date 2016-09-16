@@ -58,7 +58,7 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
 
   // Maintain Delaunay triangulation
   delaunay->MakeDelaunay(connectivity, vertexState,
-			 predicates, meshParameter, 0, 0, 0);
+  			 predicates, meshParameter, 0, 0, 0, 0);
 
   while (!finished) {
     if (verboseLevel > 1)
@@ -188,7 +188,7 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
 	// Maintain Delaunay triangulation
 	delaunay->MakeDelaunay(connectivity, vertexState,
 			       predicates, meshParameter, 0,
-			       edgeNeedsChecking, nEdgeCheck);
+			       edgeNeedsChecking, nEdgeCheck, 0);
 
 	if (verboseLevel > 2) 
 	  std::cout << "Morton..." << std::endl;

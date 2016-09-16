@@ -75,7 +75,10 @@ build: $(BINDIR)/astrix
 
 $(BINDIR)/astrix: $(OBJ)
 	$(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
-#$(NVCC) -arch=sm_20 $(ALL_LDFLAGS) -o $@ $+ $(LIBRARIES)
+
+##############################################################################
+# Dependency rules
+##############################################################################
 
 main.o: main.cpp Common/definitions.h Simulation/simulation.h Device/device.h
 
@@ -203,6 +206,8 @@ Mesh/Refine/testrefine.o: Mesh/Refine/testrefine.cu Array/array.h Common/definit
 Mesh/Delaunay/adjuststate.o: Mesh/Delaunay/adjuststate.cu Mesh/Predicates/predicates.h Common/definitions.h Mesh/Delaunay/delaunay.h Array/array.h Common/cudaLow.h Common/atomic.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
 Mesh/Delaunay/checkedge.o: ALL_CCFLAGS += -maxrregcount=32
 Mesh/Delaunay/checkedge.o: Mesh/Delaunay/checkedge.cu Mesh/Predicates/predicates.h Common/definitions.h Mesh/Delaunay/delaunay.h Array/array.h Common/cudaLow.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
+Mesh/Delaunay/checkflop.o: ALL_CCFLAGS += -maxrregcount=32
+Mesh/Delaunay/checkflop.o: Mesh/Delaunay/checkflop.cu Mesh/Predicates/predicates.h Common/definitions.h Mesh/Delaunay/delaunay.h Array/array.h Common/cudaLow.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
 Mesh/Delaunay/delaunay.o: Mesh/Delaunay/delaunay.cpp Common/definitions.h Mesh/Delaunay/delaunay.h Array/array.h
 Mesh/Delaunay/edgerepair.o: Mesh/Delaunay/edgerepair.cu Common/definitions.h Mesh/Delaunay/delaunay.h Array/array.h Common/cudaLow.h Mesh/Connectivity/connectivity.h
 Mesh/Delaunay/fillsub.o: Mesh/Delaunay/fillsub.cu Common/definitions.h Mesh/Delaunay/delaunay.h Array/array.h Common/cudaLow.h Mesh/Connectivity/connectivity.h
