@@ -16,6 +16,7 @@ OS_SIZE = $(shell uname -m | sed -e "s/i.86/32/" -e "s/x86_64/64/" -e "s/armv7l/
 OS_ARCH = $(shell uname -m | sed -e "s/i386/i686/")
 
 NVCC:= nvcc
+CUDA_COMPUTE ?= 0
 
 # internal flags
 NVCCFLAGS   := -m${OS_SIZE}
@@ -24,8 +25,8 @@ NVCCLDFLAGS :=
 LDFLAGS     := 
 
 # Extra user flags
-EXTRA_NVCCFLAGS   ?= -O3 -lineinfo -g -G -lineinfo
-#-g -G -lineinfo
+EXTRA_NVCCFLAGS   ?= -O3 -lineinfo
+#-g -G 
 #--ptxas-options=-v
 EXTRA_NVCCLDFLAGS ?=
 EXTRA_LDFLAGS     ?= -lnvToolsExt
@@ -65,7 +66,16 @@ LIBRARIES :=
 GENCODE_SM20    := -gencode arch=compute_20,code=sm_20
 GENCODE_SM30    := -gencode arch=compute_30,code=sm_30
 GENCODE_SM35    := -gencode arch=compute_35,code=\"sm_35,compute_35\"
-GENCODE_FLAGS   := $(GENCODE_SM30)
+GENCODE_FLAGS   := $(GENCODE_SM20) $(GENCODE_SM30) $(GENCODE_SM35)
+ifeq ($(CUDA_COMPUTE),20)
+	GENCODE_FLAGS := $(GENCODE_SM20)
+endif
+ifeq ($(CUDA_COMPUTE),30)
+	GENCODE_FLAGS := $(GENCODE_SM30)
+endif
+ifeq ($(CUDA_COMPUTE),35)
+	GENCODE_FLAGS := $(GENCODE_SM35)
+endif
 ################################################################################
 
 # Target rules
