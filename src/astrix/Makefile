@@ -66,6 +66,7 @@ LIBRARIES :=
 GENCODE_SM20    := -gencode arch=compute_20,code=sm_20
 GENCODE_SM30    := -gencode arch=compute_30,code=sm_30
 GENCODE_SM35    := -gencode arch=compute_35,code=\"sm_35,compute_35\"
+# By default, generate all
 GENCODE_FLAGS   := $(GENCODE_SM20) $(GENCODE_SM30) $(GENCODE_SM35)
 ifeq ($(CUDA_COMPUTE),20)
 	GENCODE_FLAGS := $(GENCODE_SM20)
