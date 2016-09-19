@@ -50,8 +50,6 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
     nSave++;
   }
 
-  return;
-  
   if (verboseLevel > 0)
     std::cout << "Starting time loop..." << std::endl;
 
@@ -91,7 +89,6 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
     nSave++;
   }
 
-  /*
   if (problemDef == PROBLEM_VORTEX ||
       problemDef == PROBLEM_YEE ||
       problemDef == PROBLEM_LINEAR ||
@@ -103,29 +100,30 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
 
     // Now vertexState contains initial state, vertexOld final state
     if (cudaFlag == 1) {
-      vertexState->CopyFromDevice();
-      vertexStateOld->CopyFromDevice();
-      mesh->vertexArea->CopyFromDevice();
-      mesh->vertexCoordinates->CopyFromDevice();
+      mesh->Transform();
+      vertexState->CopyToHost();
+      vertexStateOld->CopyToHost();
     }
 
-    real4 *state = vertexStateOld->GetHostPointer();
+    real4 *state = vertexState->GetHostPointer();
     real4 *stateOld = vertexStateOld->GetHostPointer();
     
-    real *vArea = mesh->vertexArea->GetHostPointer();
-    
+    const real *vertArea = mesh->VertexAreaData();
+  
     real L1dens = 0.0;
     real totalArea = 0.0;
     for (int i = 0; i < nVertex; i++) {
-      L1dens += fabs(state[i].x - stateOld[i].x)*vArea[i];
-      totalArea += vArea[i];
+      L1dens += fabs(state[i].x - stateOld[i].x)*vertArea[i];
+      totalArea += vertArea[i];
     }
     
     L1dens = L1dens/totalArea;
     
     std::cout << "L1 error in density: " << L1dens << " " << std::endl;
+
+    if (cudaFlag == 1) 
+      mesh->Transform();
   }
-  */
 }
 
 //#########################################################################
