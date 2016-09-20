@@ -197,4 +197,12 @@ template void Array<float3>::SetSize(unsigned int _size);
 template void Array<float4>::SetSize(unsigned int _size);
 template unsigned int Array<float4>::GetRealSize() const;
 
+template unsigned int Array<double2>::GetSize() const;
+template void Array<double2>::SetSize(unsigned int _size);
+
+template void Array<double3>::SetSize(unsigned int _size);
+
+template void Array<double4>::SetSize(unsigned int _size);
+template unsigned int Array<double4>::GetRealSize() const;
+
 }

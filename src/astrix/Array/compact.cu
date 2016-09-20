@@ -180,11 +180,15 @@ template void Array<float2>::Compact(int nKeep,
 template void Array<float4>::Compact(int nKeep,
 				     Array<int> *keepFlag, 
 				     Array<int> *keepFlagScan);
+template void Array<double2>::Compact(int nKeep,
+				     Array<int> *keepFlag, 
+				     Array<int> *keepFlagScan);
+template void Array<double4>::Compact(int nKeep,
+				     Array<int> *keepFlag, 
+				     Array<int> *keepFlagScan);
 
 
 template int Array<int>::RemoveValue(int value);
 template int Array<int>::RemoveValue(int value, int maxIndex);
-  //template int Array<float2>::RemoveValue(float2 value, int maxIndex);
-
 
 }

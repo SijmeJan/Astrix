@@ -142,11 +142,14 @@ int Array<T>::SelectWhereDifferent(Array<T> *A, Array<S> *B)
 //###################################################
 
 template int Array<int>::SelectLargerThan(int value, Array<double> *A);
+template int Array<int>::SelectLargerThan(int value, Array<double2> *A);
 template int Array<int>::SelectLargerThan(int value, Array<float> *A);
 template int Array<int>::SelectLargerThan(int value, Array<float2> *A);
 
 template int Array<int>::SelectWhereDifferent(Array<int> *A,
 					      Array<double> *B);
+template int Array<int>::SelectWhereDifferent(Array<int> *A,
+					      Array<double2> *B);
 template int Array<int>::SelectWhereDifferent(Array<int> *A,
 					      Array<float> *B);
 template int Array<int>::SelectWhereDifferent(Array<int> *A,

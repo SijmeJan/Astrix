@@ -138,5 +138,6 @@ template int Array<unsigned int>::RemoveEvery(int start, int step,
 
 template int Array<int2>::RemoveEvery(int start, int step, Array<int3> *A);
 template int Array<float2>::RemoveEvery(int start, int step, Array<int3> *A);
+template int Array<double2>::RemoveEvery(int start, int step, Array<int3> *A);
 
 }

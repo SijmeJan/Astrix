@@ -72,5 +72,7 @@ template void Array<double>::SetToDiff(Array<double> *A,
 				       Array<double> *B);
 template void Array<float4>::SetToDiff(Array<float4> *A, 
 				       Array<float4> *B);
+template void Array<double4>::SetToDiff(Array<double4> *A, 
+				       Array<double4> *B);
 
 }

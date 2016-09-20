@@ -256,4 +256,7 @@ template unsigned int Array<unsigned int>::Sum();
 
 template float Array<float2>::MinimumComb(int N);
 template float Array<float2>::MaximumComb(int N);
+
+template double Array<double2>::MinimumComb(int N);
+template double Array<double2>::MaximumComb(int N);
 }

@@ -106,6 +106,27 @@ template void Array<double>::TransformToDevice();
 
 //###################################################
 
+template void Array<double4>::CopyToDevice();
+template void Array<double4>::CopyToHost();
+template void Array<double4>::TransformToHost();
+template void Array<double4>::TransformToDevice();
+
+//###################################################
+
+template void Array<double3>::CopyToDevice();
+template void Array<double3>::CopyToHost();
+template void Array<double3>::TransformToHost();
+template void Array<double3>::TransformToDevice();
+
+//###################################################
+
+template void Array<double2>::CopyToDevice();
+template void Array<double2>::CopyToHost();
+template void Array<double2>::TransformToHost();
+template void Array<double2>::TransformToDevice();
+
+  //###################################################
+
 template void Array<float>::CopyToDevice();
 template void Array<float>::CopyToHost();
 template void Array<float>::TransformToHost();
