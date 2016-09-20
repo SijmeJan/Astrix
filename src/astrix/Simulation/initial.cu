@@ -102,7 +102,7 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     real vy =  half*(x - xc)*beta*exp(half - half*r*r)/M_PI;
 
     dens = std::pow(T, (real)(one/(G - one)));
-    momx = (real)1.0e-10 + dens*vx;
+    momx = (real)1.0e-10 + dens*(vx + one);
     momy = (real)2.0e-10 + dens*vy;
     ener = half*(Sq(momx) + Sq(momy))/dens + dens*T/(G - one);
   }
