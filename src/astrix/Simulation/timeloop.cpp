@@ -240,7 +240,6 @@ void Simulation::DoTimeStep()
     // Calculate parameter vector Z at nodes from old state
     CalculateParameterVector(1);
 
-    int massMatrix = 2;
     if (massMatrix == 3 || massMatrix == 4)
       MassMatrixF34Tot(dt, massMatrix);
     
@@ -250,9 +249,8 @@ void Simulation::DoTimeStep()
     if (massMatrix == 3 || massMatrix == 4)
       MassMatrixF34(dt, massMatrix);
     
-    int selectLump = 0;
-    if (selectLump == 1 || massMatrix == 2)
-      SelectLumpLDA(dt, massMatrix, selectLump);
+    if (selectiveLumpFlag == 1 || massMatrix == 2)
+      SelectLumpLDA(dt, massMatrix, selectiveLumpFlag);
 
     // Set Wold = W
     vertexStateOld->SetEqual(vertexState);
