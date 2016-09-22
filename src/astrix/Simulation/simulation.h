@@ -56,7 +56,11 @@ class Simulation
   IntegrationScheme intScheme;
   //! Order of accuracy in time (1 or 2)
   int integrationOrder;
-
+  //! Mass matrix formulation to use (1, 2, 3 or 4)
+  int massMatrix;
+  //! Flag whether to use selective lumping
+  int selectiveLumpFlag;
+  
   //! Number of space dimensions (fixed to 2)
   int nSpaceDim;
   //! Number of equations to evolve
@@ -134,6 +138,12 @@ class Simulation
   void CalcTotalResNtot(real dt);
   //! Calculate space-time LDA residual
   void CalcTotalResLDA();
+  //! Add selective lump contribution to residual
+  void SelectLumpLDA(real dt, int massMatrix, int selectLumpFlag);
+  //! Add contribution F3/F4 mass matrix to total residual
+  void MassMatrixF34Tot(real dt, int massMatrix);
+  //! Add contribution F3/F4 mass matrix to residual
+  void MassMatrixF34(real dt, int massMatrix);
 
   //! Update state at nodes
   void UpdateState(real dt, int RKStep);

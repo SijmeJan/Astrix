@@ -10,6 +10,8 @@
 #include "../Common/cudaLow.h"
 #include "../Common/inlineMath.h"
 
+//#define TEMP
+
 namespace astrix {
 
 //######################################################################
@@ -88,7 +90,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real Ail1 = Adt/Tl1;
   real Ail2 = Adt/Tl2;
   real Ail3 = Adt/Tl3;
-  
+
   // Replace ResN
   pTresN0[n].x = half*pTresN0[n].x + dW00*Ail1;
   pTresN0[n].y = half*pTresN0[n].y + dW01*Ail1;
@@ -104,11 +106,18 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   pTresN2[n].w = half*pTresN2[n].w + dW23*Ail3;
 
   // Replace ResTot
+#ifdef TEMP
+  real ResTot0 = two*Adt*(dW00 + dW10 + dW20);
+  real ResTot1 = two*Adt*(dW01 + dW11 + dW21);
+  real ResTot2 = two*Adt*(dW02 + dW12 + dW22);
+  real ResTot3 = two*Adt*(dW03 + dW13 + dW23);
+#else
   real ResTot0 = pTresTot[n].x + two*Adt*(dW00 + dW10 + dW20);
   real ResTot1 = pTresTot[n].y + two*Adt*(dW01 + dW11 + dW21);
   real ResTot2 = pTresTot[n].z + two*Adt*(dW02 + dW12 + dW22);
   real ResTot3 = pTresTot[n].w + two*Adt*(dW03 + dW13 + dW23);
-
+#endif
+  
   // Parameter vector at vertices: 12 uncoalesced loads
   real Zv00 = pVz[v1].x;
   real Zv01 = pVz[v1].y;

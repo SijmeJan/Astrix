@@ -61,6 +61,7 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   }
   
   if(problemDef == PROBLEM_VORTEX){
+    /*
     real xc = half;
     real yc = half;
     
@@ -84,6 +85,34 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     momx = (real) 1.0e-10 + dens*vx;
     momy = (real) 2.0e-10 + dens*vy;
     ener = half*(Sq(momx) + Sq(momy))/dens + pres/(G - one);
+    */
+
+    real xc = zero;
+    real yc = zero;
+
+    real x = vertX;
+    real y = vertY;
+    real r = sqrt(Sq(x - xc)+Sq(y - yc)) + (real) 1.0e-10;
+    real d = 4.0*M_PI*r;
+
+    real w = 15.0f*(cos(d) + one);
+    if (r >= 0.25) w = 0;
+    real vx = -y*w + 6.0f;
+    real vy = x*w;
+
+    dens = 1.4;
+    
+    real pm = 100.0;
+    real C = -15.0*15.0*dens*(0.75*M_PI*M_PI - 2.0 + 0.125)/(16.0*M_PI*M_PI);
+    real dp =
+      (2.0*cos(d) + 2.0*d*sin(d) + 0.125*cos(2.0*d) + 0.25*d*sin(2.0*d) +
+       0.75*d*d)*15.0*15.0*dens/(16.0*M_PI*M_PI) + C;
+    if (r >= 0.25) dp = 0.0;
+    real pres = pm + dp;
+    
+    momx = (real) 1.0e-10 + dens*vx;
+    momy = (real) 2.0e-10 + dens*vy;
+    ener = half*(Sq(momx) + Sq(momy))/dens + pres/(G - one);    
   }
 
   if(problemDef == PROBLEM_YEE){
@@ -102,8 +131,8 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     real vy =  half*(x - xc)*beta*exp(half - half*r*r)/M_PI;
 
     dens = std::pow(T, (real)(one/(G - one)));
-    momx = (real)1.0e-10 + dens*(vx + one);
-    momy = (real)2.0e-10 + dens*vy;
+    momx = (real)1.0e-10 + dens*(vx + 2.0/sqrt(5.0));
+    momy = (real)2.0e-10 + dens*(vy + 1.0/sqrt(5.0));
     ener = half*(Sq(momx) + Sq(momy))/dens + dens*T/(G - one);
   }
 

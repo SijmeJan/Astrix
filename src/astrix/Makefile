@@ -120,6 +120,9 @@ Simulation/totalresNtot.o: ALL_CCFLAGS += -maxrregcount=96
 Simulation/totalresNtot.o: Simulation/totalresNtot.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
 Simulation/totalresLDA.o: ALL_CCFLAGS += -maxrregcount=64
 Simulation/totalresLDA.o: Simulation/totalresLDA.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
+Simulation/selectlump.o: Simulation/selectlump.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
+Simulation/massMatrixF34Tot.o: Simulation/massMatrixF34Tot.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
+Simulation/massMatrixF34.o: Simulation/massMatrixF34.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
 Simulation/timestep.o: ALL_CCFLAGS += -maxrregcount=32
 Simulation/timestep.o: Simulation/timestep.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/atomic.h Common/cudaLow.h
 Simulation/timeloop.o: Simulation/timeloop.cpp Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/nvtxEvent.h

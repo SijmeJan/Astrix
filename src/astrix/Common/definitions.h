@@ -6,7 +6,7 @@
 
 //#define TIME_ASTRIX
 
-#define USE_DOUBLE 1
+#define USE_DOUBLE -1
 
 /*! \namespace astrix
 \brief Namespace encapsulating all of Astrix

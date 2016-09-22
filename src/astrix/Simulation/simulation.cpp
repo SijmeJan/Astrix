@@ -158,6 +158,8 @@ void Simulation::Init(const char *fileName, int restartNumber)
   saveIntervalTime = -1.0;
   saveIntervalTimeFine = -1.0;
   integrationOrder = -1;
+  massMatrix = -1;
+  selectiveLumpFlag = -1;
   intScheme = SCHEME_UNDEFINED;
   specificHeatRatio = -1.0;
 
@@ -224,7 +226,21 @@ void Simulation::Init(const char *fileName, int restartNumber)
 	  secondWord.find_first_not_of("12") == std::string::npos)
 	integrationOrder = atof(secondWord.c_str());
     }
-    
+
+    // Mass matrix formulation (should be 1, 2, 3 or 4)
+    if (firstWord == "massMatrix") {
+      if (!secondWord.empty() &&
+	  secondWord.find_first_not_of("1234") == std::string::npos)
+	massMatrix = atof(secondWord.c_str());
+    }
+
+    // Flag to use selective lumping
+    if (firstWord == "selectiveLumpFlag") {
+      if (!secondWord.empty() &&
+	  secondWord.find_first_not_of("01") == std::string::npos)
+	selectiveLumpFlag = atof(secondWord.c_str());
+    }
+
     // SpecificHeatRatio
     if (firstWord == "specificHeatRatio") {
       if (!secondWord.empty() &&
@@ -259,6 +275,14 @@ void Simulation::Init(const char *fileName, int restartNumber)
   }
   if (integrationOrder != 1 && integrationOrder != 2) {
     std::cout << "Invalid value for integrationOrder" << std::endl;
+    throw std::runtime_error("");
+  }
+  if (massMatrix < 1 || massMatrix > 4) {
+    std::cout << "Invalid value for massMatrix" << std::endl;
+    throw std::runtime_error("");
+  }
+  if (selectiveLumpFlag != 0 && selectiveLumpFlag != 1) {
+    std::cout << "Invalid value for selectiveLumpFlag" << std::endl;
     throw std::runtime_error("");
   }
   if (intScheme == SCHEME_UNDEFINED) {

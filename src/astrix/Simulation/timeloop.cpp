@@ -120,7 +120,8 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
     L1dens = L1dens/totalArea;
     
     std::cout << "L1 error in density: " << L1dens << " " << std::endl;
-
+    std::cout << "Mesh size paramenter: " << sqrt(totalArea/(real)nVertex)
+	      << std::endl;
     if (cudaFlag == 1) 
       mesh->Transform();
   }
@@ -235,13 +236,24 @@ void Simulation::DoTimeStep()
         
     // Calculate space-time residual N + total
     CalcTotalResNtot(dt);
-        
+
     // Calculate parameter vector Z at nodes from old state
     CalculateParameterVector(1);
+
+    int massMatrix = 2;
+    if (massMatrix == 3 || massMatrix == 4)
+      MassMatrixF34Tot(dt, massMatrix);
     
     // Calculate space-time residual LDA
     CalcTotalResLDA();
-        
+
+    if (massMatrix == 3 || massMatrix == 4)
+      MassMatrixF34(dt, massMatrix);
+    
+    int selectLump = 0;
+    if (selectLump == 1 || massMatrix == 2)
+      SelectLumpLDA(dt, massMatrix, selectLump);
+
     // Set Wold = W
     vertexStateOld->SetEqual(vertexState);
     

@@ -1,6 +1,6 @@
 // -*-c++-*-
-/*! \file totalresII.cu
-\brief File containing functions for calculating space-time LDA residue*/
+/*! \file massMatrix.cu
+\brief File containing functions for F3 and F4 mass matrix*/
 #include <iostream>
 
 #include "../Common/definitions.h"
@@ -10,19 +10,17 @@
 #include "../Common/cudaLow.h"
 #include "../Common/inlineMath.h"
 
-//#define TEMP
-
 namespace astrix {
 
 //######################################################################
-/*! \brief Calculate space-time LDA residue at triangle n
+/*! \brief Calculate F3/F4 mass matrix contribution to residual
 
 \param n Triangle to consider
+\param dt Time step
+\param massMatrix Mass matrix to use (should be 3 or 4)
 \param *pTv Pointer to triangle vertices
 \param *pVz Pointer to parameter vector
-\param *pTresLDA0 Triangle residue LDA direction 0
-\param *pTresLDA1 Triangle residue LDA direction 1
-\param *pTresLDA2 Triangle residue LDA direction 2
+\param *pDstate Pointer to state difference at vertices
 \param *pTresTot Triangle total residue
 \param *pTn1 Pointer first triangle edge normal
 \param *pTn2 Pointer second triangle edge normal
@@ -35,14 +33,14 @@ namespace astrix {
 //######################################################################
 
 __host__ __device__
-void CalcTotalResLDASingle(int n,  
-			   const int3* __restrict__ pTv,
-			   const real4* __restrict__ pVz, 
-			   real4 *pTresLDA0, real4 *pTresLDA1, 
-			   real4 *pTresLDA2, real4 *pTresTot,
-			   const real2 *pTn1, const real2 *pTn2,
-			   const real2 *pTn3, const real3 *pTl, int nVertex, 
-			   real G, real G1, real G2)
+void MassMatrixF34TotSingle(int n, real dt, int massMatrix, 
+			    const int3* __restrict__ pTv,
+			    const real4* __restrict__ pVz, 
+			    const real4* __restrict__ pDstate, 
+			    real4 *pTresTot, const real2 *pTn1,
+			    const real2 *pTn2, const real2 *pTn3,
+			    const real3 *pTl, int nVertex,
+			    real G, real G1, real G2)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -59,6 +57,34 @@ void CalcTotalResLDASingle(int n,
   while (vs2 < 0) vs2 += nVertex;
   while (vs3 < 0) vs3 += nVertex;
 
+  // State differences
+  real dW00 = pDstate[vs1].x;
+  real dW01 = pDstate[vs1].y;
+  real dW02 = pDstate[vs1].z;
+  real dW03 = pDstate[vs1].w;
+  real dW10 = pDstate[vs2].z;
+  real dW11 = pDstate[vs2].y;
+  real dW12 = pDstate[vs2].z;
+  real dW13 = pDstate[vs2].w;
+  real dW20 = pDstate[vs3].x;
+  real dW21 = pDstate[vs3].y;
+  real dW22 = pDstate[vs3].z;
+  real dW23 = pDstate[vs3].w;
+
+  real tl1 = pTl[n].x;
+  real tl2 = pTl[n].y;
+  real tl3 = pTl[n].z;
+
+  // Calculate triangle area
+  real s = half*(tl1 + tl2 + tl3);
+  real Adt = sqrt(s*(s - tl1)*(s - tl2)*(s - tl3))*onethird/dt;
+  if (massMatrix == 3) Adt = -Adt;
+  
+  real resTot0 = (dW00 + dW10 + dW20)*Adt;
+  real resTot1 = (dW01 + dW11 + dW21)*Adt;
+  real resTot2 = (dW02 + dW12 + dW22)*Adt;
+  real resTot3 = (dW03 + dW13 + dW23)*Adt;
+  
   // Parameter vector at vertices: 12 uncoalesced loads
   real Zv00 = pVz[vs1].x;
   real Zv01 = pVz[vs1].y;
@@ -85,8 +111,6 @@ void CalcTotalResLDASingle(int n,
 
   real htilde = Z3/Z0;
   real ctilde = G1*(htilde - absvt);
-  //real invCtilde = rsqrtf(ctilde);
-  //ctilde = one/invCtilde;
 
   ctilde = sqrt(ctilde);
   real invCtilde = one/ctilde;
@@ -96,20 +120,12 @@ void CalcTotalResLDASingle(int n,
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
   real km;
-  //real invCtilde = 
-  //  rsqrtf(G1*(htilde - half*(Sq(utilde) + Sq(vtilde))));
-  //real ctilde = one/invCtilde;
 
   real hoverc = htilde*invCtilde;
   real uoverc = utilde*invCtilde;
   real voverc = vtilde*invCtilde;
   real absvtc = G1*absvt*invCtilde;
   
-  // Triangle edge lengths
-  real tl1 = pTl[n].x;
-  real tl2 = pTl[n].y;
-  real tl3 = pTl[n].z;
-
   real tnx1 = pTn1[n].x;
   real tny1 = pTn1[n].y;
 
@@ -122,9 +138,6 @@ void CalcTotalResLDASingle(int n,
   real l1 = min(zero, wtilde + ctilde);
   real l2 = min(zero, wtilde - ctilde);
   real l3 = min(zero, wtilde);
-  //real l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
-  //real l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
-  //real l3 = half*(wtilde - fabs(wtilde));
 
   // Auxiliary variables
   real l1l2l3 = half*(l1 + l2) - l3;
@@ -210,9 +223,6 @@ void CalcTotalResLDASingle(int n,
   l1 = min(wtilde + ctilde, zero);
   l2 = min(wtilde - ctilde, zero);
   l3 = min(wtilde, zero);
-  //l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
-  //l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
-  //l3 = half*(wtilde - fabs(wtilde));
   
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
@@ -299,9 +309,6 @@ void CalcTotalResLDASingle(int n,
   l1 = min(wtilde + ctilde, zero);
   l2 = min(wtilde - ctilde, zero);
   l3 = min(wtilde, zero);
-  //l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
-  //l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
-  //l3 = half*(wtilde - fabs(wtilde));
  
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
@@ -417,27 +424,28 @@ void CalcTotalResLDASingle(int n,
   real invN21 = -nm00*f5 - nm01*f3 + nm03*f1;
   real invN30 = nm10*f4 + nm11*f2 + nm12*f1;
   real invN31 = -nm00*f4 - nm01*f2 - nm02*f1;
-  
+
+  // Wtilde = N*phi
   real Wtilde0 =
-    invN00*pTresTot[n].x +  
-    invN01*pTresTot[n].y +  
-    invN02*pTresTot[n].z +  
-    invN03*pTresTot[n].w;  
+    invN00*resTot0 +  
+    invN01*resTot1 +  
+    invN02*resTot2 +  
+    invN03*resTot3;  
   real Wtilde1 =
-    invN10*pTresTot[n].x +  
-    invN11*pTresTot[n].y +  
-    invN12*pTresTot[n].z +  
-    invN13*pTresTot[n].w;  
+    invN10*resTot0 +  
+    invN11*resTot1 +  
+    invN12*resTot2 +  
+    invN13*resTot3;  
   real Wtilde2 =
-    invN20*pTresTot[n].x +  
-    invN21*pTresTot[n].y +  
-    invN22*pTresTot[n].z +  
-    invN23*pTresTot[n].w;  
+    invN20*resTot0 +  
+    invN21*resTot1 +  
+    invN22*resTot2 +  
+    invN23*resTot3;  
   real Wtilde3 =
-    invN30*pTresTot[n].x +  
-    invN31*pTresTot[n].y +  
-    invN32*pTresTot[n].z +  
-    invN33*pTresTot[n].w;  
+    invN30*resTot0 +  
+    invN31*resTot1 +  
+    invN32*resTot2 +  
+    invN33*resTot3;  
 
   if (det != zero) det = one/det;
 
@@ -446,6 +454,7 @@ void CalcTotalResLDASingle(int n,
   Wtilde2 *= det;
   Wtilde3 *= det;
 
+  // ResLDA = -Kp*Wtilde
   real ResLDA, kp;
   
   real Tnx1 = pTn1[n].x;
@@ -455,11 +464,7 @@ void CalcTotalResLDASingle(int n,
   ny = half*Tny1;
 
   wtilde = (uoverc*nx + voverc*ny)*ctilde;
-  
-  //l1 = max(wtilde + ctilde, zero);
-  //l2 = max(wtilde - ctilde, zero);
-  //l3 = max(wtilde, zero);    
-  
+    
   l1 = half*(wtilde + ctilde + fabs(wtilde + ctilde));
   l2 = half*(wtilde - ctilde + fabs(wtilde - ctilde));
   l3 = half*(wtilde + fabs(wtilde));
@@ -484,11 +489,7 @@ void CalcTotalResLDASingle(int n,
   kp = G1*l1l2l3*Sq(invCtilde);
   ResLDA -= kp*Wtilde3;
 
-#ifdef TEMP
-  pTresLDA0[n].x = 0.5*pTresLDA0[n].x + ResLDA;
-#else
-  pTresLDA0[n].x = ResLDA;
-#endif
+  pTresTot[n].x += ResLDA;
   
   // kp010
   kp = absvtc*(uoverc*l1l2l3 + nx*l1l2) -
@@ -509,11 +510,7 @@ void CalcTotalResLDASingle(int n,
   kp = G1*(uoverc*l1l2l3 + nx*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
   
-#ifdef TEMP
-  pTresLDA0[n].y = 0.5*pTresLDA0[n].y + ResLDA;
-#else
-  pTresLDA0[n].y = ResLDA;
-#endif
+  pTresTot[n].y += ResLDA;
   
   // kp020
   kp = absvtc*(voverc*l1l2l3 + ny*l1l2) - 
@@ -534,11 +531,7 @@ void CalcTotalResLDASingle(int n,
   kp = G1*(voverc*l1l2l3 + ny*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
   
-#ifdef TEMP
-  pTresLDA0[n].z = 0.5*pTresLDA0[n].z + ResLDA;
-#else
-  pTresLDA0[n].z = ResLDA;
-#endif
+  pTresTot[n].z += ResLDA;
   
   // kp030
   kp = absvtc*(wtilde*l1l2 + hoverc*l1l2l3) -
@@ -559,11 +552,7 @@ void CalcTotalResLDASingle(int n,
   kp = G1*invCtilde*(hoverc*l1l2l3 + wtilde*l1l2) + l3;
   ResLDA -= kp*Wtilde3;
   
-#ifdef TEMP
-  pTresLDA0[n].w = 0.5*pTresLDA0[n].w + ResLDA;
-#else
-  pTresLDA0[n].w = ResLDA;
-#endif
+  pTresTot[n].w += ResLDA;
   
   real Tnx2 = pTn2[n].x;
   real Tny2 = pTn2[n].y;
@@ -601,11 +590,7 @@ void CalcTotalResLDASingle(int n,
   kp = G1*l1l2l3*Sq(invCtilde);
   ResLDA -= kp*Wtilde3;
   
-#ifdef TEMP
-  pTresLDA1[n].x = 0.5*pTresLDA1[n].x + ResLDA;
-#else
-  pTresLDA1[n].x = ResLDA;
-#endif
+  pTresTot[n].x += ResLDA;
   
   // kp110
   kp = absvtc*(uoverc*l1l2l3 + nx*l1l2) -
@@ -626,11 +611,7 @@ void CalcTotalResLDASingle(int n,
   kp = G1*(uoverc*l1l2l3 + nx*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
   
-#ifdef TEMP
-  pTresLDA1[n].y = 0.5*pTresLDA1[n].y + ResLDA;
-#else
-  pTresLDA1[n].y = ResLDA;
-#endif
+  pTresTot[n].y += ResLDA;
   
   // kp120
   kp = absvtc*(voverc*l1l2l3 + ny*l1l2) - 
@@ -651,11 +632,7 @@ void CalcTotalResLDASingle(int n,
   kp = G1*(voverc*l1l2l3 + ny*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
   
-#ifdef TEMP
-  pTresLDA1[n].z = 0.5*pTresLDA1[n].z + ResLDA;
-#else
-  pTresLDA1[n].z = ResLDA;
-#endif
+  pTresTot[n].z += ResLDA;
   
   // kp130
   kp = absvtc*(wtilde*l1l2 + hoverc*l1l2l3) -
@@ -676,11 +653,7 @@ void CalcTotalResLDASingle(int n,
   kp = G1*invCtilde*(hoverc*l1l2l3 + wtilde*l1l2) + l3;
   ResLDA -= kp*Wtilde3;
   
-#ifdef TEMP
-  pTresLDA1[n].w = 0.5*pTresLDA1[n].w + ResLDA;
-#else
-  pTresLDA1[n].w = ResLDA;
-#endif
+  pTresTot[n].w += ResLDA;
   
   real Tnx3 = pTn3[n].x;
   real Tny3 = pTn3[n].y;
@@ -718,11 +691,7 @@ void CalcTotalResLDASingle(int n,
   kp = G1*l1l2l3*Sq(invCtilde);
   ResLDA -= kp*Wtilde3;
   
-#ifdef TEMP
-  pTresLDA2[n].x = 0.5*pTresLDA2[n].x + ResLDA;
-#else
-  pTresLDA2[n].x = ResLDA;
-#endif
+  pTresTot[n].x += ResLDA;
   
   // kp210
   kp = absvtc*(uoverc*l1l2l3 + nx*l1l2) -
@@ -743,11 +712,7 @@ void CalcTotalResLDASingle(int n,
   kp = G1*(uoverc*l1l2l3 + nx*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
   
-#ifdef TEMP
-  pTresLDA2[n].y = 0.5*pTresLDA2[n].y + ResLDA;
-#else
-  pTresLDA2[n].y = ResLDA;
-#endif
+  pTresTot[n].y += ResLDA;
   
   // kp220
   kp = absvtc*(voverc*l1l2l3 + ny*l1l2) - 
@@ -768,11 +733,7 @@ void CalcTotalResLDASingle(int n,
   kp = G1*(voverc*l1l2l3 + ny*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
   
-#ifdef TEMP
-  pTresLDA2[n].z = 0.5*pTresLDA2[n].z + ResLDA;
-#else
-  pTresLDA2[n].z = ResLDA;
-#endif
+  pTresTot[n].z += ResLDA;
   
   // kp230
   kp = absvtc*(wtilde*l1l2 + hoverc*l1l2l3) -
@@ -793,60 +754,44 @@ void CalcTotalResLDASingle(int n,
   kp = G1*invCtilde*(hoverc*l1l2l3 + wtilde*l1l2) + l3;
   ResLDA -= kp*Wtilde3;
   
-#ifdef TEMP
-  pTresLDA2[n].w = 0.5*pTresLDA2[n].w + ResLDA;
-#else
-  pTresLDA2[n].w = ResLDA;
-#endif
+  pTresTot[n].w += ResLDA;
 }
   
 //######################################################################
 /*! \brief Kernel calculating space-time LDA residue for all triangles
 
 \param nTriangle Total number of triangles in Mesh
-\param *tv1 Pointer to first vertex of triangle 
-\param *tv2 Pointer to second vertex of triangle 
-\param *tv3 Pointer to third vertex of triangle
-\param *pVz0 pointer to array of values for zeroth component of parameter vector
-\param *pVz1 pointer to array of values for first component of parameter vector 
-\param *pVz2 pointer to array of values for second component of parameter vector
-\param *pVz3 pointer to array of values for third component of parameter vector
-\param *pTresLDA00 Triangle residue LDA direction 0 state 0
-\param *pTresLDA01 Triangle residue LDA direction 0 state 1
-\param *pTresLDA02 Triangle residue LDA direction 0 state 2
-\param *pTresLDA03 Triangle residue LDA direction 0 state 3
-\param *pTresLDA10 Triangle residue LDA direction 1 state 0
-\param *pTresLDA11 Triangle residue LDA direction 1 state 1
-\param *pTresLDA12 Triangle residue LDA direction 1 state 2
-\param *pTresLDA13 Triangle residue LDA direction 1 state 3
-\param *pTresLDA20 Triangle residue LDA direction 2 state 0
-\param *pTresLDA21 Triangle residue LDA direction 2 state 1
-\param *pTresLDA22 Triangle residue LDA direction 2 state 2
-\param *pTresLDA23 Triangle residue LDA direction 2 state 3
-\param *pTresTot0 Triangle total residue state 0
-\param *pTresTot1 Triangle total residue state 1
-\param *pTresTot2 Triangle total residue state 2
-\param *pTresTot3 Triangle total residue state 3
-\param *triNx Pointer to x component of triangle edge normals
-\param *triNy Pointer to y component of triangle edge normals
+\param dt Time step
+\param massMatrix Mass matrix to use (should be 3 or 4)
+\param *pTv Pointer to triangle vertices
+\param *pVz Pointer to parameter vector
+\param *pDstate Pointer to state difference at vertices
+\param *pTresTot Triangle total residue
+\param *pTn1 Pointer first triangle edge normal
+\param *pTn2 Pointer second triangle edge normal
+\param *pTn3 Pointer third triangle edge normal
 \param *pTl Pointer to triangle edge lengths
 \param nVertex Total number of vertices in Mesh
-\param G Ratio of specific heats*/
+\param G Ratio of specific heats
+\param G1 G - 1
+\param G2 G - 2*/
 //######################################################################
 
 __global__ void
-devCalcTotalResLDA(int nTriangle, const int3* __restrict__ pTv,
-		   const real4* __restrict__ pVz, 
-		   real4 *pTresLDA0, real4 *pTresLDA1, real4 *pTresLDA2,
-		   real4 *pTresTot, const real2 *pTn1, const real2 *pTn2,
-		   const real2 *pTn3, const real3 *pTl,
-		   int nVertex, real G, real G1, real G2)
+devMassMatrixF34Tot(int nTriangle, real dt, int massMatrix,
+		    const int3* __restrict__ pTv,
+		    const real4* __restrict__ pVz, 
+		    const real4* __restrict__ pDstate, 
+		    real4 *pTresTot, const real2 *pTn1, const real2 *pTn2,
+		    const real2 *pTn3, const real3 *pTl,
+		    int nVertex, real G, real G1, real G2)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nTriangle) {
-    CalcTotalResLDASingle(n, pTv, pVz, pTresLDA0, pTresLDA1, pTresLDA2,
-			  pTresTot, pTn1, pTn2, pTn3, pTl, nVertex, G, G1, G2);
+    MassMatrixF34TotSingle(n, dt, massMatrix, pTv, pVz, pDstate,
+			   pTresTot, pTn1, pTn2, pTn3, pTl,
+			   nVertex, G, G1, G2);
     
     // Next triangle
     n += blockDim.x*gridDim.x;
@@ -854,46 +799,16 @@ devCalcTotalResLDA(int nTriangle, const int3* __restrict__ pTv,
 }
   
 //######################################################################
-/*! Calculate space-time LDA residue for all triangles; result in \a triangleResidueLDA.*/
+/*! Calculate mass matrix contribution F3/F4 to total residual.*/
 //######################################################################
 
-void Simulation::CalcTotalResLDA()
+void Simulation::MassMatrixF34Tot(real dt, int massMatrix)
 {
-#ifdef TIME_ASTRIX
-  cudaEvent_t start, stop;
-  float elapsedTime = 0.0f;
-  cudaEventCreate(&start);
-  cudaEventCreate(&stop);
-#endif
-
-  int transformFlag = 0;
-  if (transformFlag == 1) {
-    mesh->Transform();
-    if (cudaFlag == 0) {
-      vertexParameterVector->TransformToDevice();
-
-      triangleResidueTotal->TransformToDevice();
-      triangleResidueLDA->TransformToDevice();
-      
-      cudaFlag = 1;
-    } else {
-      vertexParameterVector->TransformToHost();
-
-      triangleResidueTotal->TransformToHost();
-      triangleResidueLDA->TransformToHost();
-      
-      cudaFlag = 0;
-    }
-  }
-      
   int nTriangle = mesh->GetNTriangle();
   int nVertex = mesh->GetNVertex();
 
   real4 *pVz = vertexParameterVector->GetPointer();
-  
-  real4 *pTresLDA0 = triangleResidueLDA->GetPointer(0);
-  real4 *pTresLDA1 = triangleResidueLDA->GetPointer(1);
-  real4 *pTresLDA2 = triangleResidueLDA->GetPointer(2);
+  real4 *pDstate = vertexStateDiff->GetPointer();
   
   real4 *pTresTot = triangleResidueTotal->GetPointer();
   
@@ -909,68 +824,26 @@ void Simulation::CalcTotalResLDA()
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devCalcTotalResLDA, 
+				       devMassMatrixF34Tot, 
 				       (size_t) 0, 0);
 
-#ifdef TIME_ASTRIX
-    cudaEventRecord(start, 0);
-#endif
-    devCalcTotalResLDA<<<nBlocks, nThreads>>>
-      (nTriangle, pTv, pVz,
-       pTresLDA0, pTresLDA1, pTresLDA2, pTresTot,
-       pTn1, pTn2, pTn3, pTl, nVertex, 
+    devMassMatrixF34Tot<<<nBlocks, nThreads>>>
+      (nTriangle, dt, massMatrix, pTv, pVz, pDstate,
+       pTresTot, pTn1, pTn2, pTn3, pTl, nVertex, 
        specificHeatRatio, 
        specificHeatRatio - 1.0,
        specificHeatRatio - 2.0);
-#ifdef TIME_ASTRIX
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
-#endif
     
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
 
   } else {
-#ifdef TIME_ASTRIX
-    cudaEventRecord(start, 0);
-#endif
     for (int n = 0; n < nTriangle; n++) 
-      CalcTotalResLDASingle(n, pTv, pVz,
-			    pTresLDA0, pTresLDA1, pTresLDA2, pTresTot,
-			    pTn1, pTn2, pTn3, pTl, nVertex, 
-			    specificHeatRatio, specificHeatRatio - 1.0,
-			    specificHeatRatio - 2.0);
-#ifdef TIME_ASTRIX
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
-#endif
-  }
-  
-#ifdef TIME_ASTRIX
-  cudaEventElapsedTime(&elapsedTime, start, stop);
-  std::cout << "Kernel: devCalcTotalResII, # of elements: "
-	    << nTriangle << ", elapsed time: " << elapsedTime << std::endl;
-#endif
-  
-  if (transformFlag == 1) {
-    mesh->Transform();
-    if (cudaFlag == 0) {
-      vertexParameterVector->TransformToDevice();
-
-      triangleResidueTotal->TransformToDevice();
-      triangleResidueLDA->TransformToDevice();
-      
-      cudaFlag = 1;
-    } else {
-      vertexParameterVector->TransformToHost();
-
-      triangleResidueTotal->TransformToHost();
-      triangleResidueLDA->TransformToHost();
-      
-      cudaFlag = 0;
-    }
+      MassMatrixF34TotSingle(n, dt, massMatrix, pTv, pVz, pDstate,
+			     pTresTot, pTn1, pTn2, pTn3, pTl, nVertex, 
+			     specificHeatRatio, specificHeatRatio - 1.0,
+			     specificHeatRatio - 2.0);
   }
 }
-
 
 }
