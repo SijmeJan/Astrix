@@ -45,6 +45,12 @@ void CalcParamVecSingle(int n, real4 *pState, real4 *pVz, real G1)
   pVz[n].w = d*(ener + p)/dens;
 }
 
+__host__ __device__
+void CalcParamVecSingle(int n, real *pState, real *pVz, real G1)
+{
+  pVz[n] = pState[n];
+}
+
 //######################################################################
 /*! \brief Kernel to calculate Roe's parameter vector at all vertices. 
 
@@ -57,7 +63,7 @@ This kernel function calculates Roe's parameter vector Z for all vertices in the
 //######################################################################
 
 __global__ void 
-devCalcParamVec(int nVertex, real4 *pState, real4 *pVz, real G1)
+devCalcParamVec(int nVertex, realNeq *pState, realNeq *pVz, real G1)
 {
   // n=vertex number
   int n = blockIdx.x*blockDim.x + threadIdx.x; 
@@ -79,13 +85,13 @@ void Simulation::CalculateParameterVector(int useOldFlag)
 {
   int nVertex = mesh->GetNVertex();
 
-  real4 *pState = vertexState->GetPointer();
+  realNeq *pState = vertexState->GetPointer();
   
   // Use old state
   if (useOldFlag == 1) 
     pState = vertexStateOld->GetPointer();
   
-  real4 *pVz = vertexParameterVector->GetPointer();
+  realNeq *pVz = vertexParameterVector->GetPointer();
 
   if (cudaFlag == 1) {
     int nThreads = 128;

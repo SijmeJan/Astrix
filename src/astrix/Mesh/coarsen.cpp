@@ -24,7 +24,7 @@ namespace astrix {
 \param nTimeStep Number of time steps taken so far. Used in combination with \a nStepSkipCoarsen to possibly avoid coarsening every timestep*/
 //#########################################################################
 
-int Mesh::RemoveVertices(Array<real4> *vertexState,
+int Mesh::RemoveVertices(Array<realNeq> *vertexState,
 			 real specificHeatRatio, int nTimeStep)
 {
   // Return if skipping this time step

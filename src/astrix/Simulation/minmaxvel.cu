@@ -44,6 +44,15 @@ void FillMinMaxVelocitySingle(unsigned int i, real4 *pState,
   pMaxVel[i] = vMax;
 }
 
+__host__ __device__
+void FillMinMaxVelocitySingle(unsigned int i, real *pState, 
+			      real *pMinVel, real *pMaxVel)
+{
+  // Output
+  pMinVel[i] = (real) 1.0;
+  pMaxVel[i] = (real) 1.0;
+}
+
 //#########################################################################
 /*! \brief Fill minimum/maximum velocity arrays
 
@@ -54,7 +63,7 @@ void FillMinMaxVelocitySingle(unsigned int i, real4 *pState,
 //#########################################################################
 
 __global__ void 
-devFillMinMaxVelocity(unsigned int nVertex, real4 *pState, 
+devFillMinMaxVelocity(unsigned int nVertex, realNeq *pState, 
 		      real *pMinVel, real *pMaxVel)
 {
   unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
@@ -78,7 +87,7 @@ void Simulation::FindMinMaxVelocity(real& minVel, real& maxVel)
   unsigned int nVertex = mesh->GetNVertex();
   
   // State at vertices
-  real4 *pState = vertexState->GetPointer(); 
+  realNeq *pState = vertexState->GetPointer(); 
 
   // Arrays containing minimum/maximum velocity for each vertex
   Array<real> *minVelocity = new Array<real>(1, cudaFlag, nVertex);

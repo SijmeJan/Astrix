@@ -10,9 +10,6 @@
 #include "../../Device/device.h"
 
 namespace astrix {
-
-int nPredicatesFast = 0;
-int nPredicatesSlow = 0;
   
 real* Predicates::GetParamPointer(int cudaFlag) const
 {

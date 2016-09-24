@@ -477,7 +477,7 @@ void Coarsen::Remove(Connectivity *connectivity,
 		     Array<int> *vertexTriangleList,
 		     int maxTriPerVert,
 		     Array<int> *triangleTarget,
-		     Array<real4> *vertexState)
+		     Array<realNeq> *vertexState)
 {
   int transformFlag = 0;
 

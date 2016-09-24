@@ -133,7 +133,7 @@ Simulation/energy.o: Simulation/energy.cu Common/definitions.h Mesh/mesh.h Simul
 Simulation/boundary_riemann.o: Simulation/boundary_riemann.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
 Simulation/boundary_nonreflect.o: Simulation/boundary_nonreflect.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
 Simulation/boundary_reflect.o: Simulation/boundary_reflect.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
-Simulation/boundary_extrapolate.o: Simulation/boundary_extrapolate.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
+Simulation/boundary_extrapolate.o: Simulation/boundary_extrapolate.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h Common/helper_math.h
 
 Simulation/blend.o: ALL_CCFLAGS += -maxrregcount=32
 Simulation/blend.o: Simulation/blend.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h
@@ -207,7 +207,7 @@ Mesh/Refine/findtriangles.o: Mesh/Refine/findtriangles.cu Common/definitions.h M
 Mesh/Refine/flagsegment.o: Mesh/Refine/flagsegment.cu Common/definitions.h Mesh/Refine/refine.h Array/array.h Common/cudaLow.h Mesh/Connectivity/connectivity.h 
 Mesh/Refine/improve.o: Mesh/Refine/improve.cpp Array/array.h Common/definitions.h Mesh/Refine/refine.h Common/nvtxEvent.h Mesh/Morton/morton.h Mesh/Delaunay/delaunay.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
 Mesh/Refine/insert.o: Mesh/Refine/insert.cu Common/definitions.h Mesh/Refine/refine.h Array/array.h Mesh/Predicates/predicates.h Common/cudaLow.h Common/nvtxEvent.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-Mesh/Refine/interpolatestate.o: Mesh/Refine/interpolatestate.cu Common/definitions.h Mesh/Refine/refine.h Array/array.h Common/cudaLow.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
+Mesh/Refine/interpolatestate.o: Mesh/Refine/interpolatestate.cu Common/definitions.h Mesh/Refine/refine.h Array/array.h Common/cudaLow.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h Common/helper_math.h
 Mesh/Refine/refine.o: Mesh/Refine/refine.cpp Array/array.h Common/definitions.h Mesh/Refine/refine.h Common/nvtxEvent.h Mesh/Morton/morton.h Mesh/Delaunay/delaunay.h
 Mesh/Refine/splitsegment.o: Mesh/Refine/splitsegment.cpp Common/definitions.h Mesh/Refine/refine.h Array/array.h Common/cudaLow.h Common/nvtxEvent.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
 Mesh/Refine/testencroach.o: ALL_CCFLAGS += -maxrregcount=52

@@ -27,7 +27,7 @@ class Refine
 		     const Predicates *predicates,
 		     Morton * const morton,
 		     Delaunay * const delaunay,
-		     Array<real4> * const vertexState,
+		     Array<realNeq> * const vertexState,
 		     const real specificHeatRatio,
 		     Array<int> * const triangleWantRefine);
 
@@ -91,19 +91,19 @@ class Refine
   void InsertVertices(Connectivity * const connectivity,
 		      const MeshParameter *meshParameter,
 		      const Predicates *predicates,
-		      Array<real4> * const vertexState,
+		      Array<realNeq> * const vertexState,
 		      Array<int> * const triangleWantRefine);
   //! Interpolate state at new vertices
   void InterpolateState(Connectivity * const connectivity,
 			const MeshParameter *meshParameter,
-			Array<real4> * const vertexState,
+			Array<realNeq> * const vertexState,
 			Array<int> * const triangleWantRefine,
 			const real specificHeatRatio);
   //! Split any additional segments
   void SplitSegment(Connectivity * const connectivity,
 		    const MeshParameter *meshParameter,
 		    const Predicates *predicates,
-		    Array<real4> * const vertexState,
+		    Array<realNeq> * const vertexState,
 		    Array<int> * const triangleWantRefine,
 		    const real specificHeatRatio,
 		    const int nTriangleOld);

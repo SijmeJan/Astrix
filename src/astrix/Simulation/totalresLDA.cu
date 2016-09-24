@@ -10,8 +10,6 @@
 #include "../Common/cudaLow.h"
 #include "../Common/inlineMath.h"
 
-//#define TEMP
-
 namespace astrix {
 
 //######################################################################
@@ -64,7 +62,7 @@ void CalcTotalResLDASingle(int n,
   real Zv01 = pVz[vs1].y;
   real Zv02 = pVz[vs1].z;
   real Zv03 = pVz[vs1].w;
-  real Zv10 = pVz[vs2].z;
+  real Zv10 = pVz[vs2].x;
   real Zv11 = pVz[vs2].y;
   real Zv12 = pVz[vs2].z;
   real Zv13 = pVz[vs2].w;
@@ -484,11 +482,7 @@ void CalcTotalResLDASingle(int n,
   kp = G1*l1l2l3*Sq(invCtilde);
   ResLDA -= kp*Wtilde3;
 
-#ifdef TEMP
-  pTresLDA0[n].x = 0.5*pTresLDA0[n].x + ResLDA;
-#else
   pTresLDA0[n].x = ResLDA;
-#endif
   
   // kp010
   kp = absvtc*(uoverc*l1l2l3 + nx*l1l2) -
@@ -509,11 +503,7 @@ void CalcTotalResLDASingle(int n,
   kp = G1*(uoverc*l1l2l3 + nx*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
   
-#ifdef TEMP
-  pTresLDA0[n].y = 0.5*pTresLDA0[n].y + ResLDA;
-#else
   pTresLDA0[n].y = ResLDA;
-#endif
   
   // kp020
   kp = absvtc*(voverc*l1l2l3 + ny*l1l2) - 
@@ -534,11 +524,7 @@ void CalcTotalResLDASingle(int n,
   kp = G1*(voverc*l1l2l3 + ny*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
   
-#ifdef TEMP
-  pTresLDA0[n].z = 0.5*pTresLDA0[n].z + ResLDA;
-#else
   pTresLDA0[n].z = ResLDA;
-#endif
   
   // kp030
   kp = absvtc*(wtilde*l1l2 + hoverc*l1l2l3) -
@@ -559,11 +545,7 @@ void CalcTotalResLDASingle(int n,
   kp = G1*invCtilde*(hoverc*l1l2l3 + wtilde*l1l2) + l3;
   ResLDA -= kp*Wtilde3;
   
-#ifdef TEMP
-  pTresLDA0[n].w = 0.5*pTresLDA0[n].w + ResLDA;
-#else
   pTresLDA0[n].w = ResLDA;
-#endif
   
   real Tnx2 = pTn2[n].x;
   real Tny2 = pTn2[n].y;
@@ -601,11 +583,7 @@ void CalcTotalResLDASingle(int n,
   kp = G1*l1l2l3*Sq(invCtilde);
   ResLDA -= kp*Wtilde3;
   
-#ifdef TEMP
-  pTresLDA1[n].x = 0.5*pTresLDA1[n].x + ResLDA;
-#else
   pTresLDA1[n].x = ResLDA;
-#endif
   
   // kp110
   kp = absvtc*(uoverc*l1l2l3 + nx*l1l2) -
@@ -626,11 +604,7 @@ void CalcTotalResLDASingle(int n,
   kp = G1*(uoverc*l1l2l3 + nx*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
   
-#ifdef TEMP
-  pTresLDA1[n].y = 0.5*pTresLDA1[n].y + ResLDA;
-#else
   pTresLDA1[n].y = ResLDA;
-#endif
   
   // kp120
   kp = absvtc*(voverc*l1l2l3 + ny*l1l2) - 
@@ -651,11 +625,7 @@ void CalcTotalResLDASingle(int n,
   kp = G1*(voverc*l1l2l3 + ny*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
   
-#ifdef TEMP
-  pTresLDA1[n].z = 0.5*pTresLDA1[n].z + ResLDA;
-#else
   pTresLDA1[n].z = ResLDA;
-#endif
   
   // kp130
   kp = absvtc*(wtilde*l1l2 + hoverc*l1l2l3) -
@@ -676,11 +646,7 @@ void CalcTotalResLDASingle(int n,
   kp = G1*invCtilde*(hoverc*l1l2l3 + wtilde*l1l2) + l3;
   ResLDA -= kp*Wtilde3;
   
-#ifdef TEMP
-  pTresLDA1[n].w = 0.5*pTresLDA1[n].w + ResLDA;
-#else
   pTresLDA1[n].w = ResLDA;
-#endif
   
   real Tnx3 = pTn3[n].x;
   real Tny3 = pTn3[n].y;
@@ -718,11 +684,7 @@ void CalcTotalResLDASingle(int n,
   kp = G1*l1l2l3*Sq(invCtilde);
   ResLDA -= kp*Wtilde3;
   
-#ifdef TEMP
-  pTresLDA2[n].x = 0.5*pTresLDA2[n].x + ResLDA;
-#else
   pTresLDA2[n].x = ResLDA;
-#endif
   
   // kp210
   kp = absvtc*(uoverc*l1l2l3 + nx*l1l2) -
@@ -743,11 +705,7 @@ void CalcTotalResLDASingle(int n,
   kp = G1*(uoverc*l1l2l3 + nx*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
   
-#ifdef TEMP
-  pTresLDA2[n].y = 0.5*pTresLDA2[n].y + ResLDA;
-#else
   pTresLDA2[n].y = ResLDA;
-#endif
   
   // kp220
   kp = absvtc*(voverc*l1l2l3 + ny*l1l2) - 
@@ -768,11 +726,7 @@ void CalcTotalResLDASingle(int n,
   kp = G1*(voverc*l1l2l3 + ny*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
   
-#ifdef TEMP
-  pTresLDA2[n].z = 0.5*pTresLDA2[n].z + ResLDA;
-#else
   pTresLDA2[n].z = ResLDA;
-#endif
   
   // kp230
   kp = absvtc*(wtilde*l1l2 + hoverc*l1l2l3) -
@@ -793,13 +747,118 @@ void CalcTotalResLDASingle(int n,
   kp = G1*invCtilde*(hoverc*l1l2l3 + wtilde*l1l2) + l3;
   ResLDA -= kp*Wtilde3;
   
-#ifdef TEMP
-  pTresLDA2[n].w = 0.5*pTresLDA2[n].w + ResLDA;
-#else
   pTresLDA2[n].w = ResLDA;
-#endif
 }
+
+__host__ __device__
+void CalcTotalResLDASingle(int n,  
+			   const int3* __restrict__ pTv,
+			   const real* __restrict__ pVz, 
+			   real *pTresLDA0, real *pTresLDA1, 
+			   real *pTresLDA2, real *pTresTot,
+			   const real2 *pTn1, const real2 *pTn2,
+			   const real2 *pTn3, const real3 *pTl, int nVertex, 
+			   real G, real G1, real G2)
+{
+  const real zero  = (real) 0.0;
+  //const real onethird = (real) (1.0/3.0);
+  const real half  = (real) 0.5;
+  const real one = (real) 1.0;
+
+  int vs1 = pTv[n].x;
+  int vs2 = pTv[n].y;
+  int vs3 = pTv[n].z;
+  while (vs1 >= nVertex) vs1 -= nVertex;
+  while (vs2 >= nVertex) vs2 -= nVertex;
+  while (vs3 >= nVertex) vs3 -= nVertex;
+  while (vs1 < 0) vs1 += nVertex;
+  while (vs2 < 0) vs2 += nVertex;
+  while (vs3 < 0) vs3 += nVertex;
+
+  // Parameter vector at vertices: 12 uncoalesced loads
+  //real Zv0 = pVz[vs1];
+  //real Zv1 = pVz[vs2];
+  //real Zv2 = pVz[vs3];
+
+  // Average parameter vector
+  //real Z0 = (Zv0 + Zv1 + Zv2)*onethird;
+
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  // Calculate Wtemp = Sum(K-*What)
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+  // Triangle edge lengths
+  real tl1 = pTl[n].x;
+  real tl2 = pTl[n].y;
+  real tl3 = pTl[n].z;
+
+  real tnx1 = pTn1[n].x;
+  //real tny1 = pTn1[n].y;
+
+  // First direction
+  real nx = half*tnx1;
+  //real ny = half*tny1;
+  real tl = tl1;
   
+  real l1 = min(zero, nx);  
+  real nm = tl*l1;
+
+  // Second direction         
+  real tnx2 = pTn2[n].x;
+  //real tny2 = pTn2[n].y;
+  nx = half*tnx2;
+  //ny = half*tny2;
+  tl = tl2;
+  
+  l1 = min(zero, nx);
+  nm += tl*l1;
+
+  // Third direction
+  real tnx3 = pTn3[n].x;
+  //real tny3 = pTn3[n].y;
+
+  nx = half*tnx3;
+  //ny = half*tny3;
+  tl = tl3;
+  
+  l1 = min(zero, nx);
+  nm += tl*l1;
+
+  real invN = one/nm;
+  
+  real Wtilde = invN*pTresTot[n];
+ 
+  // First direction
+  real Tnx1 = pTn1[n].x;
+  //real Tny1 = pTn1[n].y;
+
+  nx = half*Tnx1;
+  //ny = half*Tny1;
+
+  l1 = half*(nx + fabs(nx));
+  pTresLDA0[n] = -l1*Wtilde;
+  
+  // Second direction
+  real Tnx2 = pTn2[n].x;
+  //real Tny2 = pTn2[n].y;
+
+  nx = half*Tnx2;
+  //ny = half*Tny2;
+  
+  l1 = half*(nx + fabs(nx));
+  pTresLDA1[n] = -l1*Wtilde;
+  
+  // Third direction
+  real Tnx3 = pTn3[n].x;
+  //real Tny3 = pTn3[n].y;
+
+  nx = half*Tnx3;
+  //ny = half*Tny3;
+
+  l1 = half*(nx + fabs(nx));
+  pTresLDA2[n] = -l1*Wtilde;
+}
+
 //######################################################################
 /*! \brief Kernel calculating space-time LDA residue for all triangles
 
@@ -836,9 +895,9 @@ void CalcTotalResLDASingle(int n,
 
 __global__ void
 devCalcTotalResLDA(int nTriangle, const int3* __restrict__ pTv,
-		   const real4* __restrict__ pVz, 
-		   real4 *pTresLDA0, real4 *pTresLDA1, real4 *pTresLDA2,
-		   real4 *pTresTot, const real2 *pTn1, const real2 *pTn2,
+		   const realNeq* __restrict__ pVz, 
+		   realNeq *pTresLDA0, realNeq *pTresLDA1, realNeq *pTresLDA2,
+		   realNeq *pTresTot, const real2 *pTn1, const real2 *pTn2,
 		   const real2 *pTn3, const real3 *pTl,
 		   int nVertex, real G, real G1, real G2)
 {
@@ -889,13 +948,13 @@ void Simulation::CalcTotalResLDA()
   int nTriangle = mesh->GetNTriangle();
   int nVertex = mesh->GetNVertex();
 
-  real4 *pVz = vertexParameterVector->GetPointer();
+  realNeq *pVz = vertexParameterVector->GetPointer();
   
-  real4 *pTresLDA0 = triangleResidueLDA->GetPointer(0);
-  real4 *pTresLDA1 = triangleResidueLDA->GetPointer(1);
-  real4 *pTresLDA2 = triangleResidueLDA->GetPointer(2);
+  realNeq *pTresLDA0 = triangleResidueLDA->GetPointer(0);
+  realNeq *pTresLDA1 = triangleResidueLDA->GetPointer(1);
+  realNeq *pTresLDA2 = triangleResidueLDA->GetPointer(2);
   
-  real4 *pTresTot = triangleResidueTotal->GetPointer();
+  realNeq *pTresTot = triangleResidueTotal->GetPointer();
   
   const int3 *pTv = mesh->TriangleVerticesData();
   const real2 *pTn1 = mesh->TriangleEdgeNormalsData(0);

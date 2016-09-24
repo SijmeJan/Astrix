@@ -25,6 +25,31 @@ namespace astrix {
 
 __host__ __device__
 void CalcBlendSingle(int n, const real3* __restrict__ pTl, 
+		     real *pTresN0, real *pTresN1, real *pTresN2,
+		     real *pTres, real *pBlend)
+{
+  real small = (real) 1.0e-6;
+
+  // Triangle edge lengths
+  real tl1 = pTl[n].x;
+  real tl2 = pTl[n].y;
+  real tl3 = pTl[n].z;
+
+  // Total residual
+  real tTot = pTres[n];
+
+  // N residuals
+  real tN0 = pTresN0[n];
+  real tN1 = pTresN1[n];
+  real tN2 = pTresN2[n];
+
+  // Calculate blend parameter
+  pBlend[n] = fabs(tTot)/
+    (fabs(tN0)*tl1 + fabs(tN1)*tl2 + fabs(tN2)*tl3 + small);
+}
+
+__host__ __device__
+void CalcBlendSingle(int n, const real3* __restrict__ pTl, 
 		     real4 *pTresN0, real4 *pTresN1, real4 *pTresN2,
 		     real4 *pTres, real4 *pBlend)
 {
@@ -67,7 +92,7 @@ void CalcBlendSingle(int n, const real3* __restrict__ pTl,
   pBlend[n].w = fabs(tTot3)/
     (fabs(tN03)*tl1 + fabs(tN13)*tl2 + fabs(tN23)*tl3 + small);
 }
-  
+
 //######################################################################
 /*! \brief Kernel calculating blend parameter for all triangles
 
@@ -83,8 +108,8 @@ void CalcBlendSingle(int n, const real3* __restrict__ pTl,
 
 __global__ void 
 devCalcBlendFactor(int nTriangle, const real3* __restrict__ pTl, 
-		   real4 *pTresN0, real4 *pTresN1, real4 *pTresN2,
-		   real4 *pTres, real4 *pBlend)
+		   realNeq *pTresN0, realNeq *pTresN1, realNeq *pTresN2,
+		   realNeq *pTres, realNeq *pBlend)
 {
   // n=vertex number
   int n = blockIdx.x*blockDim.x + threadIdx.x; 
@@ -105,15 +130,15 @@ void Simulation::CalcBlend()
   int nTriangle = mesh->GetNTriangle();
 
   // N residuals
-  real4 *pTresN0 = triangleResidueN->GetPointer(0);
-  real4 *pTresN1 = triangleResidueN->GetPointer(1);
-  real4 *pTresN2 = triangleResidueN->GetPointer(2);
+  realNeq *pTresN0 = triangleResidueN->GetPointer(0);
+  realNeq *pTresN1 = triangleResidueN->GetPointer(1);
+  realNeq *pTresN2 = triangleResidueN->GetPointer(2);
 
   // Total residual
-  real4 *pTres = triangleResidueTotal->GetPointer();
+  realNeq *pTres = triangleResidueTotal->GetPointer();
 
   // Blend parameter (output)
-  real4 *pBlend = triangleBlendFactor->GetPointer();
+  realNeq *pBlend = triangleBlendFactor->GetPointer();
 
   // Triangle edge lengths
   const real3 *pTl = mesh->TriangleEdgeLengthData();

@@ -8,6 +8,7 @@
 #include "../Mesh/mesh.h"
 #include "../Common/cudaLow.h"
 #include "../Common/inlineMath.h"
+#include "../Common/helper_math.h"
 
 namespace astrix {
 
@@ -25,7 +26,7 @@ If triangle has exactly one vertex on the boundary, we extrapolate the state to 
 
 __host__ __device__
 void ExtrapolateSingle(int n, const int3 *pTv, const real2 *pVc,
-		       const int *pVbf, real4 *pState)
+		       const int *pVbf, realNeq *pState)
 {
   int a = pTv[n].x;
   int b = pTv[n].y;
@@ -46,10 +47,7 @@ void ExtrapolateSingle(int n, const int3 *pTv, const real2 *pVc,
 	real f2 =
 	  fabs(pVc[v2].y - pVc[v0].y)/fabs(pVc[v2].y - pVc[v1].y);
 
-	pState[v0].x = f1*pState[v2].x + f2*pState[v1].x;	
-	pState[v0].y = f1*pState[v2].y + f2*pState[v1].y;	
-	pState[v0].z = f1*pState[v2].z + f2*pState[v1].z;	
-	pState[v0].w = f1*pState[v2].w + f2*pState[v1].w;	
+	pState[v0] = f1*pState[v2] + f2*pState[v1];	
       }
     }
   }
@@ -68,10 +66,7 @@ void ExtrapolateSingle(int n, const int3 *pTv, const real2 *pVc,
 	real f2 =
 	  fabs(pVc[v2].y - pVc[v0].y)/fabs(pVc[v2].y - pVc[v1].y);
 	
-	pState[v0].x = f1*pState[v2].x + f2*pState[v1].x;	
-	pState[v0].y = f1*pState[v2].y + f2*pState[v1].y;	
-	pState[v0].z = f1*pState[v2].z + f2*pState[v1].z;	
-	pState[v0].w = f1*pState[v2].w + f2*pState[v1].w;	
+	pState[v0] = f1*pState[v2] + f2*pState[v1];	
       }
     }
   }
@@ -90,10 +85,7 @@ void ExtrapolateSingle(int n, const int3 *pTv, const real2 *pVc,
 	real f2 =
 	  fabs(pVc[v2].y - pVc[v0].y)/fabs(pVc[v2].y - pVc[v1].y);
 	
-	pState[v0].x = f1*pState[v2].x + f2*pState[v1].x;	
-	pState[v0].y = f1*pState[v2].y + f2*pState[v1].y;	
-	pState[v0].z = f1*pState[v2].z + f2*pState[v1].z;	
-	pState[v0].w = f1*pState[v2].w + f2*pState[v1].w;	
+	pState[v0] = f1*pState[v2] + f2*pState[v1];	
       }
     }
   }
@@ -112,10 +104,7 @@ void ExtrapolateSingle(int n, const int3 *pTv, const real2 *pVc,
 	real f2 =
 	  fabs(pVc[v2].x - pVc[v0].x)/fabs(pVc[v2].x - pVc[v1].x);
 	
-	pState[v0].x = f1*pState[v2].x + f2*pState[v1].x;	
-	pState[v0].y = f1*pState[v2].y + f2*pState[v1].y;	
-	pState[v0].z = f1*pState[v2].z + f2*pState[v1].z;	
-	pState[v0].w = f1*pState[v2].w + f2*pState[v1].w;	
+	pState[v0] = f1*pState[v2] + f2*pState[v1];	
      }
     }
   }
@@ -132,10 +121,7 @@ void ExtrapolateSingle(int n, const int3 *pTv, const real2 *pVc,
 	real f1 = fabs(pVc[v1].x - pVc[v0].x)/fabs(pVc[v2].x - pVc[v1].x);
 	real f2 = fabs(pVc[v2].x - pVc[v0].x)/fabs(pVc[v2].x - pVc[v1].x);
 	
-	pState[v0].x = f1*pState[v2].x + f2*pState[v1].x;	
-	pState[v0].y = f1*pState[v2].y + f2*pState[v1].y;	
-	pState[v0].z = f1*pState[v2].z + f2*pState[v1].z;	
-	pState[v0].w = f1*pState[v2].w + f2*pState[v1].w;	
+	pState[v0] = f1*pState[v2] + f2*pState[v1];	
       }
     }
   }
@@ -152,15 +138,12 @@ void ExtrapolateSingle(int n, const int3 *pTv, const real2 *pVc,
 	real f1 = fabs(pVc[v1].x - pVc[v0].x)/fabs(pVc[v2].x - pVc[v1].x);
 	real f2 = fabs(pVc[v2].x - pVc[v0].x)/fabs(pVc[v2].x - pVc[v1].x);
 	
-	pState[v0].x = f1*pState[v2].x + f2*pState[v1].x;	
-	pState[v0].y = f1*pState[v2].y + f2*pState[v1].y;	
-	pState[v0].z = f1*pState[v2].z + f2*pState[v1].z;	
-	pState[v0].w = f1*pState[v2].w + f2*pState[v1].w;	
+	pState[v0] = f1*pState[v2] + f2*pState[v1];	
       }
     }
   }
 }
-  
+
 //######################################################################
 /*! \brief Kernel for setting boundaries through extrapolation
 
@@ -175,7 +158,7 @@ If a triangle has exactly one vertex on the boundary, we extrapolate the state t
 
 __global__ void
 devExtrapolateBoundaries(int nTriangle, const int3 *pTv, const real2 *pVc,
-			 const int *pVbf, real4 *pState)
+			 const int *pVbf, realNeq *pState)
 {
   // n=triangle number
   int n = blockIdx.x*blockDim.x + threadIdx.x;
@@ -196,6 +179,17 @@ When extrapolating, the corners of the mesh need special attention. In this func
 \param *pState Pointer to state vector*/
 //######################################################################
 
+__host__ __device__
+void SetCornersToZero(int n, const int *pVbf, real *pState)
+{
+  if (pVbf[n] == 5 ||
+      pVbf[n] == 6 ||
+      pVbf[n] == 9 ||
+      pVbf[n] == 10) {
+    pState[n] = (real) 0.0;
+  }
+}
+  
 __host__ __device__
 void SetCornersToZero(int n, const int *pVbf, real4 *pState)
 {
@@ -223,7 +217,7 @@ When extrapolating, the corners of the mesh need special attention. In this func
 //######################################################################
   
 __global__ void
-devSetCornersToZero(int nVertex, const int *pVbf, real4 *pState)
+devSetCornersToZero(int nVertex, const int *pVbf, realNeq *pState)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -247,7 +241,7 @@ The state has been set to zero in the corners previously. Now extrapolate the st
   
 __host__ __device__
 void ExtrapolateCorners(int n, const int *pVbf,
-			const int3* __restrict__ pTv, real4 *pState)
+			const int3* __restrict__ pTv, realNeq *pState)
 {
   const real half = (real) 0.5;
 
@@ -262,18 +256,8 @@ void ExtrapolateCorners(int n, const int *pVbf,
       pVbf[v1] == 10) {
     int v2 = b;
     int v3 = c;
-    if (pVbf[v2] != 0) {
-      pState[v1].x += half*pState[v2].x;
-      pState[v1].y += half*pState[v2].y;
-      pState[v1].z += half*pState[v2].z;
-      pState[v1].w += half*pState[v2].w;
-    }
-    if (pVbf[v3] != 0) {
-      pState[v1].x += half*pState[v3].x;
-      pState[v1].y += half*pState[v3].y;
-      pState[v1].z += half*pState[v3].z;
-      pState[v1].w += half*pState[v3].w;
-    }	
+    if (pVbf[v2] != 0) pState[v1] += half*pState[v2];
+    if (pVbf[v3] != 0) pState[v1] += half*pState[v3];
   }
   v1 = b;
   if (pVbf[v1] == 5 ||
@@ -282,18 +266,8 @@ void ExtrapolateCorners(int n, const int *pVbf,
       pVbf[v1] == 10) {
     int v2 = a;
     int v3 = c;
-    if (pVbf[v2] != 0) {
-      pState[v1].x += half*pState[v2].x;
-      pState[v1].y += half*pState[v2].y;
-      pState[v1].z += half*pState[v2].z;
-      pState[v1].w += half*pState[v2].w;
-    }
-    if (pVbf[v3] != 0) {
-      pState[v1].x += half*pState[v3].x;
-      pState[v1].y += half*pState[v3].y;
-      pState[v1].z += half*pState[v3].z;
-      pState[v1].w += half*pState[v3].w;
-    }	
+    if (pVbf[v2] != 0) pState[v1] += half*pState[v2];
+    if (pVbf[v3] != 0) pState[v1] += half*pState[v3];
   }
   v1 = c;
   if (pVbf[v1] == 5 ||
@@ -302,18 +276,8 @@ void ExtrapolateCorners(int n, const int *pVbf,
       pVbf[v1] == 10) {
     int v2 = a;
     int v3 = b;
-    if (pVbf[v2] != 0) {
-      pState[v1].x += half*pState[v2].x;
-      pState[v1].y += half*pState[v2].y;
-      pState[v1].z += half*pState[v2].z;
-      pState[v1].w += half*pState[v2].w;
-    }
-    if (pVbf[v3] != 0) {
-      pState[v1].x += half*pState[v3].x;
-      pState[v1].y += half*pState[v3].y;
-      pState[v1].z += half*pState[v3].z;
-      pState[v1].w += half*pState[v3].w;
-    }	
+    if (pVbf[v2] != 0) pState[v1] += half*pState[v2];
+    if (pVbf[v3] != 0) pState[v1] += half*pState[v3];
   }
 }
   
@@ -330,7 +294,7 @@ The state has been set to zero in the corners previously. Now extrapolate the st
 
 __global__ void
 devExtrapolateCorners(int nTriangle, const int *pVbf,
-		      const int3* __restrict__ pTv, real4 *pState)
+		      const int3* __restrict__ pTv, realNeq *pState)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -349,7 +313,7 @@ void Simulation::ExtrapolateBoundaries()
   int nTriangle = mesh->GetNTriangle();
   int nVertex = mesh->GetNVertex();
 
-  real4 *pState = vertexState->GetPointer();
+  realNeq *pState = vertexState->GetPointer();
 
   const real2 *pVc = mesh->VertexCoordinatesData();
   const int3 *pTv = mesh->TriangleVerticesData();

@@ -17,13 +17,12 @@ namespace astrix {
 
 __host__ __device__
 void SelectLumpLDASingle(int n, real dt, int massMatrix, int selectLumpFlag,
-			 const int3* __restrict__ pTv,
-			 real4 *pDstate, real4 *pTresLDA0, real4 *pTresLDA1, 
-			 real4 *pTresLDA2, const real3 *pTl, int nVertex)
+			 const int3* __restrict__ pTv, realNeq *pDstate,
+			 realNeq *pTresLDA0, realNeq *pTresLDA1,
+			 realNeq *pTresLDA2, const real3 *pTl, int nVertex)
 {
   real half = (real) 0.5;
   real three = (real) 3.0;
-  real twelve = (real) 12.0;
 
   real f = (real) 0.0;
   if (selectLumpFlag == 1) f += (real) 1.0/(real) 12.0;
@@ -40,9 +39,9 @@ void SelectLumpLDASingle(int n, real dt, int massMatrix, int selectLumpFlag,
   while (v2 < 0) v2 += nVertex;
   while (v3 < 0) v3 += nVertex;
 
-  real4 dW0 = pDstate[v1];
-  real4 dW1 = pDstate[v2];
-  real4 dW2 = pDstate[v3];
+  realNeq dW0 = pDstate[v1];
+  realNeq dW1 = pDstate[v2];
+  realNeq dW2 = pDstate[v3];
   
   real Tl1 = pTl[n].x;
   real Tl2 = pTl[n].y;
@@ -53,9 +52,9 @@ void SelectLumpLDASingle(int n, real dt, int massMatrix, int selectLumpFlag,
   // |T|/(12*dt)
   real Adt = sqrt(s*(s - Tl1)*(s - Tl2)*(s - Tl3))*f/dt;
 
-  real4 ResLDA0 = (-three*dW0 + dW1 + dW2)*Adt;
-  real4 ResLDA1 = (dW0 - three*dW1 + dW2)*Adt;
-  real4 ResLDA2 = (dW0 + dW1 - three*dW2)*Adt;
+  realNeq ResLDA0 = (-three*dW0 + dW1 + dW2)*Adt;
+  realNeq ResLDA1 = (dW0 - three*dW1 + dW2)*Adt;
+  realNeq ResLDA2 = (dW0 + dW1 - three*dW2)*Adt;
 
   pTresLDA0[n] -= ResLDA0;
   pTresLDA1[n] -= ResLDA1;
@@ -67,8 +66,8 @@ void SelectLumpLDASingle(int n, real dt, int massMatrix, int selectLumpFlag,
 
 __global__ void
 devSelectLumpLDA(int nTriangle, real dt, int massMatrix, int selectLumpFlag,
-		 const int3* __restrict__ pTv, real4 *pDstate,
-		 real4 *pTresLDA0, real4 *pTresLDA1, real4 *pTresLDA2,
+		 const int3* __restrict__ pTv, realNeq *pDstate,
+		 realNeq *pTresLDA0, realNeq *pTresLDA1, realNeq *pTresLDA2,
 		 const real3 *pTl, int nVertex)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
@@ -91,10 +90,10 @@ void Simulation::SelectLumpLDA(real dt, int massMatrix, int selectLumpFlag)
   int nTriangle = mesh->GetNTriangle();
   int nVertex = mesh->GetNVertex();
   
-  real4 *pDstate = vertexStateDiff->GetPointer();
-  real4 *pTresLDA0 = triangleResidueLDA->GetPointer(0);
-  real4 *pTresLDA1 = triangleResidueLDA->GetPointer(1);
-  real4 *pTresLDA2 = triangleResidueLDA->GetPointer(2);
+  realNeq *pDstate = vertexStateDiff->GetPointer();
+  realNeq *pTresLDA0 = triangleResidueLDA->GetPointer(0);
+  realNeq *pTresLDA1 = triangleResidueLDA->GetPointer(1);
+  realNeq *pTresLDA2 = triangleResidueLDA->GetPointer(2);
   
   const int3 *pTv = mesh->TriangleVerticesData();
   const real3 *pTl  = mesh->TriangleEdgeLengthData();

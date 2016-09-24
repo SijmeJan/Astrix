@@ -7,6 +7,7 @@
 //#define TIME_ASTRIX
 
 #define USE_DOUBLE -1
+#define N_EQUATION 1
 
 /*! \namespace astrix
 \brief Namespace encapsulating all of Astrix
@@ -24,7 +25,14 @@ namespace astrix {
   typedef float3 real3;
   typedef float2 real2;
 #endif
-  
+
+#if N_EQUATION == 1
+  typedef real realNeq;
+#endif
+#if N_EQUATION == 4
+  typedef real4 realNeq;
+#endif
+
   //! Problem definitions
   /*! Enumeration of predefined test problems*/
   enum ProblemDefinition {PROBLEM_UNDEFINED, /*!< Undefined, will lead to error*/

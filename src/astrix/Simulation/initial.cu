@@ -119,7 +119,7 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     real xc = zero;
     real yc = zero;
 
-    real beta = five;
+    real beta = two;
     
     real x = vertX;
     real y = vertY;
@@ -427,7 +427,29 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   state[n].z = momy;
   state[n].w = ener;
 }
+
+__host__ __device__
+void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
+		      real *pVpot, real *state, real G)
+{
+  real half = (real) 0.5;
   
+  real vertX = pVc[n].x;
+  real vertY = pVc[n].y;
+
+  real dens = (real) 1.0;
+  
+  if(problemDef == PROBLEM_ADVECT) {
+    real x = vertX;
+    real y = vertY;
+    real r = sqrt(Sq(x - half) + Sq(y - half));
+
+    if (r <= (real) 0.25) dens += Sq(cos(2.0*M_PI*r));
+  }
+
+  state[n] = dens;
+}
+
 //######################################################################
 /*! \brief Kernel setting initial conditions
 
@@ -441,7 +463,7 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
 
 __global__ void 
 devSetInitial(int nVertex, const real2 *pVc, ProblemDefinition problemDef,
-	      real *pVertexPotential, real4 *state, real G)
+	      real *pVertexPotential, realNeq *state, real G)
 {
   // n = vertex number
   int n = blockIdx.x*blockDim.x + threadIdx.x; 
@@ -461,7 +483,7 @@ void Simulation::SetInitial()
 {
   int nVertex = mesh->GetNVertex();
 
-  real4 *state = vertexState->GetPointer();
+  realNeq *state = vertexState->GetPointer();
   real *pVertexPotential = vertexPotential->GetPointer();
   const real2 *pVc = mesh->VertexCoordinatesData();
   

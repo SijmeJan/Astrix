@@ -186,7 +186,16 @@ void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
   AtomicAdd(&(pState[c].z), momyAdjust);
   AtomicAdd(&(pState[d].z), momyAdjust);
 }
-  
+
+__host__ __device__
+void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
+		       int nVertex, real2 *pVc, real *pVarea,
+		       const Predicates *pred, real *pParam,
+		       real Px, real Py, real *pState)
+{
+  // Dummy: not supported for one equation
+}
+
 //######################################################################
 /*! \brief Kernel adjusting state for all edge entries in \a pEnd
 
@@ -209,7 +218,7 @@ __global__ void
 devAdjustState(int nNonDel, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
 	       int nVertex, real2 *pVc, real *pVarea,
 	       const Predicates *pred, real *pParam,
-	       real Px, real Py, real4 *pState)
+	       real Px, real Py, realNeq *pState)
 {
   // i = edge number
   int i = blockIdx.x*blockDim.x + threadIdx.x;
@@ -234,7 +243,7 @@ devAdjustState(int nNonDel, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
 //######################################################################
 
 void Delaunay::AdjustState(Connectivity * const connectivity,
-			   Array<real4> * const vertexState,
+			   Array<realNeq> * const vertexState,
 			   const Predicates *predicates,
 			   const MeshParameter *meshParameter,
 			   const int nNonDel)
@@ -249,7 +258,7 @@ void Delaunay::AdjustState(Connectivity * const connectivity,
   CalcVertexArea(connectivity, meshParameter);
   real *pVarea = vertexArea->GetPointer();
 
-  real4 *pState = vertexState->GetPointer();
+  realNeq *pState = vertexState->GetPointer();
 
   real2 *pVc = connectivity->vertexCoordinates->GetPointer();
   int3 *pTv = connectivity->triangleVertices->GetPointer();

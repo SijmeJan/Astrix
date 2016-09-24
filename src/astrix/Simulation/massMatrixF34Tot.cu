@@ -62,7 +62,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   real dW01 = pDstate[vs1].y;
   real dW02 = pDstate[vs1].z;
   real dW03 = pDstate[vs1].w;
-  real dW10 = pDstate[vs2].z;
+  real dW10 = pDstate[vs2].x;
   real dW11 = pDstate[vs2].y;
   real dW12 = pDstate[vs2].z;
   real dW13 = pDstate[vs2].w;
@@ -90,7 +90,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   real Zv01 = pVz[vs1].y;
   real Zv02 = pVz[vs1].z;
   real Zv03 = pVz[vs1].w;
-  real Zv10 = pVz[vs2].z;
+  real Zv10 = pVz[vs2].x;
   real Zv11 = pVz[vs2].y;
   real Zv12 = pVz[vs2].z;
   real Zv13 = pVz[vs2].w;
@@ -756,7 +756,140 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   
   pTresTot[n].w += ResLDA;
 }
+
+__host__ __device__
+void MassMatrixF34TotSingle(int n, real dt, int massMatrix, 
+			    const int3* __restrict__ pTv,
+			    const real* __restrict__ pVz, 
+			    const real* __restrict__ pDstate, 
+			    real *pTresTot, const real2 *pTn1,
+			    const real2 *pTn2, const real2 *pTn3,
+			    const real3 *pTl, int nVertex,
+			    real G, real G1, real G2)
+{
+  const real zero  = (real) 0.0;
+  const real onethird = (real) (1.0/3.0);
+  const real half  = (real) 0.5;
+
+  int vs1 = pTv[n].x;
+  int vs2 = pTv[n].y;
+  int vs3 = pTv[n].z;
+  while (vs1 >= nVertex) vs1 -= nVertex;
+  while (vs2 >= nVertex) vs2 -= nVertex;
+  while (vs3 >= nVertex) vs3 -= nVertex;
+  while (vs1 < 0) vs1 += nVertex;
+  while (vs2 < 0) vs2 += nVertex;
+  while (vs3 < 0) vs3 += nVertex;
+
+  // State differences
+  real dW0 = pDstate[vs1];
+  real dW1 = pDstate[vs2];
+  real dW2 = pDstate[vs3];
+
+  real tl1 = pTl[n].x;
+  real tl2 = pTl[n].y;
+  real tl3 = pTl[n].z;
+
+  // Calculate triangle area
+  real s = half*(tl1 + tl2 + tl3);
+  real Adt = sqrt(s*(s - tl1)*(s - tl2)*(s - tl3))*onethird/dt;
+  if (massMatrix == 3) Adt = -Adt;
   
+  real resTot = (dW0 + dW1 + dW2)*Adt;
+  
+  // Parameter vector at vertices: 12 uncoalesced loads
+  //real Zv0 = pVz[vs1];
+  //real Zv1 = pVz[vs2];
+  //real Zv2 = pVz[vs3];
+
+  // Average parameter vector
+  //real Z0 = (Zv0 + Zv1 + Zv2)*onethird;
+
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  // Calculate N
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+  real tnx1 = pTn1[n].x;
+  //real tny1 = pTn1[n].y;
+
+  // First direction
+  real nx = half*tnx1;
+  //real ny = half*tny1;
+  real tl = tl1;
+  
+  real l1 = min(zero, nx);
+  real nm = l1*tl;
+    
+  // Second direction         
+  real tnx2 = pTn2[n].x;
+  //real tny2 = pTn2[n].y;
+
+  nx = half*tnx2;
+  //ny = half*tny2;
+  tl = tl2;
+  
+  l1 = min(zero, nx);
+  nm += l1*tl;
+
+  // Third direction
+  real tnx3 = pTn3[n].x;
+  //real tny3 = pTn3[n].y;
+
+  nx = half*tnx3;
+  //ny = half*tny3;
+  tl = tl3;
+  
+  l1 = min(zero, nx);
+  nm += l1*tl;
+
+  real invN = 1.0/nm;
+
+  // Wtilde = N*phi
+  real Wtilde = invN*resTot;
+  real ResLDA;
+  
+  real Tnx1 = pTn1[n].x;
+  //real Tny1 = pTn1[n].y;
+
+  nx = half*Tnx1;
+  //ny = half*Tny1;
+
+  l1 = half*(nx + fabs(nx));
+  ResLDA = -l1*Wtilde;
+
+  pTresTot[n] += ResLDA;
+
+  // Wtilde = N*dW1
+  Wtilde = invN*dW1;
+
+  real Tnx2 = pTn2[n].x;
+  //real Tny2 = pTn2[n].y;
+
+  // Second direction
+  nx = half*Tnx2;
+  //ny = half*Tny2;
+
+  l1 = half*(nx + fabs(nx));
+  ResLDA = -l1*Wtilde;
+
+  pTresTot[n] += ResLDA;
+  
+  // Wtilde = N*dW1
+  Wtilde = invN*dW2;
+
+  real Tnx3 = pTn3[n].x;
+  //real Tny3 = pTn3[n].y;
+
+  // Third direction
+  nx = half*Tnx3;
+  //ny = half*Tny3;
+
+  l1 = half*(nx + fabs(nx));
+  ResLDA = -l1*Wtilde;
+
+  pTresTot[n] += ResLDA;
+}
+
 //######################################################################
 /*! \brief Kernel calculating space-time LDA residue for all triangles
 
@@ -780,9 +913,9 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
 __global__ void
 devMassMatrixF34Tot(int nTriangle, real dt, int massMatrix,
 		    const int3* __restrict__ pTv,
-		    const real4* __restrict__ pVz, 
-		    const real4* __restrict__ pDstate, 
-		    real4 *pTresTot, const real2 *pTn1, const real2 *pTn2,
+		    const realNeq* __restrict__ pVz, 
+		    const realNeq* __restrict__ pDstate, 
+		    realNeq *pTresTot, const real2 *pTn1, const real2 *pTn2,
 		    const real2 *pTn3, const real3 *pTl,
 		    int nVertex, real G, real G1, real G2)
 {
@@ -807,10 +940,10 @@ void Simulation::MassMatrixF34Tot(real dt, int massMatrix)
   int nTriangle = mesh->GetNTriangle();
   int nVertex = mesh->GetNVertex();
 
-  real4 *pVz = vertexParameterVector->GetPointer();
-  real4 *pDstate = vertexStateDiff->GetPointer();
+  realNeq *pVz = vertexParameterVector->GetPointer();
+  realNeq *pDstate = vertexStateDiff->GetPointer();
   
-  real4 *pTresTot = triangleResidueTotal->GetPointer();
+  realNeq *pTresTot = triangleResidueTotal->GetPointer();
   
   const int3 *pTv = mesh->TriangleVerticesData();
   const real2 *pTn1 = mesh->TriangleEdgeNormalsData(0);

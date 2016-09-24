@@ -23,7 +23,7 @@ namespace astrix {
 void Refine::SplitSegment(Connectivity * const connectivity,
 			  const MeshParameter *meshParameter,
 			  const Predicates *predicates,
-			  Array<real4> * const vertexState,
+			  Array<realNeq> * const vertexState,
 			  Array<int> * const triangleWantRefine,
 			  const real specificHeatRatio,
 			  const int nTriangleOld)

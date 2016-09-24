@@ -23,7 +23,7 @@ class Delaunay
 
   //! Turn Mesh into Delaunay nesh
   void MakeDelaunay(Connectivity * const connectivity,
-		    Array<real4> * const vertexState,
+		    Array<realNeq> * const vertexState,
 		    const Predicates *predicates,
 		    const MeshParameter *meshParameter,
 		    const int maxCycle,
@@ -73,7 +73,7 @@ class Delaunay
   void EdgeRepair(Connectivity * const connectivity);
   //! Adjust state in order to remain conservative
   void AdjustState(Connectivity * const connectivity,
-		   Array<real4> * const vertexState,
+		   Array<realNeq> * const vertexState,
 		   const Predicates *predicates,
 		   const MeshParameter *meshParameter,
 		   const int nNonDel);

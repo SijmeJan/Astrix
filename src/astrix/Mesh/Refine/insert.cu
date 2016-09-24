@@ -688,7 +688,7 @@ devInsertVertices(int nRefine, int *pElementAdd,
 void Refine::InsertVertices(Connectivity * const connectivity,
 			    const MeshParameter *meshParameter,
 			    const Predicates *predicates,
-			    Array<real4> * const vertexState,
+			    Array<realNeq> * const vertexState,
 			    Array<int> * const triangleWantRefine)
 {
   nvtxEvent *nvtxInsert = new nvtxEvent("Insert", 4);

@@ -41,11 +41,8 @@ For a single triangle, calculate triangle-based operator (for the internal energ
 __host__ __device__
 void CalcOperatorEnergySingle(int i, int nVertex, int nTriangle,
 			      int3 *pTv, real G, real3 *triL,
-			      //real *triNx, real *triNy,
 			      real2 *pTn1, real2 *pTn2, real2 *pTn3,
 			      real *pVertexArea, real4 *state,
-			      //real *dens, real *momx,
-			      //real *momy, real *ener,
 			      real *pVertexOperator,
 			      real *pTriangleOperator)
 {
@@ -66,20 +63,11 @@ void CalcOperatorEnergySingle(int i, int nVertex, int nTriangle,
   while (c < 0) c += nVertex;
   
   // Triangle edge lengths
-  //real tl1 = triL[0*nTriangle + i];
-  //real tl2 = triL[1*nTriangle + i];
-  //real tl3 = triL[2*nTriangle + i];
   real tl1 = triL[i].x;
   real tl2 = triL[i].y;
   real tl3 = triL[i].z;
   
   // Triangle inward pointing normals
-  //real nx1 = triNx[0*nTriangle + i];
-  //real nx2 = triNx[1*nTriangle + i];
-  //real nx3 = triNx[2*nTriangle + i];
-  //real ny1 = triNy[0*nTriangle + i];
-  //real ny2 = triNy[1*nTriangle + i];
-  //real ny3 = triNy[2*nTriangle + i];
   real nx1 = pTn1[i].x;
   real nx2 = pTn2[i].x;
   real nx3 = pTn3[i].x;
@@ -146,7 +134,76 @@ void CalcOperatorEnergySingle(int i, int nVertex, int nTriangle,
   AtomicAdd(&pVertexOperator[b], dB);
   AtomicAdd(&pVertexOperator[c], dC);
 }
+
+__host__ __device__
+void CalcOperatorEnergySingle(int i, int nVertex, int nTriangle,
+			      int3 *pTv, real G, real3 *triL,
+			      real2 *pTn1, real2 *pTn2, real2 *pTn3,
+			      real *pVertexArea, real *state,
+			      real *pVertexOperator,
+			      real *pTriangleOperator)
+{
+  const real sixth = (real) (1.0/6.0);
+  //const real tenth = (real) 0.1;
+  //const real third = (real) (1.0/3.0);
+  const real half  = (real) 0.5;
+  //const real one   = (real) 1.0;
+
+  int a = pTv[i].x;
+  int b = pTv[i].y;
+  int c = pTv[i].z;
+  while (a >= nVertex) a -= nVertex;
+  while (b >= nVertex) b -= nVertex;
+  while (c >= nVertex) c -= nVertex;
+  while (a < 0) a += nVertex;
+  while (b < 0) b += nVertex;
+  while (c < 0) c += nVertex;
   
+  // Triangle edge lengths
+  real tl1 = triL[i].x;
+  real tl2 = triL[i].y;
+  real tl3 = triL[i].z;
+  
+  // Triangle inward pointing normals
+  real nx1 = pTn1[i].x;
+  real nx2 = pTn2[i].x;
+  real nx3 = pTn3[i].x;
+  //real ny1 = pTn1[i].y;
+  //real ny2 = pTn2[i].y;
+  //real ny3 = pTn3[i].y;
+  
+  // State at vertex a
+  real d1 = state[a];
+  // State at vertex b
+  real d2 = state[b];
+  // State at vertex c
+  real d3 = state[c];
+  
+  // Cell centred internal energy gradient
+  real gradUx = d1*nx1*tl1 + d2*nx2*tl2 + d3*nx3*tl3;
+
+  // Cell-averaged state
+  //real dc = third*(d1 + d2 + d3);
+  
+  real s = half*(tl1 + tl2 + tl3);
+  // Triangle area
+  real A = sqrt(s*(s - tl1)*(s - tl2)*(s - tl3));
+  
+  // Cell-centred operator
+  real operatorTriangle = gradUx;
+  pTriangleOperator[i] = operatorTriangle*sqrt(half/A);
+
+  // Contribution to vertex operator
+  real dA = gradUx*sqrt(sixth/pVertexArea[a]);
+  real dB = gradUx*sqrt(sixth/pVertexArea[b]);
+  real dC = gradUx*sqrt(sixth/pVertexArea[c]);
+  
+  // Construct vertex-centred operator
+  AtomicAdd(&pVertexOperator[a], dA);
+  AtomicAdd(&pVertexOperator[b], dB);
+  AtomicAdd(&pVertexOperator[c], dC);
+}
+
 //##############################################################################
 /*! \brief For a single triangle, calculate the estimated local truncation error. 
 
@@ -214,7 +271,7 @@ devCalcOperatorEnergy(int nVertex, int nTriangle,
 		      int3 *pTv, real G, real3 *triL,
 		      //real *triNx, real *triNy,
 		      real2 *pTn1, real2 *pTn2, real2 *pTn3,
-		      real *pVertexArea, real4 *state,
+		      real *pVertexArea, realNeq *state,
 		      //real *dens, real *momx,
 		      //real *momy, real *ener,
 		      real *pVertexOperator,
@@ -273,7 +330,7 @@ devCalcErrorEstimate(int nTriangle, int nVertex, int3 *pTv,
 \param G Ratio of specific heats*/
 //##############################################################################
   
-void Mesh::CalcErrorEstimate(Array<real4> *vertexState, real G)
+void Mesh::CalcErrorEstimate(Array<realNeq> *vertexState, real G)
 {
   const real zero = (real) 0.0;
   
@@ -293,7 +350,7 @@ void Mesh::CalcErrorEstimate(Array<real4> *vertexState, real G)
   real *pVertexArea = vertexArea->GetPointer();
   
   // State at vertices
-  real4 *state = vertexState->GetPointer();
+  realNeq *state = vertexState->GetPointer();
   
   // Truncation error estimate
   triangleErrorEstimate->SetSize(nTriangle);

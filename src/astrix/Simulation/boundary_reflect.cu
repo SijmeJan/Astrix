@@ -148,7 +148,84 @@ void SetReflectingEdge(int n, int e, real dt, real4 *pState,
   }
 #endif
 }
+
+__host__ __device__
+void SetReflectingEdge(int n, int e, real dt, real *pState,
+		       const int3 *pTv, int e1, int e2, int e3,
+		       const real *pVarea, const real3 *pTl,
+		       const real2 *pTn1, const real2 *pTn2,
+		       const real2 *pTn3, int nVertex, real G1)
+{
+  const real half  = (real) 0.5;
+  const real one = (real) 1.0;
+
+  int a = pTv[n].x;
+  int b = pTv[n].y;
+  int c = pTv[n].z;
   
+  // Edge vertices
+  int v1 = a;
+  int v2 = b;
+  int v3 = c;
+  if (e == e2) {
+    v1 = b;
+    v2 = c;
+    v3 = a;
+  }
+  if (e == e3) {
+    v1 = c;
+    v2 = a;
+    v3 = b;
+  }
+  while (v1 >= nVertex) v1 -= nVertex;
+  while (v2 >= nVertex) v2 -= nVertex;
+  while (v3 >= nVertex) v3 -= nVertex;
+  while (v1 < 0) v1 += nVertex;
+  while (v2 < 0) v2 += nVertex;
+  while (v3 < 0) v3 += nVertex;
+
+  // Triangle edge lengths
+  real tl1 = pTl[n].x;
+  real tl2 = pTl[n].y;
+  real tl3 = pTl[n].z;
+
+  real nx = pTn1[n].x;
+  //real ny = pTn1[n].y;
+  real edge_length = tl1;
+  if (e == e3) {
+    nx = pTn2[n].x;
+    //ny = pTn2[n].y;
+    edge_length = tl2;
+  }
+  if (e == e1) {
+    nx = pTn3[n].x;
+    //ny = pTn3[n].y;
+    edge_length = tl3;
+  }
+
+  // Vertices belonging to edge e
+  int vj = v1;
+  int vk = v2;
+
+  real Dj = pState[vj];
+  real Dk = pState[vk];
+
+  // Velocities normal to edge (EQ_SOLVE)
+  real vnj = nx;
+  real vnk = nx;
+
+  // Correction fluxes
+  real Fcorrj0 = Dj*vnj;
+  real Fcorrk0 = Dk*vnk;
+  
+  real A = (real) 0.75;
+  real dtdx = dt*edge_length/pVarea[vj];
+  pState[vj] -= half*dtdx*(A*Fcorrj0 + (one - A)*Fcorrk0);
+
+  dtdx = dt*edge_length/pVarea[vk];
+  pState[vk] -= half*dtdx*(A*Fcorrk0 + (one - A)*Fcorrj0);
+}
+
 //#########################################################################
 /*! \brief Reflecting boundaries for triangle \a n
 
@@ -170,7 +247,7 @@ Reflecting boundary conditions are implemented "weakly" by adding a corrective f
 //#########################################################################
 
 __host__ __device__
-void SetReflectingSingle(int n, real dt, real4 *pState, const int3 *pTv,
+void SetReflectingSingle(int n, real dt, realNeq *pState, const int3 *pTv,
 			 const int3* __restrict__ pTe,
 			 const int2* __restrict__ pEt,
 			 const real *pVarea, const real3 *pTl,
@@ -233,7 +310,7 @@ Reflecting boundary conditions are implemented "weakly" by adding a corrective f
 //############################################################################
 
 __global__ void 
-devSetReflecting(real dt, real4 *pState, const int3 *pTv,
+devSetReflecting(real dt, realNeq *pState, const int3 *pTv,
 		 const int3* __restrict__ pTe,
 		 const int2* __restrict__ pEt,
 		 const real *pVarea, const real3 *pTl,
@@ -261,7 +338,7 @@ devSetReflecting(real dt, real4 *pState, const int3 *pTv,
 
 void Simulation::ReflectingBoundaries(real dt)
 {
-  real4 *pState = vertexState->GetPointer();
+  realNeq *pState = vertexState->GetPointer();
 
   const int3 *pTv = mesh->TriangleVerticesData();
   const int3 *pTe = mesh->TriangleEdgesData();

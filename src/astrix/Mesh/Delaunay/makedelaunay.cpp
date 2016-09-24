@@ -24,7 +24,7 @@ namespace astrix {
 //#########################################################################
 
 void Delaunay::MakeDelaunay(Connectivity * const connectivity,
-			    Array<real4> * const vertexState,
+			    Array<realNeq> * const vertexState,
 			    const Predicates *predicates,
 			    const MeshParameter *meshParameter,
 			    const int maxCycle,

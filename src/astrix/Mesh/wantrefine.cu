@@ -66,7 +66,7 @@ devFillWantRefine(int nTriangle, real *pErrorEstimate,
 \param specificHeatRatio Ratio of specific heats*/ 
 // #########################################################################
 
-void Mesh::FillWantRefine(Array<real4> *vertexState, real specificHeatRatio)
+void Mesh::FillWantRefine(Array<realNeq> *vertexState, real specificHeatRatio)
 {
   CalcErrorEstimate(vertexState, specificHeatRatio);
   real *pErrorEstimate = triangleErrorEstimate->GetPointer();

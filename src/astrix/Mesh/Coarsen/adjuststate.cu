@@ -236,6 +236,17 @@ void AdjustStateCoarsenSingle(int vRemove, int *vTri, const int maxTriPerVert,
   }
 }
 
+__host__ __device__
+void AdjustStateCoarsenSingle(int vRemove, int *vTri, const int maxTriPerVert,
+			      int3 *pTv, int3 *pTe, int2 *pEt,
+			      real *pVertexArea,
+			      int nVertex, real2 *pVc,
+			      real Px, real Py, int tTarget,
+			      real *state, real G, int *vNeighbour)
+{
+  // Dummy: coarsening for one equation not supported
+}
+
 //#########################################################################
 /*! \brief Kernel for adjusting state when removing vertices
 
@@ -273,7 +284,7 @@ void devAdjustStateCoarsen(int nRemove, int *pVertexRemove,
 			   real *pVertexArea, int nVertex, 
 			   real2 *pVc,
 			   real Px, real Py, int *pTriangleTarget,
-			   real4 *state,
+			   realNeq *state,
 			   //real *dens, real *momx, real *momy, real *ener, 
 			   real G, int *pVertexNeighbour)
 {
@@ -308,7 +319,7 @@ void Coarsen::AdjustState(Connectivity *connectivity,
 			  int maxTriPerVert,
 			  Array<int> *vertexTriangleList,
 			  Array<int> *triangleTarget,
-			  Array<real4> *vertexState,
+			  Array<realNeq> *vertexState,
 			  real G, const MeshParameter *mp,
 			  Array<int> *vertexNeighbour)
 {
@@ -347,7 +358,7 @@ void Coarsen::AdjustState(Connectivity *connectivity,
   int *pVertexNeighbour = vertexNeighbour->GetPointer();
   real *pVertexArea = vertexArea->GetPointer();
 
-  real4 *state = vertexState->GetPointer();
+  realNeq *state = vertexState->GetPointer();
 
   real2 *pVc = connectivity->vertexCoordinates->GetPointer();
   int3 *pTv = connectivity->triangleVertices->GetPointer();

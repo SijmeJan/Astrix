@@ -79,7 +79,17 @@ void SingleReplaceLDA(int n, const int3* __restrict__ pTv,
     pTresLDA2[n] = pTresN2[n];
   }
 }
-  
+
+__host__ __device__
+void SingleReplaceLDA(int n, const int3* __restrict__ pTv,
+		      const int* __restrict__ pVuf,
+		      real *pTresN0, real *pTresN1, real *pTresN2, 
+		      real *pTresLDA0, real *pTresLDA1, real *pTresLDA2,
+		      const int RKStep, const int nVertex)
+{
+  // Dummy function; nothing to do if solving only one equation
+}
+
 //######################################################################
 /*! \brief Kernel replacing LDA with N if unphysical state at triangle
 
@@ -102,8 +112,8 @@ __global__ void
 devReplaceLDA(int nTriangle,
 	      const int3* __restrict__ pTv,
 	      const int* __restrict__ pVuf,
-	      real4 *pTresN0, real4 *pTresN1, real4 *pTresN2, 
-	      real4 *pTresLDA0, real4 *pTresLDA1, real4 *pTresLDA2,
+	      realNeq *pTresN0, realNeq *pTresN1, realNeq *pTresN2, 
+	      realNeq *pTresLDA0, realNeq *pTresLDA1, realNeq *pTresLDA2,
 	      int RKStep, int nVertex)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x; 
@@ -132,12 +142,12 @@ void Simulation::ReplaceLDA(Array<int> *vertexUnphysicalFlag, int RKStep)
 
   const int3 *pTv = mesh->TriangleVerticesData();
   
-  real4 *pTresN0 = triangleResidueN->GetPointer(0);
-  real4 *pTresN1 = triangleResidueN->GetPointer(1);
-  real4 *pTresN2 = triangleResidueN->GetPointer(2);
-  real4 *pTresLDA0 = triangleResidueLDA->GetPointer(0);
-  real4 *pTresLDA1 = triangleResidueLDA->GetPointer(1);
-  real4 *pTresLDA2 = triangleResidueLDA->GetPointer(2);
+  realNeq *pTresN0 = triangleResidueN->GetPointer(0);
+  realNeq *pTresN1 = triangleResidueN->GetPointer(1);
+  realNeq *pTresN2 = triangleResidueN->GetPointer(2);
+  realNeq *pTresLDA0 = triangleResidueLDA->GetPointer(0);
+  realNeq *pTresLDA1 = triangleResidueLDA->GetPointer(1);
+  realNeq *pTresLDA2 = triangleResidueLDA->GetPointer(2);
   
   int *pVuf = vertexUnphysicalFlag->GetPointer();
 

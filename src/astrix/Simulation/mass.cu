@@ -26,7 +26,14 @@ void FillMassArraySingle(unsigned int n, real4 *pState,
 {
   pVm[n] = pVarea[n]*pState[n].x;
 }
-  
+
+__host__ __device__
+void FillMassArraySingle(unsigned int n, real *pState, 
+			 const real *pVarea, real *pVm)
+{
+  pVm[n] = pVarea[n]*pState[n];
+}
+
 //######################################################################
 /*! \brief Compute mass associated with vertices
 
@@ -37,7 +44,7 @@ void FillMassArraySingle(unsigned int n, real4 *pState,
 //######################################################################
 
 __global__ void
-devFillMassArray(unsigned int nVertex, real4 *pState,
+devFillMassArray(unsigned int nVertex, realNeq *pState,
 		 const real *pVarea, real *pVm)
 {
   // n=vertex number
@@ -56,7 +63,7 @@ devFillMassArray(unsigned int nVertex, real4 *pState,
 real Simulation::TotalMass()
 {
   unsigned int nVertex = mesh->GetNVertex();
-  real4 *pState = vertexState->GetPointer();
+  realNeq *pState = vertexState->GetPointer();
 
   // Mass in every cell 
   Array<real> *vertexMass = new Array<real>(1, cudaFlag, nVertex);

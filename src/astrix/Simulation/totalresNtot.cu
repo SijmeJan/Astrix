@@ -10,8 +10,6 @@
 #include "../Common/cudaLow.h"
 #include "../Common/inlineMath.h"
 
-//#define TEMP
-
 namespace astrix {
 
 //######################################################################
@@ -106,17 +104,10 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   pTresN2[n].w = half*pTresN2[n].w + dW23*Ail3;
 
   // Replace ResTot
-#ifdef TEMP
-  real ResTot0 = two*Adt*(dW00 + dW10 + dW20);
-  real ResTot1 = two*Adt*(dW01 + dW11 + dW21);
-  real ResTot2 = two*Adt*(dW02 + dW12 + dW22);
-  real ResTot3 = two*Adt*(dW03 + dW13 + dW23);
-#else
   real ResTot0 = pTresTot[n].x + two*Adt*(dW00 + dW10 + dW20);
   real ResTot1 = pTresTot[n].y + two*Adt*(dW01 + dW11 + dW21);
   real ResTot2 = pTresTot[n].z + two*Adt*(dW02 + dW12 + dW22);
   real ResTot3 = pTresTot[n].w + two*Adt*(dW03 + dW13 + dW23);
-#endif
   
   // Parameter vector at vertices: 12 uncoalesced loads
   real Zv00 = pVz[v1].x;
@@ -1077,7 +1068,192 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   
   pTresN2[n].w += half*ResN;
 }
+
+__host__ __device__
+void CalcTotalResNtotSingle(const int n, const real dt,
+			    const int3* __restrict__ pTv, 
+			    const real* __restrict__ pVz, real *pDstate,
+			    const real2 *pTn1, const real2 *pTn2,
+			    const real2 *pTn3, const real3* __restrict__ pTl,
+			    real *pVpot, real *pTresN0, real *pTresN1,
+			    real *pTresN2, real *pTresTot, int nVertex,
+			    const real G, const real G1,
+			    const real G2, const real iG)
+{
+  const real zero  = (real) 0.0;
+  const real onethird = (real) (1.0/3.0);
+  const real half  = (real) 0.5;
+  const real one = (real) 1.0;
+  const real two = (real) 2.0;
+
+  // Vertices belonging to triangle: 3 coalesced reads
+  int v1 = pTv[n].x;
+  int v2 = pTv[n].y;
+  int v3 = pTv[n].z;
+  while (v1 >= nVertex) v1 -= nVertex;
+  while (v2 >= nVertex) v2 -= nVertex;
+  while (v3 >= nVertex) v3 -= nVertex;
+  while (v1 < 0) v1 += nVertex;
+  while (v2 < 0) v2 += nVertex;
+  while (v3 < 0) v3 += nVertex;
+
+  real dW0 = pDstate[v1];
+  real dW1 = pDstate[v2];
+  real dW2 = pDstate[v3];
   
+  real Tl1 = pTl[n].x;
+  real Tl2 = pTl[n].y;
+  real Tl3 = pTl[n].z;
+
+  // Calculate triangle area
+  real s = half*(Tl1 + Tl2 + Tl3);
+  real Adt = sqrt(s*(s - Tl1)*(s - Tl2)*(s - Tl3))*onethird/dt;
+
+  real Ail1 = Adt/Tl1;
+  real Ail2 = Adt/Tl2;
+  real Ail3 = Adt/Tl3;
+
+  // Replace ResN
+  pTresN0[n] = half*pTresN0[n] + dW0*Ail1;
+  pTresN1[n] = half*pTresN1[n] + dW1*Ail2;
+  pTresN2[n] = half*pTresN2[n] + dW2*Ail3;
+
+  // Replace ResTot
+  real ResTot = pTresTot[n] + two*Adt*(dW0 + dW1 + dW2);
+  
+  // Parameter vector at vertices: 12 uncoalesced loads
+  real Zv0 = pVz[v1];
+  real Zv1 = pVz[v2];
+  real Zv2 = pVz[v3];
+  
+  // Average parameter vector
+  //real Z0 = (Zv0 + Zv1 + Zv2)*onethird;
+
+  // Average state at vertices
+  real What0 = Zv0;
+  real What1 = Zv1;
+  real What2 = Zv2;
+
+  real tnx1 = pTn1[n].x;
+  //real tny1 = pTn1[n].y;
+  real tnx2 = pTn2[n].x;
+  //real tny2 = pTn2[n].y;
+  real tnx3 = pTn3[n].x;
+  //real tny3 = pTn3[n].y;
+
+  real tl1 = pTl[n].x;
+  real tl2 = pTl[n].y;
+  real tl3 = pTl[n].z;
+  
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  // Calculate the total residue = Sum(K*What)
+  // Not necessary for first-order N scheme 
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+  // First direction
+  real nx = half*tnx1*tl1;
+  //real ny = half*tny1*tl1;
+  
+  ResTot += nx*What0;
+  
+  // Second direction
+  nx = half*tnx2*tl2;
+  //ny = half*tny2*tl2;
+
+  ResTot += nx*What1;
+
+  // Third direction
+  nx = half*tnx3*tl3;
+  //ny = half*tny3*tl3;
+
+  ResTot += nx*What2;
+
+  pTresTot[n] = half*ResTot;
+
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  // Calculate Wtemp = Sum(K-*What)
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  real Wtemp = zero;
+  
+  // First direction
+  nx = half*tnx1;
+  //ny = half*tny1;
+  real tl = tl1;
+
+  real l1 = half*(nx - fabs(nx));
+  Wtemp += tl*l1*What0;
+  real nm = tl*l1;
+    
+  // Second direction
+  nx = half*tnx2;
+  //ny = half*tny2;
+  tl = tl2;
+
+  l1 = half*(nx - fabs(nx));
+  Wtemp += tl*l1*What1;
+  nm += tl*l1;
+
+  // Third direction
+  nx = half*tnx3;
+  //ny = half*tny3;
+  tl = tl3;
+
+  l1 = half*(nx - fabs(nx));
+  Wtemp += tl*l1*What2;
+  nm += tl*l1;
+
+  real invN = one/nm;
+  
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  // Wtilde = N*(ResSource + K-*What)
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+  // Wtilde = Nm*Wtemp
+  real Wtilde = invN*Wtemp;
+  
+  // What = What - Wtilde
+  What0 -= Wtilde;
+  What1 -= Wtilde;
+  What2 -= Wtilde;
+
+  // ResN += 0.5*K+*(What - N*(ResSource + K-*What)
+  real ResN;
+  
+  // First direction
+  real Tnx1 = pTn1[n].x;
+  //real Tny1 = pTn1[n].y;
+
+  nx = half*Tnx1;
+  //ny = half*Tny1;
+
+  l1 = max(zero, nx);
+  ResN = l1*What0;
+  pTresN0[n] += half*ResN;
+  
+  // Second direction
+  real Tnx2 = pTn2[n].x;
+  //real Tny2 = pTn2[n].y;
+
+  nx = half*Tnx2;
+  //ny = half*Tny2;
+
+  l1 = max(zero, nx);
+  ResN = l1*What1;
+  pTresN1[n] += half*ResN;
+
+  // Third direction
+  real Tnx3 = pTn3[n].x;
+  //real Tny3 = pTn3[n].y;
+
+  nx = half*Tnx3;
+  //ny = half*Tny3;
+
+  l1 = max(zero, nx);
+  ResN = l1*What2;
+  pTresN2[n] += half*ResN;
+}
+
 //######################################################################
 /*! Kernel calculating space-time N + total residue for all triangles
 
@@ -1105,11 +1281,11 @@ void CalcTotalResNtotSingle(const int n, const real dt,
 __global__ void
 devCalcTotalResNtot(int nTriangle, real dt,
 		    const int3* __restrict__ pTv, 
-		    const real4* __restrict__ pVz, real4 *pDstate,
+		    const realNeq* __restrict__ pVz, realNeq *pDstate,
 		    const real2 *pTn1, const real2 *pTn2, const real2 *pTn3,
 		    const real3* __restrict__  pTl, real *pVpot,
-		    real4 *pTresN0, real4 *pTresN1, real4 *pTresN2,
-		    real4 *pTresTot, int nVertex,
+		    realNeq *pTresN0, realNeq *pTresN1, realNeq *pTresN2,
+		    realNeq *pTresTot, int nVertex,
 		    real G, real G1, real G2, real iG)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
@@ -1167,16 +1343,16 @@ void Simulation::CalcTotalResNtot(real dt)
   int nTriangle = mesh->GetNTriangle();
   int nVertex = mesh->GetNVertex();
 
-  real4 *pDstate = vertexStateDiff->GetPointer();
+  realNeq *pDstate = vertexStateDiff->GetPointer();
   
   real *pVpot = vertexPotential->GetPointer();
-  real4 *pVz = vertexParameterVector->GetPointer();
+  realNeq *pVz = vertexParameterVector->GetPointer();
   
-  real4 *pTresN0 = triangleResidueN->GetPointer(0);
-  real4 *pTresN1 = triangleResidueN->GetPointer(1);
-  real4 *pTresN2 = triangleResidueN->GetPointer(2);
+  realNeq *pTresN0 = triangleResidueN->GetPointer(0);
+  realNeq *pTresN1 = triangleResidueN->GetPointer(1);
+  realNeq *pTresN2 = triangleResidueN->GetPointer(2);
   
-  real4 *pTresTot = triangleResidueTotal->GetPointer();
+  realNeq *pTresTot = triangleResidueTotal->GetPointer();
   
   const int3 *pTv = mesh->TriangleVerticesData();
   const real2 *pTn1 = mesh->TriangleEdgeNormalsData(0);

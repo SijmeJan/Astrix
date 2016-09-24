@@ -96,7 +96,15 @@ void SetBoundaryRiemannVertex(int n, real4 *pState,
     }
   }
 }
-  
+
+__host__ __device__
+void SetBoundaryRiemannVertex(int n, real *pState,
+			      const real2 *pVc, const int *pVbf,
+			      real simulationTime, real iG1)
+{
+  // Dummy function: Riemann boundaries are specific to Euler
+}
+
 //######################################################################
 /*! \brief Kernel setting Riemann boundaries
 
@@ -111,7 +119,7 @@ At the boundaries of the 2D Riemann problem the solution is simply a moving shoc
 //######################################################################
 
 __global__ void
-devSetRiemannBoundaries(int nVertex, real4 *pState,
+devSetRiemannBoundaries(int nVertex, realNeq *pState,
 			const real2 *pVc, const int *pVbf,
 			real simulationTime, real iG1)
 {
@@ -136,7 +144,7 @@ void Simulation::SetRiemannBoundaries()
   const real2 *pVc = mesh->VertexCoordinatesData();
   const int *pVbf = mesh->VertexBoundaryFlagData();
 
-  real4 *pState = vertexState->GetPointer();
+  realNeq *pState = vertexState->GetPointer();
     
   if (cudaFlag == 1) {
     int nThreads = 128;

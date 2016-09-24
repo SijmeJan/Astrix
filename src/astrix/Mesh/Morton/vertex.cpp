@@ -20,7 +20,7 @@ namespace astrix {
 //#########################################################################
 
 void Morton::OrderVertex(Connectivity * const connectivity,
-			 Array<real4> * const vertexState)
+			 Array<realNeq> * const vertexState)
 {
   int nVertex = connectivity->vertexCoordinates->GetSize();
   

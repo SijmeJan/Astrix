@@ -26,7 +26,7 @@ namespace astrix {
 
 int Coarsen::RemoveVertices(Connectivity *connectivity,
 			    Predicates *predicates,
-			    Array<real4> *vertexState,
+			    Array<realNeq> *vertexState,
 			    real specificHeatRatio,
 			    Array<int> *triangleWantRefine,
 			    const MeshParameter *meshParameter,

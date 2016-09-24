@@ -32,11 +32,11 @@ class Mesh
   ~Mesh();  
  
   //! Refine mesh
-  int ImproveQuality(Array<real4> *vertexState,
+  int ImproveQuality(Array<realNeq> *vertexState,
 		     real specificHeatRatio,
 		     int nTimeStep);
   //! Coarsen mesh
-  int RemoveVertices(Array<real4> *vertexState,
+  int RemoveVertices(Array<realNeq> *vertexState,
 		     real specificHeatRatio,
 		     int nTimeStep);
   
@@ -149,9 +149,9 @@ class Mesh
   // Functions for adaptive Mesh
   
   //! Calculate estimate of discretization error
-  void CalcErrorEstimate(Array<real4> *vertexState, real G);
+  void CalcErrorEstimate(Array<realNeq> *vertexState, real G);
   //! Check which triangles want refining based of state
-  void FillWantRefine(Array<real4> *vertexState, real specificHeatRatio);
+  void FillWantRefine(Array<realNeq> *vertexState, real specificHeatRatio);
 
   // Debugging functions
   

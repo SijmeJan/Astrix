@@ -35,12 +35,20 @@ void CalcDiagnosticsSingle(unsigned int i, const real2 *pVc,
   E[i] = 0.5*momy*momy/dens;
 }
   
+__host__ __device__
+void CalcDiagnosticsSingle(unsigned int i, const real2 *pVc, 
+			   const real *pVarea,
+			   real *pState, real *d, real *s, real *c, real *E)
+{
+  // Dummy function; nothing to be done if solving only one equation
+}
+  
 //######################################################################
 //######################################################################
 
 __global__ void 
 devCalcDiagnostics(unsigned int nVertex, const real2 *pVc, const real *pVarea,
-		   real4 *pState, real *d, real *s, real *c, real *E)
+		   realNeq *pState, real *d, real *s, real *c, real *E)
 {
   // n = vertex number
   unsigned int n = blockIdx.x*blockDim.x + threadIdx.x; 
@@ -59,7 +67,7 @@ void Simulation::KHDiagnostics(real& M, real& Ekin)
 {
   unsigned int nVertex = mesh->GetNVertex();
 
-  real4 *pState = vertexState->GetPointer();
+  realNeq *pState = vertexState->GetPointer();
 
   const real *pVarea = mesh->VertexAreaData();
   const real2 *pVc = mesh->VertexCoordinatesData();

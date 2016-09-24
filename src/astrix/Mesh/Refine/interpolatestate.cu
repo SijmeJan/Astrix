@@ -10,6 +10,7 @@
 #include "../../Common/cudaLow.h"
 #include "../Connectivity/connectivity.h"
 #include "../Param/meshparameter.h"
+#include "../../Common/helper_math.h"
 
 namespace astrix {
     
@@ -44,7 +45,7 @@ Use linear interpolation to determine state at new vertex.
 //######################################################################
 
 __host__ __device__
-void InterpolateSingle(int t, int e, int indexInVertexArray, real4 *state,
+void InterpolateSingle(int t, int e, int indexInVertexArray, realNeq *state,
 		       int3 *pTv, int2 *pEt, real2 *pVc,
 		       real x, real y,
 		       int *wantRefine, real G,
@@ -83,6 +84,9 @@ void InterpolateSingle(int t, int e, int indexInVertexArray, real4 *state,
   while (v2 < 0) v2 += nVertex;
   while (v3 < 0) v3 += nVertex;
   
+  state[indexInVertexArray] =
+    (A*state[v1] + B*state[v2] + C*state[v3])/T;
+  /*
   state[indexInVertexArray].x =
     (A*state[v1].x + B*state[v2].x + C*state[v3].x)/T;
   state[indexInVertexArray].y =
@@ -91,6 +95,7 @@ void InterpolateSingle(int t, int e, int indexInVertexArray, real4 *state,
     (A*state[v1].z + B*state[v2].z + C*state[v3].z)/T;
   state[indexInVertexArray].w =
     (A*state[v1].w + B*state[v2].w + C*state[v3].w)/T;
+  */
 }
   
 //######################################################################
@@ -122,7 +127,7 @@ Use linear interpolation to determine state at new vertices.
 //######################################################################
 
 __global__ void
-devInterpolateState(int nRefine, int *pElementAdd, real4 *state,
+devInterpolateState(int nRefine, int *pElementAdd, realNeq *state,
 		    int nVertex, int nTriangle, real2 *pVcAdd, 
 		    real2 *pVc, int3 *pTv, int2 *pEt,
 		    int *wantRefine, real G, real Px, real Py)
@@ -155,7 +160,7 @@ devInterpolateState(int nRefine, int *pElementAdd, real4 *state,
 
 void Refine::InterpolateState(Connectivity * const connectivity,
 			      const MeshParameter *meshParameter,
-			      Array<real4> * const vertexState,
+			      Array<realNeq> * const vertexState,
 			      Array<int> * const triangleWantRefine,
 			      const real specificHeatRatio)
 {
@@ -165,7 +170,7 @@ void Refine::InterpolateState(Connectivity * const connectivity,
   
   // Interpolate state
   vertexState->SetSize(nVertex + nRefine);
-  real4 *state = vertexState->GetPointer();
+  realNeq *state = vertexState->GetPointer();
 
   real2 *pVc = connectivity->vertexCoordinates->GetPointer();
   int3 *pTv = connectivity->triangleVertices->GetPointer();

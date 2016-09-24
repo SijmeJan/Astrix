@@ -28,6 +28,12 @@ void ReplaceEnergyWithPressureSingle(int i, real4 *pState, real G1)
   pState[i].w = G1*(pState[i].w - half*(Sq(pState[i].y) + Sq(pState[i].z))/
 		   pState[i].x);
 }
+  
+__host__ __device__
+void ReplaceEnergyWithPressureSingle(int i, real *pState, real G1)
+{
+  // Dummy function, nothing to be done if solving only one equation
+}
 
 //######################################################################### 
 /*! Replace pressure with energy at vertex \a i
@@ -46,6 +52,12 @@ void ReplacePressureWithEnergySingle(int i, real4 *pState, real iG1)
     half*(Sq(pState[i].y) + Sq(pState[i].z))/pState[i].x + pState[i].w*iG1;
 }
 
+__host__ __device__
+void ReplacePressureWithEnergySingle(int i, real *pState, real iG1)
+{
+  // Dummy function, nothing to be done if solving only one equation
+}
+
 //######################################################################
 /*! Kernel replacing energy with pressure at all vertices
 
@@ -55,7 +67,7 @@ void ReplacePressureWithEnergySingle(int i, real4 *pState, real iG1)
 //######################################################################
 
 __global__ void
-devReplaceEnergyWithPressure(int nVertex, real4 *pState, real G1)
+devReplaceEnergyWithPressure(int nVertex, realNeq *pState, real G1)
 {
   int i = blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -76,7 +88,7 @@ devReplaceEnergyWithPressure(int nVertex, real4 *pState, real G1)
 //######################################################################
 
 __global__ void
-devReplacePressureWithEnergy(int nVertex, real4 *pState, real iG1)
+devReplacePressureWithEnergy(int nVertex, realNeq *pState, real iG1)
 {
   int i = blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -96,7 +108,7 @@ void Simulation::ReplaceEnergyWithPressure()
 {
   int nVertex = mesh->GetNVertex();
 
-  real4 *pState = vertexState->GetPointer();
+  realNeq *pState = vertexState->GetPointer();
 
   if (cudaFlag == 1) {
     int nBlocks = 128;
@@ -126,7 +138,7 @@ void Simulation::ReplacePressureWithEnergy()
 {
   int nVertex = mesh->GetNVertex();
 
-  real4 *pState = vertexState->GetPointer();
+  realNeq *pState = vertexState->GetPointer();
 
   if (cudaFlag == 1) {
     int nBlocks = 128;

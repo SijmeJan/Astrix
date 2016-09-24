@@ -22,7 +22,7 @@ class Morton
   //! Reorder Arrays for maximum locality
   void Order(Connectivity * const connectivity,
 	     Array<int> * const triangleWantRefine,
-	     Array<real4> * const vertexState);
+	     Array<realNeq> * const vertexState);
 
  private:
   //! Flag whether to use device or host
@@ -51,7 +51,7 @@ class Morton
 
   //! Reorder vertices, adjusting triangleVertices
   void OrderVertex(Connectivity * const connectivity,
-		   Array<real4> * const vertexState);
+		   Array<realNeq> * const vertexState);
   //! Reorder triangles, adjusting edgeTriangles
   void OrderTriangle(Connectivity * const connectivity,
 		     Array<int> * const triangleWantRefine);

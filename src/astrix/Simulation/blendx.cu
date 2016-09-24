@@ -120,7 +120,20 @@ void CalcShockSensorSingle(int i, int nVertex,
   // Output shock sensor
   pShockSensor[i] = min(one, sc*sc*rsqrtf(iA));
 }
-  
+
+// Version for 1 equation just says shock 
+__host__ __device__
+void CalcShockSensorSingle(int i, int nVertex, 
+			   const int3* __restrict__ pTv,
+			   const real3* __restrict__ pTl,
+			   const real2 *pTn1, const real2 *pTn2,
+			   const real2 *pTn3, real iDv, real *pState,
+			   real *pShockSensor, const real G, const real G1)
+{
+  // Output shock sensor
+  pShockSensor[i] = (real) 1.0;
+}
+
 // #########################################################################
 /*! \brief Kernel calculating shock sensor at triangles
 
@@ -143,7 +156,7 @@ devCalcShockSensor(int nVertex, int nTriangle,
 		   const int3* __restrict__ pTv,
 		   const real3* __restrict__ pTl,
 		   const real2 *pTn1, const real2 *pTn2, const real2 *pTn3,
-		   real iDv, real4 *pState, real *pShockSensor,
+		   real iDv, realNeq *pState, real *pShockSensor,
 		   const real G, const real G1)
 {
   unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
@@ -182,7 +195,7 @@ void Simulation::CalcShockSensor()
   const real3 *pTl = mesh->TriangleEdgeLengthData();
   
   // State at vertices
-  real4 *pState = vertexState->GetPointer();
+  realNeq *pState = vertexState->GetPointer();
 
   // Shock sensor
   triangleShockSensor->SetSize(nTriangle);

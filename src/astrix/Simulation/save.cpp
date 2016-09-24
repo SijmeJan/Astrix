@@ -35,7 +35,6 @@ void Simulation::Save(int nSave)
   
   // Copy data to host
   if (cudaFlag == 1) vertexState->CopyToHost();
-  real4 *state = vertexState->GetHostPointer();
   
   Array<real> *dens = new Array<real>(1, 0, nVertex);
   Array<real> *momx = new Array<real>(1, 0, nVertex);
@@ -45,14 +44,26 @@ void Simulation::Save(int nSave)
   real *pMomx = momx->GetPointer();
   real *pMomy = momy->GetPointer();
   real *pEner = ener->GetPointer();
-  
+
+#if N_EQUATION == 1
+  real *state = vertexState->GetHostPointer();
+  for (int n = 0; n < nVertex; n++) {
+    pDens[n] = state[n];
+    pMomx[n] = state[n];
+    pMomy[n] = state[n];
+    pEner[n] = state[n];
+  }
+#endif
+#if N_EQUATION == 4
+  real4 *state = vertexState->GetHostPointer();
   for (int n = 0; n < nVertex; n++) {
     pDens[n] = state[n].x;
     pMomx[n] = state[n].y;
     pMomy[n] = state[n].z;
     pEner[n] = state[n].w;
   }
-      
+#endif
+  
   char fname[13];
   int sizeOfData = sizeof(real);
     
@@ -150,7 +161,6 @@ int Simulation::Restore(int nSave)
   
   // Copy data to host
   if (cudaFlag == 1) vertexState->CopyToHost();
-  real4 *state = vertexState->GetHostPointer();
   
   Array<real> *dens = new Array<real>(1, 0, nVertex);
   Array<real> *momx = new Array<real>(1, 0, nVertex);
@@ -221,13 +231,21 @@ int Simulation::Restore(int nSave)
   inFile.read(reinterpret_cast<char*>(pEner), nVertex*sizeof(real));
   inFile.close();
 
+#if N_EQUATION == 1
+  real *state = vertexState->GetHostPointer();
+  for (int n = 0; n < nVertex; n++) {
+    state[n] = pDens[n];
+  }
+#endif
+#if N_EQUATION == 4
+  real4 *state = vertexState->GetHostPointer();
   for (int n = 0; n < nVertex; n++) {
     state[n].x = pDens[n];
     state[n].y = pMomx[n];
     state[n].z = pMomy[n];
     state[n].w = pEner[n];
   }
-
+#endif
   // Copy data to device
   if (cudaFlag == 1) vertexState->CopyToDevice();
 

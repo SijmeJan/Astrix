@@ -26,7 +26,7 @@ namespace astrix {
 \param nTimeStep Number of time steps taken so far. Used in combination with \a nStepSkipRefine to possibly avoid refining every timestep*/
 //#########################################################################
   
-int Mesh::ImproveQuality(Array<real4> *vertexState,
+int Mesh::ImproveQuality(Array<realNeq> *vertexState,
 			 real specificHeatRatio, int nTimeStep)
 {
   if (nTimeStep % meshParameter->nStepSkipRefine != 0) return 0;

@@ -23,7 +23,7 @@ namespace astrix {
 //######################################################################
 
 __host__ __device__
-void SetNonReflectingVertex(int n, real4 *pState, real4 *pStateOld,
+void SetNonReflectingVertex(int n, realNeq *pState, realNeq *pStateOld,
 			    const int *pVbf)
 {
   if (pVbf[n] != 0) pState[n] = pStateOld[n];
@@ -41,7 +41,7 @@ void SetNonReflectingVertex(int n, real4 *pState, real4 *pStateOld,
 //######################################################################
 
 __global__ void
-devSetNonReflectingBoundaries(int nVertex, real4 *pState, real4 *pStateOld,
+devSetNonReflectingBoundaries(int nVertex, realNeq *pState, realNeq *pStateOld,
 			      const int *pVbf)
 {
   // n=vertex number
@@ -61,8 +61,8 @@ void Simulation::SetNonReflectingBoundaries()
 {
   int nVertex = mesh->GetNVertex();
 
-  real4 *pState = vertexState->GetPointer();
-  real4 *pStateOld = vertexStateOld->GetPointer();
+  realNeq *pState = vertexState->GetPointer();
+  realNeq *pStateOld = vertexStateOld->GetPointer();
 
   const int *pVbf = mesh->VertexBoundaryFlagData();
 

@@ -46,6 +46,14 @@ void FlagUnphysicalVertex(const int v, real4 *pState,
   pVertexUnphysicalFlag[v] = ret;
 }
 
+__host__ __device__
+void FlagUnphysicalVertex(const int v, real *pState,
+			  int *pVertexUnphysicalFlag, const real G1)
+{
+  // Output flag
+  pVertexUnphysicalFlag[v] = 0;
+}
+
 //######################################################################
 /*! \brief Kernel checking vertices for unphysical state
 
@@ -56,7 +64,7 @@ void FlagUnphysicalVertex(const int v, real4 *pState,
 //######################################################################
 
 __global__ void 
-devFlagUnphysical(const int nVertex, real4 *pState,
+devFlagUnphysical(const int nVertex, realNeq *pState,
 		  int *pVertexUnphysicalFlag, const real G1)
 {
   // n=vertex number
@@ -81,7 +89,7 @@ void Simulation::FlagUnphysical(Array<int> *vertexUnphysicalFlag)
   int nVertex = mesh->GetNVertex();
 
   // State vector at vertices
-  real4 *state = vertexState->GetPointer();
+  realNeq *state = vertexState->GetPointer();
 
   // Pointer to output
   int *pVertexUnphysicalFlag = vertexUnphysicalFlag->GetPointer();

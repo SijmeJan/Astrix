@@ -22,7 +22,7 @@ namespace astrix {
 
 void Morton::Order(Connectivity * const connectivity,
 		   Array<int> * const triangleWantRefine,
-		   Array<real4> * const vertexState)
+		   Array<realNeq> * const vertexState)
 {
   nvtxEvent *nvtxMorton = new nvtxEvent("Morton", 5);
   nvtxEvent *temp = new nvtxEvent("Minmax", 1);

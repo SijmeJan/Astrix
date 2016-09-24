@@ -105,21 +105,35 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
       vertexStateOld->CopyToHost();
     }
 
-    real4 *state = vertexState->GetHostPointer();
-    real4 *stateOld = vertexStateOld->GetHostPointer();
+    realNeq *state = vertexState->GetHostPointer();
+    realNeq *stateOld = vertexStateOld->GetHostPointer();
     
     const real *vertArea = mesh->VertexAreaData();
   
     real L1dens = 0.0;
+    real L2dens = 0.0;
+    real Lmaxdens = 0.0;
     real totalArea = 0.0;
     for (int i = 0; i < nVertex; i++) {
-      L1dens += fabs(state[i].x - stateOld[i].x)*vertArea[i];
+#if N_EQUATION == 1
+      real relDiff = (state[i] - stateOld[i])/stateOld[i];
+#endif
+#if N_EQUATION == 4
+      real relDiff = (state[i].x - stateOld[i].x)/stateOld[i].x;
+#endif
+      L1dens += fabs(relDiff)*vertArea[i];
+      L2dens += relDiff*relDiff*vertArea[i];
+      if (fabs(relDiff) > Lmaxdens)
+	Lmaxdens = fabs(relDiff);
       totalArea += vertArea[i];
     }
     
     L1dens = L1dens/totalArea;
+    L2dens = sqrt(L2dens/totalArea);
     
     std::cout << "L1 error in density: " << L1dens << " " << std::endl;
+    std::cout << "L2 error in density: " << L2dens << " " << std::endl;
+    std::cout << "Lmax error in density: " << Lmaxdens << " " << std::endl;
     std::cout << "Mesh size paramenter: " << sqrt(totalArea/(real)nVertex)
 	      << std::endl;
     if (cudaFlag == 1) 

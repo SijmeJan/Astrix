@@ -63,8 +63,6 @@ class Simulation
   
   //! Number of space dimensions (fixed to 2)
   int nSpaceDim;
-  //! Number of equations to evolve
-  int nEquation;
 
   //! Ratio of specific heats
   real specificHeatRatio;
@@ -79,30 +77,32 @@ class Simulation
   real saveIntervalTimeFine;
   
   //! State vector at vertex
-  Array <real4> *vertexState;
+  Array <realNeq> *vertexState;
   //! Old state vector at vertex
-  Array <real4> *vertexStateOld;
+  Array <realNeq> *vertexStateOld;
   //! Gravitational potential at vertex
   Array <real> *vertexPotential;
   //! Difference state vector at vertex
-  Array <real4> *vertexStateDiff;
+  Array <realNeq> *vertexStateDiff;
   //! Roe parameter vector 
-  Array <real4> *vertexParameterVector;
+  Array <realNeq> *vertexParameterVector;
 
   //! Residual for N scheme
-  Array <real4> *triangleResidueN;
+  Array <realNeq> *triangleResidueN;
   //! Residual for LDA scheme
-  Array <real4> *triangleResidueLDA;
+  Array <realNeq> *triangleResidueLDA;
   //! Total residual
-  Array <real4> *triangleResidueTotal;
+  Array <realNeq> *triangleResidueTotal;
   //! Blend factor
-  Array <real4> *triangleBlendFactor;
+  Array <realNeq> *triangleBlendFactor;
   //! Shock sensor
   Array<real> *triangleShockSensor;
 
   //! Set up the simulation
-  void Init(const char *fileName, int restartNumber);
-
+  void Init(int restartNumber);
+  //! Read input file
+  void ReadInputFile(const char *fileName);
+  
   //! Save current state
   void Save(int nSave);
   //! Restore state from disc

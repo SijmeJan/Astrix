@@ -23,7 +23,7 @@ class Coarsen
 
   int RemoveVertices(Connectivity *connectivity,
 		     Predicates *predicates,
-		     Array<real4> *vertexState,
+		     Array<realNeq> *vertexState,
 		     real specificHeatRatio,
 		     Array<int> *triangleWantRefine,
 		     const MeshParameter *meshParameter,
@@ -58,13 +58,13 @@ class Coarsen
 	      Array<int> *vertexTriangleList,
 	      int maxTriPerVert,
 	      Array<int> *triangleTarget,
-	      Array<real4> *vertexState);
+	      Array<realNeq> *vertexState);
   //! Adjust state conservatively after coarsening
   void AdjustState(Connectivity *connectivity,
 		   int maxTriPerVert,
 		   Array<int> *vertexTriangleList,
 		   Array<int> *triangleTarget,
-		   Array<real4> *vertexState,
+		   Array<realNeq> *vertexState,
 		   real G, const MeshParameter *mp,
 		   Array<int> *vertexNeighbour);
   //! Find single triangle for every vertex 

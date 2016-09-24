@@ -1116,7 +1116,173 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   pTresN2[n].w   = half*ResN;
   pTresLDA2[n].w = half*ResLDA;
 }
+
+__host__ __device__
+void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
+			const real2 *pTn1, const real2 *pTn2,
+			const real2 *pTn3, const real3 *pTl, real *pVpot,
+			real *pTresN0, real *pTresN1, real *pTresN2,
+			real *pTresLDA0, real *pTresLDA1, real *pTresLDA2,
+			real *pTresTot, int nVertex, real G, real G1, real G2)
+{
+  const real zero  = (real) 0.0;
+  //const real onethird = (real) (1.0/3.0);
+  const real half  = (real) 0.5;
+  const real one = (real) 1.0;
+
+  // Vertices belonging to triangle: 3 coalesced reads
+  int v1 = pTv[n].x;
+  int v2 = pTv[n].y;
+  int v3 = pTv[n].z;
+  while (v1 >= nVertex) v1 -= nVertex;
+  while (v2 >= nVertex) v2 -= nVertex;
+  while (v3 >= nVertex) v3 -= nVertex;
+  while (v1 < 0) v1 += nVertex;
+  while (v2 < 0) v2 += nVertex;
+  while (v3 < 0) v3 += nVertex;
+
+  // Parameter vector at vertices: 12 uncoalesced loads
+  real Zv0 = pVz[v1];
+  real Zv1 = pVz[v2];
+  real Zv2 = pVz[v3];
+
+  // Average parameter vector
+  //real Z0 = (Zv0 + Zv1 + Zv2)*onethird;
   
+  // Average state at vertices
+  real What0 = Zv0;
+  real What1 = Zv1;
+  real What2 = Zv2;
+
+  real tl1 = pTl[n].x;
+  real tl2 = pTl[n].y;
+  real tl3 = pTl[n].z;
+
+  real tnx1 = pTn1[n].x;
+  real tnx2 = pTn2[n].x;
+  real tnx3 = pTn3[n].x;
+  //real tny1 = pTn1[n].y;
+  //real tny2 = pTn2[n].y;
+  //real tny3 = pTn3[n].y;
+
+  // Total residue
+  real ResTot = zero;
+  real Wtemp = zero;
+    
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  // Calculate the total residue = Sum(K*What)
+  // Not necessary for first-order N scheme 
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  // First direction
+  real nx = half*tl1*tnx1;
+  //real ny = half*tl1*tny1;
+  
+  ResTot += nx*What0;
+  
+  // Second direction
+  nx = half*tl2*tnx2;
+  //ny = half*tl2*tny2;
+
+  ResTot += nx*What1;
+  
+  // Third direction
+  nx = half*tl3*tnx3;
+  //ny = half*tl3*tny3;
+  
+  ResTot += nx*What2;
+  
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  // Calculate Wtemp = Sum(K-*What)
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+  // First direction
+  nx = tnx1;
+  //ny = tny1;
+  real tl = half*tl1;
+  
+  real l1 = min(zero, nx);
+
+  Wtemp += tl*l1*What0;
+  real nm = tl*l1;
+  
+  // Second direction         
+  nx = tnx2;
+  //ny = tny2;
+  tl = half*tl2;
+  
+  l1 = min(zero, nx);
+  
+  Wtemp += tl*l1*What1;
+  nm += tl*l1;
+  
+  // Third direction
+  nx = tnx3;
+  //ny = tny3;
+  tl = half*tl3;
+  
+  l1 = min(zero, nx);
+  
+  Wtemp += tl*l1*What2;
+  nm += tl*l1;
+
+  real invN = one/nm;
+
+  real Wtilde = invN*Wtemp;
+
+  // Wtemp = Nm*ResTot
+  Wtemp = invN*ResTot;
+
+  What0 -= Wtilde;
+  What1 -= Wtilde;
+  What2 -= Wtilde;
+
+  // PhiN = Kp*(What - Ninv*Sum(Km*What))
+  real ResN, ResLDA;
+  
+  real Tnx1 = pTn1[n].x;
+  real Tnx2 = pTn2[n].x;
+  real Tnx3 = pTn3[n].x;
+  //real Tny1 = pTn1[n].y;
+  //real Tny2 = pTn2[n].y;
+  //real Tny3 = pTn3[n].y;
+
+  nx = Tnx1;
+  //ny = Tny1;
+  
+  l1 = max(zero, nx);
+
+  ResN   = l1*What0;
+  ResLDA =-l1*Wtemp;
+    
+  pTresN0[n]   = half*ResN;
+  pTresLDA0[n] = half*ResLDA;
+  
+  // Second direction
+  nx = Tnx2;
+  //ny = Tny2;
+  
+  l1 = max(zero, nx);
+  
+  ResN   = l1*What1;
+  ResLDA =-l1*Wtemp;
+    
+  pTresN1[n]   = half*ResN;
+  pTresLDA1[n] = half*ResLDA;
+
+  // Third direction
+  nx = Tnx3;
+  //ny = Tny3;
+  
+  l1 = max(zero, nx);
+  
+  ResN   = l1*What2;
+  ResLDA =-l1*Wtemp;
+    
+  pTresN2[n]   = half*ResN;
+  pTresLDA2[n] = half*ResLDA;
+}
+
 //######################################################################
 /*! \brief Kernel calculating spacial residue for all triangles
 
@@ -1142,12 +1308,12 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
 //######################################################################
 
 __global__ void
-devCalcSpaceRes(int nTriangle, const int3 *pTv, real4 *pVz,
+devCalcSpaceRes(int nTriangle, const int3 *pTv, realNeq *pVz,
 		const real2 *pTn1, const real2 *pTn2,
 		const real2 *pTn3, const real3 *pTl, real *pVpot,
-		real4 *pTresN0, real4 *pTresN1, real4 *pTresN2,
-		real4 *pTresLDA0, real4 *pTresLDA1, real4 *pTresLDA2,
-		real4 *pTresTot, int nVertex, real G, real G1, real G2)
+		realNeq *pTresN0, realNeq *pTresN1, realNeq *pTresN2,
+		realNeq *pTresLDA0, realNeq *pTresLDA1, realNeq *pTresLDA2,
+		realNeq *pTresTot, int nVertex, real G, real G1, real G2)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -1203,17 +1369,17 @@ void Simulation::CalcResidual()
   int nVertex = mesh->GetNVertex();
 
   real *pVpot = vertexPotential->GetPointer();
-  real4 *pVz = vertexParameterVector->GetPointer();
+  realNeq *pVz = vertexParameterVector->GetPointer();
   
-  real4 *pTresN0 = triangleResidueN->GetPointer(0);
-  real4 *pTresN1 = triangleResidueN->GetPointer(1);
-  real4 *pTresN2 = triangleResidueN->GetPointer(2);
+  realNeq *pTresN0 = triangleResidueN->GetPointer(0);
+  realNeq *pTresN1 = triangleResidueN->GetPointer(1);
+  realNeq *pTresN2 = triangleResidueN->GetPointer(2);
 
-  real4 *pTresLDA0 = triangleResidueLDA->GetPointer(0);
-  real4 *pTresLDA1 = triangleResidueLDA->GetPointer(1);
-  real4 *pTresLDA2 = triangleResidueLDA->GetPointer(2);
+  realNeq *pTresLDA0 = triangleResidueLDA->GetPointer(0);
+  realNeq *pTresLDA1 = triangleResidueLDA->GetPointer(1);
+  realNeq *pTresLDA2 = triangleResidueLDA->GetPointer(2);
 
-  real4 *pTresTot = triangleResidueTotal->GetPointer();
+  realNeq *pTresTot = triangleResidueTotal->GetPointer();
   
   const int3 *pTv = mesh->TriangleVerticesData();
   

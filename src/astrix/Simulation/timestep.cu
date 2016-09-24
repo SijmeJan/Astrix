@@ -96,7 +96,20 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
 
   return vmax;
 }
-  
+
+__host__ __device__
+real FindMaxSignalSpeed(int t, int a, int b, int c,
+			real *pState, const real3* __restrict__ pTl,
+			real G, real G1)
+{
+  // Triangle edge lengths
+  real tl1 = pTl[t].x;
+  real tl2 = pTl[t].y;
+  real tl3 = pTl[t].z;
+
+  return 1.0*max(tl1, max(tl2, tl3));
+}
+
 //######################################################################
 /*! \brief Find maximum signal speed for triangle t and add it atomically to all of its vertices
 
@@ -111,7 +124,7 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
 //######################################################################
 
 __host__ __device__
-void CalcVmaxSingle(int t, const int3* __restrict__ pTv, real4 *pState,
+void CalcVmaxSingle(int t, const int3* __restrict__ pTv, realNeq *pState,
 		    const real3* __restrict__ pTl, real *pVts,
 		    int nVertex, real G, real G1)
 {
@@ -132,7 +145,7 @@ void CalcVmaxSingle(int t, const int3* __restrict__ pTv, real4 *pState,
   AtomicAdd(&pVts[b], vMax);
   AtomicAdd(&pVts[c], vMax); 
 }
-    
+
 //######################################################################
 /*! \brief Kernel finding maximum signal speed for triangles and add it atomically to all of the vertices
 
@@ -151,7 +164,7 @@ void CalcVmaxSingle(int t, const int3* __restrict__ pTv, real4 *pState,
 //######################################################################
 
 __global__ void 
-devCalcVmax(int nTriangle, const int3* __restrict__ pTv, real4 *pState,
+devCalcVmax(int nTriangle, const int3* __restrict__ pTv, realNeq *pState,
 	    const real3* __restrict__ pTl, real *pVts,
 	    int nVertex, real G, real G1)
 {
@@ -210,7 +223,7 @@ real Simulation::CalcVertexTimeStep()
   unsigned int nVertex = mesh->GetNVertex();
   int nTriangle = mesh->GetNTriangle();
 
-  real4 *pState = vertexState->GetPointer();
+  realNeq *pState = vertexState->GetPointer();
 
   const int3 *pTv = mesh->TriangleVerticesData();
   const real3 *pTl = mesh->TriangleEdgeLengthData();

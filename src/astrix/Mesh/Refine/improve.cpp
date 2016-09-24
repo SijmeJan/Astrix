@@ -34,7 +34,7 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
 			   const Predicates *predicates,
 			   Morton * const morton,
 			   Delaunay * const delaunay,
-	                   Array<real4> * const vertexState,
+	                   Array<realNeq> * const vertexState,
 			   const real specificHeatRatio,
 			   Array<int> * const triangleWantRefine)
 {
