@@ -824,8 +824,9 @@ void CalcTotalResLDASingle(int n,
   l1 = min(zero, nx);
   nm += tl*l1;
 
-  real invN = one/nm;
-  
+  real invN = one;
+  if (nm != zero) invN /= nm;
+
   real Wtilde = invN*pTresTot[n];
  
   // First direction

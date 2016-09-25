@@ -842,7 +842,8 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   l1 = min(zero, nx);
   nm += l1*tl;
 
-  real invN = 1.0/nm;
+  real invN = (real) 1.0;
+  if (nm != zero) invN /= nm;
 
   // Wtilde = N*phi
   real Wtilde = invN*resTot;

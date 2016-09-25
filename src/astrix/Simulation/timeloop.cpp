@@ -211,6 +211,13 @@ void Simulation::DoTimeStep()
   // Calculate (space) residuals at triangles
   CalcResidual();
 
+  /*
+  int nVertex = mesh->GetNVertex();
+  real *state = triangleResidueTotal->GetHostPointer();
+  for (int i = 0; i < mesh->GetNTriangle(); i++) 
+    if (state[i] < 0.0) std::cout << "Hallo" << std::endl;
+  */
+  
   // Update state at vertices
   try {
     UpdateState(dt, 0);
@@ -230,6 +237,7 @@ void Simulation::DoTimeStep()
   //if(problemDef == PROBLEM_VORTEX)
   //SetNonReflectingBoundaries();
  
+  
   if (integrationOrder == 2) {
     /*
     if (problemDef == PROBLEM_VORTEX ||
@@ -268,7 +276,7 @@ void Simulation::DoTimeStep()
 
     // Set Wold = W
     vertexStateOld->SetEqual(vertexState);
-    
+
     // Update state at vertices
     try {
       UpdateState(dt, 1);
@@ -309,7 +317,7 @@ void Simulation::DoTimeStep()
   
   // Increase time
   simulationTime += dt;
-
+  
   delete nvtxHydro;
 }
 

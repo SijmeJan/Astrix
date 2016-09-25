@@ -1192,6 +1192,8 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
   
   ResTot += nx*What2;
   
+  pTresTot[n] = ResTot;   
+
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate Wtemp = Sum(K-*What)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1226,8 +1228,9 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
   Wtemp += tl*l1*What2;
   nm += tl*l1;
 
-  real invN = one/nm;
-
+  real invN = one;
+  if (nm != zero) invN /= nm;
+  
   real Wtilde = invN*Wtemp;
 
   // Wtemp = Nm*ResTot

@@ -25,8 +25,7 @@ NVCCLDFLAGS :=
 LDFLAGS     := 
 
 # Extra user flags
-EXTRA_NVCCFLAGS   ?= -O3 -lineinfo
-#-g -G 
+EXTRA_NVCCFLAGS   ?= -O3 -lineinfo -g -G 
 #--ptxas-options=-v
 EXTRA_NVCCLDFLAGS ?=
 EXTRA_LDFLAGS     ?= -lnvToolsExt

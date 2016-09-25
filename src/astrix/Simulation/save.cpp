@@ -75,7 +75,7 @@ void Simulation::Save(int nSave)
   outFile.write(reinterpret_cast<char*>(&nTimeStep), sizeof(int));
   outFile.write(reinterpret_cast<char*>(pDens), nVertex*sizeof(real));
   outFile.close();
-  
+
   // Write x-momentum binary
   snprintf(fname, sizeof(fname), "momx%4.4d.dat", nSave);
   outFile.open(fname, std::ios::binary);
@@ -102,7 +102,7 @@ void Simulation::Save(int nSave)
   outFile.write(reinterpret_cast<char*>(&nTimeStep), sizeof(int));
   outFile.write(reinterpret_cast<char*>(pEner), nVertex*sizeof(real));
   outFile.close();
-
+  
   delete dens;
   delete momx;
   delete momy;

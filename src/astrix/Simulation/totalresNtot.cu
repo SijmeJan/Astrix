@@ -1203,8 +1203,9 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   Wtemp += tl*l1*What2;
   nm += tl*l1;
 
-  real invN = one/nm;
-  
+  real invN = one;
+  if (nm != zero) invN /= nm;
+
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Wtilde = N*(ResSource + K-*What)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1353,7 +1354,7 @@ void Simulation::CalcTotalResNtot(real dt)
   realNeq *pTresN2 = triangleResidueN->GetPointer(2);
   
   realNeq *pTresTot = triangleResidueTotal->GetPointer();
-  
+
   const int3 *pTv = mesh->TriangleVerticesData();
   const real2 *pTn1 = mesh->TriangleEdgeNormalsData(0);
   const real2 *pTn2 = mesh->TriangleEdgeNormalsData(1);
