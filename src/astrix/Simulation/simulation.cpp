@@ -210,7 +210,8 @@ void Simulation::ReadInputFile(const char *fileName)
   selectiveLumpFlag = -1;
   intScheme = SCHEME_UNDEFINED;
   specificHeatRatio = -1.0;
-
+  CFLnumber = -1.0;
+  
   // Open parameter file
   std::ifstream inFile(fileName);
   if (!inFile.is_open()) {
@@ -289,6 +290,13 @@ void Simulation::ReadInputFile(const char *fileName)
 	selectiveLumpFlag = atof(secondWord.c_str());
     }
 
+    // Courant number
+    if (firstWord == "CFLnumber") {
+      if (!secondWord.empty() &&
+	  secondWord.find_first_not_of("0123456789-.e") == std::string::npos)
+	CFLnumber = atof(secondWord.c_str());
+    }
+
     // SpecificHeatRatio
     if (firstWord == "specificHeatRatio") {
       if (!secondWord.empty() &&
@@ -335,6 +343,10 @@ void Simulation::ReadInputFile(const char *fileName)
   }
   if (intScheme == SCHEME_UNDEFINED) {
     std::cout << "Invalid value for integrationScheme" << std::endl;
+    throw std::runtime_error("");
+  }
+  if (CFLnumber <= 0.0 || CFLnumber > 1.0) {
+    std::cout << "Invalid value for CFLnumber" << std::endl;
     throw std::runtime_error("");
   }
   if (specificHeatRatio < 0.0) {

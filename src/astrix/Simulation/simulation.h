@@ -60,6 +60,8 @@ class Simulation
   int massMatrix;
   //! Flag whether to use selective lumping
   int selectiveLumpFlag;
+  //! Courant number
+  real CFLnumber;
   
   //! Number of space dimensions (fixed to 2)
   int nSpaceDim;

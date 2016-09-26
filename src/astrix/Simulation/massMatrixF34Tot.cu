@@ -795,7 +795,9 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   real Adt = sqrt(s*(s - tl1)*(s - tl2)*(s - tl3))*onethird/dt;
   if (massMatrix == 3) Adt = -Adt;
   
-  real resTot = (dW0 + dW1 + dW2)*Adt;
+  dW0 *= Adt;
+  dW1 *= Adt;
+  dW2 *= Adt;
   
   // Parameter vector at vertices: 12 uncoalesced loads
   //real Zv0 = pVz[vs1];
@@ -846,7 +848,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   if (nm != zero) invN /= nm;
 
   // Wtilde = N*phi
-  real Wtilde = invN*resTot;
+  real Wtilde = invN*dW0;
   real ResLDA;
   
   real Tnx1 = pTn1[n].x;

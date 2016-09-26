@@ -278,7 +278,7 @@ real Simulation::CalcVertexTimeStep()
   }
 
   // Find the minimum
-  real dt = vertexTimestep->Minimum();
+  real dt = CFLnumber*vertexTimestep->Minimum();
   
   // End exactly on maxSimulationTime
   if (simulationTime + dt > maxSimulationTime) 
