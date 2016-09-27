@@ -119,7 +119,7 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     real xc = zero;
     real yc = zero;
 
-    real beta = two;
+    real beta = five;
     
     real x = vertX;
     real y = vertY;
@@ -380,46 +380,6 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     ener =
       enerRB*(1.0f - f)*(1.0f - g) + enerLB*f*(1.0f - g) +
       enerRO*(1.0f - f)*g + enerLO*f*g; 
-  }
-
-  if (problemDef == PROBLEM_ADVECT) {
-    real kx = 1.0f;
-    real ky = 2.0f;
-    real r = kx*vertX + ky*vertY;
-    
-    real uBulk = 1.0f;
-    real d1 = 1.0f;
-    real d2 = 2.0f;
-
-    real dm = 0.5f*(d1 - d2);
-    real L = 0.025f;
-
-    // Ramp from d1 to 0.5*(d1+d2)
-    real d = d1 - dm*exp((r - 0.25f)/L);
-    // Ramp from 0.5*(d1+d2) to d2
-    if (r > 0.25f) d = d2 + dm*exp((-r + 0.25f)/L);
-    // Ramp from d2 to 0.5*(d1+d2)
-    if (r > 0.50f) d = d2 + dm*exp(-(0.75f - r)/L);
-    // Ramp from 0.5*(d1+d2) to d1
-    if (r > 0.75f) d = d1 - dm*exp(-(r - 0.75f)/L);
-    for (int nn = 1; nn < kx + ky; nn++) {
-      real N = (real) nn;
-      if (r > N + 0.00f) d = d1 - dm*exp(-(N + 0.25f - r)/L);
-      if (r > N + 0.25f) d = d2 + dm*exp((-r + N + 0.25f)/L);
-      if (r > N + 0.50f) d = d2 + dm*exp(-(N + 0.75f - r)/L);
-      if (r > N + 0.75f) d = d1 - dm*exp(-(r - N - 0.75f)/L);
-    }
-    
-    real cosa = kx/sqrt(kx*kx + ky*ky);
-    real sina = ky/sqrt(kx*kx + ky*ky);
-
-    real vx = uBulk*sina;
-    real vy = -uBulk*cosa;
-
-    dens = d;
-    momx = d*vx;
-    momy = d*vy;
-    ener = 0.5f*d*(vx*vx + vy*vy) + 2.5f/(G - 1.0f);
   }
 
   state[n].x = dens;

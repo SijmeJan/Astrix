@@ -23,6 +23,7 @@ int main(int argc, char *argv[])
   int cudaFlag = 0;                      // Flag whether to use CUDA device
   int restartNumber = 0;                 // Save number to restart from
   double maxWallClockHours = 1.0e10;     // Maximum wallclock hours to run
+  int extraFlag = 0;
   
   // Walk through all command line arguments
   for (int i = 1; i < argc; ++i) {
@@ -69,6 +70,13 @@ int main(int argc, char *argv[])
 		<< " hours" << std::endl;
       nSwitches += 2;
     }
+    // Extra flag
+    if (strcmp(argv[i], "--extraflag") == 0 ||
+        strcmp(argv[i], "-e") == 0) {
+      extraFlag = atoi(argv[i+1]);
+      std::cout << "Extra flag: " << extraFlag << std::endl;
+      nSwitches += 2;
+    }
   }
 
   // Initialise CUDA device
@@ -96,6 +104,7 @@ int main(int argc, char *argv[])
 	      << " [-v verboseLevel]"
 	      << " [-D debugLevel]" 
 	      << " [-r restartNumber]"
+	      << " [-e extraFlag]"
 	      << " filename" 
 	      << std::endl;
     delete device;
@@ -110,7 +119,8 @@ int main(int argc, char *argv[])
   try {
     simulation =
       new astrix::Simulation(verboseLevel, debugLevel,
-			     fileName, device, restartNumber);
+			     fileName, device, restartNumber,
+			     extraFlag);
   }
   catch (...) {
     std::cout << "Could not create Simulation object, exiting..." << std::endl;

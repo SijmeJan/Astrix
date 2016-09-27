@@ -17,7 +17,8 @@ class Simulation
  public:
   //! Constructor for Simulation object.
   Simulation(int _verboseLevel, int _debugLevel,
-	     char *fileName, Device *_device, int restartNumber);
+	     char *fileName, Device *_device, int restartNumber,
+	     int extraFlag);
   //! Destructor, releases all dynamically allocated 
   ~Simulation();
 
@@ -34,6 +35,7 @@ class Simulation
   int verboseLevel;
   //! Level of debugging
   int debugLevel;
+  int extraFlag;
   
   //! Mesh on which to do simulation
   Mesh *mesh;
@@ -141,7 +143,7 @@ class Simulation
   //! Calculate space-time LDA residual
   void CalcTotalResLDA();
   //! Add selective lump contribution to residual
-  void SelectLumpLDA(real dt, int massMatrix, int selectLumpFlag);
+  void SelectLump(real dt, int massMatrix, int selectLumpFlag);
   //! Add contribution F3/F4 mass matrix to total residual
   void MassMatrixF34Tot(real dt, int massMatrix);
   //! Add contribution F3/F4 mass matrix to residual

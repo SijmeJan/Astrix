@@ -792,37 +792,34 @@ void CalcTotalResLDASingle(int n,
   real tl2 = pTl[n].y;
   real tl3 = pTl[n].z;
 
+  // First direction
   real tnx1 = pTn1[n].x;
   //real tny1 = pTn1[n].y;
 
-  // First direction
-  real nx = half*tnx1;
+  real nx = half*tl1*tnx1;
   //real ny = half*tny1;
-  real tl = tl1;
   
   real l1 = min(zero, nx);  
-  real nm = tl*l1;
+  real nm = l1;
 
   // Second direction         
   real tnx2 = pTn2[n].x;
   //real tny2 = pTn2[n].y;
-  nx = half*tnx2;
+  nx = half*tl2*tnx2;
   //ny = half*tny2;
-  tl = tl2;
   
   l1 = min(zero, nx);
-  nm += tl*l1;
+  nm += l1;
 
   // Third direction
   real tnx3 = pTn3[n].x;
   //real tny3 = pTn3[n].y;
 
-  nx = half*tnx3;
+  nx = half*tl3*tnx3;
   //ny = half*tny3;
-  tl = tl3;
   
   l1 = min(zero, nx);
-  nm += tl*l1;
+  nm += l1;
 
   real invN = one;
   if (nm != zero) invN /= nm;

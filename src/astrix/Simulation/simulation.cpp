@@ -29,8 +29,11 @@ Simulation::Simulation(int _verboseLevel,
 		       int _debugLevel,
 		       char *fileName,
 		       Device *_device,
-		       int restartNumber)
+		       int restartNumber,
+		       int _extraFlag)
 {
+  extraFlag = _extraFlag;
+  
   try {
     // Read input file
     ReadInputFile(fileName);
@@ -50,7 +53,7 @@ Simulation::Simulation(int _verboseLevel,
   try {
     // Create mesh object
     mesh = new Mesh(verboseLevel, debugLevel, cudaFlag,
-		    fileName, device, restartNumber);
+		    fileName, device, restartNumber, extraFlag);
   }
   catch (...) {
     std::cout << "Mesh creation failed" << std::endl;   
@@ -311,6 +314,20 @@ void Simulation::ReadInputFile(const char *fileName)
     std::cout << "Invalid value for problemDefinition" << std::endl;
     throw std::runtime_error("");
   }
+  if (problemDef == PROBLEM_ADVECT) {
+#if N_EQUATION != 1
+    std::cout << "PROBLEM_ADVECT requires scalar problem. "
+	      << "Need to set N_EQUATION = 1" << std::endl;
+    throw std::runtime_error("");
+#endif
+  } else {
+#if N_EQUATION != 4
+    std::cout << "Problem requires 4 equations to be solved. "
+	      << "Need to set N_EQUATION = 4" << std::endl;
+    throw std::runtime_error("");
+#endif
+  }
+    
   if (maxSimulationTime < 0.0 ||
       std::isinf(maxSimulationTime) ||
       std::isnan(maxSimulationTime)) {

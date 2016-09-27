@@ -489,7 +489,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   kp = G1*l1l2l3*Sq(invCtilde);
   ResLDA -= kp*Wtilde3;
 
-  pTresTot[n].x += ResLDA;
+  pTresTot[n].x += tl1*ResLDA;
   
   // kp010
   kp = absvtc*(uoverc*l1l2l3 + nx*l1l2) -
@@ -510,7 +510,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   kp = G1*(uoverc*l1l2l3 + nx*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
   
-  pTresTot[n].y += ResLDA;
+  pTresTot[n].y += tl1*ResLDA;
   
   // kp020
   kp = absvtc*(voverc*l1l2l3 + ny*l1l2) - 
@@ -531,7 +531,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   kp = G1*(voverc*l1l2l3 + ny*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
   
-  pTresTot[n].z += ResLDA;
+  pTresTot[n].z += tl1*ResLDA;
   
   // kp030
   kp = absvtc*(wtilde*l1l2 + hoverc*l1l2l3) -
@@ -552,7 +552,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   kp = G1*invCtilde*(hoverc*l1l2l3 + wtilde*l1l2) + l3;
   ResLDA -= kp*Wtilde3;
   
-  pTresTot[n].w += ResLDA;
+  pTresTot[n].w += tl1*ResLDA;
   
   real Tnx2 = pTn2[n].x;
   real Tny2 = pTn2[n].y;
@@ -590,7 +590,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   kp = G1*l1l2l3*Sq(invCtilde);
   ResLDA -= kp*Wtilde3;
   
-  pTresTot[n].x += ResLDA;
+  pTresTot[n].x += tl2*ResLDA;
   
   // kp110
   kp = absvtc*(uoverc*l1l2l3 + nx*l1l2) -
@@ -611,7 +611,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   kp = G1*(uoverc*l1l2l3 + nx*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
   
-  pTresTot[n].y += ResLDA;
+  pTresTot[n].y += tl2*ResLDA;
   
   // kp120
   kp = absvtc*(voverc*l1l2l3 + ny*l1l2) - 
@@ -632,7 +632,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   kp = G1*(voverc*l1l2l3 + ny*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
   
-  pTresTot[n].z += ResLDA;
+  pTresTot[n].z += tl2*ResLDA;
   
   // kp130
   kp = absvtc*(wtilde*l1l2 + hoverc*l1l2l3) -
@@ -653,7 +653,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   kp = G1*invCtilde*(hoverc*l1l2l3 + wtilde*l1l2) + l3;
   ResLDA -= kp*Wtilde3;
   
-  pTresTot[n].w += ResLDA;
+  pTresTot[n].w += tl2*ResLDA;
   
   real Tnx3 = pTn3[n].x;
   real Tny3 = pTn3[n].y;
@@ -691,7 +691,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   kp = G1*l1l2l3*Sq(invCtilde);
   ResLDA -= kp*Wtilde3;
   
-  pTresTot[n].x += ResLDA;
+  pTresTot[n].x += tl3*ResLDA;
   
   // kp210
   kp = absvtc*(uoverc*l1l2l3 + nx*l1l2) -
@@ -712,7 +712,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   kp = G1*(uoverc*l1l2l3 + nx*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
   
-  pTresTot[n].y += ResLDA;
+  pTresTot[n].y += tl3*ResLDA;
   
   // kp220
   kp = absvtc*(voverc*l1l2l3 + ny*l1l2) - 
@@ -733,7 +733,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   kp = G1*(voverc*l1l2l3 + ny*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
   
-  pTresTot[n].z += ResLDA;
+  pTresTot[n].z += tl3*ResLDA;
   
   // kp230
   kp = absvtc*(wtilde*l1l2 + hoverc*l1l2l3) -
@@ -754,7 +754,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   kp = G1*invCtilde*(hoverc*l1l2l3 + wtilde*l1l2) + l3;
   ResLDA -= kp*Wtilde3;
   
-  pTresTot[n].w += ResLDA;
+  pTresTot[n].w += tl3*ResLDA;
 }
 
 __host__ __device__
@@ -854,7 +854,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   real Tnx1 = pTn1[n].x;
   //real Tny1 = pTn1[n].y;
 
-  nx = half*Tnx1;
+  nx = half*tl1*Tnx1;
   //ny = half*Tny1;
 
   l1 = half*(nx + fabs(nx));
@@ -869,7 +869,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   //real Tny2 = pTn2[n].y;
 
   // Second direction
-  nx = half*Tnx2;
+  nx = half*tl2*Tnx2;
   //ny = half*Tny2;
 
   l1 = half*(nx + fabs(nx));
@@ -884,7 +884,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   //real Tny3 = pTn3[n].y;
 
   // Third direction
-  nx = half*Tnx3;
+  nx = half*tl3*Tnx3;
   //ny = half*Tny3;
 
   l1 = half*(nx + fabs(nx));

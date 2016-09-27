@@ -16,13 +16,15 @@ namespace astrix {
 //######################################################################
 
 __host__ __device__
-void SelectLumpLDASingle(int n, real dt, int massMatrix, int selectLumpFlag,
-			 const int3* __restrict__ pTv, realNeq *pDstate,
-			 realNeq *pTresLDA0, realNeq *pTresLDA1,
-			 realNeq *pTresLDA2, const real3 *pTl, int nVertex)
+void SelectLumpSingle(int n, real dt, int massMatrix, int selectLumpFlag,
+		      const int3* __restrict__ pTv, realNeq *pDstate,
+		      realNeq *pTresLDA0, realNeq *pTresLDA1,
+		      realNeq *pTresLDA2, realNeq *pTresN0,
+		      realNeq *pTresN1, realNeq *pTresN2,
+		      const real3 *pTl, int nVertex)
 {
   real half = (real) 0.5;
-  real three = (real) 3.0;
+  real two = (real) 2.0;
 
   real f = (real) 0.0;
   if (selectLumpFlag == 1) f += (real) 1.0/(real) 12.0;
@@ -52,30 +54,38 @@ void SelectLumpLDASingle(int n, real dt, int massMatrix, int selectLumpFlag,
   // |T|/(12*dt)
   real Adt = sqrt(s*(s - Tl1)*(s - Tl2)*(s - Tl3))*f/dt;
 
-  realNeq ResLDA0 = (-three*dW0 + dW1 + dW2)*Adt;
-  realNeq ResLDA1 = (dW0 - three*dW1 + dW2)*Adt;
-  realNeq ResLDA2 = (dW0 + dW1 - three*dW2)*Adt;
+  realNeq ResLDA0 = (-two*dW0 + dW1 + dW2)*Adt;
+  realNeq ResLDA1 = (dW0 - two*dW1 + dW2)*Adt;
+  realNeq ResLDA2 = (dW0 + dW1 - two*dW2)*Adt;
 
-  pTresLDA0[n] -= ResLDA0;
-  pTresLDA1[n] -= ResLDA1;
-  pTresLDA2[n] -= ResLDA2; 
+  pTresLDA0[n] -= ResLDA0/Tl1;
+  pTresLDA1[n] -= ResLDA1/Tl2;
+  pTresLDA2[n] -= ResLDA2/Tl3; 
+
+  if (selectLumpFlag == 1) {
+    pTresN0[n] -= ResLDA0/Tl1;
+    pTresN1[n] -= ResLDA1/Tl2;
+    pTresN2[n] -= ResLDA2/Tl3;
+  }
 }
 
 //######################################################################
 //######################################################################
 
 __global__ void
-devSelectLumpLDA(int nTriangle, real dt, int massMatrix, int selectLumpFlag,
-		 const int3* __restrict__ pTv, realNeq *pDstate,
-		 realNeq *pTresLDA0, realNeq *pTresLDA1, realNeq *pTresLDA2,
-		 const real3 *pTl, int nVertex)
+devSelectLump(int nTriangle, real dt, int massMatrix, int selectLumpFlag,
+	      const int3* __restrict__ pTv, realNeq *pDstate,
+	      realNeq *pTresLDA0, realNeq *pTresLDA1, realNeq *pTresLDA2,
+	      realNeq *pTresN0, realNeq *pTresN1, realNeq *pTresN2,
+	      const real3 *pTl, int nVertex)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nTriangle) {
-    SelectLumpLDASingle(n, dt, massMatrix, selectLumpFlag, pTv, pDstate,
-			pTresLDA0, pTresLDA1, pTresLDA2,
-			pTl, nVertex);
+    SelectLumpSingle(n, dt, massMatrix, selectLumpFlag, pTv, pDstate,
+		     pTresLDA0, pTresLDA1, pTresLDA2,
+		     pTresN0, pTresN1, pTresN2,
+		     pTl, nVertex);
     
     // Next triangle
     n += blockDim.x*gridDim.x;
@@ -85,7 +95,7 @@ devSelectLumpLDA(int nTriangle, real dt, int massMatrix, int selectLumpFlag,
 //######################################################################
 //######################################################################
 
-void Simulation::SelectLumpLDA(real dt, int massMatrix, int selectLumpFlag)
+void Simulation::SelectLump(real dt, int massMatrix, int selectLumpFlag)
 {
   int nTriangle = mesh->GetNTriangle();
   int nVertex = mesh->GetNVertex();
@@ -94,7 +104,10 @@ void Simulation::SelectLumpLDA(real dt, int massMatrix, int selectLumpFlag)
   realNeq *pTresLDA0 = triangleResidueLDA->GetPointer(0);
   realNeq *pTresLDA1 = triangleResidueLDA->GetPointer(1);
   realNeq *pTresLDA2 = triangleResidueLDA->GetPointer(2);
-  
+  realNeq *pTresN0 = triangleResidueN->GetPointer(0);
+  realNeq *pTresN1 = triangleResidueN->GetPointer(1);
+  realNeq *pTresN2 = triangleResidueN->GetPointer(2);
+ 
   const int3 *pTv = mesh->TriangleVerticesData();
   const real3 *pTl  = mesh->TriangleEdgeLengthData();
 
@@ -104,20 +117,23 @@ void Simulation::SelectLumpLDA(real dt, int massMatrix, int selectLumpFlag)
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devSelectLumpLDA, 
+				       devSelectLump, 
 				       (size_t) 0, 0);
 
-    devSelectLumpLDA<<<nBlocks, nThreads>>>
+    devSelectLump<<<nBlocks, nThreads>>>
       (nTriangle, dt, massMatrix, selectLumpFlag,
-       pTv, pDstate, pTresLDA0, pTresLDA1, pTresLDA2,
+       pTv, pDstate,
+       pTresLDA0, pTresLDA1, pTresLDA2,
+       pTresN0, pTresN1, pTresN2,
        pTl, nVertex);
     
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int n = 0; n < nTriangle; n++) 
-      SelectLumpLDASingle(n, dt, massMatrix, selectLumpFlag, pTv, pDstate,
+      SelectLumpSingle(n, dt, massMatrix, selectLumpFlag, pTv, pDstate,
 			  pTresLDA0, pTresLDA1, pTresLDA2,
+			  pTresN0, pTresN1, pTresN2,
 			  pTl, nVertex);
   }
 }

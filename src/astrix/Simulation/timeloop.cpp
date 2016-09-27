@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cuda_runtime_api.h>
 #include <cuda_profiler_api.h>
+#include <fstream>
 
 #include "../Common/definitions.h"
 #include "../Array/array.h"
@@ -107,6 +108,18 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
 
     realNeq *state = vertexState->GetHostPointer();
     realNeq *stateOld = vertexStateOld->GetHostPointer();
+
+    if (problemDef == PROBLEM_ADVECT) {
+      const real2 *pVc = mesh->VertexCoordinatesData();
+      for (int i = 0; i < nVertex; i++) {
+	real x = pVc[i].x;
+	real y = pVc[i].y;
+	real r = sqrt((x - 1.5)*(x - 1.5) + (y - 0.5)*(y - 0.5));
+	
+	state[i] = 1.0;
+	if (r <= (real) 0.25) state[i] += cos(2.0*M_PI*r)*cos(2.0*M_PI*r);
+      }
+    }
     
     const real *vertArea = mesh->VertexAreaData();
   
@@ -136,6 +149,20 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
     std::cout << "Lmax error in density: " << Lmaxdens << " " << std::endl;
     std::cout << "Mesh size paramenter: " << sqrt(totalArea/(real)nVertex)
 	      << std::endl;
+
+    std::ofstream uitvoer;
+    if (extraFlag == 0 || extraFlag == 32)
+      uitvoer.open("resolution.txt");
+    else
+      uitvoer.open("resolution.txt", std::ios::app);
+    uitvoer << extraFlag << " "
+	    << std::scientific << std::setprecision(2)
+	    << sqrt(totalArea/(real)nVertex) << " "
+	    << L1dens << " "
+	    << L2dens << " "
+	    << Lmaxdens << std::endl;
+    uitvoer.close();
+    
     if (cudaFlag == 1) 
       mesh->Transform();
   }
@@ -272,7 +299,7 @@ void Simulation::DoTimeStep()
       MassMatrixF34(dt, massMatrix);
     
     if (selectiveLumpFlag == 1 || massMatrix == 2)
-      SelectLumpLDA(dt, massMatrix, selectiveLumpFlag);
+      SelectLump(dt, massMatrix, selectiveLumpFlag);
 
     // Set Wold = W
     vertexStateOld->SetEqual(vertexState);
