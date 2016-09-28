@@ -407,6 +407,15 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     if (r <= (real) 0.25) dens += Sq(cos(2.0*M_PI*r));
   }
 
+  if(problemDef == PROBLEM_BURGERS) {
+    real x = vertX;
+    real y = vertY;
+
+    dens = (real) 1.0e-10;
+    if (x  > (real) -0.6 && x < (real) - 0.1 &&
+	y > -0.35 && y < 0.15) dens += 1.0;
+  }
+
   state[n] = dens;
 }
 

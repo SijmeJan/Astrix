@@ -107,7 +107,13 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
   real tl2 = pTl[t].y;
   real tl3 = pTl[t].z;
 
+#if BURGERS == 1
+  real vmax = max(fabs(pState[a]), max(fabs(pState[b]), fabs(pState[c])));
+  return vmax*max(tl1, max(tl2, tl3));
+#else
+  // Scalar advection with velocity unity
   return 1.0*max(tl1, max(tl2, tl3));
+#endif
 }
 
 //######################################################################

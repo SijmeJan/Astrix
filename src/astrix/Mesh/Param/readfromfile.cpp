@@ -50,6 +50,7 @@ void MeshParameter::ReadFromFile(const char *fileName)
       if (secondWord == "VORTEX") problemDef = PROBLEM_VORTEX;
       if (secondWord == "YEE") problemDef = PROBLEM_YEE;
       if (secondWord == "ADVECT") problemDef = PROBLEM_ADVECT;
+      if (secondWord == "BURGERS") problemDef = PROBLEM_BURGERS;
     }
 
     // Equivalent no of points x-direction (check if number)

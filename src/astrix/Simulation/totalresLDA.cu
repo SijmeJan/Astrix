@@ -761,7 +761,6 @@ void CalcTotalResLDASingle(int n,
 			   real G, real G1, real G2)
 {
   const real zero  = (real) 0.0;
-  //const real onethird = (real) (1.0/3.0);
   const real half  = (real) 0.5;
   const real one = (real) 1.0;
 
@@ -775,13 +774,21 @@ void CalcTotalResLDASingle(int n,
   while (vs2 < 0) vs2 += nVertex;
   while (vs3 < 0) vs3 += nVertex;
 
-  // Parameter vector at vertices: 12 uncoalesced loads
-  //real Zv0 = pVz[vs1];
-  //real Zv1 = pVz[vs2];
-  //real Zv2 = pVz[vs3];
-
   // Average parameter vector
-  //real Z0 = (Zv0 + Zv1 + Zv2)*onethird;
+#if BURGERS == 1
+  const real onethird = (real) (1.0/3.0);
+  
+  real Zv0 = pVz[vs1];
+  real Zv1 = pVz[vs2];
+  real Zv2 = pVz[vs3];
+
+  real Z0 = (Zv0 + Zv1 + Zv2)*onethird;
+  real vx = Z0;
+  real vy = Z0;
+#else
+  real vx = one;
+  real vy = zero;
+#endif
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate Wtemp = Sum(K-*What)
@@ -794,31 +801,31 @@ void CalcTotalResLDASingle(int n,
 
   // First direction
   real tnx1 = pTn1[n].x;
-  //real tny1 = pTn1[n].y;
+  real tny1 = pTn1[n].y;
 
   real nx = half*tl1*tnx1;
-  //real ny = half*tny1;
+  real ny = half*tl1*tny1;
   
-  real l1 = min(zero, nx);  
+  real l1 = min(zero, vx*nx + vy*ny);  
   real nm = l1;
 
   // Second direction         
   real tnx2 = pTn2[n].x;
-  //real tny2 = pTn2[n].y;
+  real tny2 = pTn2[n].y;
   nx = half*tl2*tnx2;
-  //ny = half*tny2;
+  ny = half*tl2*tny2;
   
-  l1 = min(zero, nx);
+  l1 = min(zero, vx*nx + vy*ny);
   nm += l1;
 
   // Third direction
   real tnx3 = pTn3[n].x;
-  //real tny3 = pTn3[n].y;
+  real tny3 = pTn3[n].y;
 
   nx = half*tl3*tnx3;
-  //ny = half*tny3;
+  ny = half*tl3*tny3;
   
-  l1 = min(zero, nx);
+  l1 = min(zero, vx*nx + vy*ny);
   nm += l1;
 
   real invN = one;
@@ -828,32 +835,32 @@ void CalcTotalResLDASingle(int n,
  
   // First direction
   real Tnx1 = pTn1[n].x;
-  //real Tny1 = pTn1[n].y;
+  real Tny1 = pTn1[n].y;
 
   nx = half*Tnx1;
-  //ny = half*Tny1;
+  ny = half*Tny1;
 
-  l1 = half*(nx + fabs(nx));
+  l1 = half*(vx*nx + vy*ny + fabs(vx*nx + vy*ny));
   pTresLDA0[n] = -l1*Wtilde;
   
   // Second direction
   real Tnx2 = pTn2[n].x;
-  //real Tny2 = pTn2[n].y;
+  real Tny2 = pTn2[n].y;
 
   nx = half*Tnx2;
-  //ny = half*Tny2;
+  ny = half*Tny2;
   
-  l1 = half*(nx + fabs(nx));
+  l1 = half*(vx*nx + vy*ny + fabs(vx*nx + vy*ny));
   pTresLDA1[n] = -l1*Wtilde;
   
   // Third direction
   real Tnx3 = pTn3[n].x;
-  //real Tny3 = pTn3[n].y;
+  real Tny3 = pTn3[n].y;
 
   nx = half*Tnx3;
-  //ny = half*Tny3;
+  ny = half*Tny3;
 
-  l1 = half*(nx + fabs(nx));
+  l1 = half*(vx*nx + vy*ny + fabs(vx*nx + vy*ny));
   pTresLDA2[n] = -l1*Wtilde;
 }
 

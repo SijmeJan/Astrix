@@ -831,7 +831,7 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
 			 const real3 *pTl, int nVertex,
 			 real G, real G1, real G2)
 {
-  const real zero  = (real) 0.0;
+  const real zero = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
   const real half  = (real) 0.5;
 
@@ -863,49 +863,55 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
   dW1 *= Adt;
   dW2 *= Adt;
     
-  // Parameter vector at vertices: 12 uncoalesced loads
-  //real Zv0 = pVz[vs1];
-  //real Zv1 = pVz[vs2];
-  //real Zv2 = pVz[vs3];
-
   // Average parameter vector
-  //real Z0 = (Zv0 + Zv1 + Zv2)*onethird;
+#if BURGERS == 1
+  real Zv0 = pVz[vs1];
+  real Zv1 = pVz[vs2];
+  real Zv2 = pVz[vs3];
+
+  real Z0 = (Zv0 + Zv1 + Zv2)*onethird;
+  real vx = Z0;
+  real vy = Z0;
+#else
+  real vx = (real) 1.0;
+  real vy = zero;
+#endif
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate N
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
   real tnx1 = pTn1[n].x;
-  //real tny1 = pTn1[n].y;
+  real tny1 = pTn1[n].y;
 
   // First direction
   real nx = half*tnx1;
-  //real ny = half*tny1;
+  real ny = half*tny1;
   real tl = tl1;
   
-  real l1 = min(zero, nx);
+  real l1 = min(zero, vx*nx + vy*ny);
   real nm = l1*tl;
     
   // Second direction         
   real tnx2 = pTn2[n].x;
-  //real tny2 = pTn2[n].y;
+  real tny2 = pTn2[n].y;
 
   nx = half*tnx2;
-  //ny = half*tny2;
+  ny = half*tny2;
   tl = tl2;
   
-  l1 = min(zero, nx);
+  l1 = min(zero, vx*nx + vy*ny);
   nm += l1*tl;
 
   // Third direction
   real tnx3 = pTn3[n].x;
-  //real tny3 = pTn3[n].y;
+  real tny3 = pTn3[n].y;
 
   nx = half*tnx3;
-  //ny = half*tny3;
+  ny = half*tny3;
   tl = tl3;
   
-  l1 = min(zero, nx);
+  l1 = min(zero, vx*nx + vy*ny);
   nm += l1*tl;
 
   real invN = (real) 1.0;
@@ -918,12 +924,12 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
   real ResLDA;
   
   real Tnx1 = pTn1[n].x;
-  //real Tny1 = pTn1[n].y;
+  real Tny1 = pTn1[n].y;
 
   nx = half*Tnx1;
-  //ny = half*Tny1;
+  ny = half*Tny1;
 
-  l1 = half*(nx + fabs(nx));
+  l1 = half*(vx*nx + vy*ny + fabs(vx*nx + vy*ny));
   ResLDA = -l1*Wtilde;
 
   pTresLDA0[n] += ResLDA;
@@ -932,13 +938,13 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
   Wtilde = invN*dW1;
 
   real Tnx2 = pTn2[n].x;
-  //real Tny2 = pTn2[n].y;
+  real Tny2 = pTn2[n].y;
 
   // Second direction
   nx = half*Tnx2;
-  //ny = half*Tny2;
+  ny = half*Tny2;
 
-  l1 = half*(nx + fabs(nx));
+  l1 = half*(vx*nx + vy*ny + fabs(vx*nx + vy*ny));
   ResLDA = -l1*Wtilde;
 
   pTresLDA1[n] += ResLDA;
@@ -947,13 +953,13 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
   Wtilde = invN*dW2;
 
   real Tnx3 = pTn3[n].x;
-  //real Tny3 = pTn3[n].y;
+  real Tny3 = pTn3[n].y;
 
   // Third direction
   nx = half*Tnx3;
-  //ny = half*Tny3;
+  ny = half*Tny3;
 
-  l1 = half*(nx + fabs(nx));
+  l1 = half*(vx*nx + vy*ny + fabs(vx*nx + vy*ny));
   ResLDA = -l1*Wtilde;
 
   pTresLDA2[n] += ResLDA;

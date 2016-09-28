@@ -1126,7 +1126,6 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
 			real *pTresTot, int nVertex, real G, real G1, real G2)
 {
   const real zero  = (real) 0.0;
-  //const real onethird = (real) (1.0/3.0);
   const real half  = (real) 0.5;
   const real one = (real) 1.0;
 
@@ -1147,7 +1146,15 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
   real Zv2 = pVz[v3];
 
   // Average parameter vector
-  //real Z0 = (Zv0 + Zv1 + Zv2)*onethird;
+#if BURGERS == 1
+  const real onethird = (real) (1.0/3.0);
+  real Z0 = (Zv0 + Zv1 + Zv2)*onethird;
+  real vx = Z0;
+  real vy = Z0;
+#else
+  real vx = one;
+  real vy = zero;
+#endif
   
   // Average state at vertices
   real What0 = Zv0;
@@ -1161,9 +1168,9 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
   real tnx1 = pTn1[n].x;
   real tnx2 = pTn2[n].x;
   real tnx3 = pTn3[n].x;
-  //real tny1 = pTn1[n].y;
-  //real tny2 = pTn2[n].y;
-  //real tny3 = pTn3[n].y;
+  real tny1 = pTn1[n].y;
+  real tny2 = pTn2[n].y;
+  real tny3 = pTn3[n].y;
 
   // Total residue
   real ResTot = zero;
@@ -1176,21 +1183,21 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
 
   // First direction
   real nx = half*tl1*tnx1;
-  //real ny = half*tl1*tny1;
+  real ny = half*tl1*tny1;
   
-  ResTot += nx*What0;
+  ResTot += (vx*nx + vy*ny)*What0;
   
   // Second direction
   nx = half*tl2*tnx2;
-  //ny = half*tl2*tny2;
+  ny = half*tl2*tny2;
 
-  ResTot += nx*What1;
+  ResTot += (vx*nx + vy*ny)*What1;
   
   // Third direction
   nx = half*tl3*tnx3;
-  //ny = half*tl3*tny3;
+  ny = half*tl3*tny3;
   
-  ResTot += nx*What2;
+  ResTot += (vx*nx + vy*ny)*What2;
   
   pTresTot[n] = ResTot;   
 
@@ -1200,36 +1207,36 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
   
   // First direction
   nx = tnx1;
-  //ny = tny1;
+  ny = tny1;
   real tl = half*tl1;
   
-  real l1 = min(zero, nx);
+  real l1 = min(zero, vx*nx + vy*ny);
 
   Wtemp += tl*l1*What0;
   real nm = tl*l1;
   
   // Second direction         
   nx = tnx2;
-  //ny = tny2;
+  ny = tny2;
   tl = half*tl2;
   
-  l1 = min(zero, nx);
+  l1 = min(zero, vx*nx + vy*ny);
   
   Wtemp += tl*l1*What1;
   nm += tl*l1;
   
   // Third direction
   nx = tnx3;
-  //ny = tny3;
+  ny = tny3;
   tl = half*tl3;
   
-  l1 = min(zero, nx);
+  l1 = min(zero, vx*nx + vy*ny);
   
   Wtemp += tl*l1*What2;
   nm += tl*l1;
 
   real invN = one;
-  if (nm != zero) invN /= nm;
+  if (nm != zero) invN /= nm - 1.0e-10;
   
   real Wtilde = invN*Wtemp;
 
@@ -1246,14 +1253,14 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
   real Tnx1 = pTn1[n].x;
   real Tnx2 = pTn2[n].x;
   real Tnx3 = pTn3[n].x;
-  //real Tny1 = pTn1[n].y;
-  //real Tny2 = pTn2[n].y;
-  //real Tny3 = pTn3[n].y;
+  real Tny1 = pTn1[n].y;
+  real Tny2 = pTn2[n].y;
+  real Tny3 = pTn3[n].y;
 
   nx = Tnx1;
-  //ny = Tny1;
+  ny = Tny1;
   
-  l1 = max(zero, nx);
+  l1 = max(zero, vx*nx + vy*ny);
 
   ResN   = l1*What0;
   ResLDA =-l1*Wtemp;
@@ -1263,9 +1270,9 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
   
   // Second direction
   nx = Tnx2;
-  //ny = Tny2;
+  ny = Tny2;
   
-  l1 = max(zero, nx);
+  l1 = max(zero, vx*nx + vy*ny);
   
   ResN   = l1*What1;
   ResLDA =-l1*Wtemp;
@@ -1275,9 +1282,9 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
 
   // Third direction
   nx = Tnx3;
-  //ny = Tny3;
+  ny = Tny3;
   
-  l1 = max(zero, nx);
+  l1 = max(zero, vx*nx + vy*ny);
   
   ResN   = l1*What2;
   ResLDA =-l1*Wtemp;

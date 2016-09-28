@@ -1127,7 +1127,14 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real Zv2 = pVz[v3];
   
   // Average parameter vector
-  //real Z0 = (Zv0 + Zv1 + Zv2)*onethird;
+#if BURGERS == 1
+  real Z0 = (Zv0 + Zv1 + Zv2)*onethird;
+  real vx = Z0;
+  real vy = Z0;
+#else
+  real vx = one;
+  real vy = zero;
+#endif
 
   // Average state at vertices
   real What0 = Zv0;
@@ -1135,11 +1142,11 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real What2 = Zv2;
 
   real tnx1 = pTn1[n].x;
-  //real tny1 = pTn1[n].y;
+  real tny1 = pTn1[n].y;
   real tnx2 = pTn2[n].x;
-  //real tny2 = pTn2[n].y;
+  real tny2 = pTn2[n].y;
   real tnx3 = pTn3[n].x;
-  //real tny3 = pTn3[n].y;
+  real tny3 = pTn3[n].y;
 
   real tl1 = pTl[n].x;
   real tl2 = pTl[n].y;
@@ -1152,21 +1159,21 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   
   // First direction
   real nx = half*tnx1*tl1;
-  //real ny = half*tny1*tl1;
+  real ny = half*tny1*tl1;
   
-  ResTot += nx*What0;
+  ResTot += (vx*nx + vy*ny)*What0;
   
   // Second direction
   nx = half*tnx2*tl2;
-  //ny = half*tny2*tl2;
+  ny = half*tny2*tl2;
 
-  ResTot += nx*What1;
+  ResTot += (vx*nx + vy*ny)*What1;
 
   // Third direction
   nx = half*tnx3*tl3;
-  //ny = half*tny3*tl3;
+  ny = half*tny3*tl3;
 
-  ResTot += nx*What2;
+  ResTot += (vx*nx + vy*ny)*What2;
 
   pTresTot[n] = half*ResTot;
 
@@ -1178,28 +1185,28 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   
   // First direction
   nx = half*tnx1;
-  //ny = half*tny1;
+  ny = half*tny1;
   real tl = tl1;
 
-  real l1 = half*(nx - fabs(nx));
+  real l1 = half*(vx*nx + vy*ny - fabs(vx*nx + vy*ny));
   Wtemp += tl*l1*What0;
   real nm = tl*l1;
     
   // Second direction
   nx = half*tnx2;
-  //ny = half*tny2;
+  ny = half*tny2;
   tl = tl2;
 
-  l1 = half*(nx - fabs(nx));
+  l1 = half*(vx*nx + vy*ny - fabs(vx*nx + vy*ny));
   Wtemp += tl*l1*What1;
   nm += tl*l1;
 
   // Third direction
   nx = half*tnx3;
-  //ny = half*tny3;
+  ny = half*tny3;
   tl = tl3;
 
-  l1 = half*(nx - fabs(nx));
+  l1 = half*(vx*nx + vy*ny - fabs(vx*nx + vy*ny));
   Wtemp += tl*l1*What2;
   nm += tl*l1;
 
@@ -1223,34 +1230,34 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   
   // First direction
   real Tnx1 = pTn1[n].x;
-  //real Tny1 = pTn1[n].y;
+  real Tny1 = pTn1[n].y;
 
   nx = half*Tnx1;
-  //ny = half*Tny1;
+  ny = half*Tny1;
 
-  l1 = max(zero, nx);
+  l1 = max(zero, vx*nx + vy*ny);
   ResN = l1*What0;
   pTresN0[n] += half*ResN;
   
   // Second direction
   real Tnx2 = pTn2[n].x;
-  //real Tny2 = pTn2[n].y;
+  real Tny2 = pTn2[n].y;
 
   nx = half*Tnx2;
-  //ny = half*Tny2;
+  ny = half*Tny2;
 
-  l1 = max(zero, nx);
+  l1 = max(zero, vx*nx + vy*ny);
   ResN = l1*What1;
   pTresN1[n] += half*ResN;
 
   // Third direction
   real Tnx3 = pTn3[n].x;
-  //real Tny3 = pTn3[n].y;
+  real Tny3 = pTn3[n].y;
 
   nx = half*Tnx3;
-  //ny = half*Tny3;
+  ny = half*Tny3;
 
-  l1 = max(zero, nx);
+  l1 = max(zero, vx*nx + vy*ny);
   ResN = l1*What2;
   pTresN2[n] += half*ResN;
 }

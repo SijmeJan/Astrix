@@ -242,6 +242,7 @@ void Simulation::ReadInputFile(const char *fileName)
       if (secondWord == "VORTEX") problemDef = PROBLEM_VORTEX;
       if (secondWord == "YEE") problemDef = PROBLEM_YEE;
       if (secondWord == "ADVECT") problemDef = PROBLEM_ADVECT;
+      if (secondWord == "BURGERS") problemDef = PROBLEM_BURGERS;
     }
 
     // Time to stop simulation; check that secondWord is number
@@ -314,9 +315,9 @@ void Simulation::ReadInputFile(const char *fileName)
     std::cout << "Invalid value for problemDefinition" << std::endl;
     throw std::runtime_error("");
   }
-  if (problemDef == PROBLEM_ADVECT) {
+  if (problemDef == PROBLEM_ADVECT || problemDef == PROBLEM_BURGERS) {
 #if N_EQUATION != 1
-    std::cout << "PROBLEM_ADVECT requires scalar problem. "
+    std::cout << "The specified problem is for a scalar equation. "
 	      << "Need to set N_EQUATION = 1" << std::endl;
     throw std::runtime_error("");
 #endif
