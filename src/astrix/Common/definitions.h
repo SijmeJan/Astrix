@@ -7,8 +7,8 @@
 //#define TIME_ASTRIX
 
 #define USE_DOUBLE 1
-#define N_EQUATION 1
-#define BURGERS 1
+#define N_EQUATION 4
+#define BURGERS -1
 
 /*! \namespace astrix
 \brief Namespace encapsulating all of Astrix

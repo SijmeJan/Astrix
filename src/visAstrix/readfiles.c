@@ -395,10 +395,11 @@ int ReadFiles(int startFlag)
 
       //printf("blend: %d %e\n", i, d);
     }
-    printf("MinMaxBlend: %e %e\n", minblend, maxblend);
-    printf("MinMaxPres: %e %e\n", minpres, maxpres);
-    printf("MinMaxVelX: %e %e\n", minvelx, maxvelx);
-    printf("MinMaxVelY: %e %e\n", minvely, maxvely);
+    //printf("MinMaxBlend: %e %e\n", minblend, maxblend);
+    //printf("MinMaxPres: %e %e\n", minpres, maxpres);
+    //printf("MinMaxVelX: %e %e\n", minvelx, maxvelx);
+    //printf("MinMaxVelY: %e %e\n", minvely, maxvely);
+    printf("MinMaxDens: %e %e\n", mindens, maxdens);
    }
 
   nSave++;

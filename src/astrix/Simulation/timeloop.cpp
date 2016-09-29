@@ -109,6 +109,7 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
     realNeq *state = vertexState->GetHostPointer();
     realNeq *stateOld = vertexStateOld->GetHostPointer();
 
+#if N_EQUATION == 1 
     if (problemDef == PROBLEM_ADVECT) {
       const real2 *pVc = mesh->VertexCoordinatesData();
       for (int i = 0; i < nVertex; i++) {
@@ -117,10 +118,33 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
 	real r = sqrt((x - 1.5)*(x - 1.5) + (y - 0.5)*(y - 0.5));
 	
 	state[i] = 1.0;
-	if (r <= (real) 0.25) state[i] += cos(2.0*M_PI*r)*cos(2.0*M_PI*r);
+	if (r <= (real) 0.25)
+	  state[i] = state[i] + cos(2.0*M_PI*r)*cos(2.0*M_PI*r);
       }
     }
-    
+#endif
+#if N_EQUATION == 4
+    if (problemDef == PROBLEM_YEE) {
+      const real2 *pVc = mesh->VertexCoordinatesData();
+      for (int i = 0; i < nVertex; i++) {
+	real xc = (real) 15.0;
+	real yc = (real) 5.0;
+
+	real beta = (real) 5.0;
+	real G = specificHeatRatio;
+	
+	real x = pVc[i].x;
+	real y = pVc[i].y;
+	real r = sqrt((x - xc)*(x - xc) + (y - yc)*(y - yc)) + (real) 1.0e-10;
+
+	real T = 1.0 - (G - 1.0)*beta*beta*exp(1.0 - r*r)/
+	  ((real)8.0*G*M_PI*M_PI);
+
+	state[i].x = std::pow(T, (real)((real) 1.0/(G - (real) 1.0)));
+      }
+    }
+#endif
+   
     const real *vertArea = mesh->VertexAreaData();
   
     real L1dens = 0.0;
@@ -165,6 +189,21 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
     
     if (cudaFlag == 1) 
       mesh->Transform();
+
+    for (int i = 0; i < nVertex; i++) {
+#if N_EQUATION == 1
+      real relDiff = (state[i] - stateOld[i])/stateOld[i];
+      state[i] = fabs(relDiff);
+#endif
+#if N_EQUATION == 4
+      real relDiff = (state[i].x - stateOld[i].x)/stateOld[i].x;
+      state[i].x = fabs(relDiff);
+#endif
+
+    }
+    Save(nSave);
+    nSave++;
+
   }
 }
 
@@ -211,12 +250,10 @@ void Simulation::DoTimeStep()
   real dt = CalcVertexTimeStep();
 
   
-  /*
-  if (problemDef == PROBLEM_VORTEX ||
-      problemDef == PROBLEM_YEE ||
-      problemDef == PROBLEM_SOD)
-    ExtrapolateBoundaries();
-  */
+  //if (problemDef == PROBLEM_VORTEX ||
+  //  problemDef == PROBLEM_YEE ||
+  //  problemDef == PROBLEM_SOD)
+  //ExtrapolateBoundaries();
   
   // Boundary conditions for 2D Riemann
   if (problemDef == PROBLEM_RIEMANN)
@@ -261,17 +298,17 @@ void Simulation::DoTimeStep()
     ReflectingBoundaries(dt);
 
   // Nonreflecting boundaries
-  //if(problemDef == PROBLEM_VORTEX)
-  //SetNonReflectingBoundaries();
+  if(problemDef == PROBLEM_YEE)
+    SetNonReflectingBoundaries();
  
   
   if (integrationOrder == 2) {
-    /*
-    if (problemDef == PROBLEM_VORTEX ||
-	problemDef == PROBLEM_YEE ||
-	problemDef == PROBLEM_SOD)
-      ExtrapolateBoundaries();
-    */
+    
+    //if (problemDef == PROBLEM_VORTEX ||
+    //	problemDef == PROBLEM_YEE ||
+    //	problemDef == PROBLEM_SOD)
+    //ExtrapolateBoundaries();
+    
     
     // Boundary conditions for 2D Riemann
     if (problemDef == PROBLEM_RIEMANN)
@@ -320,8 +357,8 @@ void Simulation::DoTimeStep()
       ReflectingBoundaries(dt);
     
     // Nonreflecting boundaries
-    //if(problemDef == PROBLEM_VORTEX)
-    //SetNonReflectingBoundaries();
+    if(problemDef == PROBLEM_YEE)
+      SetNonReflectingBoundaries();
   }
 
   if (verboseLevel > 0) {

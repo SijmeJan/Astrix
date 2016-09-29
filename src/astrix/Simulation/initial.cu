@@ -116,8 +116,8 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   }
 
   if(problemDef == PROBLEM_YEE){
-    real xc = zero;
-    real yc = zero;
+    real xc = five;
+    real yc = five;
 
     real beta = five;
     
@@ -131,8 +131,8 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     real vy =  half*(x - xc)*beta*exp(half - half*r*r)/M_PI;
 
     dens = std::pow(T, (real)(one/(G - one)));
-    momx = (real)1.0e-10 + dens*(vx + 2.0/sqrt(5.0));
-    momy = (real)2.0e-10 + dens*(vy + 1.0/sqrt(5.0));
+    momx = (real)1.0e-10 + dens*(vx + 1.0);
+    momy = (real)2.0e-10 + dens*vy;
     ener = half*(Sq(momx) + Sq(momy))/dens + dens*T/(G - one);
   }
 
