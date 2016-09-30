@@ -64,6 +64,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   while (v2 < 0) v2 += nVertex;
   while (v3 < 0) v3 += nVertex;
 
+  // State difference between old and RK1
   real dW00 = pDstate[v1].x;
   real dW01 = pDstate[v1].y;
   real dW02 = pDstate[v1].z;
@@ -83,8 +84,10 @@ void CalcTotalResNtotSingle(const int n, const real dt,
 
   // Calculate triangle area
   real s = half*(Tl1 + Tl2 + Tl3);
+  // Adt = |T|/(3*dt)
   real Adt = sqrt(s*(s - Tl1)*(s - Tl2)*(s - Tl3))*onethird/dt;
 
+  // For N residuals divide by edge length
   real Ail1 = Adt/Tl1;
   real Ail2 = Adt/Tl2;
   real Ail3 = Adt/Tl3;

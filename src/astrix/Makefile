@@ -4,8 +4,10 @@
 #
 ################################################################################
 
+# List of modules
 MODULES := Mesh/Predicates Mesh/Coarsen Mesh/Param Mesh/Connectivity Mesh/Refine Mesh/Delaunay Mesh/Morton Mesh Array Simulation Common Device
 
+# Directory to put binaries in
 BINDIR = ../../bin
 
 # Create list of objects from .cu and .cpp in module directories
@@ -15,7 +17,10 @@ OBJ := $(patsubst %.cu,%.o,$(wildcard *.cu)) $(patsubst %.cpp,%.o,$(wildcard *.c
 OS_SIZE = $(shell uname -m | sed -e "s/i.86/32/" -e "s/x86_64/64/" -e "s/armv7l/32/")
 OS_ARCH = $(shell uname -m | sed -e "s/i386/i686/")
 
+# NVCC compiler 
 NVCC:= nvcc
+
+# If not specified, compile for all supported compute capabilities 
 CUDA_COMPUTE ?= 0
 
 # internal flags
@@ -25,7 +30,8 @@ NVCCLDFLAGS :=
 LDFLAGS     := 
 
 # Extra user flags
-EXTRA_NVCCFLAGS   ?= -O3 -lineinfo -g -G 
+EXTRA_NVCCFLAGS   ?= -O3 -lineinfo
+#-g -G 
 #--ptxas-options=-v
 EXTRA_NVCCLDFLAGS ?=
 EXTRA_LDFLAGS     ?= -lnvToolsExt

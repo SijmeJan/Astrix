@@ -109,7 +109,8 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
     realNeq *state = vertexState->GetHostPointer();
     realNeq *stateOld = vertexStateOld->GetHostPointer();
 
-#if N_EQUATION == 1 
+#if N_EQUATION == 1
+    // Exact solution is initial condition shifted by (1,0)
     if (problemDef == PROBLEM_ADVECT) {
       const real2 *pVc = mesh->VertexCoordinatesData();
       for (int i = 0; i < nVertex; i++) {
@@ -124,6 +125,7 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
     }
 #endif
 #if N_EQUATION == 4
+    // Exact solution is initial condition shifted by (10,0)
     if (problemDef == PROBLEM_YEE) {
       const real2 *pVc = mesh->VertexCoordinatesData();
       for (int i = 0; i < nVertex; i++) {
@@ -157,7 +159,27 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
 #endif
 #if N_EQUATION == 4
       real relDiff = (state[i].x - stateOld[i].x)/stateOld[i].x;
+      if (problemDef == PROBLEM_VORTEX) {
+	real G = specificHeatRatio;
+	
+	real dens = state[i].x;
+	real momx = state[i].y;
+	real momy = state[i].z;
+	real ener = state[i].w;
+	
+	real p = (G - 1.0)*(ener - 0.5*(momx*momx + momy*momy)/dens);
+
+	dens = stateOld[i].x;
+	momx = stateOld[i].y;
+	momy = stateOld[i].z;
+	ener = stateOld[i].w;
+	
+	real pOld = (G - 1.0)*(ener - 0.5*(momx*momx + momy*momy)/dens);
+
+	relDiff = (pOld - p)/p;
+      }
 #endif
+     
       L1dens += fabs(relDiff)*vertArea[i];
       L2dens += relDiff*relDiff*vertArea[i];
       if (fabs(relDiff) > Lmaxdens)
@@ -298,7 +320,7 @@ void Simulation::DoTimeStep()
     ReflectingBoundaries(dt);
 
   // Nonreflecting boundaries
-  if(problemDef == PROBLEM_YEE)
+  if(problemDef == PROBLEM_YEE || problemDef == PROBLEM_VORTEX)
     SetNonReflectingBoundaries();
  
   
@@ -357,7 +379,7 @@ void Simulation::DoTimeStep()
       ReflectingBoundaries(dt);
     
     // Nonreflecting boundaries
-    if(problemDef == PROBLEM_YEE)
+    if(problemDef == PROBLEM_YEE || problemDef == PROBLEM_VORTEX)
       SetNonReflectingBoundaries();
   }
 

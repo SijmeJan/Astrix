@@ -25,33 +25,8 @@ namespace astrix {
 
 __host__ __device__
 void CalcBlendSingle(int n, const real3* __restrict__ pTl, 
-		     real *pTresN0, real *pTresN1, real *pTresN2,
-		     real *pTres, real *pBlend)
-{
-  real small = (real) 1.0e-6;
-
-  // Triangle edge lengths
-  real tl1 = pTl[n].x;
-  real tl2 = pTl[n].y;
-  real tl3 = pTl[n].z;
-
-  // Total residual
-  real tTot = pTres[n];
-
-  // N residuals
-  real tN0 = pTresN0[n];
-  real tN1 = pTresN1[n];
-  real tN2 = pTresN2[n];
-
-  // Calculate blend parameter
-  pBlend[n] = fabs(tTot)/
-    (fabs(tN0)*tl1 + fabs(tN1)*tl2 + fabs(tN2)*tl3 + small);
-}
-
-__host__ __device__
-void CalcBlendSingle(int n, const real3* __restrict__ pTl, 
 		     real4 *pTresN0, real4 *pTresN1, real4 *pTresN2,
-		     real4 *pTres, real4 *pBlend)
+		     real4 *pTres, real4 *pBlend, int setToMinMaxFlag)
 {
   real small = (real) 1.0e-6;
 
@@ -82,6 +57,39 @@ void CalcBlendSingle(int n, const real3* __restrict__ pTl,
   real tN22 = pTresN2[n].z;
   real tN23 = pTresN2[n].w;
 
+  real blend0 = fabs(tTot0)/
+    (fabs(tN00)*tl1 + fabs(tN10)*tl2 + fabs(tN20)*tl3 + small);
+  real blend1 = fabs(tTot1)/
+    (fabs(tN01)*tl1 + fabs(tN11)*tl2 + fabs(tN21)*tl3 + small);
+  real blend2 = fabs(tTot2)/
+    (fabs(tN02)*tl1 + fabs(tN12)*tl2 + fabs(tN22)*tl3 + small);
+  real blend3 = fabs(tTot3)/
+    (fabs(tN03)*tl1 + fabs(tN13)*tl2 + fabs(tN23)*tl3 + small);
+
+  // Set all to minimum 
+  if (setToMinMaxFlag == -1) {
+    real blendMin = min(blend0, min(blend1, min(blend2, blend3)));
+    blend0 = blendMin;
+    blend1 = blendMin;
+    blend2 = blendMin;
+    blend3 = blendMin;
+  }
+
+  // Set all to maximum
+  if (setToMinMaxFlag == 1) {
+    real blendMax = max(blend0, max(blend1, max(blend2, blend3)));
+    blend0 = blendMax;
+    blend1 = blendMax;
+    blend2 = blendMax;
+    blend3 = blendMax;
+  }
+
+  pBlend[n].x = blend0;
+  pBlend[n].y = blend1;
+  pBlend[n].z = blend2;
+  pBlend[n].w = blend3;
+  
+  /*
   // Calculate blend parameter
   pBlend[n].x = fabs(tTot0)/
     (fabs(tN00)*tl1 + fabs(tN10)*tl2 + fabs(tN20)*tl3 + small);
@@ -91,6 +99,33 @@ void CalcBlendSingle(int n, const real3* __restrict__ pTl,
     (fabs(tN02)*tl1 + fabs(tN12)*tl2 + fabs(tN22)*tl3 + small);
   pBlend[n].w = fabs(tTot3)/
     (fabs(tN03)*tl1 + fabs(tN13)*tl2 + fabs(tN23)*tl3 + small);
+  */
+  
+}
+
+__host__ __device__
+void CalcBlendSingle(int n, const real3* __restrict__ pTl, 
+		     real *pTresN0, real *pTresN1, real *pTresN2,
+		     real *pTres, real *pBlend, int setToMinMaxFlag)
+{
+  real small = (real) 1.0e-6;
+
+  // Triangle edge lengths
+  real tl1 = pTl[n].x;
+  real tl2 = pTl[n].y;
+  real tl3 = pTl[n].z;
+
+  // Total residual
+  real tTot = pTres[n];
+
+  // N residuals
+  real tN0 = pTresN0[n];
+  real tN1 = pTresN1[n];
+  real tN2 = pTresN2[n];
+
+  // Calculate blend parameter
+  pBlend[n] = fabs(tTot)/
+    (fabs(tN0)*tl1 + fabs(tN1)*tl2 + fabs(tN2)*tl3 + small);
 }
 
 //######################################################################
@@ -109,13 +144,14 @@ void CalcBlendSingle(int n, const real3* __restrict__ pTl,
 __global__ void 
 devCalcBlendFactor(int nTriangle, const real3* __restrict__ pTl, 
 		   realNeq *pTresN0, realNeq *pTresN1, realNeq *pTresN2,
-		   realNeq *pTres, realNeq *pBlend)
+		   realNeq *pTres, realNeq *pBlend, int setToMinMaxFlag)
 {
   // n=vertex number
   int n = blockIdx.x*blockDim.x + threadIdx.x; 
 
   while(n < nTriangle){
-    CalcBlendSingle(n, pTl, pTresN0, pTresN1, pTresN2, pTres, pBlend);
+    CalcBlendSingle(n, pTl, pTresN0, pTresN1, pTresN2, pTres, pBlend,
+		    setToMinMaxFlag);
 
     n += blockDim.x*gridDim.x;
   }
@@ -127,6 +163,8 @@ devCalcBlendFactor(int nTriangle, const real3* __restrict__ pTl,
 
 void Simulation::CalcBlend()
 {
+  int setToMinMaxFlag = 0;
+  
   int nTriangle = mesh->GetNTriangle();
 
   // N residuals
@@ -154,12 +192,14 @@ void Simulation::CalcBlend()
     
     // Execute kernel... 
     devCalcBlendFactor<<<nBlocks,nThreads>>>
-      (nTriangle, pTl, pTresN0, pTresN1, pTresN2, pTres, pBlend);
+      (nTriangle, pTl, pTresN0, pTresN1, pTresN2, pTres, pBlend,
+       setToMinMaxFlag);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int n = 0; n < nTriangle; n++) 
-      CalcBlendSingle(n, pTl, pTresN0, pTresN1, pTresN2, pTres, pBlend);
+      CalcBlendSingle(n, pTl, pTresN0, pTresN1, pTresN2, pTres, pBlend,
+		      setToMinMaxFlag);
   }
 }
 
