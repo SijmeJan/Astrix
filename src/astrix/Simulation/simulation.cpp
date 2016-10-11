@@ -241,8 +241,6 @@ void Simulation::ReadInputFile(const char *fileName)
       if (secondWord == "BLAST") problemDef = PROBLEM_BLAST;
       if (secondWord == "VORTEX") problemDef = PROBLEM_VORTEX;
       if (secondWord == "YEE") problemDef = PROBLEM_YEE;
-      if (secondWord == "ADVECT") problemDef = PROBLEM_ADVECT;
-      if (secondWord == "BURGERS") problemDef = PROBLEM_BURGERS;
     }
 
     // Time to stop simulation; check that secondWord is number
@@ -315,20 +313,19 @@ void Simulation::ReadInputFile(const char *fileName)
     std::cout << "Invalid value for problemDefinition" << std::endl;
     throw std::runtime_error("");
   }
-  if (problemDef == PROBLEM_ADVECT || problemDef == PROBLEM_BURGERS) {
-#if N_EQUATION != 1
-    std::cout << "The specified problem is for a scalar equation. "
-	      << "Need to set N_EQUATION = 1" << std::endl;
-    throw std::runtime_error("");
-#endif
-  } else {
+  if (problemDef == PROBLEM_LINEAR ||
+      problemDef == PROBLEM_SOD ||
+      problemDef == PROBLEM_BLAST ||
+      problemDef == PROBLEM_KH ||
+      problemDef == PROBLEM_RT ||
+      problemDef == PROBLEM_YEE) {
 #if N_EQUATION != 4
-    std::cout << "Problem requires 4 equations to be solved. "
-	      << "Need to set N_EQUATION = 4" << std::endl;
-    throw std::runtime_error("");
+      std::cout << "Problem requires 4 equations to be solved. "
+		<< "Need to set N_EQUATION = 4" << std::endl;
+      throw std::runtime_error("");
 #endif
   }
-    
+  
   if (maxSimulationTime < 0.0 ||
       std::isinf(maxSimulationTime) ||
       std::isnan(maxSimulationTime)) {

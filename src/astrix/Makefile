@@ -120,11 +120,11 @@ Simulation/save.o: Simulation/save.cpp Common/definitions.h Simulation/simulatio
 Simulation/refine.o: Simulation/refine.cpp Common/definitions.h Simulation/simulation.h Mesh/mesh.h Array/array.h
 Simulation/potential.o: Simulation/potential.cu Common/definitions.h Array/array.h Simulation/simulation.h Mesh/mesh.h Common/cudaLow.h
 Simulation/spaceres.o: ALL_CCFLAGS += -maxrregcount=96
-Simulation/spaceres.o: Simulation/spaceres.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
+Simulation/spaceres.o: Simulation/spaceres.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h Simulation/upwind.h
 Simulation/totalresNtot.o: ALL_CCFLAGS += -maxrregcount=96
-Simulation/totalresNtot.o: Simulation/totalresNtot.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
+Simulation/totalresNtot.o: Simulation/totalresNtot.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h Simulation/upwind.h
 Simulation/totalresLDA.o: ALL_CCFLAGS += -maxrregcount=64
-Simulation/totalresLDA.o: Simulation/totalresLDA.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
+Simulation/totalresLDA.o: Simulation/totalresLDA.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h Simulation/upwind.h
 Simulation/selectlump.o: Simulation/selectlump.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
 Simulation/massMatrixF34Tot.o: Simulation/massMatrixF34Tot.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
 Simulation/massMatrixF34.o: Simulation/massMatrixF34.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h

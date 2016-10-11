@@ -99,9 +99,7 @@ void SetVertexOuterBoundarySingle(int n, ProblemDefinition problemDef,
   if (problemDef == PROBLEM_KH ||
       problemDef == PROBLEM_LINEAR ||
       problemDef == PROBLEM_VORTEX ||
-      problemDef == PROBLEM_YEE ||
-      problemDef == PROBLEM_ADVECT ||
-      problemDef == PROBLEM_BURGERS) {
+      problemDef == PROBLEM_YEE) {
     if (n == 0) {
       pVc[n].x = 0.63*(maxx - minx) + minx;
       pVc[n].y = 0.60*(maxy - miny) + miny;
@@ -625,9 +623,7 @@ void Mesh::ConstructBoundaries()
       meshParameter->problemDef == PROBLEM_VORTEX ||
       meshParameter->problemDef == PROBLEM_KH ||
       meshParameter->problemDef == PROBLEM_LINEAR ||
-      meshParameter->problemDef == PROBLEM_YEE ||
-      meshParameter->problemDef == PROBLEM_ADVECT ||
-      meshParameter->problemDef == PROBLEM_BURGERS) {
+      meshParameter->problemDef == PROBLEM_YEE) {
     nVertexOuterBoundary = 4;
     nVertexInnerBoundary = 0;
   }
@@ -1436,30 +1432,72 @@ void Mesh::ConstructBoundaries()
   if (verboseLevel > 0)
     std::cout << "Boundaries done" << std::endl;
 
-  // Add extra vertices to break symmetry
-  Array<real2> *vertexExtra = new Array<real2>(1, cudaFlag, 2);
-  Array<int> *vertexExtraOrder = new Array<int>(1, cudaFlag, 2);
-
-  real2 temp;
-  temp.x = 1.0/sqrt(2.0);
-  temp.y = meshParameter->miny;
-  vertexExtra->SetSingleValue(temp, 0);
-
-  temp.x = 1.0/M_PI;
-  temp.y = meshParameter->maxy; 
-  vertexExtra->SetSingleValue(temp, 1);
+  if (meshParameter->periodicFlagX == 0 &&
+      meshParameter->periodicFlagY == 0) {
+    // Add extra vertices to break symmetry
+    Array<real2> *vertexExtra = new Array<real2>(1, cudaFlag, 2);
+    Array<int> *vertexExtraOrder = new Array<int>(1, cudaFlag, 2);
     
+    real2 temp;
+    temp.x = 1.0/sqrt(2.0);
+    temp.y = meshParameter->miny;
+    vertexExtra->SetSingleValue(temp, 0);
+    
+    temp.x = 1.0/M_PI;
+    temp.y = meshParameter->maxy; 
+    vertexExtra->SetSingleValue(temp, 1);
+    
+    nAdded = refine->AddVertices(connectivity,
+				 meshParameter,
+				 predicates,
+				 delaunay,
+				 vertexExtra,
+				 vertexExtraOrder);
+    
+    std::cout << "Added " << nAdded << " extra vertices" << std::endl;
+    
+    delete vertexExtra;
+    delete vertexExtraOrder;
+  }
+
+  /*
+  int nExtraTotal = 0;
+  Array<real2> *vertexExtra = new Array<real2>(1, cudaFlag);
+  Array<int> *vertexExtraOrder = new Array<int>(1, cudaFlag);
+  
+  real rMax = 0.25;
+  int nRadExtra = (int) (rMax/sqrt(meshParameter->baseResolution));
+
+  for (int j = 1; j <= nRadExtra; j++) {
+    real r = rMax*(real) j/(real) nRadExtra;
+    int nExtra = (int) (2.0*M_PI*r/sqrt(meshParameter->baseResolution));
+
+    vertexExtra->SetSize(nExtraTotal + nExtra);
+    vertexExtraOrder->SetSize(nExtraTotal + nExtra);
+    
+    for (int i = 0; i < nExtra; i++) {
+      real phi = 2.0*M_PI*(real) i/(real) nExtra;
+
+      real2 temp;
+      temp.x = r*cos(phi);
+      temp.y = r*sin(phi);
+      vertexExtra->SetSingleValue(temp, i + nExtraTotal);
+    }
+
+    nExtraTotal += nExtra;
+  }
+  
   nAdded = refine->AddVertices(connectivity,
 			       meshParameter,
 			       predicates,
 			       delaunay,
 			       vertexExtra,
 			       vertexExtraOrder);
-
+  
   std::cout << "Added " << nAdded << " extra vertices" << std::endl;
-
   delete vertexExtra;
   delete vertexExtraOrder;
+  */
 }
 
 }

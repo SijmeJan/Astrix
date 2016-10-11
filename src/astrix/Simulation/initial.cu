@@ -46,18 +46,16 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     real amp = (real) 1.0e-4;
     real k = two*M_PI;
     real c0 = one;
-    real p0 = one/G;
+    real p0 = c0*c0/G;
     
     dens = one;
-    momx = (real) 1.0e-10;
-    momy = (real) 2.0e-10;
+    momx = two;
+    momy = (real) 1.0e-10;
     
     momx += amp*cos(k*vertX);
-    momy += amp*c0*cos(k*vertX);
+    //momy += amp*cos(k*vertY);
     
-    ener = 
-      half*(Sq(momx) + Sq(momy))/dens + 
-      (p0 + c0*c0*amp*cos(k*vertX))/(G - one);
+    ener = half*(Sq(momx) + Sq(momy))/dens + p0/(G - one);
   }
   
   if(problemDef == PROBLEM_VORTEX){
@@ -66,12 +64,12 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
 
     real x = vertX;
     real y = vertY;
-    real r = sqrt(Sq(x - xc)+Sq(y - yc)) + (real) 1.0e-10;
+    real r = sqrt(Sq(x - xc)+Sq(y - yc));
     real d = 4.0*M_PI*r;
 
-    real w = 15.0f*(cos(d) + one);
+    real w = 15.0*(cos(d) + one);
     if (r >= 0.25) w = 0;
-    real vx = -y*w + 5.0f;
+    real vx = -y*w + five;
     real vy = x*w;
 
     dens = 1.4;
@@ -84,8 +82,8 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     if (r >= 0.25) dp = 0.0;
     real pres = pm + dp;
     
-    momx = (real) 1.0e-10 + dens*vx;
-    momy = (real) 2.0e-10 + dens*vy;
+    momx = dens*vx;
+    momy = dens*vy;
     ener = half*(Sq(momx) + Sq(momy))/dens + pres/(G - one);    
   }
 
@@ -366,28 +364,41 @@ __host__ __device__
 void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
 		      real *pVpot, real *state, real G)
 {
-  real half = (real) 0.5;
-  
   real vertX = pVc[n].x;
   real vertY = pVc[n].y;
 
   real dens = (real) 1.0;
   
-  if(problemDef == PROBLEM_ADVECT) {
+  if(problemDef == PROBLEM_LINEAR) {
+    real x = vertX;
+
+    if (fabs(x) <= (real) 0.25) dens += Sq(cos(2.0*M_PI*x));
+  }
+
+  if(problemDef == PROBLEM_VORTEX) {
+#if BURGERS == 1
+    real x = vertX;
+    real y = vertY;
+
+    real r = sqrt(Sq(x) + Sq(y));
+    if (r <= (real) 0.25) dens += 0.001*Sq(cos(2.0*M_PI*r));
+#else
+    real half = (real) 0.5;
     real x = vertX;
     real y = vertY;
     real r = sqrt(Sq(x - half) + Sq(y - half));
 
     if (r <= (real) 0.25) dens += Sq(cos(2.0*M_PI*r));
+#endif
   }
 
-  if(problemDef == PROBLEM_BURGERS) {
+  if(problemDef == PROBLEM_RIEMANN) {
     real x = vertX;
     real y = vertY;
 
     dens = (real) 1.0e-10;
     if (x  > (real) -0.6 && x < (real) - 0.1 &&
-	y > -0.35 && y < 0.15) dens += 1.0;
+	y > (real) -0.35 && y < (real) 0.15) dens += 1.0;
   }
 
   state[n] = dens;

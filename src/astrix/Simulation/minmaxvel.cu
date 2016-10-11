@@ -48,9 +48,13 @@ __host__ __device__
 void FillMinMaxVelocitySingle(unsigned int i, real *pState, 
 			      real *pMinVel, real *pMaxVel)
 {
-  // Output
+#if BURGERS == 1
+  pMinVel[i] = pState[i];
+  pMaxVel[i] = pState[i];
+#else  
   pMinVel[i] = (real) 1.0;
   pMaxVel[i] = (real) 1.0;
+#endif
 }
 
 //#########################################################################

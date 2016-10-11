@@ -7,8 +7,7 @@
 //#define TIME_ASTRIX
 
 #define USE_DOUBLE 1
-#define N_EQUATION 4
-#define BURGERS -1
+#define N_EQUATION 1
 
 /*! \namespace astrix
 \brief Namespace encapsulating all of Astrix
@@ -30,6 +29,9 @@ namespace astrix {
 #if N_EQUATION == 1
   typedef real realNeq;
 #endif
+#if N_EQUATION == 3
+  typedef real3 realNeq;
+#endif
 #if N_EQUATION == 4
   typedef real4 realNeq;
 #endif
@@ -44,9 +46,7 @@ namespace astrix {
 			  PROBLEM_KH,     /*!< Kelvin-Helmholz instability*/
 			  PROBLEM_RT,     /*!< Rayleigh-Taylor instability*/ 
 			  PROBLEM_RIEMANN,/*!< 2D Riemann problem*/
-			  PROBLEM_YEE,    /*!< Yee vortex*/
-			  PROBLEM_ADVECT, /*!< Scalar advection problem*/
-			  PROBLEM_BURGERS /*!< Burgers equation*/
+			  PROBLEM_YEE     /*!< Yee vortex*/
   };
 
   //! Integration schemes

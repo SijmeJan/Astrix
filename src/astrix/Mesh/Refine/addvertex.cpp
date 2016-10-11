@@ -88,6 +88,8 @@ int Refine::AddVertices(Connectivity * const connectivity,
     // Maintain Delaunay triangulation
     delaunay->MakeDelaunay(connectivity, 0, predicates,
 			   meshParameter, 0, 0, 0, 0);
+    
+    if (verboseLevel > 1) std::cout << std::endl;
   }
 
   delete vertexOrderInsert;

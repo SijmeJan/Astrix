@@ -47,11 +47,76 @@ void Simulation::Save(int nSave)
 
 #if N_EQUATION == 1
   real *state = vertexState->GetHostPointer();
-  for (int n = 0; n < nVertex; n++) {
-    pDens[n] = state[n];
-    pMomx[n] = state[n];
-    pMomy[n] = state[n];
-    pEner[n] = state[n];
+  const real2 *pVc = mesh->VertexCoordinatesData();
+
+  if (problemDef == PROBLEM_VORTEX) {
+    for (int n = 0; n < nVertex; n++) {
+      pDens[n] = state[n];
+
+#if BURGERS == 1
+      real u0 = 1.0;
+      real u1 = 0.0;
+      real u2 = 0.0;
+      real amp = 0.001;
+      for (int i = 0; i < 2; i++) {
+	for (int j = 0; j < 2; j++) {
+	  // Start center location
+	  real xStart = -1.0 + (real)i;
+	  real yStart = -1.0 + (real)j;
+	  
+	  // Current centre location
+	  real cx = xStart + simulationTime;
+	  real cy = yStart + simulationTime;
+	  
+	  real x = pVc[n].x - cx;
+	  real y = pVc[n].y - cy;
+	  real r = sqrt(x*x + y*y);
+	  
+	  if (r < 0.25) {
+	    u1 += amp*cos(2.0*M_PI*r)*cos(2.0*M_PI*r);
+	    u2 += amp*amp*4.0*M_PI*simulationTime*(x + y)*cos(2.0*M_PI*r)*
+	      cos(2.0*M_PI*r)*cos(2.0*M_PI*r)*sin(2.0*M_PI*r)/(r + 1.0e-30);
+	  }
+	}
+      }
+
+      pMomx[n] = fabs(state[n] - u0 - u1)*state[n];
+      pMomy[n] = fabs(state[n] - u0 - u1 - u2)*state[n];
+      pEner[n] = state[n];
+#else
+      real u0 = 1.0;
+      real u1 = 0.0;
+      for (int i = 0; i < 2; i++) {
+	// Start center location
+	real xStart = -0.5 + (real)i;
+	real yStart = 0.5;
+	
+	// Current centre location
+	real cx = xStart + simulationTime;
+	real cy = yStart;
+	  
+	real x = pVc[n].x - cx;
+	real y = pVc[n].y - cy;
+	real r = sqrt(x*x + y*y);
+
+	if (r <= (real) 0.25) {
+	  u1 = cos(2.0*M_PI*r)*cos(2.0*M_PI*r);
+	  /*
+	  std::cout << pVc[n].x << " "
+		    << pVc[n].y << " "
+		    << u0 + u1 << " "
+		    << state[n] << std::endl;
+	  int qq; std::cin >> qq;
+	  */
+	}
+
+      }
+
+      pMomx[n] = fabs(state[n] - u0 - u1)*state[n];
+      pMomy[n] = state[n];
+      pEner[n] = state[n];
+#endif
+    }
   }
 #endif
 #if N_EQUATION == 4
@@ -102,7 +167,21 @@ void Simulation::Save(int nSave)
   outFile.write(reinterpret_cast<char*>(&nTimeStep), sizeof(int));
   outFile.write(reinterpret_cast<char*>(pEner), nVertex*sizeof(real));
   outFile.close();
-  
+
+  // Write blend factor
+  int nTriangle = mesh->GetNTriangle();
+  CalcShockSensor();
+  if (cudaFlag == 1)
+    triangleShockSensor->CopyToHost();
+  real *pBlnd = triangleShockSensor->GetHostPointer();
+  snprintf(fname, sizeof(fname), "blnd%4.4d.dat", nSave);
+  outFile.open(fname, std::ios::binary);
+  outFile.write(reinterpret_cast<char*>(&sizeOfData), sizeof(int));
+  outFile.write(reinterpret_cast<char*>(&simulationTime), sizeof(real));
+  outFile.write(reinterpret_cast<char*>(&nTimeStep), sizeof(int));
+  outFile.write(reinterpret_cast<char*>(pBlnd), nTriangle*sizeof(real));
+  outFile.close();
+
   delete dens;
   delete momx;
   delete momy;

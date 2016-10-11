@@ -130,8 +130,50 @@ void CalcShockSensorSingle(int i, int nVertex,
 			   const real2 *pTn3, real iDv, real *pState,
 			   real *pShockSensor, const real G, const real G1)
 {
+#if BURGERS == 1
+  // Triangle vertices
+  int a = pTv[i].x;
+  int b = pTv[i].y;
+  int c = pTv[i].z;
+  while (a >= nVertex) a -= nVertex;
+  while (b >= nVertex) b -= nVertex;
+  while (c >= nVertex) c -= nVertex;
+  while (a < 0) a += nVertex;
+  while (b < 0) b += nVertex;
+  while (c < 0) c += nVertex;
+
+  // State at vertices
+  real u1 = pState[a];
+  real u2 = pState[b];
+  real u3 = pState[c];
+
+  // Triangle edge lengths
+  real tl1 = pTl[i].x;
+  real tl2 = pTl[i].y;
+  real tl3 = pTl[i].z;
+
+  // Triangle inward pointing normals
+  real nx1 = pTn1[i].x*tl1;
+  real ny1 = pTn1[i].y*tl1;
+  real nx2 = pTn2[i].x*tl2;
+  real ny2 = pTn2[i].y*tl2;
+  real nx3 = pTn3[i].x*tl3;
+  real ny3 = pTn3[i].y*tl3;
+
+  // du/dx + du/dy
+  real divuc = u1*nx1 + u1*ny1 + u2*nx2 + u2*ny2 + u3*nx3 + u3*ny3;
+
+  real s = 0.5*(tl1 + tl2 + tl3);
+  // 1/triangle area
+  real iA = rsqrtf(s*(s - tl1)*(s - tl2)*(s - tl3));
+  // Shock sensor
+  real sc = max(0.0, -0.5*divuc*iA*iDv);
+
   // Output shock sensor
-  pShockSensor[i] = (real) 1.0;
+  pShockSensor[i] = min(1.0, sc*sc*rsqrtf(iA));
+#else
+  pShockSensor[i] = 1.0;
+#endif
 }
 
 // #########################################################################

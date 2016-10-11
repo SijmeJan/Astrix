@@ -1,4 +1,4 @@
-problemDefinition	BURGERS	# Test problem definition
+problemDefinition	VORTEX	# Test problem definition
 
 ###############################################################################
 # Simulation parameters
@@ -7,24 +7,24 @@ problemDefinition	BURGERS	# Test problem definition
 maxSimulationTime 	1.0	# Maximum simulation time
 saveIntervalTimeFine  	0.1	# Fine save interval
 saveIntervalTime  	0.1	# Save interval
-integrationScheme 	B	# Integration scheme (N, LDA or B)
+integrationScheme 	LDA	# Integration scheme (N, LDA or B)
 integrationOrder  	2	# Integration order (1 or 2)
 massMatrix		1	# Mass matrix formulation (1, 2, 3 or 4)
 selectiveLumpFlag	0	# Flag whether to use selective lumping
-CFLnumber		1.0	# Courant number
+CFLnumber		0.1	# Courant number
 specificHeatRatio	1.4	# Ratio of specific heats
 
 ###############################################################################
 # Mesh parameters
 ###############################################################################
 
-equivalentPointsX	256	# Base resolution
-minX 		  	-1.0	# Left x boundary
-maxX		  	1.0	# Right x boundary
-minY		  	-1.0	# Bottom y boundary
-maxY		  	1.0	# Top y boundary
-periodicFlagX	  	0	# Flag to create periodic domain in x
-periodicFlagY	  	0	# Flag to create periodic domain in y
+equivalentPointsX	32	# Base resolution
+minX 		  	-0.5	# Left x boundary
+maxX		  	0.5	# Right x boundary
+minY		  	-0.5	# Bottom y boundary
+maxY		  	0.5	# Top y boundary
+periodicFlagX	  	1	# Flag to create periodic domain in x
+periodicFlagY	  	1	# Flag to create periodic domain in y
 adaptiveMeshFlag  	0	# Flag to use adaptive mesh
 maxRefineFactor	  	1	# Factor above base resolution to refine
 nStepSkipRefine		1	# Time steps without refining

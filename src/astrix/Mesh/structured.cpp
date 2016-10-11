@@ -28,10 +28,17 @@ void Mesh::CreateStructuredMesh()
   int nx = (int) (sqrt(0.565/meshParameter->baseResolution)*Px) + 4;
   int ny = (int)(nx*Py/Px);
 
+  // Fake one-dimensional simulation
   if (meshParameter->problemDef == PROBLEM_SOD ||
       meshParameter->problemDef == PROBLEM_BLAST ||
-      meshParameter->problemDef == PROBLEM_LINEAR) ny = 2;
-  
+      meshParameter->problemDef == PROBLEM_LINEAR) {
+    ny = 2;
+    Py = Px*(real)ny/(real)nx;
+    real y0 = 0.5*(meshParameter->miny + meshParameter->maxy);
+    meshParameter->miny = y0 - 0.5*Py;
+    meshParameter->maxy = y0 + 0.5*Py;
+  }
+   
   std::cout << "Creating structured mesh " << nx << "x" << ny << std::endl;
 
   // This step is not worth porting to GPU, so do it on the host
@@ -113,10 +120,11 @@ void Mesh::CreateStructuredMesh()
   
   // Make periodic in x
   if (meshParameter->periodicFlagX == 1) {
-   for (int i = 0; i < nx; i++) 
+    // Shift all vertices to the left
+    for (int i = 0; i < nx; i++) 
       for (int j = 0; j < ny; j++) 
 	pVc[j*nx + i].x -= Px*0.5/(real) (nx - 1);
-   
+    
     nVertex =
       connectivity->vertexCoordinates->RemoveEvery
       (0, nx, connectivity->triangleVertices);
@@ -124,7 +132,12 @@ void Mesh::CreateStructuredMesh()
       connectivity->edgeTriangles->RemoveEvery
       (0, 3*nx - 2, connectivity->triangleEdges) + 1;
     connectivity->edgeTriangles->SetSize(nEdge);
-    
+
+    pVc = connectivity->vertexCoordinates->GetPointer();
+    pTv = connectivity->triangleVertices->GetPointer();
+    pTe = connectivity->triangleEdges->GetPointer();
+    pEt = connectivity->edgeTriangles->GetPointer(); 
+
     int i = 0;
     for (int j = 0; j < ny - 1; j++) {
       int v = j*nx + i;
@@ -133,9 +146,9 @@ void Mesh::CreateStructuredMesh()
       pTv[t].x = v - j + (nx - 2);
       pTv[t].y = v - j + nx - 1 + (nx - 2);
       pTv[t].z = v - j + nVertex;
-      
+
       pTv[t + 1].y = v - j + 2*nx - 3 - nVertex;
-      
+
       pTe[t].x = 3*(j*nx + nx - 1 - j) - 1;
       pTe[t].y = pTe[t].z;
       pTe[t].z = pTe[t].y - 1;
@@ -155,10 +168,11 @@ void Mesh::CreateStructuredMesh()
       pEt[e3].x = t;
       if (j > 0) pEt[e3].y = 2*((j-1)*nx - j + 1) + 1; else pEt[e3].y = -1;
 
-      if (j == ny - 2) pEt[nEdge - 1].x = t + 1;            
+      if (j == ny - 2) pEt[nEdge - 1].x = t + 1;
     }
     
     nx--;
+    
   }
 
   // Make periodic in y
@@ -213,10 +227,10 @@ void Mesh::CreateStructuredMesh()
   if (cudaFlag == 1) connectivity->Transform();
 
   // One cycle of delaunay 
-  delaunay->MakeDelaunay(connectivity, 0, predicates,
-			 meshParameter, 1, 0, 0, 0);
+  //delaunay->MakeDelaunay(connectivity, 0, predicates,
+  //			 meshParameter, 1, 0, 0, 0);
 
-  morton->Order(connectivity, triangleWantRefine, 0);
+  //morton->Order(connectivity, triangleWantRefine, 0);
   
   // Calculate triangle normals and areas
   CalcNormalEdge();

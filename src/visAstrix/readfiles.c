@@ -310,11 +310,13 @@ int ReadFiles(int startFlag)
 
   triBlend = malloc(n_triangle*sizeof(float));
   for (i=0; i < n_triangle; i++) triBlend[i] = 0.0;
-  /*
+  
   // Read blend binary
   sprintf(fname, "blnd%4.4d.dat", nSave);
   fp = fopen(fname, "rb");
 
+  if (fp) {
+    /*
   // No file found, return    
   if (!fp) {
     if (startFlag == 1) {
@@ -324,7 +326,7 @@ int ReadFiles(int startFlag)
       return 1;
     }
   }
-
+    */
   // Size of floating point numbers (float or double)
   fread((char*) &sizeOfData, sizeof(int), 1, fp);
   if(sizeOfData != sizeof(float) && sizeOfData != sizeof(double)){
@@ -358,7 +360,7 @@ int ReadFiles(int startFlag)
   //  triBlend[i] = log10(triBlend[i]);
 
   fclose(fp);
-  */
+  }
   
   if (nSave == nStart) {
     printf("VertXY: %f %f\n", vertX[0], vertY[0]);
@@ -395,7 +397,7 @@ int ReadFiles(int startFlag)
 
       //printf("blend: %d %e\n", i, d);
     }
-    //printf("MinMaxBlend: %e %e\n", minblend, maxblend);
+    printf("MinMaxBlend: %e %e\n", minblend, maxblend);
     //printf("MinMaxPres: %e %e\n", minpres, maxpres);
     //printf("MinMaxVelX: %e %e\n", minvelx, maxvelx);
     //printf("MinMaxVelY: %e %e\n", minvely, maxvely);

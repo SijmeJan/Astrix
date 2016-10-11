@@ -28,7 +28,7 @@ void CalcBlendSingle(int n, const real3* __restrict__ pTl,
 		     real4 *pTresN0, real4 *pTresN1, real4 *pTresN2,
 		     real4 *pTres, real4 *pBlend, int setToMinMaxFlag)
 {
-  real small = (real) 1.0e-6;
+  real small = (real) 1.0e-30;
 
   // Triangle edge lengths
   real tl1 = pTl[n].x;
@@ -108,7 +108,7 @@ void CalcBlendSingle(int n, const real3* __restrict__ pTl,
 		     real *pTresN0, real *pTresN1, real *pTresN2,
 		     real *pTres, real *pBlend, int setToMinMaxFlag)
 {
-  real small = (real) 1.0e-6;
+  real small = (real) 1.0e-30;
 
   // Triangle edge lengths
   real tl1 = pTl[n].x;

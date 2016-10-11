@@ -92,8 +92,7 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
 
   if (problemDef == PROBLEM_VORTEX ||
       problemDef == PROBLEM_YEE ||
-      problemDef == PROBLEM_LINEAR ||
-      problemDef == PROBLEM_ADVECT) {
+      problemDef == PROBLEM_LINEAR) {
     int nVertex = mesh->GetNVertex();
 
     vertexStateOld->SetEqual(vertexState);
@@ -111,7 +110,7 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
 
 #if N_EQUATION == 1
     // Exact solution is initial condition shifted by (1,0)
-    if (problemDef == PROBLEM_ADVECT) {
+    if (problemDef == PROBLEM_LINEAR) {
       const real2 *pVc = mesh->VertexCoordinatesData();
       for (int i = 0; i < nVertex; i++) {
 	real x = pVc[i].x;
@@ -153,26 +152,61 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
     real L2dens = 0.0;
     real Lmaxdens = 0.0;
     real totalArea = 0.0;
-    for (int i = 0; i < nVertex; i++) {
+    for (int n = 0; n < nVertex; n++) {
 #if N_EQUATION == 1
-      real relDiff = (state[i] - stateOld[i])/stateOld[i];
+#if BURGERS == 1
+      const real2 *pVc = mesh->VertexCoordinatesData();
+
+      if (problemDef == PROBLEM_VORTEX) {
+	real u0 = 1.0;
+	real u1 = 0.0;
+	real u2 = 0.0;
+	real amp = 0.001;
+	for (int i = 0; i < 2; i++) {
+	  for (int j = 0; j < 2; j++) {
+	    // Start center location
+	    real xStart = -1.0 + (real)i;
+	    real yStart = -1.0 + (real)j;
+	    
+	    // Current centre location
+	    real cx = xStart + simulationTime;
+	    real cy = yStart + simulationTime;
+	    
+	    real x = pVc[n].x - cx;
+	    real y = pVc[n].y - cy;
+	    real r = sqrt(x*x + y*y);
+	    
+	    if (r < 0.25) {
+	      u1 += amp*cos(2.0*M_PI*r)*cos(2.0*M_PI*r);
+	      u2 += amp*amp*4.0*M_PI*simulationTime*(x + y)*cos(2.0*M_PI*r)*
+		cos(2.0*M_PI*r)*cos(2.0*M_PI*r)*sin(2.0*M_PI*r)/(r + 1.0e-30);
+	    }
+	  }
+	}
+
+	state[n] = u0 + u1 + u2;
+      }
 #endif
+      
+      real relDiff = (state[n] - stateOld[n])/stateOld[n];      
+#endif
+      
 #if N_EQUATION == 4
-      real relDiff = (state[i].x - stateOld[i].x)/stateOld[i].x;
+      real relDiff = (state[n].x - stateOld[n].x)/stateOld[n].x;
       if (problemDef == PROBLEM_VORTEX) {
 	real G = specificHeatRatio;
 	
-	real dens = state[i].x;
-	real momx = state[i].y;
-	real momy = state[i].z;
-	real ener = state[i].w;
+	real dens = state[n].x;
+	real momx = state[n].y;
+	real momy = state[n].z;
+	real ener = state[n].w;
 	
 	real p = (G - 1.0)*(ener - 0.5*(momx*momx + momy*momy)/dens);
 
-	dens = stateOld[i].x;
-	momx = stateOld[i].y;
-	momy = stateOld[i].z;
-	ener = stateOld[i].w;
+	dens = stateOld[n].x;
+	momx = stateOld[n].y;
+	momy = stateOld[n].z;
+	ener = stateOld[n].w;
 	
 	real pOld = (G - 1.0)*(ener - 0.5*(momx*momx + momy*momy)/dens);
 
@@ -180,11 +214,11 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
       }
 #endif
      
-      L1dens += fabs(relDiff)*vertArea[i];
-      L2dens += relDiff*relDiff*vertArea[i];
+      L1dens += fabs(relDiff)*vertArea[n];
+      L2dens += relDiff*relDiff*vertArea[n];
       if (fabs(relDiff) > Lmaxdens)
 	Lmaxdens = fabs(relDiff);
-      totalArea += vertArea[i];
+      totalArea += vertArea[n];
     }
     
     L1dens = L1dens/totalArea;
@@ -325,7 +359,10 @@ void Simulation::DoTimeStep()
  
   
   if (integrationOrder == 2) {
-    
+#ifdef NEW  
+    AddTemporalResidual(dt);
+#endif
+
     //if (problemDef == PROBLEM_VORTEX ||
     //	problemDef == PROBLEM_YEE ||
     //	problemDef == PROBLEM_SOD)
@@ -346,8 +383,10 @@ void Simulation::DoTimeStep()
     CalcTotalResNtot(dt);
 
     // Calculate parameter vector Z at nodes from old state
+#ifndef NEW
     CalculateParameterVector(1);
-
+#endif
+    
     if (massMatrix == 3 || massMatrix == 4)
       MassMatrixF34Tot(dt, massMatrix);
     
