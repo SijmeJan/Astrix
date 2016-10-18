@@ -227,8 +227,8 @@ void Mesh::CreateStructuredMesh()
   if (cudaFlag == 1) connectivity->Transform();
 
   // One cycle of delaunay 
-  //delaunay->MakeDelaunay(connectivity, 0, predicates,
-  //			 meshParameter, 1, 0, 0, 0);
+  delaunay->MakeDelaunay(connectivity, 0, predicates,
+  			 meshParameter, 1, 0, 0, 0);
 
   //morton->Order(connectivity, triangleWantRefine, 0);
   

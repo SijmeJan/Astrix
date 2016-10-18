@@ -121,7 +121,7 @@ class Simulation
   void DoTimeStep();
 
   //! Set initial conditions according to problemSpec.
-  void SetInitial();
+  void SetInitial(real time);
 
   //! Calculate gravitational potential
   void CalcPotential();

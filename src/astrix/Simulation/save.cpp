@@ -86,6 +86,7 @@ void Simulation::Save(int nSave)
 #else
       real u0 = 1.0;
       real u1 = 0.0;
+      
       for (int i = 0; i < 2; i++) {
 	// Start center location
 	real xStart = -0.5 + (real)i;
@@ -100,7 +101,7 @@ void Simulation::Save(int nSave)
 	real r = sqrt(x*x + y*y);
 
 	if (r <= (real) 0.25) {
-	  u1 = cos(2.0*M_PI*r)*cos(2.0*M_PI*r);
+	  u1 += cos(2.0*M_PI*r)*cos(2.0*M_PI*r);
 	  /*
 	  std::cout << pVc[n].x << " "
 		    << pVc[n].y << " "

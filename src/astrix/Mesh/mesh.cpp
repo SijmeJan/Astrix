@@ -176,7 +176,8 @@ Mesh::~Mesh()
 
   // Construct mesh if not restarting
   if (restartNumber == 0) {
-    if (meshParameter->structuredFlag == 1) {
+    if (meshParameter->structuredFlag == 1 ||
+	meshParameter->structuredFlag == 2) {
       // Structured mesh
       CreateStructuredMesh();
     } else {
@@ -340,4 +341,15 @@ void Mesh::Transform()
   }
 }
 
+real Mesh::GetPx()
+{
+  return meshParameter->maxx - meshParameter->minx;
+}
+
+real Mesh::GetPy()
+{
+  return meshParameter->maxy - meshParameter->miny;
+}
+
+  
 }

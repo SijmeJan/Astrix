@@ -1498,6 +1498,40 @@ void Mesh::ConstructBoundaries()
   delete vertexExtra;
   delete vertexExtraOrder;
   */
+
+  /*
+  real xmin = 0.25;
+  real xmax = 1.75;
+  real ymin = 0.25;
+  real ymax = 0.75;
+  int nxExtra = (int) ((xmax - xmin)/sqrt(meshParameter->baseResolution));
+  int nyExtra = (int) ((ymax - ymin)/sqrt(meshParameter->baseResolution));
+  Array<real2> *vertexExtra = new Array<real2>(1, cudaFlag, nxExtra*nyExtra);
+  Array<int> *vertexExtraOrder = new Array<int>(1, cudaFlag, nxExtra*nyExtra);
+  
+  int index = 0;
+  for (int i = 0; i < nxExtra; i++) {
+    for (int j = 0; j < nyExtra; j++) {
+      real2 temp;
+      temp.x = xmin + (real)i*(xmax - xmin)/(real) (nxExtra - 1);
+      temp.y = ymin + (real)j*(ymax - ymin)/(real) (nyExtra - 1);
+      
+      vertexExtra->SetSingleValue(temp, index);
+      index++;
+    }
+  }
+  
+  nAdded = refine->AddVertices(connectivity,
+			       meshParameter,
+			       predicates,
+			       delaunay,
+			       vertexExtra,
+			       vertexExtraOrder);
+  
+  std::cout << "Added " << nAdded << " extra vertices" << std::endl;
+  delete vertexExtra;
+  delete vertexExtraOrder;
+  */
 }
 
 }

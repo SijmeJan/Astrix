@@ -37,7 +37,7 @@ void Simulation::Refine()
       int nVertex   = mesh->GetNVertex();
       vertexPotential->SetSize(nVertex);
       CalcPotential();
-      SetInitial();
+      SetInitial(0.0);
       ReplaceEnergyWithPressure();
     }
     
@@ -57,7 +57,7 @@ void Simulation::Refine()
 	int nVertex = mesh->GetNVertex();
 	vertexPotential->SetSize(nVertex);
 	CalcPotential();
-	SetInitial();
+	SetInitial(0.0);
 	ReplaceEnergyWithPressure();
       }
       nCycle++;
@@ -105,7 +105,7 @@ void Simulation::Coarsen(int maxCycle)
       int nVertex = mesh->GetNVertex();
       vertexPotential->SetSize(nVertex);
       CalcPotential();
-      SetInitial();
+      SetInitial(0.0);
       ReplaceEnergyWithPressure();
     }
   }

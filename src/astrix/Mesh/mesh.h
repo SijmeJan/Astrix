@@ -54,7 +54,11 @@ class Mesh
   int GetNEdge();
   //! Return if mesh is adaptive
   int IsAdaptive();
-
+  //! Return size of domain in x
+  real GetPx();
+  //! Return size of domain in y
+  real GetPy();
+  
   // Give access to Mesh data through constant pointers to the data
   
   //! Return pointer to vertex coordinates data

@@ -25,7 +25,7 @@ namespace astrix {
   
 __host__ __device__
 void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
-		      real *pVpot, real4 *state, real G)
+		      real *pVpot, real4 *state, real G, real time, real Px)
 {
   const real onethird = (real) (1.0/3.0);
   const real zero = (real) 0.0;
@@ -58,54 +58,69 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     ener = half*(Sq(momx) + Sq(momy))/dens + p0/(G - one);
   }
   
-  if(problemDef == PROBLEM_VORTEX){
-    real xc = zero;
-    real yc = zero;
-
-    real x = vertX;
-    real y = vertY;
-    real r = sqrt(Sq(x - xc)+Sq(y - yc));
-    real d = 4.0*M_PI*r;
-
-    real w = 15.0*(cos(d) + one);
-    if (r >= 0.25) w = 0;
-    real vx = -y*w + five;
-    real vy = x*w;
-
+  if(problemDef == PROBLEM_VORTEX) {
     dens = 1.4;
+    real vx = five;
+    real vy = zero;
+    real pres = 100.0;
     
-    real pm = 100.0;
-    real C = -15.0*15.0*dens*(0.75*M_PI*M_PI - 2.0 + 0.125)/(16.0*M_PI*M_PI);
-    real dp =
-      (2.0*cos(d) + 2.0*d*sin(d) + 0.125*cos(2.0*d) + 0.25*d*sin(2.0*d) +
-       0.75*d*d)*15.0*15.0*dens/(16.0*M_PI*M_PI) + C;
-    if (r >= 0.25) dp = 0.0;
-    real pres = pm + dp;
+    for (int i = -1; i < 2; i++) {
+      real xc = five*time + Px*i;
+      real yc = zero;
+
+      real x = vertX;
+      real y = vertY;
+      real r = sqrt(Sq(x - xc)+Sq(y - yc));
+      real d = 4.0*M_PI*r;
+
+      real w = 15.0*(cos(d) + one);
+      if (r >= 0.25) w = 0;
+      vx -= y*w;
+      vy += x*w;
+    
+      real C = -15.0*15.0*dens*(0.75*M_PI*M_PI - 2.0 + 0.125)/(16.0*M_PI*M_PI);
+      real dp =
+	(2.0*cos(d) + 2.0*d*sin(d) + 0.125*cos(2.0*d) + 0.25*d*sin(2.0*d) +
+	 0.75*d*d)*15.0*15.0*dens/(16.0*M_PI*M_PI) + C;
+      if (r >= 0.25) dp = 0.0;
+      pres += dp;
+    }
     
     momx = dens*vx;
     momy = dens*vy;
     ener = half*(Sq(momx) + Sq(momy))/dens + pres/(G - one);    
   }
 
-  if(problemDef == PROBLEM_YEE){
-    real xc = five;
-    real yc = five;
-
-    real beta = five;
-    
+  if (problemDef == PROBLEM_YEE) {
     real x = vertX;
     real y = vertY;
-    real r = sqrt(Sq(x - xc)+Sq(y - yc)) + (real) 1.0e-10;
+    real vx = 1.0;
+    real vy = 0.0;
 
-    real T = one - (G - one)*Sq(beta)*exp(one - r*r)/(8.0f*G*M_PI*M_PI);
+    dens = 1.0;
+    real pres = 1.0;
+    
+    for (int i = -1; i < 2; i++) {
+      real xc = five + time + i*Px;
+      real yc = five;
 
-    real vx = -half*(y - yc)*beta*exp(half - half*r*r)/M_PI;
-    real vy =  half*(x - xc)*beta*exp(half - half*r*r)/M_PI;
+      real beta = five;
+    
+      real r = sqrt(Sq(x - xc)+Sq(y - yc)) + (real) 1.0e-10;
 
-    dens = std::pow(T, (real)(one/(G - one)));
-    momx = (real)1.0e-10 + dens*(vx + 1.0);
+      real T = one - (G - one)*Sq(beta)*exp(one - r*r)/(8.0f*G*M_PI*M_PI);
+
+      vx -= half*(y - yc)*beta*exp(half - half*r*r)/M_PI;
+      vy += half*(x - xc)*beta*exp(half - half*r*r)/M_PI;
+
+      real ddens = std::pow(T, (real)(one/(G - one))) - 1.0;
+      dens += ddens;
+      pres += ddens*T;
+    }
+    
+    momx = (real)1.0e-10 + dens*vx;
     momy = (real)2.0e-10 + dens*vy;
-    ener = half*(Sq(momx) + Sq(momy))/dens + dens*T/(G - one);
+    ener = half*(Sq(momx) + Sq(momy))/dens + pres/(G - one);
   }
 
   if(problemDef == PROBLEM_RT){
@@ -362,7 +377,7 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
 
 __host__ __device__
 void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
-		      real *pVpot, real *state, real G)
+		      real *pVpot, real *state, real G, real time, real Px)
 {
   real vertX = pVc[n].x;
   real vertY = pVc[n].y;
@@ -370,9 +385,12 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   real dens = (real) 1.0;
   
   if(problemDef == PROBLEM_LINEAR) {
-    real x = vertX;
-
-    if (fabs(x) <= (real) 0.25) dens += Sq(cos(2.0*M_PI*x));
+    for (int i = -1; i < 2; i++) {
+      real x = vertX;
+      real xc = time + i*Px;
+      
+      if (fabs(x - xc) <= (real) 0.25) dens += Sq(cos(2.0*M_PI*(x - xc)));
+    }
   }
 
   if(problemDef == PROBLEM_VORTEX) {
@@ -380,15 +398,46 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     real x = vertX;
     real y = vertY;
 
-    real r = sqrt(Sq(x) + Sq(y));
-    if (r <= (real) 0.25) dens += 0.001*Sq(cos(2.0*M_PI*r));
+    real u0 = 1.0;
+    real u1 = 0.0;
+    real u2 = 0.0;
+    real amp = 0.001;
+
+    for (int i = 0; i < 2; i++) {
+      for (int j = 0; j < 2; j++) {
+	// Start center location
+	real xStart = -1.0 + (real)i;
+	real yStart = -1.0 + (real)j;
+	    
+	// Current centre location
+	real cx = xStart + time;
+	real cy = yStart + time;
+	
+	real r = sqrt(Sq(x - cx) + Sq(y - cy));
+	    
+	if (r < 0.25) {
+	  u1 += amp*cos(2.0*M_PI*r)*cos(2.0*M_PI*r);
+	  u2 += amp*amp*4.0*M_PI*time*(x + y)*cos(2.0*M_PI*r)*
+	    cos(2.0*M_PI*r)*cos(2.0*M_PI*r)*sin(2.0*M_PI*r)/(r + 1.0e-30);
+	}
+      }
+    }
+
+    dens = u0 + u1 + u2;
 #else
     real half = (real) 0.5;
-    real x = vertX;
-    real y = vertY;
-    real r = sqrt(Sq(x - half) + Sq(y - half));
 
-    if (r <= (real) 0.25) dens += Sq(cos(2.0*M_PI*r));
+    for (int i = -1; i < 2; i++) {
+      real x = vertX;
+      real y = vertY;
+
+      real xc = half + i*Px + time;
+      real yc = half;
+      
+      real r = sqrt(Sq(x - xc) + Sq(y - yc));
+
+      if (r <= (real) 0.25) dens += Sq(cos(2.0*M_PI*r));
+    }
 #endif
   }
 
@@ -417,13 +466,15 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
 
 __global__ void 
 devSetInitial(int nVertex, const real2 *pVc, ProblemDefinition problemDef,
-	      real *pVertexPotential, realNeq *state, real G)
+	      real *pVertexPotential, realNeq *state,
+	      real G, real time, real Px)
 {
   // n = vertex number
   int n = blockIdx.x*blockDim.x + threadIdx.x; 
 
   while(n < nVertex){
-    SetInitialSingle(n, pVc, problemDef, pVertexPotential, state, G);
+    SetInitialSingle(n, pVc, problemDef, pVertexPotential, state,
+		     G, time, Px);
  
     n += blockDim.x*gridDim.x;
   }
@@ -433,13 +484,15 @@ devSetInitial(int nVertex, const real2 *pVc, ProblemDefinition problemDef,
 /*! Set initial conditions for all vertices based on problemSpecification*/
 //######################################################################
 
-void Simulation::SetInitial()
+void Simulation::SetInitial(real time)
 {
   int nVertex = mesh->GetNVertex();
 
   realNeq *state = vertexState->GetPointer();
   real *pVertexPotential = vertexPotential->GetPointer();
   const real2 *pVc = mesh->VertexCoordinatesData();
+
+  real Px = mesh->GetPx();
   
   if (cudaFlag == 1) {
     int nBlocks = 128;
@@ -451,14 +504,15 @@ void Simulation::SetInitial()
 				       (size_t) 0, 0);
 
     devSetInitial<<<nBlocks, nThreads>>>
-      (nVertex, pVc, problemDef, pVertexPotential, state, specificHeatRatio);
+      (nVertex, pVc, problemDef, pVertexPotential, state,
+       specificHeatRatio, time, Px);
     
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for(int n = 0; n < nVertex; n++) 
       SetInitialSingle(n, pVc, problemDef, pVertexPotential, state,
-		       specificHeatRatio);
+		       specificHeatRatio, time, Px);
   }
 }
 

@@ -127,7 +127,7 @@ void MeshParameter::ReadFromFile(const char *fileName)
     }
     if (firstWord == "structuredFlag") {
       if (!secondWord.empty() &&
-	  secondWord.find_first_not_of("01") == std::string::npos)
+	  secondWord.find_first_not_of("012") == std::string::npos)
 	structuredFlag = atof(secondWord.c_str());
     }
   }

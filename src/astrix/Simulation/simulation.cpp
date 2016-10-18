@@ -158,7 +158,7 @@ void Simulation::Init(int restartNumber)
     simulationTime = 0.0;
     
     // Set initial conditions
-    SetInitial();
+    SetInitial(0.0);
     
     if (mesh->IsAdaptive() == 1) {
       ReplaceEnergyWithPressure();

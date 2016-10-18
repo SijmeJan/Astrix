@@ -216,11 +216,30 @@ void Delaunay::CheckEdges(Connectivity * const connectivity,
 #ifdef TIME_ASTRIX
       cudaEventRecord(start, 0);
 #endif
-      
+
       for (int i = 0; i < nEdge; i++) 
 	CheckEdge(i, pVc, pTv, pTe, pEt, pEnd, predicates,
 		  pParam, nVertex, Px, Py);
+
+      // Make structured mesh less uniform
+      if (meshParameter->structuredFlag == 2) {
+	real Px = meshParameter->maxx - meshParameter->minx;
+	real Py = meshParameter->maxy - meshParameter->miny;
       
+	int nx = (int) (sqrt(0.565/meshParameter->baseResolution)*Px) + 4;
+	int ny = (int)(nx*Py/Px);
+	for (int i = 0; i < nx - 1; i++) {
+	  for (int j = 0; j < ny - 1; j += 2) {
+	    int v = j*(nx - meshParameter->periodicFlagX) + i;
+	    int e = 3*(v - j) + j + 1 + 2*j*meshParameter->periodicFlagX -
+	      (i > 0)*meshParameter->periodicFlagX;
+
+	    pEnd[e] = e;
+	  }
+	}
+      }
+      
+
 #ifdef TIME_ASTRIX
       cudaEventRecord(stop, 0);
       cudaEventSynchronize(stop);

@@ -83,7 +83,9 @@ void MeshParameter::CheckValidity()
     std::cout << "Invalid value for qualityBound" << std::endl;
     throw std::runtime_error("");
   }
-  if (structuredFlag != 0 && structuredFlag != 1) {
+  if (structuredFlag != 0 &&
+      structuredFlag != 1 &&
+      structuredFlag != 2) {
     std::cout << "Invalid value for structuredFlag" << std::endl;
     throw std::runtime_error("");
   }

@@ -96,9 +96,9 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
     int nVertex = mesh->GetNVertex();
 
     vertexStateOld->SetEqual(vertexState);
-    SetInitial();
+    SetInitial(simulationTime);
 
-    // Now vertexState contains initial state, vertexOld final state
+    // Now vertexState contains exact state, vertexOld final state
     if (cudaFlag == 1) {
       mesh->Transform();
       vertexState->CopyToHost();
@@ -107,44 +107,6 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
 
     realNeq *state = vertexState->GetHostPointer();
     realNeq *stateOld = vertexStateOld->GetHostPointer();
-
-#if N_EQUATION == 1
-    // Exact solution is initial condition shifted by (1,0)
-    if (problemDef == PROBLEM_LINEAR) {
-      const real2 *pVc = mesh->VertexCoordinatesData();
-      for (int i = 0; i < nVertex; i++) {
-	real x = pVc[i].x;
-	real y = pVc[i].y;
-	real r = sqrt((x - 1.5)*(x - 1.5) + (y - 0.5)*(y - 0.5));
-	
-	state[i] = 1.0;
-	if (r <= (real) 0.25)
-	  state[i] = state[i] + cos(2.0*M_PI*r)*cos(2.0*M_PI*r);
-      }
-    }
-#endif
-#if N_EQUATION == 4
-    // Exact solution is initial condition shifted by (10,0)
-    if (problemDef == PROBLEM_YEE) {
-      const real2 *pVc = mesh->VertexCoordinatesData();
-      for (int i = 0; i < nVertex; i++) {
-	real xc = (real) 15.0;
-	real yc = (real) 5.0;
-
-	real beta = (real) 5.0;
-	real G = specificHeatRatio;
-	
-	real x = pVc[i].x;
-	real y = pVc[i].y;
-	real r = sqrt((x - xc)*(x - xc) + (y - yc)*(y - yc)) + (real) 1.0e-10;
-
-	real T = 1.0 - (G - 1.0)*beta*beta*exp(1.0 - r*r)/
-	  ((real)8.0*G*M_PI*M_PI);
-
-	state[i].x = std::pow(T, (real)((real) 1.0/(G - (real) 1.0)));
-      }
-    }
-#endif
    
     const real *vertArea = mesh->VertexAreaData();
   
@@ -154,40 +116,6 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
     real totalArea = 0.0;
     for (int n = 0; n < nVertex; n++) {
 #if N_EQUATION == 1
-#if BURGERS == 1
-      const real2 *pVc = mesh->VertexCoordinatesData();
-
-      if (problemDef == PROBLEM_VORTEX) {
-	real u0 = 1.0;
-	real u1 = 0.0;
-	real u2 = 0.0;
-	real amp = 0.001;
-	for (int i = 0; i < 2; i++) {
-	  for (int j = 0; j < 2; j++) {
-	    // Start center location
-	    real xStart = -1.0 + (real)i;
-	    real yStart = -1.0 + (real)j;
-	    
-	    // Current centre location
-	    real cx = xStart + simulationTime;
-	    real cy = yStart + simulationTime;
-	    
-	    real x = pVc[n].x - cx;
-	    real y = pVc[n].y - cy;
-	    real r = sqrt(x*x + y*y);
-	    
-	    if (r < 0.25) {
-	      u1 += amp*cos(2.0*M_PI*r)*cos(2.0*M_PI*r);
-	      u2 += amp*amp*4.0*M_PI*simulationTime*(x + y)*cos(2.0*M_PI*r)*
-		cos(2.0*M_PI*r)*cos(2.0*M_PI*r)*sin(2.0*M_PI*r)/(r + 1.0e-30);
-	    }
-	  }
-	}
-
-	state[n] = u0 + u1 + u2;
-      }
-#endif
-      
       real relDiff = (state[n] - stateOld[n])/stateOld[n];      
 #endif
       
