@@ -67,6 +67,8 @@ class Simulation
   int selectiveLumpFlag;
   //! Courant number
   real CFLnumber;
+  //! Preference for using minimum/maximum value of blend parameter
+  int preferMinMaxBlend;
   
   //! Number of space dimensions (fixed to 2)
   int nSpaceDim;

@@ -214,6 +214,7 @@ void Simulation::ReadInputFile(const char *fileName)
   intScheme = SCHEME_UNDEFINED;
   specificHeatRatio = -1.0;
   CFLnumber = -1.0;
+  preferMinMaxBlend = 2;
   
   // Open parameter file
   std::ifstream inFile(fileName);
@@ -299,6 +300,13 @@ void Simulation::ReadInputFile(const char *fileName)
 	CFLnumber = atof(secondWord.c_str());
     }
 
+    // Preference for minimum/maximum blend parameter (-1, 0 or 1)
+    if (firstWord == "preferMinMaxBlend") {
+      if (!secondWord.empty() &&
+	  secondWord.find_first_not_of("01-") == std::string::npos)
+	preferMinMaxBlend = atof(secondWord.c_str());
+    }
+    
     // SpecificHeatRatio
     if (firstWord == "specificHeatRatio") {
       if (!secondWord.empty() &&
@@ -364,6 +372,12 @@ void Simulation::ReadInputFile(const char *fileName)
     std::cout << "Invalid value for CFLnumber" << std::endl;
     throw std::runtime_error("");
   }
+  if (preferMinMaxBlend != -1 &&
+      preferMinMaxBlend != 0 &&
+      preferMinMaxBlend != 1) {
+    std::cout << "Invalid value for preferMinMaxBlend" << std::endl;
+    throw std::runtime_error("");
+  }    
   if (specificHeatRatio < 0.0) {
     std::cout << "Invalid value for specificHeatRatio" << std::endl;
     throw std::runtime_error("");

@@ -12,6 +12,7 @@ integrationOrder  	2	# Integration order (1 or 2)
 massMatrix		1	# Mass matrix formulation (1, 2, 3 or 4)
 selectiveLumpFlag	1	# Flag whether to use selective lumping
 CFLnumber		1.0	# Courant number
+preferMinMaxBlend	0	# Set blend to min (-1) or max (1)
 specificHeatRatio	1.4	# Ratio of specific heats
 
 ###############################################################################

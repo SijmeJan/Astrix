@@ -163,8 +163,6 @@ devCalcBlendFactor(int nTriangle, const real3* __restrict__ pTl,
 
 void Simulation::CalcBlend()
 {
-  int setToMinMaxFlag = 0;
-  
   int nTriangle = mesh->GetNTriangle();
 
   // N residuals
@@ -193,13 +191,13 @@ void Simulation::CalcBlend()
     // Execute kernel... 
     devCalcBlendFactor<<<nBlocks,nThreads>>>
       (nTriangle, pTl, pTresN0, pTresN1, pTresN2, pTres, pBlend,
-       setToMinMaxFlag);
+       preferMinMaxBlend);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int n = 0; n < nTriangle; n++) 
       CalcBlendSingle(n, pTl, pTresN0, pTresN1, pTresN2, pTres, pBlend,
-		      setToMinMaxFlag);
+		      preferMinMaxBlend);
   }
 }
 

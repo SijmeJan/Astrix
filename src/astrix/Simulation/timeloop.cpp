@@ -159,7 +159,7 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
 	      << std::endl;
 
     std::ofstream uitvoer;
-    if (extraFlag == 0 || extraFlag == 32)
+    if (extraFlag == 0 || extraFlag == 8)
       uitvoer.open("resolution.txt");
     else
       uitvoer.open("resolution.txt", std::ios::app);

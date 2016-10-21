@@ -59,13 +59,15 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   }
   
   if(problemDef == PROBLEM_VORTEX) {
+    real vadv = zero;
+    
     dens = 1.4;
-    real vx = five;
+    real vx = 1.0e-10 + vadv;
     real vy = zero;
     real pres = 100.0;
     
     for (int i = -1; i < 2; i++) {
-      real xc = five*time + Px*i;
+      real xc = vadv*time + Px*i;
       real yc = zero;
 
       real x = vertX;

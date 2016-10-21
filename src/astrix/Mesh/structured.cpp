@@ -230,7 +230,7 @@ void Mesh::CreateStructuredMesh()
   delaunay->MakeDelaunay(connectivity, 0, predicates,
   			 meshParameter, 1, 0, 0, 0);
 
-  //morton->Order(connectivity, triangleWantRefine, 0);
+  morton->Order(connectivity, triangleWantRefine, 0);
   
   // Calculate triangle normals and areas
   CalcNormalEdge();

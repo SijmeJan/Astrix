@@ -228,8 +228,8 @@ void Delaunay::CheckEdges(Connectivity * const connectivity,
       
 	int nx = (int) (sqrt(0.565/meshParameter->baseResolution)*Px) + 4;
 	int ny = (int)(nx*Py/Px);
-	for (int i = 0; i < nx - 1; i++) {
-	  for (int j = 0; j < ny - 1; j += 2) {
+	for (int i = 0; i < nx - 1; i += 2) {
+	  for (int j = 0; j < ny - 1; j += 3) {
 	    int v = j*(nx - meshParameter->periodicFlagX) + i;
 	    int e = 3*(v - j) + j + 1 + 2*j*meshParameter->periodicFlagX -
 	      (i > 0)*meshParameter->periodicFlagX;

@@ -7,11 +7,12 @@ problemDefinition	VORTEX	# Test problem definition
 maxSimulationTime 	1.0	# Maximum simulation time
 saveIntervalTimeFine  	0.1	# Fine save interval
 saveIntervalTime  	0.1	# Save interval
-integrationScheme 	LDA	# Integration scheme (N, LDA or B)
+integrationScheme 	B	# Integration scheme (N, LDA or B)
 integrationOrder  	2	# Integration order (1 or 2)
 massMatrix		1	# Mass matrix formulation (1, 2, 3 or 4)
-selectiveLumpFlag	1	# Flag whether to use selective lumping
+selectiveLumpFlag	0	# Flag whether to use selective lumping
 CFLnumber		1.0	# Courant number
+preferMinMaxBlend	0	# Set blend to min (-1) or max (1)
 specificHeatRatio	1.4	# Ratio of specific heats
 
 ###############################################################################
@@ -24,7 +25,7 @@ maxX		  	1.0	# Right x boundary
 minY		  	0.0	# Bottom y boundary
 maxY		  	1.0	# Top y boundary
 periodicFlagX	  	1	# Flag to create periodic domain in x
-periodicFlagY	  	0	# Flag to create periodic domain in y
+periodicFlagY	  	1	# Flag to create periodic domain in y
 adaptiveMeshFlag  	0	# Flag to use adaptive mesh
 maxRefineFactor	  	1	# Factor above base resolution to refine
 nStepSkipRefine		1	# Time steps without refining
@@ -32,4 +33,4 @@ nStepSkipCoarsen	1	# Time steps without derefining
 minError		0.01	# Coarsen if error below 
 maxError		0.02	# Refine if error above
 qualityBound	  	1.0	# Quality bound on triangles
-structuredFlag		2	# Flag whether to use structured mesh
+structuredFlag		0	# Flag whether to use structured mesh

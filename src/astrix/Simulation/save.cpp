@@ -84,12 +84,14 @@ void Simulation::Save(int nSave)
       pMomy[n] = fabs(state[n] - u0 - u1 - u2)*state[n];
       pEner[n] = state[n];
 #else
+      real Px = mesh->GetPx();
+      
       real u0 = 1.0;
       real u1 = 0.0;
       
-      for (int i = 0; i < 2; i++) {
+      for (int i = -1; i < 2; i++) {
 	// Start center location
-	real xStart = -0.5 + (real)i;
+	real xStart = 0.5 + (real)i*Px;
 	real yStart = 0.5;
 	
 	// Current centre location
@@ -100,17 +102,8 @@ void Simulation::Save(int nSave)
 	real y = pVc[n].y - cy;
 	real r = sqrt(x*x + y*y);
 
-	if (r <= (real) 0.25) {
+	if (r <= (real) 0.25) 
 	  u1 += cos(2.0*M_PI*r)*cos(2.0*M_PI*r);
-	  /*
-	  std::cout << pVc[n].x << " "
-		    << pVc[n].y << " "
-		    << u0 + u1 << " "
-		    << state[n] << std::endl;
-	  int qq; std::cin >> qq;
-	  */
-	}
-
       }
 
       pMomx[n] = fabs(state[n] - u0 - u1)*state[n];

@@ -187,7 +187,15 @@ template <class T> class Array
 
   //! Shuffle array (non-random!)
   void Shuffle();
-  
+
+  T InnerProduct(Array<T> *A);
+  void LinComb(T a1, Array<T> *A1);
+  void LinComb(T a1, Array<T> *A1,
+	       T a2, Array<T> *A2);
+  void LinComb(T a1, Array<T> *A1,
+	       T a2, Array<T> *A2,
+	       T a3, Array<T> *A3);
+
   //! Return pointer to host memory
   T* GetHostPointer() const { return hostVec; }
   //! Return pointer to host memory for dimension \a _dim

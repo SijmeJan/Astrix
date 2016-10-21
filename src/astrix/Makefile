@@ -285,6 +285,8 @@ Array/diff.o: Array/diff.cu Array/array.h Common/cudaLow.h
 Array/removeevery.o: Array/removeevery.cu Array/array.h Common/cudaLow.h
 Array/select.o: Array/select.cu Array/array.h Common/cudaLow.h
 Array/unique.o: Array/unique.cu Array/array.h Common/cudaLow.h
+Array/inner.o: Array/inner.cu Array/array.h Common/cudaLow.h
+Array/lincomb.o: Array/lincomb.cu Array/array.h Common/cudaLow.h
 
 ################################################################################
 # Rules to convert .cpp and .cu into .o
