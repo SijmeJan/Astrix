@@ -34,6 +34,8 @@ real Mesh::MaxEdgeLengthTriangle(int i)
   int b = pTv[i].y;
   int c = pTv[i].z;
   
+  int nVertex = connectivity->vertexCoordinates->GetSize();
+
   real ax, bx, cx, ay, by, cy;
   GetTriangleCoordinates(pVc, a, b, c,
 			 nVertex, Px, Py,
@@ -54,6 +56,7 @@ real Mesh::MaxEdgeLengthTriangle(int i)
 real Mesh::MaximumEdgeLength()
 {
   real maxEdgeLength = 0.0;
+  int nTriangle = connectivity->triangleVertices->GetSize();
 
   // Copy data to host
   if (cudaFlag == 1) connectivity->CopyToHost();
@@ -78,7 +81,10 @@ void Mesh::CheckEdgeLength(real maxEdgeLength)
   
   real2 *pVc = connectivity->vertexCoordinates->GetHostPointer();
   int3 *pTv = connectivity->triangleVertices->GetHostPointer();
-  
+
+  int nTriangle = connectivity->triangleVertices->GetSize();
+  int nVertex = connectivity->vertexCoordinates->GetSize();
+
   //real *pParam = predicates->GetParamPointer(0);
 
   real Px = meshParameter->maxx - meshParameter->minx;
@@ -134,6 +140,9 @@ void Mesh::CheckLegalTriangle()
   real Px = meshParameter->maxx - meshParameter->minx;
   real Py = meshParameter->maxy - meshParameter->miny;
 
+  int nTriangle = connectivity->triangleVertices->GetSize();
+  int nVertex = connectivity->vertexCoordinates->GetSize();
+
   for (int i = 0; i < nTriangle; i++) {
     int a = pTv[i].x;
     int b = pTv[i].y;
@@ -180,6 +189,10 @@ void Mesh::OutputStat()
 
   real Px = meshParameter->maxx - meshParameter->minx;
   real Py = meshParameter->maxy - meshParameter->miny;
+
+  int nTriangle = connectivity->triangleVertices->GetSize();
+  int nVertex = connectivity->vertexCoordinates->GetSize();
+  int nEdge = connectivity->edgeTriangles->GetSize();
 
   std::cout << "Number of vertices: "  << nVertex   << std::endl;
   std::cout << "Number of edges: "     << nEdge     << std::endl;
@@ -238,6 +251,9 @@ void Mesh::CheckEncroachSlow()
 
   real Px = meshParameter->maxx - meshParameter->minx;
   real Py = meshParameter->maxy - meshParameter->miny;
+
+  int nTriangle = connectivity->triangleVertices->GetSize();
+  int nVertex = connectivity->vertexCoordinates->GetSize();
 
   for (int v = 0; v < nVertex; v++) {
     real x = pVc[v].x;

@@ -60,6 +60,31 @@ void Simulation::UpdateState(real dt, int RKStep)
     if (nCycle > maxCycle) {
       std::cout << "Unphysical state after " << maxCycle
 		<< " cycles, exiting" << std::endl;
+
+      if (cudaFlag == 0) {
+	int *pVu = vertexUnphysicalFlag->GetHostPointer();
+	const real2 *pVc = mesh->VertexCoordinatesData();
+	realNeq *pVs = vertexState->GetHostPointer();
+	
+	for (int i = 0; i < nVertex; i++) {
+	  if (pVu[i] != 0) {
+	    std::cout << "Unphysical state at x = "
+		      << pVc[i].x << ", y = " << pVc[i].y << std::endl;
+	    real dens = pVs[i].x;
+	    real momx = pVs[i].y;
+	    real momy = pVs[i].z;
+	    real ener = pVs[i].w;
+	    real pres = (specificHeatRatio - 1.0)*
+	      (ener - 0.5*(momx*momx + momy*momy)/dens);
+	    
+	    std::cout << pVs[i].x << " " << pVs[i].y << " "
+		      << pVs[i].z << " " << pVs[i].w << " "
+		      << pres << std::endl;
+	    //int qq; std::cin >> qq;
+	  }
+	}
+      }
+      
       throw std::runtime_error("");
     }
 
@@ -73,19 +98,23 @@ void Simulation::UpdateState(real dt, int RKStep)
     failFlag = vertexUnphysicalFlag->Maximum();
     
     if (failFlag > 0) {
-      if (verboseLevel > 1) {
-	if (nCycle == 1) std::cout << std::endl;
-	std::cout << "Found unphysical state at "
-		  << vertexUnphysicalFlag->Sum()
-		  << " vertices in cycle " << nCycle
-		  << std::endl;
-      }
+      if (intScheme == SCHEME_N) {
+	nCycle = maxCycle;
+      } else { 
+	if (verboseLevel > 1) {
+	  if (nCycle == 1) std::cout << std::endl;
+	  std::cout << "Found unphysical state at "
+		    << vertexUnphysicalFlag->Sum()
+		    << " vertices in cycle " << nCycle
+		    << std::endl;
+	}
 
-      // Replace LDA residue with N residue for all unphysical states
-      ReplaceLDA(vertexUnphysicalFlag, RKStep);
+	// Replace LDA residue with N residue for all unphysical states
+	ReplaceLDA(vertexUnphysicalFlag, RKStep);
       
-      // Return to old state so that we can update again
-      vertexState->SetEqual(vertexStateOld);
+	// Return to old state so that we can update again
+	vertexState->SetEqual(vertexStateOld);
+      }
     }
   }
   

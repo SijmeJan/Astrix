@@ -31,6 +31,10 @@ int Mesh::ImproveQuality(Array<realNeq> *vertexState,
 {
   if (nTimeStep % meshParameter->nStepSkipRefine != 0) return 0;
 
+  int nTriangle = connectivity->triangleVertices->GetSize();
+  int nVertex = connectivity->vertexCoordinates->GetSize();
+  int nEdge = connectivity->edgeTriangles->GetSize();
+
   int nAdded = 0;
   
   // Flag triangles if refinement is needed

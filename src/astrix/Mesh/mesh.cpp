@@ -127,7 +127,7 @@ Mesh::~Mesh()
 \param restartNumber Number of save file to restore from*/
 //#########################################################################
 
-  void Mesh::Init(const char *fileName, int restartNumber, int extraFlag)
+void Mesh::Init(const char *fileName, int restartNumber, int extraFlag)
 {
   //-------------------------------------------------------------------
   // Read mesh input file
@@ -190,7 +190,7 @@ Mesh::~Mesh()
 	std::cout << "Error constructing mesh boundaries" << std::endl;
 	throw;
       }
-
+    
       try {
 	// Refine mesh to base resolution
 	ImproveQuality(0, 0.0, 0);
@@ -198,7 +198,7 @@ Mesh::~Mesh()
       catch (...) {
 	std::cout << "Error refining initial mesh" << std::endl;
 	throw;
-      }    
+      }        
     }
   } else {
     try {
@@ -237,7 +237,7 @@ Mesh::~Mesh()
 
 int Mesh::GetNVertex()
 {
-  return nVertex;
+  return connectivity->vertexCoordinates->GetSize();
 }
 
 //#########################################################################
@@ -246,7 +246,7 @@ int Mesh::GetNVertex()
 
 int Mesh::GetNTriangle()
 {
-  return nTriangle;
+  return connectivity->triangleVertices->GetSize();
 }
 
 //#########################################################################
@@ -255,7 +255,7 @@ int Mesh::GetNTriangle()
 
 int Mesh::GetNEdge()
 {
-  return nEdge;
+  return connectivity->edgeTriangles->GetSize();
 }
 
 //#########################################################################

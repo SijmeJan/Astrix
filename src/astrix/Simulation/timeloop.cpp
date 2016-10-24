@@ -92,7 +92,8 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
 
   if (problemDef == PROBLEM_VORTEX ||
       problemDef == PROBLEM_YEE ||
-      problemDef == PROBLEM_LINEAR) {
+      problemDef == PROBLEM_LINEAR ||
+      problemDef == PROBLEM_NOH) {
     int nVertex = mesh->GetNVertex();
 
     vertexStateOld->SetEqual(vertexState);
@@ -159,7 +160,7 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
 	      << std::endl;
 
     std::ofstream uitvoer;
-    if (extraFlag == 0 || extraFlag == 8)
+    if (extraFlag == 0 || extraFlag == 32)
       uitvoer.open("resolution.txt");
     else
       uitvoer.open("resolution.txt", std::ios::app);
@@ -243,6 +244,10 @@ void Simulation::DoTimeStep()
   if (problemDef == PROBLEM_RIEMANN)
     SetRiemannBoundaries();
 
+  // Boundary conditions for 2D Noh
+  if (problemDef == PROBLEM_NOH)
+    SetNohBoundaries();
+
   /*
   if (problemDef == PROBLEM_RIEMANN && mesh->structuredFlag == 1) {
     std::cout << "Asymmetry: ";
@@ -278,9 +283,10 @@ void Simulation::DoTimeStep()
   // Reflecting boundaries
   if (problemDef == PROBLEM_RT ||
       problemDef == PROBLEM_SOD ||
-      problemDef == PROBLEM_BLAST)
+      problemDef == PROBLEM_BLAST ||
+      problemDef == PROBLEM_RIEMANN)
     ReflectingBoundaries(dt);
-
+  
   // Nonreflecting boundaries
   if(problemDef == PROBLEM_YEE || problemDef == PROBLEM_VORTEX)
     SetNonReflectingBoundaries();
@@ -300,6 +306,10 @@ void Simulation::DoTimeStep()
     // Boundary conditions for 2D Riemann
     if (problemDef == PROBLEM_RIEMANN)
       SetRiemannBoundaries();
+    
+    // Boundary conditions for 2D Noh
+    if (problemDef == PROBLEM_NOH)
+      SetNohBoundaries();
     
     // Calculate parameter vector Z at nodes
     CalculateParameterVector(0);
@@ -342,7 +352,8 @@ void Simulation::DoTimeStep()
     // Reflecting boundaries
     if (problemDef == PROBLEM_RT ||
     	problemDef == PROBLEM_SOD ||
-    	problemDef == PROBLEM_BLAST)
+    	problemDef == PROBLEM_BLAST ||
+	problemDef == PROBLEM_RIEMANN)
       ReflectingBoundaries(dt);
     
     // Nonreflecting boundaries

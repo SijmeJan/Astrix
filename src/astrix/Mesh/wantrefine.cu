@@ -8,6 +8,7 @@
 #include "./mesh.h"
 #include "../Common/cudaLow.h"
 #include "./Param/meshparameter.h"
+#include "./Connectivity/connectivity.h"
 
 namespace astrix {
 
@@ -68,6 +69,8 @@ devFillWantRefine(int nTriangle, real *pErrorEstimate,
 
 void Mesh::FillWantRefine(Array<realNeq> *vertexState, real specificHeatRatio)
 {
+  int nTriangle = connectivity->triangleVertices->GetSize();
+
   CalcErrorEstimate(vertexState, specificHeatRatio);
   real *pErrorEstimate = triangleErrorEstimate->GetPointer();
   int *pWantRefine = triangleWantRefine->GetPointer();

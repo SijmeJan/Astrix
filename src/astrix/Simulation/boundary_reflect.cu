@@ -130,7 +130,7 @@ void SetReflectingEdge(int n, int e, real dt, real4 *pState,
   pState[vk].z -= half*dtdx*(A*Fcorrk2 + (one - A)*Fcorrj2);
   pState[vk].w -= half*dtdx*(A*Fcorrk3 + (one - A)*Fcorrj3);
 
-#ifndef __CUDA_ARCH__
+  // Check for physical state
   real presj =
     G1*(pState[vj].w - half*(Sq(pState[vj].y) + Sq(pState[vj].z))/pState[vj].x);
   real presk =
@@ -138,15 +138,99 @@ void SetReflectingEdge(int n, int e, real dt, real4 *pState,
 
   if (presj < 0.0 || presk < 0.0 ||
       pState[vj].x < 0.0 || pState[vk].x < 0.0) {
-    std::cout << "Negative pressure in reflection "
-              << presj << " " << presk << std::endl;
-    std::cout << Fcorrj0 << " " << Fcorrj1 << " "
-	      << Fcorrj2 << " " << Fcorrj3 << std::endl;
-    std::cout << Fcorrk0 << " " << Fcorrk1 << " "
-	      << Fcorrk2 << " " << Fcorrk3 << std::endl;
-    std::cout << vnj << " " << vnk << std::endl;
-  }
+    // Try A = 1.0
+    real dtdx = dt*edge_length/pVarea[vj];
+    pState[vj].x += half*dtdx*(A*Fcorrj0 + (one - A)*Fcorrk0 - Fcorrj0);
+    pState[vj].y += half*dtdx*(A*Fcorrj1 + (one - A)*Fcorrk1 - Fcorrj1);
+    pState[vj].z += half*dtdx*(A*Fcorrj2 + (one - A)*Fcorrk2 - Fcorrj2);
+    pState[vj].w += half*dtdx*(A*Fcorrj3 + (one - A)*Fcorrk3 - Fcorrj3);
+    
+    dtdx = dt*edge_length/pVarea[vk];
+    pState[vk].x += half*dtdx*(A*Fcorrk0 + (one - A)*Fcorrj0 - Fcorrk0);
+    pState[vk].y += half*dtdx*(A*Fcorrk1 + (one - A)*Fcorrj1 - Fcorrk1);
+    pState[vk].z += half*dtdx*(A*Fcorrk2 + (one - A)*Fcorrj2 - Fcorrk2);
+    pState[vk].w += half*dtdx*(A*Fcorrk3 + (one - A)*Fcorrj3 - Fcorrk3);
+  
+#ifndef __CUDA_ARCH__
+    presj = G1*(pState[vj].w - half*(Sq(pState[vj].y) +
+				     Sq(pState[vj].z))/pState[vj].x);
+    presk = G1*(pState[vk].w - half*(Sq(pState[vk].y) +
+				     Sq(pState[vk].z))/pState[vk].x);
+
+    if (presj < 0.0 || presk < 0.0 ||
+	pState[vj].x < 0.0 || pState[vk].x < 0.0) {
+      std::cout << "Negative pressure in reflection "
+		<< presj << " " << presk << std::endl;
+      std::cout << Fcorrj0 << " " << Fcorrj1 << " "
+		<< Fcorrj2 << " " << Fcorrj3 << std::endl;
+      std::cout << Fcorrk0 << " " << Fcorrk1 << " "
+		<< Fcorrk2 << " " << Fcorrk3 << std::endl;
+      std::cout << vnj << " " << vnk << std::endl;
+      std::cout << nx << " " << ny << std::endl;
+      
+      // Go back to old state
+      real A = (real) 1.0;
+      real dtdx = dt*edge_length/pVarea[vj];
+      pState[vj].x += half*dtdx*(A*Fcorrj0 + (one - A)*Fcorrk0);
+      pState[vj].y += half*dtdx*(A*Fcorrj1 + (one - A)*Fcorrk1);
+      pState[vj].z += half*dtdx*(A*Fcorrj2 + (one - A)*Fcorrk2);
+      pState[vj].w += half*dtdx*(A*Fcorrj3 + (one - A)*Fcorrk3);
+      
+      dtdx = dt*edge_length/pVarea[vk];
+      pState[vk].x += half*dtdx*(A*Fcorrk0 + (one - A)*Fcorrj0);
+      pState[vk].y += half*dtdx*(A*Fcorrk1 + (one - A)*Fcorrj1);
+      pState[vk].z += half*dtdx*(A*Fcorrk2 + (one - A)*Fcorrj2);
+      pState[vk].w += half*dtdx*(A*Fcorrk3 + (one - A)*Fcorrj3);
+      
+      presj = G1*(pState[vj].w - half*(Sq(pState[vj].y) +
+				       Sq(pState[vj].z))/pState[vj].x);
+      presk = G1*(pState[vk].w - half*(Sq(pState[vk].y) +
+				       Sq(pState[vk].z))/pState[vk].x);
+      
+      std::cout << "Old pressures: " << presj << " " << presk << std::endl;
+      
+      int N = 10;
+      for (int i = 0; i < N; i++) {
+	real A = (real)i/(real) (N - 1);
+	
+	// Try update with A
+	real dtdx = dt*edge_length/pVarea[vj];
+	pState[vj].x -= half*dtdx*(A*Fcorrj0 + (one - A)*Fcorrk0);
+	pState[vj].y -= half*dtdx*(A*Fcorrj1 + (one - A)*Fcorrk1);
+	pState[vj].z -= half*dtdx*(A*Fcorrj2 + (one - A)*Fcorrk2);
+	pState[vj].w -= half*dtdx*(A*Fcorrj3 + (one - A)*Fcorrk3);
+	
+	dtdx = dt*edge_length/pVarea[vk];
+	pState[vk].x -= half*dtdx*(A*Fcorrk0 + (one - A)*Fcorrj0);
+	pState[vk].y -= half*dtdx*(A*Fcorrk1 + (one - A)*Fcorrj1);
+	pState[vk].z -= half*dtdx*(A*Fcorrk2 + (one - A)*Fcorrj2);
+	pState[vk].w -= half*dtdx*(A*Fcorrk3 + (one - A)*Fcorrj3);
+	
+	presj = G1*(pState[vj].w - half*(Sq(pState[vj].y) +
+					 Sq(pState[vj].z))/pState[vj].x);
+	presk = G1*(pState[vk].w - half*(Sq(pState[vk].y) +
+					 Sq(pState[vk].z))/pState[vk].x);
+	
+	// Go back to old state
+	dtdx = dt*edge_length/pVarea[vj];
+	pState[vj].x += half*dtdx*(A*Fcorrj0 + (one - A)*Fcorrk0);
+	pState[vj].y += half*dtdx*(A*Fcorrj1 + (one - A)*Fcorrk1);
+	pState[vj].z += half*dtdx*(A*Fcorrj2 + (one - A)*Fcorrk2);
+	pState[vj].w += half*dtdx*(A*Fcorrj3 + (one - A)*Fcorrk3);
+	
+	dtdx = dt*edge_length/pVarea[vk];
+	pState[vk].x += half*dtdx*(A*Fcorrk0 + (one - A)*Fcorrj0);
+	pState[vk].y += half*dtdx*(A*Fcorrk1 + (one - A)*Fcorrj1);
+	pState[vk].z += half*dtdx*(A*Fcorrk2 + (one - A)*Fcorrj2);
+	pState[vk].w += half*dtdx*(A*Fcorrk3 + (one - A)*Fcorrj3);
+	
+	std::cout << A << " " << presj << " " << presk << std::endl;
+      }
+    
+      //int qq; std::cin >> qq;
+    }
 #endif
+  }
 }
 
 __host__ __device__

@@ -179,7 +179,10 @@ void Mesh::CalcNormalEdge()
 {
   real2 *pVc = connectivity->vertexCoordinates->GetPointer();
   int3 *pTv = connectivity->triangleVertices->GetPointer();
-  
+
+  int nTriangle = connectivity->triangleVertices->GetSize();
+  int nVertex = connectivity->vertexCoordinates->GetSize();
+
   triangleEdgeNormals->SetSize(nTriangle);
   real2 *pTn1 = triangleEdgeNormals->GetPointer(0);
   real2 *pTn2 = triangleEdgeNormals->GetPointer(1);

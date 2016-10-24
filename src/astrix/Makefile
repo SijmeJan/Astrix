@@ -169,7 +169,7 @@ Mesh/findboundaryvertices.o: Mesh/findboundaryvertices.cu Common/definitions.h M
 Mesh/structured.o: Mesh/structured.cpp Common/definitions.h Mesh/mesh.h Array/array.h Mesh/Morton/morton.h Mesh/Delaunay/delaunay.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
 
 Mesh/improvequality.o: Mesh/improvequality.cpp Array/array.h Common/definitions.h Mesh/mesh.h Mesh/Morton/morton.h Mesh/Refine/refine.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-Mesh/wantrefine.o: Mesh/wantrefine.cu Array/array.h Common/definitions.h Mesh/mesh.h Common/cudaLow.h Mesh/Param/meshparameter.h
+Mesh/wantrefine.o: Mesh/wantrefine.cu Array/array.h Common/definitions.h Mesh/mesh.h Common/cudaLow.h Mesh/Param/meshparameter.h Mesh/Connectivity/connectivity.h
 Mesh/coarsen.o: Mesh/coarsen.cpp Common/definitions.h Array/array.h Mesh/mesh.h Common/nvtxEvent.h Mesh/Delaunay/delaunay.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h Mesh/Coarsen/coarsen.h
 
 ###########################

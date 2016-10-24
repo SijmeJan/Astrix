@@ -333,7 +333,10 @@ devCalcErrorEstimate(int nTriangle, int nVertex, int3 *pTv,
 void Mesh::CalcErrorEstimate(Array<realNeq> *vertexState, real G)
 {
   const real zero = (real) 0.0;
-  
+
+  int nTriangle = connectivity->triangleVertices->GetSize();
+  int nVertex = connectivity->vertexCoordinates->GetSize();
+ 
   // Triangle vertex indices
   int3 *pTv = connectivity->triangleVertices->GetPointer();
   

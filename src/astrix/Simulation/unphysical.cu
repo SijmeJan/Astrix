@@ -41,7 +41,7 @@ void FlagUnphysicalVertex(const int v, real4 *pState,
   
   // Flag if negative density or pressure
   if(dens < zero || p < zero || isnan(p)) ret = 1;
-
+  
   // Output flag
   pVertexUnphysicalFlag[v] = ret;
 }

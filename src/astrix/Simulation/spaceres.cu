@@ -143,6 +143,18 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   real vtilde = Z2/Z0;
   real htilde = Z3/Z0;
   real alpha  = G1*half*(Sq(utilde) + Sq(vtilde));
+
+  /*
+#ifndef __CUDA_ARCH__
+  if (n == 0) 
+    std::cout << "Parameter vector: "
+	      << Z0 << " "
+	      << Z1 << " "
+	      << Z2 << " "
+	      << Z3 << " "
+	      << std::endl;
+#endif
+  */
   
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate the total residue = Sum(K*What)
@@ -481,7 +493,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   //  1.0/sqrt(G1*(htilde - half*(Sq(utilde) + Sq(vtilde))));
   real ic = one/sqrt(G1*htilde - alpha);
   real ctilde = one/ic;
-  
+
   real hc = htilde*ic;
   real uc = utilde*ic;
   real vc = vtilde*ic;
@@ -869,6 +881,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
 
   if (det != zero) det = one/det;
 
+  
   Wtilde0 *= det;
   Wtilde1 *= det;
   Wtilde2 *= det;

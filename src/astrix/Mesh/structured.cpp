@@ -44,9 +44,9 @@ void Mesh::CreateStructuredMesh()
   // This step is not worth porting to GPU, so do it on the host
   if (cudaFlag == 1) connectivity->Transform();
   
-  nVertex = nx*ny;
-  nTriangle = (nx - 1)*(ny - 1)*2;
-  nEdge = 3*(nx - 1)*(ny - 1) + nx + ny - 2;
+  int nVertex = nx*ny;
+  int nTriangle = (nx - 1)*(ny - 1)*2;
+  int nEdge = 3*(nx - 1)*(ny - 1) + nx + ny - 2;
 
   // Allocate memory
   connectivity->vertexCoordinates->SetSize(nVertex);

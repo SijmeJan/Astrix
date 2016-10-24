@@ -30,6 +30,8 @@ int Mesh::RemoveVertices(Array<realNeq> *vertexState,
   // Return if skipping this time step
   if (nTimeStep % meshParameter->nStepSkipCoarsen != 0) return 0;
 
+  int nTriangle = connectivity->triangleVertices->GetSize();
+
   triangleWantRefine->SetSize(nTriangle);
     
   // Flag triangles if refinement / coarsening is needed

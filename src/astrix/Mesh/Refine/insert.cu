@@ -542,7 +542,7 @@ void InsertVertex(int n, int t, int e, int nVertex, int nEdge,
       // Putting vertex on segment
       int t = t1;
       if (t == -1) t = t2;
-
+     
       if (pWantRefine != 0)
 	pWantRefine[t] = pWantRefine[indexInTriangleArray];
 
@@ -580,7 +580,7 @@ void InsertVertex(int n, int t, int e, int nVertex, int nEdge,
       pTv[indexInTriangleArray].x = i + translateVertex;
       pTv[indexInTriangleArray].y = v1;
       pTv[indexInTriangleArray].z = vnext;
-      
+ 
       // PERIODIC
       MakeValidIndices(pTv[indexInTriangleArray].x,
 		       pTv[indexInTriangleArray].y,

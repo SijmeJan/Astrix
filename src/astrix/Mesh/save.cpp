@@ -20,6 +20,10 @@ namespace astrix {
 
 void Mesh::Save(int nSave)
 {
+  int nTriangle = connectivity->triangleVertices->GetSize();
+  int nVertex = connectivity->vertexCoordinates->GetSize();
+  int nEdge = connectivity->edgeTriangles->GetSize();
+
   // Copy data to host
   if (cudaFlag == 1) connectivity->CopyToHost();
   
@@ -137,6 +141,10 @@ void Mesh::Save(int nSave)
 
 void Mesh::ReadFromDisk(int nSave)
 {
+  int nTriangle = connectivity->triangleVertices->GetSize();
+  int nVertex = connectivity->vertexCoordinates->GetSize();
+  int nEdge = connectivity->edgeTriangles->GetSize();
+
   std::cout << "Reading mesh from disk..." << std::endl;
   char fname[13];
 

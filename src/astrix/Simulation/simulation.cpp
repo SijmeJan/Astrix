@@ -242,6 +242,7 @@ void Simulation::ReadInputFile(const char *fileName)
       if (secondWord == "BLAST") problemDef = PROBLEM_BLAST;
       if (secondWord == "VORTEX") problemDef = PROBLEM_VORTEX;
       if (secondWord == "YEE") problemDef = PROBLEM_YEE;
+      if (secondWord == "NOH") problemDef = PROBLEM_NOH;
     }
 
     // Time to stop simulation; check that secondWord is number
@@ -326,7 +327,8 @@ void Simulation::ReadInputFile(const char *fileName)
       problemDef == PROBLEM_BLAST ||
       problemDef == PROBLEM_KH ||
       problemDef == PROBLEM_RT ||
-      problemDef == PROBLEM_YEE) {
+      problemDef == PROBLEM_YEE ||
+      problemDef == PROBLEM_NOH) {
 #if N_EQUATION != 4
       std::cout << "Problem requires 4 equations to be solved. "
 		<< "Need to set N_EQUATION = 4" << std::endl;

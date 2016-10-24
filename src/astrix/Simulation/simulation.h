@@ -132,12 +132,14 @@ class Simulation
   real CalcVertexTimeStep();
   //! Set reflecting boundary conditions
   void ReflectingBoundaries(real dt);
-  //! Set boundary conditions for 2D Riemann problem
-  void SetRiemannBoundaries();
   //! Set boundary conditions using extrapolation	
   void ExtrapolateBoundaries();
   //! Set non-reflecting boundaries
   void SetNonReflectingBoundaries();
+  //! Set boundary conditions for 2D Riemann problem
+  void SetRiemannBoundaries();
+  //! Set boundary conditions for 2D Noh problem
+  void SetNohBoundaries();
 
   //! Function to calculate Roe's parameter vector at all vertices.
   void CalculateParameterVector(int useOldFlag);

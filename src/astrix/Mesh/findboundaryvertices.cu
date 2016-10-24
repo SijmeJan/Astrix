@@ -169,6 +169,9 @@ devFindBoundaries(int nTriangle, int3 *pTv, int nVertex,
   
 void Mesh::FindBoundaryVertices()
 {
+  int nTriangle = connectivity->triangleVertices->GetSize();
+  int nVertex = connectivity->vertexCoordinates->GetSize();
+
   real2 *pVc = connectivity->vertexCoordinates->GetPointer();
   int3 *pTv = connectivity->triangleVertices->GetPointer();
   int3 *pTe = connectivity->triangleEdges->GetPointer();

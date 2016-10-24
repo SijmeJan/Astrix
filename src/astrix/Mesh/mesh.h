@@ -121,11 +121,11 @@ class Mesh
   // Derived Mesh properties
   
   //! Number of vertices
-  int nVertex;
+  //int nVertex;
   //! Number of triangles
-  int nTriangle;
+  //int nTriangle;
   //! Number of edges
-  int nEdge;
+  //int nEdge;
 
   //! Use exact geometric predicates
   Predicates *predicates;

@@ -46,7 +46,8 @@ namespace astrix {
 			  PROBLEM_KH,     /*!< Kelvin-Helmholz instability*/
 			  PROBLEM_RT,     /*!< Rayleigh-Taylor instability*/ 
 			  PROBLEM_RIEMANN,/*!< 2D Riemann problem*/
-			  PROBLEM_YEE     /*!< Yee vortex*/
+			  PROBLEM_YEE,    /*!< Yee vortex*/
+			  PROBLEM_NOH
   };
 
   //! Integration schemes

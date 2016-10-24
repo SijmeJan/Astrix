@@ -197,7 +197,7 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
 	int nVertex = connectivity->vertexCoordinates->GetSize();
 	real fracAdded = (real) nAddedSinceMorton/(real) nVertex;
 	if (debugLevel == 0 && fracAdded > maxFracAddedMorton) {
-	  morton->Order(connectivity, triangleWantRefine, vertexState);
+	  //morton->Order(connectivity, triangleWantRefine, vertexState);
 	  nAddedSinceMorton = 0;
 	}
 

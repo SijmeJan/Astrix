@@ -54,8 +54,8 @@ void SetVertexOuterBoundarySingle(int n, ProblemDefinition problemDef,
       pVc[n].y = miny;
     }
     if (n == 3) {
-      pVc[n].x = maxx;
-      pVc[n].y = miny;
+      pVc[n].x = 0.5*(maxx + minx);
+      pVc[n].y = 0.5*(maxy + miny);
     }
   }
   if (problemDef == PROBLEM_SOD || problemDef == PROBLEM_BLAST) {
@@ -99,7 +99,8 @@ void SetVertexOuterBoundarySingle(int n, ProblemDefinition problemDef,
   if (problemDef == PROBLEM_KH ||
       problemDef == PROBLEM_LINEAR ||
       problemDef == PROBLEM_VORTEX ||
-      problemDef == PROBLEM_YEE) {
+      problemDef == PROBLEM_YEE ||
+      problemDef == PROBLEM_NOH) {
     if (n == 0) {
       pVc[n].x = 0.63*(maxx - minx) + minx;
       pVc[n].y = 0.60*(maxy - miny) + miny;
@@ -623,7 +624,8 @@ void Mesh::ConstructBoundaries()
       meshParameter->problemDef == PROBLEM_VORTEX ||
       meshParameter->problemDef == PROBLEM_KH ||
       meshParameter->problemDef == PROBLEM_LINEAR ||
-      meshParameter->problemDef == PROBLEM_YEE) {
+      meshParameter->problemDef == PROBLEM_YEE ||
+      meshParameter->problemDef == PROBLEM_NOH) {
     nVertexOuterBoundary = 4;
     nVertexInnerBoundary = 0;
   }
@@ -717,9 +719,9 @@ void Mesh::ConstructBoundaries()
   //-----------------------------------------------------------------
 
   // Starting number of vertices, edges and triangles
-  nVertex   = 4;
-  nEdge     = 5;
-  nTriangle = 2;
+  int nVertex   = 4;
+  int nEdge     = 5;
+  int nTriangle = 2;
 
   // We do this step on the host!
   connectivity->vertexCoordinates->SetSizeHost(nVertex);
@@ -1439,14 +1441,14 @@ void Mesh::ConstructBoundaries()
     Array<int> *vertexExtraOrder = new Array<int>(1, cudaFlag, 2);
     
     real2 temp;
-    temp.x = 1.0/sqrt(2.0);
-    temp.y = meshParameter->miny;
+    temp.y = 1.0/sqrt(2.0);
+    temp.x = meshParameter->minx;
     vertexExtra->SetSingleValue(temp, 0);
     
     temp.x = 1.0/M_PI;
     temp.y = meshParameter->maxy; 
     vertexExtra->SetSingleValue(temp, 1);
-    
+
     nAdded = refine->AddVertices(connectivity,
 				 meshParameter,
 				 predicates,
@@ -1459,7 +1461,7 @@ void Mesh::ConstructBoundaries()
     delete vertexExtra;
     delete vertexExtraOrder;
   }
-
+  
   /*
   int nExtraTotal = 0;
   Array<real2> *vertexExtra = new Array<real2>(1, cudaFlag);

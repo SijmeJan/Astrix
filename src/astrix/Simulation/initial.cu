@@ -252,7 +252,28 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
       ener = 0.5f*(Sq(momx)+Sq(momy))/dens + 0.1f/(G - 1.0f);
     }
   }
-  
+
+  if (problemDef == PROBLEM_NOH) {
+    real x = vertX;
+    real y = vertY;
+    real r = sqrt(x*x + y*y);
+
+    real pres = 1.0e-6;
+    
+    if (r < time/3.0) {
+      dens = 16.0;
+      momx = zero;
+      momy = zero;
+      pres = 16.0/3.0;
+    } else {
+      dens = one + time/(r + 1.0e-10);
+      momx = dens*(-x/(r + 1.0e-10) + 1.0e-10);
+      momy = dens*(-y/(r + 1.0e-10) - 2.0e-10);
+    }
+
+    ener = half*(Sq(momx) + Sq(momy))/dens + pres/(G - one);
+  }
+
   if(problemDef == PROBLEM_BLAST){
     // Interacting blast waves
     real p = 0.01f;
