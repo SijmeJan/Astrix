@@ -126,13 +126,27 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   }
 
   if(problemDef == PROBLEM_RT){
-    real vel_amp = zero;
+    real vel_amp = 0.01;
+    real p = 2.5f - 0.1f*vertY;
+
+    dens =  1.0;
+    if (vertY > 0.0) dens = 2.0;
+    momx = (real) 1.0e-15;
+    momy = dens*vel_amp*0.25f*
+      (one + cosf(4.0f*(real)(M_PI)*vertX))*
+      (one + cosf((one + onethird)*(real)(M_PI)*vertY)) + (real) 1.1e-15;
+    ener = half*(Sq(momx) + Sq(momy))/dens + p/(G - one);
+
+    /*
+    real vel_amp = 0.01;
+    real int_amp = zero;
+    real d = 0.0000005;
+    
     real rhoH = two;
     real rhoL = one;
     
-    real yPert = 0.01f*cosf(6.0f*M_PI*vertX);
+    real yPert = int_amp*cos(6.0f*M_PI*vertX);
 
-    real d = 0.0000005f;
     real xi = (vertY - yPert)*M_PI/d;
     if (abs(xi) > half*M_PI) xi = half*M_PI*xi/abs(xi);
 
@@ -153,8 +167,9 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     momx = (real) 1.0e-15;
     momy = dens*vel_amp*0.25f*
       (one + cosf(4.0f*(real)(M_PI)*vertX))*
-      (one + cosf((one + onethird)*(real)(M_PI)*vertY)) + (real) 1.1e-15;
+      (one + cosf(3.0f*(real)(M_PI)*vertY)) + (real) 1.1e-15;
     ener = half*(Sq(momx) + Sq(momy))/dens + p/(G - one);
+    */
   }
   
   if (problemDef == PROBLEM_KH) {

@@ -136,6 +136,7 @@ Simulation/param.o: Simulation/param.cu Common/definitions.h Mesh/mesh.h Simulat
 Simulation/energy.o: Simulation/energy.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
 
 Simulation/boundary_riemann.o: Simulation/boundary_riemann.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
+Simulation/boundary_noh.o: Simulation/boundary_noh.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
 Simulation/boundary_nonreflect.o: Simulation/boundary_nonreflect.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
 Simulation/boundary_reflect.o: Simulation/boundary_reflect.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
 Simulation/boundary_extrapolate.o: Simulation/boundary_extrapolate.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h Common/helper_math.h
