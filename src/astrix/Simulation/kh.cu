@@ -31,6 +31,14 @@ void AddEigenVectorSingle(unsigned int i, const real2 *pVc, real4 *pState,
   if (y > maxy) y -= (maxy - miny);
   
   int jj = (int)((y - yKH[0])/dyKH);
+#ifndef __CUDA_ARCH__
+  if (jj < 0 || jj > 128) {
+    std::cout << jj << " " << y << " " << yKH[0] << " " << yKH[129]
+	      << std::endl;
+    int qq; std::cin >> qq;
+  }
+#endif
+
   real dRj = dR[jj] + (y - yKH[jj])*(dR[jj + 1] - dR[jj])/dyKH;
   real dIj = dI[jj] + (y - yKH[jj])*(dI[jj + 1] - dI[jj])/dyKH;
   real uRj = uR[jj] + (y - yKH[jj])*(uR[jj + 1] - uR[jj])/dyKH;
@@ -102,9 +110,15 @@ void Simulation::KHAddEigenVector()
   
   real kxKH = 1.0;
 
-  std::ifstream KH("/Users/sjp/Codes/sheet3D/src/eigvec.txt");
+  std::ifstream KH("eigvec.txt");
+  if (!KH.is_open()) {
+    std::cout << "Error opening file " << "eigvec.txt" << std::endl;
+    throw std::runtime_error("");
+  }
+
   for (int j = 1; j < nKH - 1; j++) 
     KH >> pyKH[j] >> pdR[j] >> pdI[j] >> puR[j] >> puI[j] >> pvR[j] >> pvI[j];
+
   KH.close();
   
   pyKH[0] = pyKH[1] - (pyKH[2] - pyKH[1]);

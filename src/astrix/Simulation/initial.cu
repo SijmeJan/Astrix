@@ -495,9 +495,17 @@ void Simulation::SetInitial(real time)
 		       specificHeatRatio, time, Px);
   }
 
-  // Add KH eigenvector
-  if (problemDef == PROBLEM_KH)
-    KHAddEigenVector();
+  try {
+    // Add KH eigenvector
+    if (problemDef == PROBLEM_KH)
+      KHAddEigenVector();
+  }
+  catch (...) {
+    std::cout << "Warning: reading KH eigenvector file failed!" << std::endl;
+    std::cout << "Running simulation without adding KH eigenvector!"
+	      << std::endl;
+  }
+
 }
 
 }
