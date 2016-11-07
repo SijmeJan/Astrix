@@ -351,5 +351,24 @@ real Mesh::GetPy()
   return meshParameter->maxy - meshParameter->miny;
 }
 
-  
+real Mesh::GetMinX()
+{
+  return meshParameter->minx;
+}
+
+real Mesh::GetMaxX()
+{
+  return meshParameter->maxx;
+}
+
+real Mesh::GetMinY()
+{
+  return meshParameter->miny;
+}
+
+real Mesh::GetMaxY()
+{
+  return meshParameter->maxy;
+}
+
 }

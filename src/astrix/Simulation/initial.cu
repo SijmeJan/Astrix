@@ -12,6 +12,19 @@
 
 namespace astrix {
 
+__host__ __device__
+real funcF(real t)
+{
+  if (t <= 0.0f) return 0.0; 
+  return exp(-1.0/(t + 1.0e-30));
+}
+
+__host__ __device__
+real funcBump(real t)
+{
+  return funcF(t)/(funcF(t) + funcF(1.0 - t));
+}
+
 //##############################################################################
 /*! \brief Set initial conditions at vertex \a n
 
@@ -173,85 +186,14 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   }
   
   if (problemDef == PROBLEM_KH) {
-    /*
-    real vel_amp = 0.1;
-    real dy = 0.005;
-    
-    vertW0[n] = 1.0f -
-      atan((vertY - 0.25f)/dy)/M_PI +
-      atan((vertY + 0.25f)/dy)/M_PI;
-    vertW1[n] = vertW0[n]*(0.5f +
-			     atan((vertY - 0.25f)/dy)/M_PI -
-			     atan((vertY + 0.25f)/dy)/M_PI);
-    vertW2[n] = 
-      vertW0[n]*vel_amp*sinf(4.0f*(real)(M_PI)*vertX)*
-      (exp(-Sq(vertY-0.25f)/Sq(0.05)) +
-       exp(-Sq(vertY+0.25f)/Sq(0.05)));
-    vertW3[n] = 
-      0.5f*(Sq(vertW1[n])+Sq(vertW2[n]))/vertW0[n] +
-      2.5f/((real)(G)-1.0f);
-    */
-
-    real kx = one;
-    real ky = two;
-    real r = kx*vertX + ky*vertY;
-    real s = ky*vertX - kx*vertY;
-    
-    real uBulk = one;
-    real d1 = one;
-    real d2 = two;
-    real dm = half*(d1 - d2);
-    real L = 0.025f;
-
-    // Ramp from d1 to 0.5*(d1+d2)
-    real d = d1 - dm*exp((r - 0.25f)/L);
-    // Ramp from 0.5*(d1+d2) to d2
-    if (r > 0.25f) d = d2 + dm*exp((-r + 0.25f)/L);
-    // Ramp from d2 to 0.5*(d1+d2)
-    if (r > 0.50f) d = d2 + dm*exp(-(0.75f - r)/L);
-    // Ramp from 0.5*(d1+d2) to d1
-    if (r > 0.75f) d = d1 - dm*exp(-(r - 0.75f)/L);
-    for (int nn = 1; nn < kx + ky; nn++) {
-      real N = (real) nn;
-      if (r > N + 0.00f) d = d1 - dm*exp(-(N + 0.25f - r)/L);
-      if (r > N + 0.25f) d = d2 + dm*exp((-r + N + 0.25f)/L);
-      if (r > N + 0.50f) d = d2 + dm*exp(-(N + 0.75f - r)/L);
-      if (r > N + 0.75f) d = d1 - dm*exp(-(r - N - 0.75f)/L);
-    }
-    
-    real u1 = half;
-    real u2 = -half;
-    real um = half*(u1 - u2);
-    
-    real u = u1 - um*exp((r - 0.25f)/L);
-    if (r > 0.25f) u = u2 + um*exp((-r + 0.25f)/L);
-    if (r > 0.50f) u = u2 + um*exp(-(0.75f - r)/L);
-    if (r > 0.75f) u = u1 - um*exp(-(r - 0.75f)/L);
-    for (int nn = 1; nn < kx + ky; nn++) {
-      real N = (real) nn;
-      if (r > N + 0.00f) u = u1 - um*exp(-(N + 0.25f - r)/L);
-      if (r > N + 0.25f) u = u2 + um*exp((-r + N + 0.25f)/L);
-      if (r > N + 0.50f) u = u2 + um*exp(-(N + 0.75f - r)/L);
-      if (r > N + 0.75f) u = u1 - um*exp(-(r - N + 0.75f)/L);
-    }
-
-    real v = 0.01f*sin(two*M_PI*s);
-
-    u = zero;
-    v = zero;
-    
-    u += uBulk;
-    
-    real cosa = kx/sqrt(kx*kx + ky*ky);
-    real sina = ky/sqrt(kx*kx + ky*ky);
-
-    real vx = u*sina + v*cosa;
-    real vy = -u*cosa + v*sina;
-
-    dens = d;
-    momx = d*vx;
-    momy = d*vy;
-    ener = half*d*(vx*vx + vy*vy) + 2.5f/(G - one);
+    real a = 4.0f;
+    real smoothHat =
+      funcBump(a*(vertY - 0.25f) + 0.5f)*funcBump(-a*(vertY - 0.75f) + 0.5f);	
+	
+    dens = 1.0f + smoothHat;
+    momx = dens*(-0.5f + smoothHat);
+    momy = 0.0f;
+    ener = 0.5f*(Sq(momx)+Sq(momy))/dens + 2.5f/(G - 1.0f);
   }
   
   if (problemDef == PROBLEM_SOD) {
@@ -552,6 +494,10 @@ void Simulation::SetInitial(real time)
       SetInitialSingle(n, pVc, problemDef, pVertexPotential, state,
 		       specificHeatRatio, time, Px);
   }
+
+  // Add KH eigenvector
+  if (problemDef == PROBLEM_KH)
+    KHAddEigenVector();
 }
 
 }

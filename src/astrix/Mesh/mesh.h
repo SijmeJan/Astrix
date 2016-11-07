@@ -58,6 +58,14 @@ class Mesh
   real GetPx();
   //! Return size of domain in y
   real GetPy();
+  //! Return minimum x
+  real GetMinX();
+  //! Return maximum x
+  real GetMaxX();
+  //! Return minimum y
+  real GetMinY();
+  //! Return maximum y
+  real GetMaxY();
   
   // Give access to Mesh data through constant pointers to the data
   

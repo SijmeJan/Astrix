@@ -118,6 +118,8 @@ class Simulation
   int Restore(int nSave);
   void FineGrainSave(int nSave);
   void KHDiagnostics(real& M, real& Ekin);
+  //! Add eigenvector perturbation
+  void KHAddEigenVector();
 
   //! Do one time step
   void DoTimeStep();
