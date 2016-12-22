@@ -106,7 +106,9 @@ class Simulation
   Array <realNeq> *triangleBlendFactor;
   //! Shock sensor
   Array<real> *triangleShockSensor;
-
+  //! Source contribution to residual
+  Array <realNeq> *triangleResidueSource;
+  
   //! Set up the simulation
   void Init(int restartNumber);
   //! Read input file
@@ -129,7 +131,8 @@ class Simulation
 
   //! Calculate gravitational potential
   void CalcPotential();
-  
+  void CalcSource(Array<realNeq> *state);
+ 
   //! For every vertex, calculate the maximum allowed timestep.  
   real CalcVertexTimeStep();
   //! Set reflecting boundary conditions

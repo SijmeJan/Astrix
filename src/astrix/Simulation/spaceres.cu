@@ -25,7 +25,7 @@ namespace astrix {
 \param *pTn2 Pointer second triangle edge normal
 \param *pTn3 Pointer third triangle edge normal
 \param *pTl Pointer to triangle edge lengths
-\param *pVpot Pointer to gravitational potential at vertices
+\param *pResSource Pointer to source term contribution to residual
 \param *pTresN0 Triangle residue N direction 0 
 \param *pTresN1 Triangle residue N direction 1 
 \param *pTresN2 Triangle residue N direction 2 
@@ -42,7 +42,8 @@ namespace astrix {
 __host__ __device__
 void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
 			const real2 *pTn1, const real2 *pTn2,
-			const real2 *pTn3, const real3 *pTl, real *pVpot,
+			const real2 *pTn3, const real3 *pTl,
+			real4 *pResSource,
 			real4 *pTresN0, real4 *pTresN1, real4 *pTresN2,
 			real4 *pTresLDA0, real4 *pTresLDA1, real4 *pTresLDA2,
 			real4 *pTresTot, int nVertex, real G, real G1, real G2)
@@ -99,9 +100,9 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   real What23 = (Z3*Zv20 + G1*Z1*Zv21 + G1*Z2*Zv22 + Z0*Zv23)/G;      
   
   // Source term residual 
-  real rhoAve  = Z0*Z0;
-  real momxAve = Z0*Z1;
-  real momyAve = Z0*Z2;
+  //real rhoAve  = Z0*Z0;
+  //real momxAve = Z0*Z1;
+  //real momyAve = Z0*Z2;
 
   real tl1 = pTl[n].x;
   real tl2 = pTl[n].y;
@@ -114,28 +115,38 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   real tny2 = pTn2[n].y;
   real tny3 = pTn3[n].y;
 
-  real dPotdx =
-    tnx1*tl1*pVpot[v1] + tnx2*tl2*pVpot[v2] + tnx3*tl3*pVpot[v3];
-  real dPotdy =
-    tny1*tl1*pVpot[v1] + tny2*tl2*pVpot[v2] + tny3*tl3*pVpot[v3];
+  //real dPotdx =
+  //  tnx1*tl1*pVpot[v1] + tnx2*tl2*pVpot[v2] + tnx3*tl3*pVpot[v3];
+  //real dPotdy =
+  //  tny1*tl1*pVpot[v1] + tny2*tl2*pVpot[v2] + tny3*tl3*pVpot[v3];
   
   // -integral(Source*dS)
-  real ResSource0 = zero;
-  real ResSource1 = half*rhoAve*dPotdx;
-  real ResSource2 = half*rhoAve*dPotdy;
-  real ResSource3 = -half*momxAve*dPotdx - half*momyAve*dPotdy;
+  //real ResSource0 = zero;
+  //real ResSource1 = half*rhoAve*dPotdx;
+  //real ResSource2 = half*rhoAve*dPotdy;
+  //real ResSource3 = -half*momxAve*dPotdx - half*momyAve*dPotdy;
 
   // Total residue
-  real ResTot0 = ResSource0;
-  real ResTot1 = ResSource1;
-  real ResTot2 = ResSource2;
-  real ResTot3 = ResSource3;
+  //real ResTot0 = ResSource0;
+  //real ResTot1 = ResSource1;
+  //real ResTot2 = ResSource2;
+  //real ResTot3 = ResSource3;
   
-  real Wtemp0 = ResSource0;
-  real Wtemp1 = ResSource1;
-  real Wtemp2 = ResSource2;
-  real Wtemp3 = ResSource3;
-  
+  //real Wtemp0 = ResSource0;
+  //real Wtemp1 = ResSource1;
+  //real Wtemp2 = ResSource2;
+  //real Wtemp3 = ResSource3;
+
+  real ResTot0 = pResSource[n].x;
+  real ResTot1 = pResSource[n].y;
+  real ResTot2 = pResSource[n].z;
+  real ResTot3 = pResSource[n].w;
+
+  real Wtemp0 = pResSource[n].x;
+  real Wtemp1 = pResSource[n].y;
+  real Wtemp2 = pResSource[n].z;
+  real Wtemp3 = pResSource[n].w;
+
   // Matrix element K- + K+
   //real kk;
   
@@ -143,18 +154,6 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   real vtilde = Z2/Z0;
   real htilde = Z3/Z0;
   real alpha  = G1*half*(Sq(utilde) + Sq(vtilde));
-
-  /*
-#ifndef __CUDA_ARCH__
-  if (n == 0) 
-    std::cout << "Parameter vector: "
-	      << Z0 << " "
-	      << Z1 << " "
-	      << Z2 << " "
-	      << Z3 << " "
-	      << std::endl;
-#endif
-  */
   
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate the total residue = Sum(K*What)
@@ -1283,7 +1282,8 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
 __host__ __device__
 void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
 			const real2 *pTn1, const real2 *pTn2,
-			const real2 *pTn3, const real3 *pTl, real *pVpot,
+			const real2 *pTn3, const real3 *pTl,
+			real3 *pResSource,
 			real3 *pTresN0, real3 *pTresN1, real3 *pTresN2,
 			real3 *pTresLDA0, real3 *pTresLDA1, real3 *pTresLDA2,
 			real3 *pTresTot, int nVertex, real G, real G1, real G2)
@@ -1333,7 +1333,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   real What22 = Z2*Zv20 + Z0*Zv22;
   
   // Source term residual 
-  real rhoAve  = Z0*Z0;
+  //real rhoAve  = Z0*Z0;
 
   real tl1 = pTl[n].x;
   real tl2 = pTl[n].y;
@@ -1346,25 +1346,33 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   real tny2 = pTn2[n].y;
   real tny3 = pTn3[n].y;
 
-  real dPotdx =
-    tnx1*tl1*pVpot[v1] + tnx2*tl2*pVpot[v2] + tnx3*tl3*pVpot[v3];
-  real dPotdy =
-    tny1*tl1*pVpot[v1] + tny2*tl2*pVpot[v2] + tny3*tl3*pVpot[v3];
+  //real dPotdx =
+  //  tnx1*tl1*pVpot[v1] + tnx2*tl2*pVpot[v2] + tnx3*tl3*pVpot[v3];
+  //real dPotdy =
+  //  tny1*tl1*pVpot[v1] + tny2*tl2*pVpot[v2] + tny3*tl3*pVpot[v3];
   
   // -integral(Source*dS)
-  real ResSource0 = zero;
-  real ResSource1 = half*rhoAve*dPotdx;
-  real ResSource2 = half*rhoAve*dPotdy;
+  //real ResSource0 = zero;
+  //real ResSource1 = half*rhoAve*dPotdx;
+  //real ResSource2 = half*rhoAve*dPotdy;
 
   // Total residue
-  real ResTot0 = ResSource0;
-  real ResTot1 = ResSource1;
-  real ResTot2 = ResSource2;
+  //real ResTot0 = ResSource0;
+  //real ResTot1 = ResSource1;
+  //real ResTot2 = ResSource2;
   
-  real Wtemp0 = ResSource0;
-  real Wtemp1 = ResSource1;
-  real Wtemp2 = ResSource2;
-    
+  //real Wtemp0 = ResSource0;
+  //real Wtemp1 = ResSource1;
+  //real Wtemp2 = ResSource2;
+
+  real ResTot0 = pResSource[n].x;
+  real ResTot1 = pResSource[n].y;
+  real ResTot2 = pResSource[n].z;
+
+  real Wtemp0 = pResSource[n].x;
+  real Wtemp1 = pResSource[n].y;
+  real Wtemp2 = pResSource[n].z;
+  
   real utilde = Z1/Z0;
   real vtilde = Z2/Z0;
   real ctilde = one;     // Sound speed is unity by assumption!
@@ -1877,7 +1885,8 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
 __host__ __device__
 void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
 			const real2 *pTn1, const real2 *pTn2,
-			const real2 *pTn3, const real3 *pTl, real *pVpot,
+			const real2 *pTn3, const real3 *pTl,
+			real *pResSource,
 			real *pTresN0, real *pTresN1, real *pTresN2,
 			real *pTresLDA0, real *pTresLDA1, real *pTresLDA2,
 			real *pTresTot, int nVertex, real G, real G1, real G2)
@@ -1930,8 +1939,8 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
   real tny3 = pTn3[n].y;
 
   // Total residue
-  real ResTot = zero;
-  real Wtemp = zero;
+  real ResTot = pResSource[n];
+  real Wtemp = pResSource[n];
     
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate the total residue = Sum(K*What)
@@ -2058,7 +2067,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
 \param *pTn2 Pointer second triangle edge normal
 \param *pTn3 Pointer third triangle edge normal
 \param *pTl Pointer to triangle edge lengths
-\param *pVpot Pointer to gravitational potential at vertices
+\param *pResSource Pointer to residual due to source terms
 \param *pTresN0 Triangle residue N direction 0 
 \param *pTresN1 Triangle residue N direction 1 
 \param *pTresN2 Triangle residue N direction 2 
@@ -2075,7 +2084,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
 __global__ void
 devCalcSpaceRes(int nTriangle, const int3 *pTv, realNeq *pVz,
 		const real2 *pTn1, const real2 *pTn2,
-		const real2 *pTn3, const real3 *pTl, real *pVpot,
+		const real2 *pTn3, const real3 *pTl, realNeq *pResSource,
 		realNeq *pTresN0, realNeq *pTresN1, realNeq *pTresN2,
 		realNeq *pTresLDA0, realNeq *pTresLDA1, realNeq *pTresLDA2,
 		realNeq *pTresTot, int nVertex, real G, real G1, real G2)
@@ -2084,7 +2093,7 @@ devCalcSpaceRes(int nTriangle, const int3 *pTv, realNeq *pVz,
 
 
   while (n < nTriangle) {
-    CalcSpaceResSingle(n, pTv, pVz, pTn1, pTn2, pTn3, pTl, pVpot,
+    CalcSpaceResSingle(n, pTv, pVz, pTn1, pTn2, pTn3, pTl, pResSource,
     		       pTresN0, pTresN1, pTresN2,
                        pTresLDA0, pTresLDA1, pTresLDA2,
     		       pTresTot, nVertex, G, G1, G2);
@@ -2110,12 +2119,12 @@ void Simulation::CalcResidual()
   if (transformFlag == 1) {
     mesh->Transform();
     if (cudaFlag == 0) {
-      vertexPotential->TransformToDevice();
       vertexParameterVector->TransformToDevice();
 
       triangleResidueN->TransformToDevice();
       triangleResidueLDA->TransformToDevice();
       triangleResidueTotal->TransformToDevice();
+      triangleResidueSource->TransformToDevice();
      
       cudaFlag = 1;
     } else {
@@ -2125,6 +2134,7 @@ void Simulation::CalcResidual()
       triangleResidueN->TransformToHost();
       triangleResidueLDA->TransformToHost();
       triangleResidueTotal->TransformToHost();
+      triangleResidueSource->TransformToHost();
 
       cudaFlag = 0;
     }
@@ -2133,7 +2143,7 @@ void Simulation::CalcResidual()
   int nTriangle = mesh->GetNTriangle();
   int nVertex = mesh->GetNVertex();
 
-  real *pVpot = vertexPotential->GetPointer();
+  realNeq *pResSource = triangleResidueSource->GetPointer();
   realNeq *pVz = vertexParameterVector->GetPointer();
   
   realNeq *pTresN0 = triangleResidueN->GetPointer(0);
@@ -2168,7 +2178,7 @@ void Simulation::CalcResidual()
 #endif
     devCalcSpaceRes<<<nBlocks, nThreads>>>
       (nTriangle, pTv, pVz,
-       pTn1, pTn2, pTn3, pTl, pVpot,
+       pTn1, pTn2, pTn3, pTl, pResSource,
        pTresN0, pTresN1, pTresN2, 
        pTresLDA0, pTresLDA1, pTresLDA2,
        pTresTot, nVertex, specificHeatRatio,
@@ -2187,7 +2197,7 @@ void Simulation::CalcResidual()
 #endif
     for (int n = 0; n < nTriangle; n++)
       CalcSpaceResSingle(n, pTv, pVz, 
-			 pTn1, pTn2, pTn3, pTl, pVpot,
+			 pTn1, pTn2, pTn3, pTl, pResSource,
 			 pTresN0, pTresN1, pTresN2,
 			 pTresLDA0, pTresLDA1, pTresLDA2,
 			 pTresTot, nVertex, specificHeatRatio,
@@ -2208,21 +2218,21 @@ void Simulation::CalcResidual()
   if (transformFlag == 1) {
     mesh->Transform();
     if (cudaFlag == 1) {
-      vertexPotential->TransformToHost();
       vertexParameterVector->TransformToHost();
       
       triangleResidueN->TransformToHost();
       triangleResidueLDA->TransformToHost();
       triangleResidueTotal->TransformToHost();
+      triangleResidueSource->TransformToHost();
       
       cudaFlag = 0;
     } else {
-      vertexPotential->TransformToDevice();
       vertexParameterVector->TransformToDevice();
 
       triangleResidueN->TransformToDevice();
       triangleResidueLDA->TransformToDevice();
       triangleResidueTotal->TransformToDevice();
+      triangleResidueSource->TransformToDevice();
       
       cudaFlag = 1;
     }

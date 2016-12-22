@@ -77,6 +77,7 @@ Simulation::Simulation(int _verboseLevel,
   triangleResidueTotal = new Array<realNeq>(1, cudaFlag);
   triangleBlendFactor = new Array<realNeq>(1, cudaFlag);
   triangleShockSensor = new Array<real>(1, cudaFlag);
+  triangleResidueSource  = new Array<realNeq>(1, cudaFlag);
 
   try {
     // Initialize simulation
@@ -97,6 +98,7 @@ Simulation::Simulation(int _verboseLevel,
     delete triangleResidueTotal;
     delete triangleBlendFactor;
     delete triangleShockSensor;
+    delete triangleResidueSource;
    
     delete mesh;
     
@@ -121,6 +123,7 @@ Simulation::~Simulation()
   delete triangleResidueTotal;
   delete triangleBlendFactor;
   delete triangleShockSensor;
+  delete triangleResidueSource;
 
   delete mesh;
 }
@@ -150,7 +153,8 @@ void Simulation::Init(int restartNumber)
     triangleBlendFactor->SetSize(nTriangle);
   if (intScheme == SCHEME_BX)
     triangleShockSensor->SetSize(nTriangle);
-
+  triangleResidueSource->SetSize(nTriangle);
+  
   CalcPotential();
 
   if (restartNumber == 0) {
@@ -177,6 +181,9 @@ void Simulation::Init(int restartNumber)
       throw;
     }
   }
+
+  // Calculate source residual to make sure it contains sensible values
+  CalcSource(vertexState);
   
   if (verboseLevel > 0) {
     std::cout << "Done creating simulation." << std::endl;

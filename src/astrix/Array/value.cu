@@ -115,5 +115,4 @@ template void Array<unsigned int>::SetToValue(unsigned int value);
 template void Array<unsigned int>::SetToValue(unsigned int value,
 					      unsigned int startIndex, 
 					      unsigned int endIndex);
-
 }

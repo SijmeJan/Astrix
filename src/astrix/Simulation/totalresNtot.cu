@@ -25,7 +25,7 @@ namespace astrix {
 \param *pTn2 Pointer second triangle edge normal
 \param *pTn3 Pointer third triangle edge normal
 \param *pTl Pointer to triangle edge lengths
-\param *pVpot Pointer to gravitational potential at vertices
+\param *pResSource Source term contribution to residual
 \param *pTresN0 Triangle residue N direction 0 (output)
 \param *pTresN1 Triangle residue N direction 1 (output)
 \param *pTresN2 Triangle residue N direction 2 (output)
@@ -43,7 +43,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
 			    const real4* __restrict__ pVz, real4 *pDstate,
 			    const real2 *pTn1, const real2 *pTn2,
 			    const real2 *pTn3, const real3* __restrict__ pTl,
-			    real *pVpot, real4 *pTresN0, real4 *pTresN1,
+			    real4 *pResSource, real4 *pTresN0, real4 *pTresN1,
 			    real4 *pTresN2, real4 *pTresTot, int nVertex,
 			    const real G, const real G1,
 			    const real G2, const real iG)
@@ -155,9 +155,9 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real What23 = (Z3*Zv20 + G1*(Z1*Zv21 + Z2*Zv22) + Z0*Zv23)*iG;      
 
   // Source term residual
-  real rhoAve  = Z0*Z0;
-  real momxAve = Z0*Z1;
-  real momyAve = Z0*Z2;
+  //real rhoAve  = Z0*Z0;
+  //real momxAve = Z0*Z1;
+  //real momyAve = Z0*Z2;
 
   real tnx1 = pTn1[n].x;
   real tny1 = pTn1[n].y;
@@ -170,16 +170,21 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real tl2 = pTl[n].y;
   real tl3 = pTl[n].z;
 
-  real dPotdx =
-    tnx1*tl1*pVpot[v1] + tnx2*tl2*pVpot[v2] + tnx3*tl3*pVpot[v3];
-  real dPotdy =
-    tny1*tl1*pVpot[v1] + tny2*tl2*pVpot[v2] + tny3*tl3*pVpot[v3];
+  //real dPotdx =
+  //  tnx1*tl1*pVpot[v1] + tnx2*tl2*pVpot[v2] + tnx3*tl3*pVpot[v3];
+  //real dPotdy =
+  //  tny1*tl1*pVpot[v1] + tny2*tl2*pVpot[v2] + tny3*tl3*pVpot[v3];
 
   // -integral(Source*dS)
-  real ResSource0 = zero;
-  real ResSource1 = half*rhoAve*dPotdx;
-  real ResSource2 = half*rhoAve*dPotdy;
-  real ResSource3 = -half*momxAve*dPotdx - half*momyAve*dPotdy;
+  //real ResSource0 = zero;
+  //real ResSource1 = half*rhoAve*dPotdx;
+  //real ResSource2 = half*rhoAve*dPotdy;
+  //real ResSource3 = -half*momxAve*dPotdx - half*momyAve*dPotdy;
+
+  real ResSource0 = pResSource[n].x;
+  real ResSource1 = pResSource[n].y;
+  real ResSource2 = pResSource[n].z;
+  real ResSource3 = pResSource[n].w;
   
   ResTot0 += ResSource0;
   ResTot1 += ResSource1;
@@ -1281,7 +1286,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
 			    const real3* __restrict__ pVz, real3 *pDstate,
 			    const real2 *pTn1, const real2 *pTn2,
 			    const real2 *pTn3, const real3* __restrict__ pTl,
-			    real *pVpot, real3 *pTresN0, real3 *pTresN1,
+			    real3 *pResSource, real3 *pTresN0, real3 *pTresN1,
 			    real3 *pTresN2, real3 *pTresTot, int nVertex,
 			    const real G, const real G1,
 			    const real G2, const real iG)
@@ -1372,7 +1377,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real What22 = Z2*Zv20 + Z0*Zv22;
 
   // Source term residual
-  real rhoAve  = Z0*Z0;
+  //real rhoAve  = Z0*Z0;
 
   real tnx1 = pTn1[n].x;
   real tny1 = pTn1[n].y;
@@ -1385,15 +1390,19 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real tl2 = pTl[n].y;
   real tl3 = pTl[n].z;
 
-  real dPotdx =
-    tnx1*tl1*pVpot[v1] + tnx2*tl2*pVpot[v2] + tnx3*tl3*pVpot[v3];
-  real dPotdy =
-    tny1*tl1*pVpot[v1] + tny2*tl2*pVpot[v2] + tny3*tl3*pVpot[v3];
+  //real dPotdx =
+  //  tnx1*tl1*pVpot[v1] + tnx2*tl2*pVpot[v2] + tnx3*tl3*pVpot[v3];
+  //real dPotdy =
+  //  tny1*tl1*pVpot[v1] + tny2*tl2*pVpot[v2] + tny3*tl3*pVpot[v3];
 
   // -integral(Source*dS)
-  real ResSource0 = zero;
-  real ResSource1 = half*rhoAve*dPotdx;
-  real ResSource2 = half*rhoAve*dPotdy;
+  //real ResSource0 = zero;
+  //real ResSource1 = half*rhoAve*dPotdx;
+  //real ResSource2 = half*rhoAve*dPotdy;
+
+  real ResSource0 = pResSource[n].x;
+  real ResSource1 = pResSource[n].y;
+  real ResSource2 = pResSource[n].z;
   
   ResTot0 += ResSource0;
   ResTot1 += ResSource1;
@@ -1822,7 +1831,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
 			    const real* __restrict__ pVz, real *pDstate,
 			    const real2 *pTn1, const real2 *pTn2,
 			    const real2 *pTn3, const real3* __restrict__ pTl,
-			    real *pVpot, real *pTresN0, real *pTresN1,
+			    real *pResSource, real *pTresN0, real *pTresN1,
 			    real *pTresN2, real *pTresTot, int nVertex,
 			    const real G, const real G1,
 			    const real G2, const real iG)
@@ -1872,6 +1881,8 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real ResTot = pTresTot[n] + two*Adt*(dW0 + dW1 + dW2);
 #endif
   
+  ResTot += pResSource[n];
+
   // Parameter vector at vertices: 12 uncoalesced loads
   real Zv0 = pVz[v1];
   real Zv1 = pVz[v2];
@@ -2042,7 +2053,7 @@ devCalcTotalResNtot(int nTriangle, real dt,
 		    const int3* __restrict__ pTv, 
 		    const realNeq* __restrict__ pVz, realNeq *pDstate,
 		    const real2 *pTn1, const real2 *pTn2, const real2 *pTn3,
-		    const real3* __restrict__  pTl, real *pVpot,
+		    const real3* __restrict__  pTl, realNeq *pResSource,
 		    realNeq *pTresN0, realNeq *pTresN1, realNeq *pTresN2,
 		    realNeq *pTresTot, int nVertex,
 		    real G, real G1, real G2, real iG)
@@ -2051,7 +2062,7 @@ devCalcTotalResNtot(int nTriangle, real dt,
 
   while (n < nTriangle) {
     CalcTotalResNtotSingle(n, dt, pTv, pVz, pDstate,
-			   pTn1, pTn2, pTn3, pTl, pVpot,
+			   pTn1, pTn2, pTn3, pTl, pResSource,
 			   pTresN0, pTresN1, pTresN2,
 			   pTresTot, nVertex, G, G1, G2, iG);
     
@@ -2079,21 +2090,21 @@ void Simulation::CalcTotalResNtot(real dt)
   if (transformFlag == 1) {
     mesh->Transform();
     if (cudaFlag == 0) {
-      vertexPotential->TransformToDevice();
       vertexParameterVector->TransformToDevice();
       vertexStateDiff->TransformToDevice();
 
       triangleResidueN->TransformToDevice();
       triangleResidueTotal->TransformToDevice();
+      triangleResidueSource->TransformToDevice();
 
       cudaFlag = 1;
     } else {
-      vertexPotential->TransformToHost();
       vertexParameterVector->TransformToHost();
       vertexStateDiff->TransformToHost();
 
       triangleResidueN->TransformToHost();
       triangleResidueTotal->TransformToHost();
+      triangleResidueSource->TransformToHost();
       
       cudaFlag = 0;
     }
@@ -2116,6 +2127,7 @@ void Simulation::CalcTotalResNtot(real dt)
   realNeq *pTresN2 = triangleResidueN->GetPointer(2);
   
   realNeq *pTresTot = triangleResidueTotal->GetPointer();
+  realNeq *pResSource = triangleResidueSource->GetPointer();
 
   const int3 *pTv = mesh->TriangleVerticesData();
   const real2 *pTn1 = mesh->TriangleEdgeNormalsData(0);
@@ -2137,7 +2149,7 @@ void Simulation::CalcTotalResNtot(real dt)
 #endif
     devCalcTotalResNtot<<<nBlocks, nThreads>>>
       (nTriangle, dt, pTv, pVz, pDstate,
-       pTn1, pTn2, pTn3, pTl, pVpot,
+       pTn1, pTn2, pTn3, pTl, pResSource,
        pTresN0, pTresN1, pTresN2, 
        pTresTot, nVertex, specificHeatRatio,
        specificHeatRatio - 1.0, specificHeatRatio - 2.0,
@@ -2156,7 +2168,7 @@ void Simulation::CalcTotalResNtot(real dt)
 #endif
     for (int n = 0; n < nTriangle; n++) 
       CalcTotalResNtotSingle(n, dt, pTv, pVz, pDstate,
-			     pTn1, pTn2, pTn3, pTl, pVpot,
+			     pTn1, pTn2, pTn3, pTl, pResSource,
 			     pTresN0, pTresN1, pTresN2, 
 			     pTresTot, nVertex, specificHeatRatio,
 			     specificHeatRatio - 1.0, specificHeatRatio - 2.0,
@@ -2176,21 +2188,21 @@ void Simulation::CalcTotalResNtot(real dt)
   if (transformFlag == 1) {
     mesh->Transform();
     if (cudaFlag == 0) {
-      vertexPotential->TransformToDevice();
       vertexStateDiff->TransformToDevice();
       vertexParameterVector->TransformToDevice();
 
       triangleResidueN->TransformToDevice();
       triangleResidueTotal->TransformToDevice();
+      triangleResidueSource->TransformToDevice();
 
       cudaFlag = 1;
     } else {
-      vertexPotential->TransformToHost();
       vertexStateDiff->TransformToHost();
       vertexParameterVector->TransformToHost();
 
       triangleResidueN->TransformToHost();
       triangleResidueTotal->TransformToHost();
+      triangleResidueSource->TransformToHost();
       
       cudaFlag = 0;
     }
