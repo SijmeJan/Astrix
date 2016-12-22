@@ -1,6 +1,7 @@
 // -*-c++-*-
 /*! \file source.cu
 \brief File containing function to calculate source term contribution to residual.*/
+/*
 #include <iostream>
 
 #include "../Common/definitions.h"
@@ -82,3 +83,4 @@ void Simulation::CalcSource(Array<realNeq> *state)
 }
 
 }
+*/
