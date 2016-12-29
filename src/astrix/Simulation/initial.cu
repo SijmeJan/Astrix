@@ -40,7 +40,7 @@ __host__ __device__
 void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
 		      real *pVpot, real4 *state, real G, real time, real Px)
 {
-  const real onethird = (real) (1.0/3.0);
+  //const real onethird = (real) (1.0/3.0);
   const real zero = (real) 0.0;
   const real half = (real) 0.5;
   const real one = (real) 1.0;
@@ -138,6 +138,7 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     ener = half*(Sq(momx) + Sq(momy))/dens + pres/(G - one);
   }
 
+  /*
   if(problemDef == PROBLEM_RT){
     real vel_amp = 0.01;
     real p = 2.5f - 0.1f*vertY;
@@ -149,41 +150,8 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
       (one + cosf(4.0f*(real)(M_PI)*vertX))*
       (one + cosf((one + onethird)*(real)(M_PI)*vertY)) + (real) 1.1e-15;
     ener = half*(Sq(momx) + Sq(momy))/dens + p/(G - one);
-
-    /*
-    real vel_amp = 0.01;
-    real int_amp = zero;
-    real d = 0.0000005;
-    
-    real rhoH = two;
-    real rhoL = one;
-    
-    real yPert = int_amp*cos(6.0f*M_PI*vertX);
-
-    real xi = (vertY - yPert)*M_PI/d;
-    if (abs(xi) > half*M_PI) xi = half*M_PI*xi/abs(xi);
-
-    real y = vertY;
-    real y1 = yPert - half*d;
-    real y2 = yPert + half*d;
-    
-    real I = rhoL*y;
-    if (y > y1)
-      I = rhoL*y1 + half*(rhoL + rhoH)*(y - y1) -
-	half*(rhoH - rhoL)*cos(xi)*(d/M_PI);
-    if (y > y2)
-      I = rhoL*y1 + half*(rhoL + rhoH)*(y2 - y1) + rhoH*(y - y2);
-
-    real p = 2.5f - 0.1f*I; // 2.5f - vertW0[n]*pVertexPotential[n]
-    
-    dens =  half*(rhoL + rhoH) + half*(rhoH - rhoL)*sin(xi);
-    momx = (real) 1.0e-15;
-    momy = dens*vel_amp*0.25f*
-      (one + cosf(4.0f*(real)(M_PI)*vertX))*
-      (one + cosf(3.0f*(real)(M_PI)*vertY)) + (real) 1.1e-15;
-    ener = half*(Sq(momx) + Sq(momy))/dens + p/(G - one);
-    */
   }
+  */
   
   if (problemDef == PROBLEM_KH) {
     real a = 4.0f;

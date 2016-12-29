@@ -3,7 +3,6 @@
 #ifndef ASTRIX_SIMULATION_H
 #define ASTRIX_SIMULATION_H
 
-//#define NEW
 #define BURGERS -1
 
 namespace astrix {
@@ -192,8 +191,6 @@ class Simulation
 
   void CalcTotalSpaceResidual();
   void UpdateFirst(real dt);
-
-  void AddTemporalResidual(real dt);
 };
 
 }

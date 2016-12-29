@@ -2,6 +2,7 @@ disable RT
 remove NEW
 check register use spaceres etc
 clean up test problems
+adjust makefile register use?
 source term integration
 test RT
 conservation during edge flipping

@@ -44,7 +44,7 @@ namespace astrix {
 			  PROBLEM_SOD,    /*!< Sod shock tube*/
 			  PROBLEM_BLAST,  /*!< Interacting blast waves*/
 			  PROBLEM_KH,     /*!< Kelvin-Helmholz instability*/
-			  PROBLEM_RT,     /*!< Rayleigh-Taylor instability*/ 
+			  //PROBLEM_RT,     /*!< Rayleigh-Taylor instability*/ 
 			  PROBLEM_RIEMANN,/*!< 2D Riemann problem*/
 			  PROBLEM_YEE,    /*!< Yee vortex*/
 			  PROBLEM_NOH

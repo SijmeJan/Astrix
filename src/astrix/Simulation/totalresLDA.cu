@@ -517,44 +517,28 @@ void CalcTotalResLDASingle(int n,
     -Wtilde1*eulerKMP01(G1, nx, ic, uc, l1l2l3, l1l2)
     -Wtilde2*eulerKMP02(G1, ny, ic, vc, l1l2l3, l1l2)
     -Wtilde3*eulerKMP03(G1, ic, l1l2l3);
-#ifdef NEW
-  pTresLDA0[n].x = pTresLDA0[n].x + ResLDA;
-#else
   pTresLDA0[n].x = ResLDA;
-#endif
   
   ResLDA =
     -Wtilde0*eulerKMP10(nx, ac, uc, wtilde, l1l2l3, l1l2)
     -Wtilde1*eulerKMP11(G1, G2, nx, uc, l1l2l3, l1l2, l3)
     -Wtilde2*eulerKMP12(G1, nx, ny, uc, vc, l1l2l3, l1l2)
     -Wtilde3*eulerKMP13(G1, nx, ic, uc, l1l2l3, l1l2);
-#ifdef NEW
-  pTresLDA0[n].y = pTresLDA0[n].y + ResLDA;
-#else
   pTresLDA0[n].y = ResLDA;
-#endif
 
   ResLDA =
     -Wtilde0*eulerKMP20(ny, ac, vc, wtilde, l1l2l3, l1l2)
     -Wtilde1*eulerKMP21(G1, nx, ny, uc, vc, l1l2l3, l1l2)
     -Wtilde2*eulerKMP22(G1, G2, ny, vc, l1l2l3, l1l2, l3)
     -Wtilde3*eulerKMP23(G1, ny, ic, vc, l1l2l3, l1l2);
-#ifdef NEW
-  pTresLDA0[n].z = pTresLDA0[n].z + ResLDA;
-#else
   pTresLDA0[n].z = ResLDA;
-#endif
   
   ResLDA =
     -Wtilde0*eulerKMP30(ac, hc, wtilde, l1l2l3, l1l2)
     -Wtilde1*eulerKMP31(G1, nx, hc, uc, wtilde, l1l2l3, l1l2)
     -Wtilde2*eulerKMP32(G1, ny, hc, vc, wtilde, l1l2l3, l1l2)
     -Wtilde3*eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
-#ifdef NEW
-  pTresLDA0[n].w = pTresLDA0[n].w + ResLDA;
-#else
   pTresLDA0[n].w = ResLDA;
-#endif
   
   /*    
   // kp000    
@@ -654,44 +638,28 @@ void CalcTotalResLDASingle(int n,
     -Wtilde1*eulerKMP01(G1, nx, ic, uc, l1l2l3, l1l2)
     -Wtilde2*eulerKMP02(G1, ny, ic, vc, l1l2l3, l1l2)
     -Wtilde3*eulerKMP03(G1, ic, l1l2l3);
-#ifdef NEW
-  pTresLDA1[n].x = pTresLDA1[n].x + ResLDA;
-#else
   pTresLDA1[n].x = ResLDA;
-#endif
   
   ResLDA =
     -Wtilde0*eulerKMP10(nx, ac, uc, wtilde, l1l2l3, l1l2)
     -Wtilde1*eulerKMP11(G1, G2, nx, uc, l1l2l3, l1l2, l3)
     -Wtilde2*eulerKMP12(G1, nx, ny, uc, vc, l1l2l3, l1l2)
     -Wtilde3*eulerKMP13(G1, nx, ic, uc, l1l2l3, l1l2);
-#ifdef NEW
-  pTresLDA1[n].y = pTresLDA1[n].y + ResLDA;
-#else
   pTresLDA1[n].y = ResLDA;
-#endif
   
   ResLDA =
     -Wtilde0*eulerKMP20(ny, ac, vc, wtilde, l1l2l3, l1l2)
     -Wtilde1*eulerKMP21(G1, nx, ny, uc, vc, l1l2l3, l1l2)
     -Wtilde2*eulerKMP22(G1, G2, ny, vc, l1l2l3, l1l2, l3)
     -Wtilde3*eulerKMP23(G1, ny, ic, vc, l1l2l3, l1l2);
-#ifdef NEW
-  pTresLDA1[n].z = pTresLDA1[n].z + ResLDA;
-#else
   pTresLDA1[n].z = ResLDA;
-#endif
   
   ResLDA =
     -Wtilde0*eulerKMP30(ac, hc, wtilde, l1l2l3, l1l2)
     -Wtilde1*eulerKMP31(G1, nx, hc, uc, wtilde, l1l2l3, l1l2)
     -Wtilde2*eulerKMP32(G1, ny, hc, vc, wtilde, l1l2l3, l1l2)
     -Wtilde3*eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
-#ifdef NEW
-  pTresLDA1[n].w = pTresLDA1[n].w + ResLDA;
-#else
   pTresLDA1[n].w = ResLDA;
-#endif
   
   /*
   // kp100    
@@ -801,44 +769,28 @@ void CalcTotalResLDASingle(int n,
     -Wtilde1*eulerKMP01(G1, nx, ic, uc, l1l2l3, l1l2)
     -Wtilde2*eulerKMP02(G1, ny, ic, vc, l1l2l3, l1l2)
     -Wtilde3*eulerKMP03(G1, ic, l1l2l3);
-#ifdef NEW
-  pTresLDA2[n].x = pTresLDA2[n].x + ResLDA;
-#else
   pTresLDA2[n].x = ResLDA;
-#endif
   
   ResLDA =
     -Wtilde0*eulerKMP10(nx, ac, uc, wtilde, l1l2l3, l1l2)
     -Wtilde1*eulerKMP11(G1, G2, nx, uc, l1l2l3, l1l2, l3)
     -Wtilde2*eulerKMP12(G1, nx, ny, uc, vc, l1l2l3, l1l2)
     -Wtilde3*eulerKMP13(G1, nx, ic, uc, l1l2l3, l1l2);
-#ifdef NEW
-  pTresLDA2[n].y = pTresLDA2[n].y + ResLDA;
-#else
   pTresLDA2[n].y = ResLDA;
-#endif
   
   ResLDA =
     -Wtilde0*eulerKMP20(ny, ac, vc, wtilde, l1l2l3, l1l2)
     -Wtilde1*eulerKMP21(G1, nx, ny, uc, vc, l1l2l3, l1l2)
     -Wtilde2*eulerKMP22(G1, G2, ny, vc, l1l2l3, l1l2, l3)
     -Wtilde3*eulerKMP23(G1, ny, ic, vc, l1l2l3, l1l2);
-#ifdef NEW
-  pTresLDA2[n].z = pTresLDA2[n].z + ResLDA;
-#else
   pTresLDA2[n].z = ResLDA;
-#endif
   
   ResLDA =
     -Wtilde0*eulerKMP30(ac, hc, wtilde, l1l2l3, l1l2)
     -Wtilde1*eulerKMP31(G1, nx, hc, uc, wtilde, l1l2l3, l1l2)
     -Wtilde2*eulerKMP32(G1, ny, hc, vc, wtilde, l1l2l3, l1l2)
     -Wtilde3*eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
-#ifdef NEW
-  pTresLDA2[n].w = pTresLDA2[n].w + ResLDA;
-#else
   pTresLDA2[n].w = ResLDA;
-#endif
   
   /*
   // kp200    
@@ -1296,11 +1248,7 @@ void CalcTotalResLDASingle(int n,
   ny = half*Tny1;
 
   l1 = half*(vx*nx + vy*ny + fabs(vx*nx + vy*ny));
-#ifdef NEW
-  pTresLDA0[n] = pTresLDA0[n] - l1*Wtilde;
-#else
   pTresLDA0[n] = -l1*Wtilde;
-#endif
   
   // Second direction
   real Tnx2 = pTn2[n].x;
@@ -1310,11 +1258,7 @@ void CalcTotalResLDASingle(int n,
   ny = half*Tny2;
   
   l1 = half*(vx*nx + vy*ny + fabs(vx*nx + vy*ny));
-#ifdef NEW
-  pTresLDA1[n] = pTresLDA1[n] - l1*Wtilde;
-#else
   pTresLDA1[n] = -l1*Wtilde;
-#endif
   
   // Third direction
   real Tnx3 = pTn3[n].x;
@@ -1324,11 +1268,7 @@ void CalcTotalResLDASingle(int n,
   ny = half*Tny3;
 
   l1 = half*(vx*nx + vy*ny + fabs(vx*nx + vy*ny));
-#ifdef NEW
-  pTresLDA2[n] = pTresLDA2[n] - l1*Wtilde;
-#else
   pTresLDA2[n] = -l1*Wtilde;
-#endif
 }
 
 //######################################################################

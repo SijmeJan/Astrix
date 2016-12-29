@@ -108,17 +108,10 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   pTresN2[n].w = half*pTresN2[n].w + dW23*Ail3;
 
   // Replace ResTot
-#ifdef NEW
-  real ResTot0 = two*Adt*(dW00 + dW10 + dW20);
-  real ResTot1 = two*Adt*(dW01 + dW11 + dW21);
-  real ResTot2 = two*Adt*(dW02 + dW12 + dW22);
-  real ResTot3 = two*Adt*(dW03 + dW13 + dW23);
-#else
   real ResTot0 = pTresTot[n].x + two*Adt*(dW00 + dW10 + dW20);
   real ResTot1 = pTresTot[n].y + two*Adt*(dW01 + dW11 + dW21);
   real ResTot2 = pTresTot[n].z + two*Adt*(dW02 + dW12 + dW22);
   real ResTot3 = pTresTot[n].w + two*Adt*(dW03 + dW13 + dW23);
-#endif
   
   // Parameter vector at vertices: 12 uncoalesced loads
   real Zv00 = pVz[v1].x;
@@ -1875,11 +1868,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   pTresN2[n] = half*pTresN2[n] + dW2*Ail3;
 
   // Replace ResTot
-#ifdef NEW
-  real ResTot = two*Adt*(dW0 + dW1 + dW2);
-#else
   real ResTot = pTresTot[n] + two*Adt*(dW0 + dW1 + dW2);
-#endif
   
   ResTot += pResSource[n];
 
@@ -2113,11 +2102,7 @@ void Simulation::CalcTotalResNtot(real dt)
   int nTriangle = mesh->GetNTriangle();
   int nVertex = mesh->GetNVertex();
 
-#ifdef NEW
-  realNeq *pDstate = vertexState->GetPointer();
-#else
   realNeq *pDstate = vertexStateDiff->GetPointer();
-#endif
   
   real *pVpot = vertexPotential->GetPointer();
   realNeq *pVz = vertexParameterVector->GetPointer();

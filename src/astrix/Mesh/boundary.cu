@@ -132,6 +132,7 @@ void SetVertexOuterBoundarySingle(int n, ProblemDefinition problemDef,
     }
   }
 
+  /*
   if (problemDef == PROBLEM_RT) {
     if (periodicFlagX == 1) {
       if (n == 0) {
@@ -169,6 +170,7 @@ void SetVertexOuterBoundarySingle(int n, ProblemDefinition problemDef,
       }
     }      
   }
+  */
 }
  
 //##############################################################################
@@ -620,7 +622,7 @@ void Mesh::ConstructBoundaries()
   if (meshParameter->problemDef == PROBLEM_RIEMANN ||
       meshParameter->problemDef == PROBLEM_SOD ||
       meshParameter->problemDef == PROBLEM_BLAST ||
-      meshParameter->problemDef == PROBLEM_RT ||
+      //meshParameter->problemDef == PROBLEM_RT ||
       meshParameter->problemDef == PROBLEM_VORTEX ||
       meshParameter->problemDef == PROBLEM_KH ||
       meshParameter->problemDef == PROBLEM_LINEAR ||

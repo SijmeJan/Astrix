@@ -25,11 +25,11 @@ void CalcPotentialSingle(int i, ProblemDefinition problemDef,
 			 const real2 *pVc, real *pVpot)
 {
   real zero = (real) 0.0;
-  real tenth = (real) 0.1;
+  //real tenth = (real) 0.1;
   
   pVpot[i] = zero;
   
-  if(problemDef == PROBLEM_RT) pVpot[i] = tenth*pVc[i].y;
+  //if(problemDef == PROBLEM_RT) pVpot[i] = tenth*pVc[i].y;
 }
   
 //######################################################################

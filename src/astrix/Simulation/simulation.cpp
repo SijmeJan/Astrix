@@ -242,7 +242,7 @@ void Simulation::ReadInputFile(const char *fileName)
     // Problem definition
     if (firstWord == "problemDefinition") {
       if (secondWord == "LIN") problemDef = PROBLEM_LINEAR;
-      if (secondWord == "RT") problemDef = PROBLEM_RT;
+      //if (secondWord == "RT") problemDef = PROBLEM_RT;
       if (secondWord == "KH") problemDef = PROBLEM_KH;
       if (secondWord == "RIEMANN") problemDef = PROBLEM_RIEMANN;
       if (secondWord == "SOD") problemDef = PROBLEM_SOD;
@@ -333,7 +333,7 @@ void Simulation::ReadInputFile(const char *fileName)
       problemDef == PROBLEM_SOD ||
       problemDef == PROBLEM_BLAST ||
       problemDef == PROBLEM_KH ||
-      problemDef == PROBLEM_RT ||
+      //problemDef == PROBLEM_RT ||
       problemDef == PROBLEM_YEE ||
       problemDef == PROBLEM_NOH) {
 #if N_EQUATION != 4

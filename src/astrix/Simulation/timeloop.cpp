@@ -281,7 +281,7 @@ void Simulation::DoTimeStep()
   }
 
   // Reflecting boundaries
-  if (problemDef == PROBLEM_RT ||
+  if (//problemDef == PROBLEM_RT ||
       problemDef == PROBLEM_SOD ||
       problemDef == PROBLEM_BLAST ||
       problemDef == PROBLEM_RIEMANN)
@@ -293,10 +293,6 @@ void Simulation::DoTimeStep()
  
   
   if (integrationOrder == 2) {
-#ifdef NEW  
-    AddTemporalResidual(dt);
-#endif
-
     //if (problemDef == PROBLEM_VORTEX ||
     //	problemDef == PROBLEM_YEE ||
     //	problemDef == PROBLEM_SOD)
@@ -321,9 +317,7 @@ void Simulation::DoTimeStep()
     CalcTotalResNtot(dt);
 
     // Calculate parameter vector Z at nodes from old state
-#ifndef NEW
     CalculateParameterVector(1);
-#endif
     
     if (massMatrix == 3 || massMatrix == 4)
       MassMatrixF34Tot(dt, massMatrix);
@@ -350,7 +344,7 @@ void Simulation::DoTimeStep()
     }
 
     // Reflecting boundaries
-    if (problemDef == PROBLEM_RT ||
+    if (//problemDef == PROBLEM_RT ||
     	problemDef == PROBLEM_SOD ||
     	problemDef == PROBLEM_BLAST ||
 	problemDef == PROBLEM_RIEMANN)
