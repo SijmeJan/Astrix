@@ -30,7 +30,7 @@ NVCCLDFLAGS :=
 LDFLAGS     := 
 
 # Extra user flags
-EXTRA_NVCCFLAGS   ?= -O3 -lineinfo
+EXTRA_NVCCFLAGS   ?= -O3 -lineinfo --ptxas-options=-v
 #-g -G 
 #--ptxas-options=-v
 EXTRA_NVCCLDFLAGS ?=
@@ -154,6 +154,7 @@ Simulation/update_addresidue.o: ALL_CCFLAGS += -maxrregcount=48
 Simulation/update_addresidue.o: Simulation/update_addresidue.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/atomic.h
 Simulation/mass.o: Simulation/mass.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h
 Simulation/kh.o: Simulation/kh.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
+Simulation/source.o: Simulation/source.cu Common/definitions.h Array/array.h Mesh/mesh.h Simulation/simulation.h Common/cudaLow.h
 
 ################
 # Mesh sources #
