@@ -149,7 +149,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
 
   // Matrix element K- + K+
   //real kk;
-  
+
   real utilde = Z1/Z0;
   real vtilde = Z2/Z0;
   real htilde = Z3/Z0;
