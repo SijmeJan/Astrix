@@ -105,10 +105,9 @@ endif
 # Target rules
 ################################################################################
 
-all: build
+all: $(BINDIR)/astrix
 
-build: $(BINDIR)/astrix
-
+# Build Astrix executable
 $(BINDIR)/astrix: $(OBJ)
 	$(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES)
 
