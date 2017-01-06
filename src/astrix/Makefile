@@ -19,6 +19,11 @@ CUDA_DEBUG ?= 0
 # Directory to put binaries in
 BINDIR = ../../bin
 
+# In case SHELL is inherited from OS
+SHELL = /bin/sh
+# No implicit rules needed
+.SUFFIXES:
+
 ################################################################################
 # Create list of source, object and dependency files
 ################################################################################

@@ -99,10 +99,25 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   real What22 = Z2*Zv20 + Z0*Zv22;
   real What23 = (Z3*Zv20 + G1*Z1*Zv21 + G1*Z2*Zv22 + Z0*Zv23)/G;      
   
-  // Source term residual 
-  //real rhoAve  = Z0*Z0;
-  //real momxAve = Z0*Z1;
-  //real momyAve = Z0*Z2;
+  real ResTot0 = pResSource[n].x;
+  real ResTot1 = pResSource[n].y;
+  real ResTot2 = pResSource[n].z;
+  real ResTot3 = pResSource[n].w;
+
+  real Wtemp0 = pResSource[n].x;
+  real Wtemp1 = pResSource[n].y;
+  real Wtemp2 = pResSource[n].z;
+  real Wtemp3 = pResSource[n].w;
+
+  real utilde = Z1/Z0;
+  real vtilde = Z2/Z0;
+  real htilde = Z3/Z0;
+  real alpha  = G1*half*(Sq(utilde) + Sq(vtilde));
+  
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  // Calculate the total residue = Sum(K*What)
+  // Not necessary for first-order N scheme 
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   real tl1 = pTl[n].x;
   real tl2 = pTl[n].y;
@@ -114,51 +129,6 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   real tny1 = pTn1[n].y;
   real tny2 = pTn2[n].y;
   real tny3 = pTn3[n].y;
-
-  //real dPotdx =
-  //  tnx1*tl1*pVpot[v1] + tnx2*tl2*pVpot[v2] + tnx3*tl3*pVpot[v3];
-  //real dPotdy =
-  //  tny1*tl1*pVpot[v1] + tny2*tl2*pVpot[v2] + tny3*tl3*pVpot[v3];
-  
-  // -integral(Source*dS)
-  //real ResSource0 = zero;
-  //real ResSource1 = half*rhoAve*dPotdx;
-  //real ResSource2 = half*rhoAve*dPotdy;
-  //real ResSource3 = -half*momxAve*dPotdx - half*momyAve*dPotdy;
-
-  // Total residue
-  //real ResTot0 = ResSource0;
-  //real ResTot1 = ResSource1;
-  //real ResTot2 = ResSource2;
-  //real ResTot3 = ResSource3;
-  
-  //real Wtemp0 = ResSource0;
-  //real Wtemp1 = ResSource1;
-  //real Wtemp2 = ResSource2;
-  //real Wtemp3 = ResSource3;
-
-  real ResTot0 = pResSource[n].x;
-  real ResTot1 = pResSource[n].y;
-  real ResTot2 = pResSource[n].z;
-  real ResTot3 = pResSource[n].w;
-
-  real Wtemp0 = pResSource[n].x;
-  real Wtemp1 = pResSource[n].y;
-  real Wtemp2 = pResSource[n].z;
-  real Wtemp3 = pResSource[n].w;
-
-  // Matrix element K- + K+
-  //real kk;
-
-  real utilde = Z1/Z0;
-  real vtilde = Z2/Z0;
-  real htilde = Z3/Z0;
-  real alpha  = G1*half*(Sq(utilde) + Sq(vtilde));
-  
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // Calculate the total residue = Sum(K*What)
-  // Not necessary for first-order N scheme 
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   // First direction
   real tl = tl1;
@@ -184,93 +154,13 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
     What01*eulerK31(G1, nx, htilde, wtilde, utilde) +
     What02*eulerK32(G1, ny, htilde, wtilde, vtilde) +
     What03*eulerK33(G, wtilde);
-  
-  /*
-  // kk[0][0][0]    
-  //pk = 0.0f;
-  //ResTot[0] +=  t_l*kk*What[0][0];
-  
-  // kk[0][0][1]
-  kk = nx;
-  //kKk = K01(nx);
-  ResTot0 += kk*What01;
-  
-  // kk[0][0][2]
-  kk = ny;
-  //kKk = K02(ny);
-  ResTot0 += kk*What02; 
-
-  // kk[0][0][3]
-  //pk = 0.0f;
-  //ResTot[0] += kk*What0][3];
-  
-  // kk[0][1][0]
-  kk = alpha*nx - wtilde*utilde; 
-  //kKk = K10(nx, alpha, wtilde, utilde);
-  ResTot1 +=  kk*What00;
-
-  // kk[0][1][1]
-  kk = wtilde - utilde*nx*G2;
-  //kKk = K11(G2, nx, wtilde, utilde);
-  ResTot1 += kk*What01;
-  
-  // kk[0][1][2]
-  kk = utilde*ny - vtilde*G1*nx;
-  //kKk = K12(G1, nx, ny, utilde, vtilde);
-  ResTot1 += kk*What02;
-  
-  // kk[0][1][3]
-  kk = G1*nx;
-  //kKk = K13(G1, nx);
-  ResTot1 += kk*What03;
-  
-  // kk[0][2][0]
-  kk = alpha*ny - wtilde*vtilde;
-  //kKk = K20(ny, alpha, wtilde, vtilde);
-  ResTot2 +=  kk*What00;
-  
-  // kk[0][2][1]
-  kk = vtilde*nx - G1*utilde*ny;
-  //kKk = K21(G1, nx, ny, utilde, vtilde);
-  ResTot2 += kk*What01;
-  
-  // kk[0][2][2]
-  kk = wtilde - vtilde*G2*ny;
-  //kKk = K22(G2, ny, wtilde, vtilde);
-  ResTot2 += kk*What02;
-  
-  // kk[0][2][3]
-  kk = G1*ny;
-  //kKk = K23(G1, ny);
-  ResTot2 += kk*What03;
-  
-  // kk[0][3][0]
-  kk = alpha*wtilde - wtilde*htilde;
-  //kKk = K30(alpha, htilde, wtilde);
-  ResTot3 +=  kk*What00;
-  
-  // kk[0][3][1]
-  kk = nx*htilde - G1*utilde*wtilde;
-  //kKk = K31(G1, nx, htilde, wtilde, utilde);
-  ResTot3 += kk*What01;
-  
-  // kk[0][3][2]
-  kk = ny*htilde - G1*vtilde*wtilde;
-  //kKk = K32(G1, ny, htilde, wtilde, vtilde);
-  ResTot3 += kk*What02;
-  
-  // kk[0][3][3]
-  kk = G*wtilde;
-  //kKk = K33(G, wtilde);
-  ResTot3 += kk*What03;
-  */
-  
+    
   // Second direction
   tl = tl2;
   nx = half*tl*tnx2;
   ny = half*tl*tny2;
   wtilde = utilde*nx + vtilde*ny;
-  
+
   ResTot0 +=
     What11*eulerK01(nx) +
     What12*eulerK02(ny);
@@ -289,86 +179,6 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
     What11*eulerK31(G1, nx, htilde, wtilde, utilde) +
     What12*eulerK32(G1, ny, htilde, wtilde, vtilde) +
     What13*eulerK33(G, wtilde);
-
-  /*
-  // kk[1][0][0]    
-  //pk = 0.0f;
-  //ResTot[0] += kk*What1][0];
-  
-  // kk[1][0][1]
-  kk = nx;
-  //kKk = K01(nx);
-  ResTot0 += kk*What11;
-  
-  // kk[1][0][2]
-  kk = ny;
-  //kKk = K02(ny);
-  ResTot0 += kk*What12;
-  
-  // kk[1][0][3]
-  //pk = 0.0f;
-  //ResTot[0] += kk*What1][3];
-  
-  // kk[1][1][0]
-  kk = alpha*nx - wtilde*utilde; 
-  //kKk = K10(nx, alpha, wtilde, utilde);
-  ResTot1 += kk*What10;
-  
-  // kk[1][1][1]
-  kk = wtilde - utilde*nx*G2;
-  //kKk = K11(G2, nx, wtilde, utilde);
-  ResTot1 += kk*What11;
-  
-  // kk[1][1][2]
-  kk = utilde*ny - vtilde*G1*nx;
-  //kKk = K12(G1, nx, ny, utilde, vtilde);
-  ResTot1 += kk*What12;
-  
-  // kk[1][1][3]
-  kk = G1*nx;
-  //kKk = K13(G1, nx);
-  ResTot1 += kk*What13;
-  
-  // kk[1][2][0]
-  kk = alpha*ny - wtilde*vtilde;
-  //kKk = K20(ny, alpha, wtilde, vtilde);
-  ResTot2 += kk*What10;
-  
-  // kk[1][2][1]
-  kk = vtilde*nx - G1*utilde*ny;
-  //kKk = K21(G1, nx, ny, utilde, vtilde);
-  ResTot2 += kk*What11;
-  
-  // kk[1][2][2]
-  kk = wtilde - vtilde*G2*ny;
-  //kKk = K22(G2, ny, wtilde, vtilde);
-  ResTot2 += kk*What12;
-  
-  // kk[1][2][3]
-  kk = G1*ny;
-  //kKk = K23(G1, ny);
-  ResTot2 += kk*What13;
-  
-  // kk[1][3][0]
-  kk = alpha*wtilde - wtilde*htilde;
-  //kKk = K30(alpha, htilde, wtilde);
-  ResTot3 += kk*What10;
-  
-  // kk[1][3][1]
-  kk = nx*htilde - G1*utilde*wtilde;
-  //kKk = K31(G1, nx, htilde, wtilde, utilde);
-  ResTot3 += kk*What11;
-  
-  // kk[1][3][2]
-  kk = ny*htilde - G1*vtilde*wtilde;
-  //kKk = K32(G1, ny, htilde, wtilde, vtilde);
-  ResTot3 += kk*What12;
-  
-  // kk[1][3][3]
-  kk = G*wtilde;
-  //kKk = K33(G, wtilde);
-  ResTot3 += kk*What13;
-  */
   
   // Third direction
   tl = tl3;
@@ -398,98 +208,12 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
     What22*eulerK32(G1, ny, htilde, wtilde, vtilde) +
     What23*eulerK33(G, wtilde);
   pTresTot[n].w = ResTot3;   
-
-  /*
-  // kk[2][0][0]    
-  //pk = 0.0f;
-  //ResTot[0] += kk*What2][0];
-  
-  // kk[2][0][1]
-  kk = nx;
-  //kKk = K01(nx);
-  ResTot0 += kk*What21;
-
-  // kk[2][0][2]
-  kk = ny;
-  //kKk = K02(ny);
-  ResTot0 += kk*What22;
-
-  // kk[2][0][3]
-  //pk = 0.0f;
-  //ResTot[0] += kk*What2][3];
-  pTresTot[n].x = ResTot0;
-  
-  // kk[2][1][0]
-  kk = alpha*nx - wtilde*utilde; 
-  //kKk = K10(nx, alpha, wtilde, utilde);
-  ResTot1 += kk*What20;
-  
-  // kk[2][1][1]
-  kk = wtilde - utilde*nx*G2;
-  //kKk = K11(G2, nx, wtilde, utilde);
-  ResTot1 += kk*What21;
-  
-  // kk[2][1][2]
-  kk = utilde*ny - vtilde*G1*nx;
-  //kKk = K12(G1, nx, ny, utilde, vtilde);
-  ResTot1 += kk*What22;
-  
-  // kk[2][1][3]
-  kk = G1*nx;
-  //kKk = K13(G1, nx);
-  ResTot1 += kk*What23;
-  pTresTot[n].y = ResTot1;
-  
-  // kk[2][2][0]
-  kk = alpha*ny - wtilde*vtilde;
-  //kKk = K20(ny, alpha, wtilde, vtilde);
-  ResTot2 += kk*What20;
-  
-  // kk[2][2][1]
-  kk = vtilde*nx - G1*utilde*ny;
-  //kKk = K21(G1, nx, ny, utilde, vtilde);
-  ResTot2 += kk*What21;
-  
-  // kk[2][2][2]
-  kk = wtilde - vtilde*G2*ny;
-  //kKk = K22(G2, ny, wtilde, vtilde);
-  ResTot2 += kk*What22;
-  
-  // kk[2][2][3]
-  kk = G1*ny;
-  //kKk = K23(G1, ny);
-  ResTot2 += kk*What23;
-  pTresTot[n].z = ResTot2;
-  
-  // kk[2][3][0]
-  kk = alpha*wtilde - wtilde*htilde;
-  //kKk = K30(alpha, htilde, wtilde);
-  ResTot3 += kk*What20;
-  
-  // kk[2][3][1]
-  kk = nx*htilde - G1*utilde*wtilde;
-  //kKk = K31(G1, nx, htilde, wtilde, utilde);
-  ResTot3 += kk*What21;
-  
-  // kk[2][3][2]
-  kk = ny*htilde - G1*vtilde*wtilde;
-  //kKk = K32(G1, ny, htilde, wtilde, vtilde);
-  ResTot3 += kk*What22;
-  
-  // kk[2][3][3]
-  kk = G*wtilde;
-  //kKk = K33(G, wtilde);
-  ResTot3 += kk*What23;
-  pTresTot[n].w = ResTot3;   
-  */
   
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate Wtemp = Sum(K-*What)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
   real km;
-  //real ic = 
-  //  1.0/sqrt(G1*(htilde - half*(Sq(utilde) + Sq(vtilde))));
   real ic = one/sqrt(G1*htilde - alpha);
   real ctilde = one/ic;
 
@@ -511,99 +235,67 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   // Auxiliary variables
   real l1l2l3 = half*(l1 + l2) - l3;
   real l1l2 = half*(l1 - l2);
-  
-  // km[0][0][0]    
-  //km = ac*ic*l1l2l3 + l3 - l1l2*wtilde*ic;
+
   km = eulerKMP00(ac, ic, wtilde, l1l2l3, l1l2, l3);
   Wtemp0 += tl*km*What00;
   real nm00 = tl*km;
   
-  // km[0][0][1]
-  //km = ic*nx*l1l2 - ic*G1*uc*l1l2l3;
   km = eulerKMP01(G1, nx, ic, uc, l1l2l3, l1l2);
   Wtemp0 += tl*km*What01;
   real nm01 = tl*km;
   
-  // km[0][0][2]
-  //km = ic*(ny*l1l2 - G1*vc*l1l2l3);
   km = eulerKMP02(G1, ny, ic, vc, l1l2l3, l1l2);
   Wtemp0 += tl*km*What02;
   real nm02 = tl*km;
   
-  // km[0][0][3]
-  //km = G1*l1l2l3*Sq(ic);
   km = eulerKMP03(G1, ic, l1l2l3);
   Wtemp0 += tl*km*What03;
   real nm03 = tl*km;
   
-  // km[0][1][0]
-  //km = ac*(uc*l1l2l3 + nx*l1l2) - wtilde*(nx*l1l2l3 + uc*l1l2); 
   km = eulerKMP10(nx, ac, uc, wtilde, l1l2l3, l1l2);
   Wtemp1 += tl*km*What00;
   real nm10 = tl*km;
   
-  // km[0][1][1]
-  //km = l3 + Sq(nx)*l1l2l3 - uc*(nx*G2*l1l2 + G1*uc*l1l2l3);
   km = eulerKMP11(G1, G2, nx, uc, l1l2l3, l1l2, l3);
   Wtemp1 += tl*km*What01;
   real nm11 = tl*km;
   
-  // km[0][1][2]
-  //km = uc*ny*l1l2 + nx*ny*l1l2l3 - vc*G1*(nx*l1l2 + uc*l1l2l3);
   km = eulerKMP12(G1, nx, ny, uc, vc, l1l2l3, l1l2);
   Wtemp1 += tl*km*What02;
   real nm12 = tl*km;
   
-  // km[0][1][3]
-  //km = G1*(uc*l1l2l3 + nx*l1l2)*ic;
   km = eulerKMP13(G1, nx, ic, uc, l1l2l3, l1l2);
   Wtemp1 += tl*km*What03;
   real nm13 = tl*km;
 
-  // km[0][2][0]
-  //km = ac*(vc*l1l2l3 + ny*l1l2) - wtilde*(vc*l1l2 + ny*l1l2l3);
   km = eulerKMP20(ny, ac, vc, wtilde, l1l2l3, l1l2);
   Wtemp2 += tl*km*What00;
   real nm20 = tl*km;
   
-  // km[0][2][1]
-  //km = vc*nx*l1l2 - G1*uc*(vc*l1l2l3 + ny*l1l2) + nx*ny*l1l2l3;
   km = eulerKMP21(G1, nx, ny, uc, vc, l1l2l3, l1l2);
   Wtemp2 += tl*km*What01;
   real nm21 = tl*km;
   
-  // km[0][2][2]
-  //km = Sq(ny)*l1l2l3 + l3 - vc*(G2*ny*l1l2 + G1*vc*l1l2l3);
   km = eulerKMP22(G1, G2, ny, vc, l1l2l3, l1l2, l3);
   Wtemp2 += tl*km*What02;
   real nm22 = tl*km;
   
-  // km[0][2][3]
-  //km = G1*(vc*l1l2l3 + ny*l1l2)*ic;
   km = eulerKMP23(G1, ny, ic, vc, l1l2l3, l1l2);
   Wtemp2 += tl*km*What03;
   real nm23 = tl*km;
   
-  // km[0][3][0]
-  //km = ac*(wtilde*l1l2 + hc*l1l2l3) - wtilde*(hc*l1l2 + wtilde*l1l2l3);
   km = eulerKMP30(ac, hc, wtilde, l1l2l3, l1l2);
   Wtemp3 += tl*km*What00;
   real nm30 = tl*km;
   
-  // km[0][3][1]
-  //km = nx*(hc*l1l2 + wtilde*l1l2l3) - G1*uc*(wtilde*l1l2 + hc*l1l2l3);
   km = eulerKMP31(G1, nx, hc, uc, wtilde, l1l2l3, l1l2);
   Wtemp3 += tl*km*What01;
   real nm31 = tl*km;
   
-  // km[0][3][2]
-  //km = ny*(hc*l1l2 + wtilde*l1l2l3) - G1*vc*(wtilde*l1l2 + hc*l1l2l3);
   km = eulerKMP32(G1, ny, hc, vc, wtilde, l1l2l3, l1l2);
   Wtemp3 += tl*km*What02;
   real nm32 = tl*km;
   
-  // km[0][3][3]
-  //km = G1*ic*(hc*l1l2l3 + wtilde*l1l2) + l3;
   km = eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
   Wtemp3 += tl*km*What03;
   real nm33 = tl*km;
@@ -622,98 +314,66 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
   
-  // km[1][0][0]    
-  //km = ac*ic*l1l2l3 + l3 - l1l2*wtilde*ic;
   km = eulerKMP00(ac, ic, wtilde, l1l2l3, l1l2, l3);
   Wtemp0 += tl*km*What10;
   nm00 += tl*km;
   
-  // km[1][0][1]
-  //km = ic*nx*l1l2 - ic*G1*uc*l1l2l3;
   km = eulerKMP01(G1, nx, ic, uc, l1l2l3, l1l2);
   Wtemp0 += tl*km*What11;
   nm01 += tl*km;
   
-  // km[1][0][2]
-  //km = ic*(ny*l1l2 - G1*vc*l1l2l3);
   km = eulerKMP02(G1, ny, ic, vc, l1l2l3, l1l2);
   Wtemp0 += tl*km*What12;
   nm02 += tl*km;
   
-  // km[1][0][3]
-  //km = G1*l1l2l3*Sq(ic);
   km = eulerKMP03(G1, ic, l1l2l3);
   Wtemp0 += tl*km*What13;
   nm03 += tl*km;
   
-  // km[1][1][0]
-  //km = ac*(uc*l1l2l3 + nx*l1l2) - wtilde*(nx*l1l2l3 + uc*l1l2); 
   km = eulerKMP10(nx, ac, uc, wtilde, l1l2l3, l1l2);
   Wtemp1 += tl*km*What10;
   nm10 += tl*km;
   
-  // km[1][1][1]
-  //km = l3 + Sq(nx)*l1l2l3 - uc*(nx*G2*l1l2 + G1*uc*l1l2l3);
   km = eulerKMP11(G1, G2, nx, uc, l1l2l3, l1l2, l3);
   Wtemp1 += tl*km*What11;
   nm11 += tl*km;
   
-  // km[1][1][2]
-  //km = uc*ny*l1l2 + nx*ny*l1l2l3 - vc*G1*(nx*l1l2 + uc*l1l2l3);
   km = eulerKMP12(G1, nx, ny, uc, vc, l1l2l3, l1l2);
   Wtemp1 += tl*km*What12;
   nm12 += tl*km;
   
-  // km[1][1][3]
-  //km = G1*(uc*l1l2l3 + nx*l1l2)*ic;
   km = eulerKMP13(G1, nx, ic, uc, l1l2l3, l1l2);
   Wtemp1 += tl*km*What13;
   nm13 += tl*km;
   
-  // km[1][2][0]
-  //km = ac*(vc*l1l2l3 + ny*l1l2) - wtilde*(vc*l1l2 + ny*l1l2l3);
   km = eulerKMP20(ny, ac, vc, wtilde, l1l2l3, l1l2);
   Wtemp2 += tl*km*What10;
   nm20 += tl*km;
   
-  // km[1][2][1]
-  //km = vc*nx*l1l2 + nx*ny*l1l2l3 - G1*uc*(vc*l1l2l3 + ny*l1l2);
   km = eulerKMP21(G1, nx, ny, uc, vc, l1l2l3, l1l2);
   Wtemp2 += tl*km*What11;
   nm21 += tl*km;
   
-  // km[1][2][2]
-  //km = Sq(ny)*l1l2l3 + l3 - vc*(G2*ny*l1l2 + G1*vc*l1l2l3);
   km = eulerKMP22(G1, G2, ny, vc, l1l2l3, l1l2, l3);
   Wtemp2 += tl*km*What12;
   nm22 += tl*km;
   
-  // km[1][2][3]
-  //km = G1*(vc*l1l2l3 + ny*l1l2)*ic;
   km = eulerKMP23(G1, ny, ic, vc, l1l2l3, l1l2);
   Wtemp2 += tl*km*What13;
   nm23 += tl*km;
   
-  // km[1][3][0]
-  //km = ac*(wtilde*l1l2 + hc*l1l2l3) - wtilde*(hc*l1l2 + wtilde*l1l2l3);
   km = eulerKMP30(ac, hc, wtilde, l1l2l3, l1l2);
   Wtemp3 += tl*km*What10;
   nm30 += tl*km;
   
-  // km[1][3][1]
-  //km = nx*(hc*l1l2 + wtilde*l1l2l3) - G1*uc*(wtilde*l1l2 + hc*l1l2l3);
   km = eulerKMP31(G1, nx, hc, uc, wtilde, l1l2l3, l1l2);
   Wtemp3 += tl*km*What11;
   nm31 += tl*km;
   
-  // km[1][3][2]
-  //km = ny*(hc*l1l2 + wtilde*l1l2l3) - G1*vc*(wtilde*l1l2 + hc*l1l2l3);
   km = eulerKMP32(G1, ny, hc, vc, wtilde, l1l2l3, l1l2);
   Wtemp3 += tl*km*What12;
   nm32 += tl*km;
   
-  // km[1][3][3]
-  //km = G1*ic*(hc*l1l2l3 + wtilde*l1l2) + l3;
   km = eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
   Wtemp3 += tl*km*What13;
   nm33 += tl*km;
@@ -732,102 +392,70 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
   
-  // km[2][0][0]    
-  //km = ac*ic*l1l2l3 + l3 - l1l2*wtilde*ic;
   km = eulerKMP00(ac, ic, wtilde, l1l2l3, l1l2, l3);
   Wtemp0 += tl*km*What20;
   nm00 += tl*km;
   
-  // km[2][0][1]
-  //km = ic*(nx*l1l2 - G1*uc*l1l2l3);
   km = eulerKMP01(G1, nx, ic, uc, l1l2l3, l1l2);
   Wtemp0 += tl*km*What21;
   nm01 += tl*km;
   
-  // km[2][0][2]
-  //km = ic*(ny*l1l2 - G1*vc*l1l2l3);
   km = eulerKMP02(G1, ny, ic, vc, l1l2l3, l1l2);
   Wtemp0 += tl*km*What22;
   nm02 += tl*km;
   
-  // km[2][0][3]
-  //km = G1*l1l2l3*Sq(ic);
   km = eulerKMP03(G1, ic, l1l2l3);
   Wtemp0 += tl*km*What23;
   nm03 += tl*km;
   
-  // km[2][1][0]
-  //km = ac*(uc*l1l2l3 + nx*l1l2) - wtilde*(nx*l1l2l3 + uc*l1l2); 
   km = eulerKMP10(nx, ac, uc, wtilde, l1l2l3, l1l2);
   Wtemp1 += tl*km*What20;
   nm10 += tl*km;
   
-  // km[2][1][1]
-  //km = l3 + Sq(nx)*l1l2l3 - uc*(nx*G2*l1l2 + G1*uc*l1l2l3);
   km = eulerKMP11(G1, G2, nx, uc, l1l2l3, l1l2, l3);
   Wtemp1 += tl*km*What21;
   nm11 += tl*km;
   
-  // km[2][1][2]
-  //km = uc*ny*l1l2 + nx*ny*l1l2l3 - vc*G1*(nx*l1l2 + uc*l1l2l3);
   km = eulerKMP12(G1, nx, ny, uc, vc, l1l2l3, l1l2);
   Wtemp1 += tl*km*What22;
   nm12 += tl*km;
   
-  // km[2][1][3]
-  //km = G1*(uc*l1l2l3 + nx*l1l2)*ic;
   km = eulerKMP13(G1, nx, ic, uc, l1l2l3, l1l2);
   Wtemp1 += tl*km*What23;
   nm13 += tl*km;
   
-  // km[2][2][0]
-  //km = ac*(vc*l1l2l3 + ny*l1l2) - wtilde*(vc*l1l2 + ny*l1l2l3);
   km = eulerKMP20(ny, ac, vc, wtilde, l1l2l3, l1l2);
   Wtemp2 += tl*km*What20;
   nm20 += tl*km;
   
-  // km[2][2][1]
-  //km = vc*nx*l1l2 + nx*ny*l1l2l3 - G1*uc*(vc*l1l2l3 + ny*l1l2);
   km = eulerKMP21(G1, nx, ny, uc, vc, l1l2l3, l1l2);
   Wtemp2 += tl*km*What21;
   nm21 += tl*km;
   
-  // km[2][2][2]
-  //km = Sq(ny)*l1l2l3 + l3 - vc*(G2*ny*l1l2 + G1*vc*l1l2l3);
   km = eulerKMP22(G1, G2, ny, vc, l1l2l3, l1l2, l3);
   Wtemp2 += tl*km*What22;
   nm22 += tl*km;
   
-  // km[2][2][3]
-  //km = G1*(vc*l1l2l3 + ny*l1l2)*ic;
   km = eulerKMP23(G1, ny, ic, vc, l1l2l3, l1l2);
   Wtemp2 += tl*km*What23;
   nm23 += tl*km;
   
-  // km[2][3][0]
-  //km = ac*(wtilde*l1l2 + hc*l1l2l3) - wtilde*(hc*l1l2 + wtilde*l1l2l3);
   km = eulerKMP30(ac, hc, wtilde, l1l2l3, l1l2);
   Wtemp3 += tl*km*What20;
   nm30 += tl*km;
   
-  // km[2][3][1]
-  //km = nx*(hc*l1l2 + wtilde*l1l2l3) - G1*uc*(wtilde*l1l2 + hc*l1l2l3);
   km = eulerKMP31(G1, nx, hc, uc, wtilde, l1l2l3, l1l2);
   Wtemp3 += tl*km*What21;
   nm31 += tl*km;
   
-  // km[2][3][2]
-  //km = ny*(hc*l1l2 + wtilde*l1l2l3) - G1*vc*(wtilde*l1l2 + hc*l1l2l3);
   km = eulerKMP32(G1, ny, hc, vc, wtilde, l1l2l3, l1l2);
   Wtemp3 += tl*km*What22;
   nm32 += tl*km;
   
-  // km[2][3][3]
-  //km = G1*ic*(hc*l1l2l3 + wtilde*l1l2) + l3;
   km = eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
   Wtemp3 += tl*km*What23;
   nm33 += tl*km;
-
+  
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate inverse of NM = Sum(K-)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -880,7 +508,6 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
 
   if (det != zero) det = one/det;
 
-  
   Wtilde0 *= det;
   Wtilde1 *= det;
   Wtilde2 *= det;
@@ -927,27 +554,19 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
-  
-  // kp[0][0][0]    
-  //kp = ac*ic*l1l2l3 + l3 - l1l2*wtilde*ic;
+
   kp = eulerKMP00(ac, ic, wtilde, l1l2l3, l1l2, l3); 
   ResN   = kp*What00;
   ResLDA =-kp*Wtemp0;
   
-  // kp[0][0][1]
-  //kp = ic*(nx*l1l2 - G1*uc*l1l2l3);
   kp = eulerKMP01(G1, nx, ic, uc, l1l2l3, l1l2);
   ResN   += kp*What01;
   ResLDA -= kp*Wtemp1;
   
-  // kp[0][0][2]
-  //kp = ic*(ny*l1l2 - G1*vc*l1l2l3);
   kp = eulerKMP02(G1, ny, ic, vc, l1l2l3, l1l2);
   ResN   += kp*What02;
   ResLDA -= kp*Wtemp2;
   
-  // kp[0][0][3]
-  //kp = G1*l1l2l3*Sq(ic);
   kp = eulerKMP03(G1, ic, l1l2l3);
   ResN   += kp*What03;
   ResLDA -= kp*Wtemp3;
@@ -955,26 +574,18 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   pTresN0[n].x   = half*ResN;
   pTresLDA0[n].x = half*ResLDA;
   
-  // kp[0][1][0]
-  //kp = ac*(uc*l1l2l3 + nx*l1l2) - wtilde*(nx*l1l2l3 + uc*l1l2); 
   kp = eulerKMP10(nx, ac, uc, wtilde, l1l2l3, l1l2);
   ResN   = kp*What00;
   ResLDA =-kp*Wtemp0;
   
-  // kp[0][1][1]
-  //kp = l3 + Sq(nx)*l1l2l3 -uc*(nx*G2*l1l2 + G1*uc*l1l2l3);
   kp = eulerKMP11(G1, G2, nx, uc, l1l2l3, l1l2, l3);
   ResN   += kp*What01;
   ResLDA -= kp*Wtemp1;
   
-  // kp[0][1][2]
-  //kp = uc*ny*l1l2 + nx*ny*l1l2l3 - vc*G1*(nx*l1l2 + uc*l1l2l3);
   kp = eulerKMP12(G1, nx, ny, uc, vc, l1l2l3, l1l2);
   ResN   += kp*What02;
   ResLDA -= kp*Wtemp2;
   
-  // kp[0][1][3]
-  //kp = G1*(uc*l1l2l3 + nx*l1l2)*ic;
   kp = eulerKMP13(G1, nx, ic, uc, l1l2l3, l1l2);
   ResN   += kp*What03;
   ResLDA -= kp*Wtemp3;
@@ -982,26 +593,18 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   pTresN0[n].y   = half*ResN;
   pTresLDA0[n].y = half*ResLDA;
   
-  // kp[0][2][0]
-  //kp = ac*(vc*l1l2l3 + ny*l1l2) - wtilde*(vc*l1l2 + ny*l1l2l3);
   kp = eulerKMP20(ny, ac, vc, wtilde, l1l2l3, l1l2);
   ResN   = kp*What00;
   ResLDA =-kp*Wtemp0;
   
-  // kp[0][2][1]
-  //kp = vc*nx*l1l2 + nx*ny*l1l2l3 - G1*uc*(vc*l1l2l3 + ny*l1l2);
   kp = eulerKMP21(G1, nx, ny, uc, vc, l1l2l3, l1l2);
   ResN   += kp*What01;
   ResLDA -= kp*Wtemp1;
   
-  // kp[0][2][2]
-  //kp = Sq(ny)*l1l2l3 + l3 - vc*(G2*ny*l1l2 + G1*vc*l1l2l3);
   kp = eulerKMP22(G1, G2, ny, vc, l1l2l3, l1l2, l3);
   ResN   += kp*What02;
   ResLDA -= kp*Wtemp2;
   
-  // kp[0][2][3]
-  //kp = G1*(vc*l1l2l3 + ny*l1l2)*ic;
   kp = eulerKMP23(G1, ny, ic, vc, l1l2l3, l1l2);
   ResN   += kp*What03;
   ResLDA -= kp*Wtemp3;
@@ -1009,26 +612,18 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   pTresN0[n].z   = half*ResN;
   pTresLDA0[n].z = half*ResLDA;
   
-  // kp[0][3][0]
-  //kp = ac*(wtilde*l1l2 + hc*l1l2l3) - wtilde*(hc*l1l2 + wtilde*l1l2l3);
   kp = eulerKMP30(ac, hc, wtilde, l1l2l3, l1l2);
   ResN   = kp*What00;
   ResLDA =-kp*Wtemp0;
   
-  // kp[0][3][1]
-  //kp = nx*(hc*l1l2 + wtilde*l1l2l3) - G1*uc*(wtilde*l1l2 + hc*l1l2l3);
   kp = eulerKMP31(G1, nx, hc, uc, wtilde, l1l2l3, l1l2);
   ResN   += kp*What01;
   ResLDA -= kp*Wtemp1;
   
-  // kp[0][3][2]
-  //kp = ny*(hc*l1l2 + wtilde*l1l2l3) - G1*vc*(wtilde*l1l2 + hc*l1l2l3);
   kp = eulerKMP32(G1, ny, hc, vc, wtilde, l1l2l3, l1l2);
   ResN   += kp*What02;
   ResLDA -= kp*Wtemp2;
   
-  // kp[0][3][3]
-  //kp = G1*ic*(hc*l1l2l3 + wtilde*l1l2) + l3;
   kp = eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
   ResN   += kp*What03;
   ResLDA -= kp*Wtemp3;
@@ -1049,26 +644,18 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
   
-  // kp[1][0][0]    
-  //kp = ac*ic*l1l2l3 + l3 - l1l2*wtilde*ic;
   kp = eulerKMP00(ac, ic, wtilde, l1l2l3, l1l2, l3);
   ResN   =  kp*What10;
   ResLDA = -kp*Wtemp0;
   
-  // kp[1][0][1]
-  //kp = ic*(nx*l1l2 - G1*uc*l1l2l3);
   kp = eulerKMP01(G1, nx, ic, uc, l1l2l3, l1l2);
   ResN   += kp*What11;
   ResLDA -= kp*Wtemp1;
   
-  // kp[1][0][2]
-  //kp = ic*(ny*l1l2 - G1*vc*l1l2l3);
   kp = eulerKMP02(G1, ny, ic, vc, l1l2l3, l1l2);
   ResN   += kp*What12;
   ResLDA -= kp*Wtemp2;
   
-  // kp[1][0][3]
-  //kp = G1*l1l2l3*Sq(ic);
   kp = eulerKMP03(G1, ic, l1l2l3);
   ResN   += kp*What13;
   ResLDA -= kp*Wtemp3;
@@ -1076,26 +663,18 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   pTresN1[n].x   = half*ResN;
   pTresLDA1[n].x = half*ResLDA;
   
-  // kp[1][1][0]
-  //kp = ac*(uc*l1l2l3 + nx*l1l2) - wtilde*(nx*l1l2l3 + uc*l1l2); 
   kp = eulerKMP10(nx, ac, uc, wtilde, l1l2l3, l1l2);
   ResN   = kp*What10;
   ResLDA =-kp*Wtemp0;
   
-  // kp[1][1][1]
-  //kp = l3 + Sq(nx)*l1l2l3 - uc*(nx*G2*l1l2 + G1*uc*l1l2l3);
   kp = eulerKMP11(G1, G2, nx, uc, l1l2l3, l1l2, l3);
   ResN   += kp*What11;
   ResLDA -= kp*Wtemp1;
   
-  // kp[1][1][2]
-  //kp = uc*ny*l1l2 + nx*ny*l1l2l3 - vc*G1*(nx*l1l2 + uc*l1l2l3);
   kp = eulerKMP12(G1, nx, ny, uc, vc, l1l2l3, l1l2);
   ResN   += kp*What12;
   ResLDA -= kp*Wtemp2;
   
-  // kp[1][1][3]
-  //kp = G1*(uc*l1l2l3 + nx*l1l2)*ic;
   kp = eulerKMP13(G1, nx, ic, uc, l1l2l3, l1l2);
   ResN   += kp*What13;
   ResLDA -= kp*Wtemp3;
@@ -1103,26 +682,18 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   pTresN1[n].y   = half*ResN;
   pTresLDA1[n].y = half*ResLDA;
   
-  // kp[1][2][0]
-  //kp = ac*(vc*l1l2l3 + ny*l1l2) - wtilde*(vc*l1l2 + ny*l1l2l3);
   kp = eulerKMP20(ny, ac, vc, wtilde, l1l2l3, l1l2);
   ResN   =  kp*What10;
   ResLDA = -kp*Wtemp0;
   
-  // kp[1][2][1]
-  //kp = vc*nx*l1l2 + nx*ny*l1l2l3 - G1*uc*(vc*l1l2l3 + ny*l1l2);
   kp = eulerKMP21(G1, nx, ny, uc, vc, l1l2l3, l1l2);
   ResN   += kp*What11;
   ResLDA -= kp*Wtemp1;
   
-  // kp[1][2][2]
-  //kp = Sq(ny)*l1l2l3 + l3 - vc*(G2*ny*l1l2 + G1*vc*l1l2l3);
   kp = eulerKMP22(G1, G2, ny, vc, l1l2l3, l1l2, l3);
   ResN   += kp*What12;
   ResLDA -= kp*Wtemp2;
  
-  // kp[1][2][3]
-  //kp = G1*(vc*l1l2l3 + ny*l1l2)*ic;
   kp = eulerKMP23(G1, ny, ic, vc, l1l2l3, l1l2);
   ResN   += kp*What13;
   ResLDA -= kp*Wtemp3;
@@ -1130,26 +701,18 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   pTresN1[n].z   = half*ResN;
   pTresLDA1[n].z = half*ResLDA;
   
-  // kp[1][3][0]
-  //kp = ac*(wtilde*l1l2 + hc*l1l2l3) - wtilde*(hc*l1l2 + wtilde*l1l2l3);
   kp = eulerKMP30(ac, hc, wtilde, l1l2l3, l1l2);
   ResN   = kp*What10;
   ResLDA =-kp*Wtemp0;
   
-  // kp[1][3][1]
-  //kp = nx*(hc*l1l2 + wtilde*l1l2l3) - G1*uc*(wtilde*l1l2 + hc*l1l2l3);
   kp = eulerKMP31(G1, nx, hc, uc, wtilde, l1l2l3, l1l2);
   ResN   += kp*What11;
   ResLDA -= kp*Wtemp1;
   
-  // kp[1][3][2]
-  //kp = ny*(hc*l1l2 + wtilde*l1l2l3) - G1*vc*(wtilde*l1l2 + hc*l1l2l3);
   kp = eulerKMP32(G1, ny, hc, vc, wtilde, l1l2l3, l1l2);
   ResN   += kp*What12;
   ResLDA -= kp*Wtemp2;
   
-  // kp[1][3][3]
-  //kp = G1*ic*(hc*l1l2l3 + wtilde*l1l2) + l3;
   kp = eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
   ResN   += kp*What13;
   ResLDA -= kp*Wtemp3;
@@ -1170,26 +733,18 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
   
-  // kp[2][0][0]    
-  //kp = ac*ic*l1l2l3 + l3 - l1l2*wtilde*ic;
   kp = eulerKMP00(ac, ic, wtilde, l1l2l3, l1l2, l3);
   ResN   =  kp*What20;
   ResLDA = -kp*Wtemp0;
   
-  // kp[2][0][1]
-  //kp = ic*(nx*l1l2 - G1*uc*l1l2l3);
   kp = eulerKMP01(G1, nx, ic, uc, l1l2l3, l1l2);
   ResN   += kp*What21;
   ResLDA -= kp*Wtemp1;
   
-  // kp[2][0][2]
-  //kp = ic*(ny*l1l2 - G1*vc*l1l2l3);
   kp = eulerKMP02(G1, ny, ic, vc, l1l2l3, l1l2);
   ResN   += kp*What22;
   ResLDA -= kp*Wtemp2;
   
-  // kp[2][0][3]
-  //kp = G1*l1l2l3*Sq(ic);
   kp = eulerKMP03(G1, ic, l1l2l3);
   ResN   += kp*What23;
   ResLDA -= kp*Wtemp3;
@@ -1197,26 +752,18 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   pTresN2[n].x   = half*ResN;
   pTresLDA2[n].x = half*ResLDA;
   
-  // kp[2][1][0]
-  //kp = ac*(uc*l1l2l3 + nx*l1l2) - wtilde*(nx*l1l2l3 + uc*l1l2); 
   kp = eulerKMP10(nx, ac, uc, wtilde, l1l2l3, l1l2);
   ResN   = kp*What20;
   ResLDA =-kp*Wtemp0;
   
-  // kp[2][1][1]
-  //kp = l3 + Sq(nx)*l1l2l3 - uc*(nx*G2*l1l2 + G1*uc*l1l2l3);
   kp = eulerKMP11(G1, G2, nx, uc, l1l2l3, l1l2, l3);
   ResN   += kp*What21;
   ResLDA -= kp*Wtemp1;
   
-  // kp[2][1][2]
-  //kp = uc*ny*l1l2 + nx*ny*l1l2l3 - vc*G1*(nx*l1l2 + uc*l1l2l3);
   kp = eulerKMP12(G1, nx, ny, uc, vc, l1l2l3, l1l2);
   ResN   += kp*What22;
   ResLDA -= kp*Wtemp2;
   
-  // kp[2][1][3]
-  //kp = G1*(uc*l1l2l3 + nx*l1l2)*ic;
   kp = eulerKMP13(G1, nx, ic, uc, l1l2l3, l1l2);
   ResN   += kp*What23;
   ResLDA -= kp*Wtemp3;
@@ -1224,26 +771,18 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   pTresN2[n].y   = half*ResN;
   pTresLDA2[n].y = half*ResLDA;
   
-  // kp[2][2][0]
-  //kp = ac*(vc*l1l2l3 + ny*l1l2) - wtilde*(vc*l1l2 + ny*l1l2l3);
   kp = eulerKMP20(ny, ac, vc, wtilde, l1l2l3, l1l2);
   ResN   = kp*What20;
   ResLDA =-kp*Wtemp0;
   
-  // kp[2][2][1]
-  //kp = vc*nx*l1l2 + nx*ny*l1l2l3 - G1*uc*(vc*l1l2l3 + ny*l1l2);
   kp = eulerKMP21(G1, nx, ny, uc, vc, l1l2l3, l1l2);
   ResN   += kp*What21;
   ResLDA -= kp*Wtemp1;
   
-  // kp[2][2][2]
-  //kp = Sq(ny)*l1l2l3 + l3 - vc*(G2*ny*l1l2 + G1*vc*l1l2l3);
   kp = eulerKMP22(G1, G2, ny, vc, l1l2l3, l1l2, l3);
   ResN   += kp*What22;
   ResLDA -= kp*Wtemp2;
   
-  // kp[2][2][3]
-  //kp = G1*(vc*l1l2l3 + ny*l1l2)*ic;
   kp = eulerKMP23(G1, ny, ic, vc, l1l2l3, l1l2);
   ResN   += kp*What23;
   ResLDA -= kp*Wtemp3;
@@ -1251,26 +790,18 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   pTresN2[n].z   = half*ResN;
   pTresLDA2[n].z = half*ResLDA;
   
-  // kp[2][3][0]
-  //kp = ac*(wtilde*l1l2 + hc*l1l2l3) - wtilde*(hc*l1l2 + wtilde*l1l2l3);
   kp = eulerKMP30(ac, hc, wtilde, l1l2l3, l1l2);
   ResN   =  kp*What20;
   ResLDA = -kp*Wtemp0;
   
-  // kp[2][3][1]
-  //kp = nx*(hc*l1l2 + wtilde*l1l2l3) - G1*uc*(wtilde*l1l2 + hc*l1l2l3);
   kp = eulerKMP31(G1, nx, hc, uc, wtilde, l1l2l3, l1l2);
   ResN   += kp*What21;
   ResLDA -= kp*Wtemp1;
 
-  // kp[2][3][2]
-  //kp = ny*(hc*l1l2 + wtilde*l1l2l3) - G1*vc*(wtilde*l1l2 + hc*l1l2l3);
   kp = eulerKMP32(G1, ny, hc, vc, wtilde, l1l2l3, l1l2);
   ResN   += kp*What22;
   ResLDA -= kp*Wtemp2;
   
-  // kp[2][3][3]
-  //kp = G1*ic*(hc*l1l2l3 + wtilde*l1l2) + l3;
   kp = eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
   ResN   += kp*What23;
   ResLDA -= kp*Wtemp3;
@@ -1345,25 +876,6 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   real tny1 = pTn1[n].y;
   real tny2 = pTn2[n].y;
   real tny3 = pTn3[n].y;
-
-  //real dPotdx =
-  //  tnx1*tl1*pVpot[v1] + tnx2*tl2*pVpot[v2] + tnx3*tl3*pVpot[v3];
-  //real dPotdy =
-  //  tny1*tl1*pVpot[v1] + tny2*tl2*pVpot[v2] + tny3*tl3*pVpot[v3];
-  
-  // -integral(Source*dS)
-  //real ResSource0 = zero;
-  //real ResSource1 = half*rhoAve*dPotdx;
-  //real ResSource2 = half*rhoAve*dPotdy;
-
-  // Total residue
-  //real ResTot0 = ResSource0;
-  //real ResTot1 = ResSource1;
-  //real ResTot2 = ResSource2;
-  
-  //real Wtemp0 = ResSource0;
-  //real Wtemp1 = ResSource1;
-  //real Wtemp2 = ResSource2;
 
   real ResTot0 = pResSource[n].x;
   real ResTot1 = pResSource[n].y;
@@ -2056,7 +1568,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
   pTresN2[n]   = half*ResN;
   pTresLDA2[n] = half*ResLDA;
 }
-
+  
 //######################################################################
 /*! \brief Kernel calculating spacial residue for all triangles
 

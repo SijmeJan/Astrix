@@ -1,5 +1,5 @@
 // -*-c++-*-
-/*! \file totalresII.cu
+/*! \file totalresLDA.cu
 \brief File containing functions for calculating space-time LDA residue*/
 #include <iostream>
 
@@ -90,8 +90,6 @@ void CalcTotalResLDASingle(int n,
   // Calculate Wtemp = Sum(K-*What)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
-  //real km;
-
   real hc = htilde*ic;
   real uc = utilde*ic;
   real vc = vtilde*ic;
@@ -121,7 +119,7 @@ void CalcTotalResLDASingle(int n,
   // Auxiliary variables
   real l1l2l3 = half*(l1 + l2) - l3;
   real l1l2 = half*(l1 - l2);
-  
+
   real nm00 = tl*eulerKMP00(ac, ic, wtilde, l1l2l3, l1l2, l3);
   real nm01 = tl*eulerKMP01(G1, nx, ic, uc, l1l2l3, l1l2);
   real nm02 = tl*eulerKMP02(G1, ny, ic, vc, l1l2l3, l1l2);
@@ -138,72 +136,6 @@ void CalcTotalResLDASingle(int n,
   real nm31 = tl*eulerKMP31(G1, nx, hc, uc, wtilde, l1l2l3, l1l2);
   real nm32 = tl*eulerKMP32(G1, ny, hc, vc, wtilde, l1l2l3, l1l2);
   real nm33 = tl*eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
-
-  /*
-  // km000    
-  km = ac*ic*l1l2l3 + l3 - l1l2*wtilde*ic;
-  real nm00 = tl*km;
-  
-  // km001
-  km = ic*nx*l1l2 - ic*G1*uc*l1l2l3;
-  real nm01 = tl*km;
-  
-  // km002
-  km = ic*(ny*l1l2 - G1*vc*l1l2l3);
-  real nm02 = tl*km;
-  
-  // km003
-  km = G1*l1l2l3*Sq(ic);
-  real nm03 = tl*km;
-  
-  // km010
-  km = ac*(uc*l1l2l3 + nx*l1l2) - wtilde*(nx*l1l2l3 + uc*l1l2); 
-  real nm10 = tl*km;
-  
-  // km011
-  km = l3 + Sq(nx)*l1l2l3 - uc*(nx*G2*l1l2 + G1*uc*l1l2l3);
-  real nm11 = tl*km;
-  
-  // km012
-  km = uc*ny*l1l2 + nx*ny*l1l2l3 - vc*G1*(nx*l1l2 + uc*l1l2l3);
-  real nm12 = tl*km;
-  
-  // km013
-  km = G1*(uc*l1l2l3 + nx*l1l2)*ic;
-  real nm13 = tl*km;
-
-  // km020
-  km = ac*(vc*l1l2l3 + ny*l1l2) - wtilde*(vc*l1l2 + ny*l1l2l3);
-  real nm20 = tl*km;
-  
-  // km021
-  km = vc*nx*l1l2 - G1*uc*(vc*l1l2l3 + ny*l1l2) + nx*ny*l1l2l3;
-  real nm21 = tl*km;
-  
-  // km022
-  km = Sq(ny)*l1l2l3 + l3 - vc*(G2*ny*l1l2 + G1*vc*l1l2l3);
-  real nm22 = tl*km;
-  
-  // km023
-  km = G1*(vc*l1l2l3 + ny*l1l2)*ic;
-  real nm23 = tl*km;
-  
-  // km030
-  km = ac*(wtilde*l1l2 + hc*l1l2l3) - wtilde*(hc*l1l2 + wtilde*l1l2l3);
-  real nm30 = tl*km;
-  
-  // km031
-  km = nx*(hc*l1l2 + wtilde*l1l2l3) - G1*uc*(wtilde*l1l2 + hc*l1l2l3);
-  real nm31 = tl*km;
-  
-  // km032
-  km = ny*(hc*l1l2 + wtilde*l1l2l3) - G1*vc*(wtilde*l1l2 + hc*l1l2l3);
-  real nm32 = tl*km;
-  
-  // km033
-  km = G1*ic*(hc*l1l2l3 + wtilde*l1l2) + l3;
-  real nm33 = tl*km;
-  */
   
   // Second direction         
   real tnx2 = pTn2[n].x;
@@ -224,7 +156,7 @@ void CalcTotalResLDASingle(int n,
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
-  
+
   nm00 += tl*eulerKMP00(ac, ic, wtilde, l1l2l3, l1l2, l3);
   nm01 += tl*eulerKMP01(G1, nx, ic, uc, l1l2l3, l1l2);
   nm02 += tl*eulerKMP02(G1, ny, ic, vc, l1l2l3, l1l2);
@@ -241,77 +173,6 @@ void CalcTotalResLDASingle(int n,
   nm31 += tl*eulerKMP31(G1, nx, hc, uc, wtilde, l1l2l3, l1l2);
   nm32 += tl*eulerKMP32(G1, ny, hc, vc, wtilde, l1l2l3, l1l2);
   nm33 += tl*eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
-
-  /*
-  // km100    
-  km = ac*ic*l1l2l3 + l3 - l1l2*wtilde*ic;
-  nm00 += tl*km;
-  
-  // km101
-  km = ic*nx*l1l2 - ic*G1*uc*l1l2l3;
-  nm01 += tl*km;
-  
-  // km102
-  km = ic*(ny*l1l2 - G1*vc*l1l2l3);
-  nm02 += tl*km;
-  
-  // km103
-  km = G1*l1l2l3*Sq(ic);
-  nm03 += tl*km;
-  
-  // km110
-  km = ac*(uc*l1l2l3 + nx*l1l2) - wtilde*(nx*l1l2l3 + uc*l1l2); 
-  nm10 += tl*km;
-  
-  // km111
-  km = l3 + Sq(nx)*l1l2l3 - uc*(nx*G2*l1l2 + G1*uc*l1l2l3);
-  nm11 += tl*km;
-  
-  // km112
-  km = uc*ny*l1l2 + nx*ny*l1l2l3 -
-    vc*G1*(nx*l1l2 + uc*l1l2l3);
-  nm12 += tl*km;
-  
-  // km113
-  km = G1*(uc*l1l2l3 + nx*l1l2)*ic;
-  nm13 += tl*km;
-  
-  // km120
-  km = ac*(vc*l1l2l3 + ny*l1l2) - wtilde*(vc*l1l2 + ny*l1l2l3);
-  nm20 += tl*km;
-  
-  // km121
-  km = vc*nx*l1l2 + nx*ny*l1l2l3 - G1*uc*(vc*l1l2l3 + ny*l1l2);
-  nm21 += tl*km;
-  
-  // km122
-  km = Sq(ny)*l1l2l3 + l3 -
-    vc*(G2*ny*l1l2 + G1*vc*l1l2l3);
-  nm22 += tl*km;
-  
-  // km123
-  km = G1*(vc*l1l2l3 + ny*l1l2)*ic;
-  nm23 += tl*km;
-  
-  // km130
-  km = ac*(wtilde*l1l2 + hc*l1l2l3) -
-    wtilde*(hc*l1l2 + wtilde*l1l2l3);
-  nm30 += tl*km;
-  
-  // km131
-  km = nx*(hc*l1l2 + wtilde*l1l2l3) -
-    G1*uc*(wtilde*l1l2 + hc*l1l2l3);
-  nm31 += tl*km;
-  
-  // km132
-  km = ny*(hc*l1l2 + wtilde*l1l2l3) -
-    G1*vc*(wtilde*l1l2 + hc*l1l2l3);
-  nm32 += tl*km;
-  
-  // km133
-  km = G1*ic*(hc*l1l2l3 + wtilde*l1l2) + l3;
-  nm33 += tl*km;
-  */
   
   // Third direction
   real tnx3 = pTn3[n].x;
@@ -332,7 +193,7 @@ void CalcTotalResLDASingle(int n,
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
-  
+
   nm00 += tl*eulerKMP00(ac, ic, wtilde, l1l2l3, l1l2, l3);
   nm01 += tl*eulerKMP01(G1, nx, ic, uc, l1l2l3, l1l2);
   nm02 += tl*eulerKMP02(G1, ny, ic, vc, l1l2l3, l1l2);
@@ -349,81 +210,6 @@ void CalcTotalResLDASingle(int n,
   nm31 += tl*eulerKMP31(G1, nx, hc, uc, wtilde, l1l2l3, l1l2);
   nm32 += tl*eulerKMP32(G1, ny, hc, vc, wtilde, l1l2l3, l1l2);
   nm33 += tl*eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
-
-  /*
-  // km200    
-  km = ac*ic*l1l2l3 + l3 - l1l2*wtilde*ic;
-  nm00 += tl*km;
-  
-  // km201
-  km = ic*(nx*l1l2 - G1*uc*l1l2l3);
-  nm01 += tl*km;
-  
-  // km202
-  km = ic*(ny*l1l2 - G1*vc*l1l2l3);
-  nm02 += tl*km;
-  
-  // km203
-  km = G1*l1l2l3*Sq(ic);
-  nm03 += tl*km;
-  
-  // km210
-  km = ac*(uc*l1l2l3 + nx*l1l2) -
-    wtilde*(nx*l1l2l3 + uc*l1l2); 
-  nm10 += tl*km;
-  
-  // km211
-  km = l3 + Sq(nx)*l1l2l3 -
-    uc*(nx*G2*l1l2 + G1*uc*l1l2l3);
-  nm11 += tl*km;
-  
-  // km212
-  km = uc*ny*l1l2 + nx*ny*l1l2l3 -
-    vc*G1*(nx*l1l2 + uc*l1l2l3);
-  nm12 += tl*km;
-  
-  // km213
-  km = G1*(uc*l1l2l3 + nx*l1l2)*ic;
-  nm13 += tl*km;
-  
-  // km220
-  km = ac*(vc*l1l2l3 + ny*l1l2) - 
-    wtilde*(vc*l1l2 + ny*l1l2l3);
-  nm20 += tl*km;
-  
-  // km221
-  km = vc*nx*l1l2 + nx*ny*l1l2l3 -
-    G1*uc*(vc*l1l2l3 + ny*l1l2);
-  nm21 += tl*km;
-  
-  // km222
-  km = Sq(ny)*l1l2l3 + l3 -
-    vc*(G2*ny*l1l2 + G1*vc*l1l2l3);
-  nm22 += tl*km;
-  
-  // km223
-  km = G1*(vc*l1l2l3 + ny*l1l2)*ic;
-  nm23 += tl*km;
-  
-  // km230
-  km = ac*(wtilde*l1l2 + hc*l1l2l3) -
-    wtilde*(hc*l1l2 + wtilde*l1l2l3);
-  nm30 += tl*km;
-  
-  // km231
-  km = nx*(hc*l1l2 + wtilde*l1l2l3) -
-    G1*uc*(wtilde*l1l2 + hc*l1l2l3);
-  nm31 += tl*km;
-  
-  // km232
-  km = ny*(hc*l1l2 + wtilde*l1l2l3) -
-    G1*vc*(wtilde*l1l2 + hc*l1l2l3);
-  nm32 += tl*km;
-  
-  // km233
-  km = G1*ic*(hc*l1l2l3 + wtilde*l1l2) + l3;
-  nm33 += tl*km;
-  */
   
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate inverse of NM = Sum(K-)
@@ -491,7 +277,7 @@ void CalcTotalResLDASingle(int n,
   Wtilde2 *= det;
   Wtilde3 *= det;
 
-  real ResLDA;//, kp;
+  real ResLDA;
   
   real Tnx1 = pTn1[n].x;
   real Tny1 = pTn1[n].y;
@@ -540,80 +326,6 @@ void CalcTotalResLDASingle(int n,
     -Wtilde3*eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
   pTresLDA0[n].w = ResLDA;
   
-  /*    
-  // kp000    
-  kp = ac*ic*l1l2l3 + l3 - l1l2*wtilde*ic;
-  ResLDA = -kp*Wtilde0;
-  
-  // kp001
-  kp = ic*(nx*l1l2 - G1*uc*l1l2l3);
-  ResLDA -= kp*Wtilde1;
-  
-  // kp002
-  kp = ic*(ny*l1l2 - G1*vc*l1l2l3);
-  ResLDA -= kp*Wtilde2;
-  
-  // kp003
-  kp = G1*l1l2l3*Sq(ic);
-  ResLDA -= kp*Wtilde3;
-
-  pTresLDA0[n].x = ResLDA;
-  
-  // kp010
-  kp = ac*(uc*l1l2l3 + nx*l1l2) - wtilde*(nx*l1l2l3 + uc*l1l2); 
-  ResLDA =-kp*Wtilde0;
-  
-  // kp011
-  kp = l3 + Sq(nx)*l1l2l3 - uc*(nx*G2*l1l2 + G1*uc*l1l2l3);
-  ResLDA -= kp*Wtilde1;
-  
-  // kp012
-  kp = uc*ny*l1l2 + nx*ny*l1l2l3 - vc*G1*(nx*l1l2 + uc*l1l2l3);
-  ResLDA -= kp*Wtilde2;
-  
-  // kp013
-  kp = G1*(uc*l1l2l3 + nx*l1l2)*ic;
-  ResLDA -= kp*Wtilde3;
-  
-  pTresLDA0[n].y = ResLDA;
-  
-  // kp020
-  kp = ac*(vc*l1l2l3 + ny*l1l2) - wtilde*(vc*l1l2 + ny*l1l2l3);
-  ResLDA =-kp*Wtilde0;
-  
-  // kp021
-  kp = vc*nx*l1l2 + nx*ny*l1l2l3 - G1*uc*(vc*l1l2l3 + ny*l1l2);
-  ResLDA -= kp*Wtilde1;
-  
-  // kp022
-  kp = Sq(ny)*l1l2l3 + l3 - vc*(G2*ny*l1l2 + G1*vc*l1l2l3);
-  ResLDA -= kp*Wtilde2;
-  
-  // kp023
-  kp = G1*(vc*l1l2l3 + ny*l1l2)*ic;
-  ResLDA -= kp*Wtilde3;
-  
-  pTresLDA0[n].z = ResLDA;
-  
-  // kp030
-  kp = ac*(wtilde*l1l2 + hc*l1l2l3) - wtilde*(hc*l1l2 + wtilde*l1l2l3);
-  ResLDA =-kp*Wtilde0;
-  
-  // kp031
-  kp = nx*(hc*l1l2 + wtilde*l1l2l3) - G1*uc*(wtilde*l1l2 + hc*l1l2l3);
-  ResLDA -= kp*Wtilde1;
-  
-  // kp032
-  kp = ny*(hc*l1l2 + wtilde*l1l2l3) - G1*vc*(wtilde*l1l2 + hc*l1l2l3);
-  ResLDA -= kp*Wtilde2;
-  
-  // kp033
-  kp = G1*ic*(hc*l1l2l3 + wtilde*l1l2) + l3;
-  ResLDA -= kp*Wtilde3;
-  
-  pTresLDA0[n].w = ResLDA;
-  */
-  
   real Tnx2 = pTn2[n].x;
   real Tny2 = pTn2[n].y;
 
@@ -661,90 +373,6 @@ void CalcTotalResLDASingle(int n,
     -Wtilde3*eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
   pTresLDA1[n].w = ResLDA;
   
-  /*
-  // kp100    
-  kp = ac*ic*l1l2l3 + 
-    l3 - l1l2*wtilde*ic;
-  ResLDA = -kp*Wtilde0;
-  
-  // kp101
-  kp = ic*(nx*l1l2 - G1*uc*l1l2l3);
-  ResLDA -= kp*Wtilde1;
-  
-  // kp102
-  kp = ic*(ny*l1l2 - G1*vc*l1l2l3);
-  ResLDA -= kp*Wtilde2;
-  
-  // kp103
-  kp = G1*l1l2l3*Sq(ic);
-  ResLDA -= kp*Wtilde3;
-  
-  pTresLDA1[n].x = ResLDA;
-  
-  // kp110
-  kp = ac*(uc*l1l2l3 + nx*l1l2) -
-    wtilde*(nx*l1l2l3 + uc*l1l2); 
-  ResLDA =-kp*Wtilde0;
-  
-  // kp111
-  kp = l3 + Sq(nx)*l1l2l3 -
-    uc*(nx*G2*l1l2 + G1*uc*l1l2l3);
-  ResLDA -= kp*Wtilde1;
-  
-  // kp112
-  kp = uc*ny*l1l2 + nx*ny*l1l2l3 -
-    vc*G1*(nx*l1l2 + uc*l1l2l3);
-  ResLDA -= kp*Wtilde2;
-  
-  // kp113
-  kp = G1*(uc*l1l2l3 + nx*l1l2)*ic;
-  ResLDA -= kp*Wtilde3;
-  
-  pTresLDA1[n].y = ResLDA;
-  
-  // kp120
-  kp = ac*(vc*l1l2l3 + ny*l1l2) - 
-    wtilde*(vc*l1l2 + ny*l1l2l3);
-  ResLDA = -kp*Wtilde0;
-  
-  // kp121
-  kp = vc*nx*l1l2 + nx*ny*l1l2l3 -
-    G1*uc*(vc*l1l2l3 + ny*l1l2);
-  ResLDA -= kp*Wtilde1;
-  
-  // kp122
-  kp = Sq(ny)*l1l2l3 + l3 -
-    vc*(G2*ny*l1l2 + G1*vc*l1l2l3);
-  ResLDA -= kp*Wtilde2;
-  
-  // kp123
-  kp = G1*(vc*l1l2l3 + ny*l1l2)*ic;
-  ResLDA -= kp*Wtilde3;
-  
-  pTresLDA1[n].z = ResLDA;
-  
-  // kp130
-  kp = ac*(wtilde*l1l2 + hc*l1l2l3) -
-    wtilde*(hc*l1l2 + wtilde*l1l2l3);
-  ResLDA =-kp*Wtilde0;
-  
-  // kp131
-  kp = nx*(hc*l1l2 + wtilde*l1l2l3) -
-    G1*uc*(wtilde*l1l2 + hc*l1l2l3);
-  ResLDA -= kp*Wtilde1;
-  
-  // kp132
-  kp = ny*(hc*l1l2 + wtilde*l1l2l3) -
-    G1*vc*(wtilde*l1l2 + hc*l1l2l3);
-  ResLDA -= kp*Wtilde2;
-  
-  // kp133
-  kp = G1*ic*(hc*l1l2l3 + wtilde*l1l2) + l3;
-  ResLDA -= kp*Wtilde3;
-  
-  pTresLDA1[n].w = ResLDA;
-  */
-  
   real Tnx3 = pTn3[n].x;
   real Tny3 = pTn3[n].y;
 
@@ -763,7 +391,7 @@ void CalcTotalResLDASingle(int n,
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
-  
+
   ResLDA =
     -Wtilde0*eulerKMP00(ac, ic, wtilde, l1l2l3, l1l2, l3)
     -Wtilde1*eulerKMP01(G1, nx, ic, uc, l1l2l3, l1l2)
@@ -791,92 +419,9 @@ void CalcTotalResLDASingle(int n,
     -Wtilde2*eulerKMP32(G1, ny, hc, vc, wtilde, l1l2l3, l1l2)
     -Wtilde3*eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
   pTresLDA2[n].w = ResLDA;
-  
-  /*
-  // kp200    
-  kp = ac*ic*l1l2l3 + 
-    l3 - l1l2*wtilde*ic;
-  ResLDA = -kp*Wtilde0;
-  
-  // kp201
-  kp = ic*(nx*l1l2 - G1*uc*l1l2l3);
-  ResLDA -= kp*Wtilde1;
-  
-  // kp202
-  kp = ic*(ny*l1l2 - G1*vc*l1l2l3);
-  ResLDA -= kp*Wtilde2;
-  
-  // kp203
-  kp = G1*l1l2l3*Sq(ic);
-  ResLDA -= kp*Wtilde3;
-  
-  pTresLDA2[n].x = ResLDA;
-  
-  // kp210
-  kp = ac*(uc*l1l2l3 + nx*l1l2) -
-    wtilde*(nx*l1l2l3 + uc*l1l2); 
-  ResLDA =-kp*Wtilde0;
-  
-  // kp211
-  kp = l3 + Sq(nx)*l1l2l3 -
-    uc*(nx*G2*l1l2 + G1*uc*l1l2l3);
-  ResLDA -= kp*Wtilde1;
-  
-  // kp212
-  kp = uc*ny*l1l2 + nx*ny*l1l2l3 -
-    vc*G1*(nx*l1l2 + uc*l1l2l3);
-  ResLDA -= kp*Wtilde2;
-  
-  // kp213
-  kp = G1*(uc*l1l2l3 + nx*l1l2)*ic;
-  ResLDA -= kp*Wtilde3;
-  
-  pTresLDA2[n].y = ResLDA;
-  
-  // kp220
-  kp = ac*(vc*l1l2l3 + ny*l1l2) - 
-    wtilde*(vc*l1l2 + ny*l1l2l3);
-  ResLDA =-kp*Wtilde0;
-  
-  // kp221
-  kp = vc*nx*l1l2 + nx*ny*l1l2l3 -
-    G1*uc*(vc*l1l2l3 + ny*l1l2);
-  ResLDA -= kp*Wtilde1;
-  
-  // kp222
-  kp = Sq(ny)*l1l2l3 + l3 -
-    vc*(G2*ny*l1l2 + G1*vc*l1l2l3);
-  ResLDA -= kp*Wtilde2;
-  
-  // kp223
-  kp = G1*(vc*l1l2l3 + ny*l1l2)*ic;
-  ResLDA -= kp*Wtilde3;
-  
-  pTresLDA2[n].z = ResLDA;
-  
-  // kp230
-  kp = ac*(wtilde*l1l2 + hc*l1l2l3) -
-    wtilde*(hc*l1l2 + wtilde*l1l2l3);
-  ResLDA = -kp*Wtilde0;
-  
-  // kp231
-  kp = nx*(hc*l1l2 + wtilde*l1l2l3) -
-    G1*uc*(wtilde*l1l2 + hc*l1l2l3);
-  ResLDA -= kp*Wtilde1;
-  
-  // kp232
-  kp = ny*(hc*l1l2 + wtilde*l1l2l3) -
-    G1*vc*(wtilde*l1l2 + hc*l1l2l3);
-  ResLDA -= kp*Wtilde2;
-  
-  // kp233
-  kp = G1*ic*(hc*l1l2l3 + wtilde*l1l2) + l3;
-  ResLDA -= kp*Wtilde3;
-  
-  pTresLDA2[n].w = ResLDA;
-  */
 }
 
+  
 __host__ __device__
 void CalcTotalResLDASingle(int n,  
 			   const int3* __restrict__ pTv,
@@ -1270,7 +815,7 @@ void CalcTotalResLDASingle(int n,
   l1 = half*(vx*nx + vy*ny + fabs(vx*nx + vy*ny));
   pTresLDA2[n] = -l1*Wtilde;
 }
-
+  
 //######################################################################
 /*! \brief Kernel calculating space-time LDA residue for all triangles
 
