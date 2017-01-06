@@ -85,7 +85,7 @@ ALL_LDFLAGS += $(addprefix -Xlinker ,$(LDFLAGS))
 INCLUDES  := -I$(CUDA_INSTALL_PATH)/include
 LIBRARIES := -L$(CUDA_INSTALL_PATH)/lib
 
-LIB_32 := $(CUDA_INSTALL_PATH)/lib
+# If on 64 bit system, use lib64/ rather than lib/ if lib64/ exists
 LIB_64 := $(CUDA_INSTALL_PATH)/lib64
 WTEMP:=$(wildcard $(LIB_64))
 
@@ -127,23 +127,6 @@ endif
 
 GENCODE_FLAGS := -arch=$(CUDA_ARCH) -code=$(CUDA_SM_ARCH)
 
-#GENCODE_SM20    := -gencode arch=compute_20,code=sm_20
-#GENCODE_SM30    := -gencode arch=compute_30,code=sm_30
-#GENCODE_SM35    := -gencode arch=compute_35,code=\"sm_35,compute_35\"
-
-# By default, generate all
-#GENCODE_FLAGS   := $(GENCODE_SM20) $(GENCODE_SM30) $(GENCODE_SM35)
-# If CUDA_COMPUTE is set, generate code for specific architecture
-#ifeq ($(CUDA_COMPUTE),20)
-#	GENCODE_FLAGS := $(GENCODE_SM20)
-#endif
-#ifeq ($(CUDA_COMPUTE),30)
-#	GENCODE_FLAGS := $(GENCODE_SM30)
-#endif
-#ifeq ($(CUDA_COMPUTE),35)
-#	GENCODE_FLAGS := $(GENCODE_SM35)
-#endif
-
 ################################################################################
 # Target rules
 ################################################################################
@@ -167,10 +150,10 @@ clean:
 
 %.o:%.cu
 	$(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -dc -o $@ -c $<
-	$(NVCC) -E -Xcompiler "-isystem $(CUDA_INSTALL_PATH)/include -MT $@ -MM" -o $*.d $<
+	$(NVCC) -Wno-deprecated-gpu-targets -E -Xcompiler "-isystem $(CUDA_INSTALL_PATH)/include -MT $@ -MM" -o $*.d $<
 %.o:%.cpp
 	$(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -dc -o $@ -c $<
-	$(NVCC) -E -Xcompiler "-isystem $(CUDA_INSTALL_PATH)/include -MT $@ -MM" -o $*.d $<
+	$(NVCC) -Wno-deprecated-gpu-targets -E -Xcompiler "-isystem $(CUDA_INSTALL_PATH)/include -MT $@ -MM" -o $*.d $<
 
 # Keep .d files
 .PRECIOUS: %.d
