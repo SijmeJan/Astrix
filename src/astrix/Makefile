@@ -84,6 +84,9 @@ ALL_LDFLAGS += $(addprefix -Xlinker ,$(LDFLAGS))
 # Common includes and paths for CUDA
 INCLUDES  := -I$(CUDA_INSTALL_PATH)/include
 LIBRARIES := -L$(CUDA_INSTALL_PATH)/lib
+ifeq ($(OS_SIZE), 64)
+	LIBRARIES := -L$(CUDA_INSTALL_PATH)/lib64
+endif
 
 ################################################################################
 # CUDA code generation flags
