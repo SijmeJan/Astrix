@@ -117,6 +117,7 @@ clean:
 	$(foreach sdir,$(MODULES),rm -f $(sdir)/*.o $(sdir)/*.d $(sdir)/*~ $(sdir)/*.ii $(sdir)/*.i $(sdir)/*.cubin $(sdir)/*.cu.cpp $(sdir)/*.cudafe* $(sdir)/*.fatbin* $(sdir)/*.hash $(sdir)/*.ptx $(sdir)/*.module*)
 	rm -f *.o *.d *~ *.ii *.i *.cubin *.cu.cpp *.cudafe* *.fatbin* *.hash *.ptx *.module*
 	rm -f $(BINDIR)/astrix
+	-rm -f -r $(BINDIR)/astrix.dSYM
 
 ################################################################################
 # Rules to convert .cpp and .cu into .o. Generate new dependency file .d
