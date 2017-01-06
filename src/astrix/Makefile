@@ -4,47 +4,61 @@
 #
 ################################################################################
 
-# List of modules
-MODULES := Mesh/Predicates Mesh/Coarsen Mesh/Param Mesh/Connectivity Mesh/Refine Mesh/Delaunay Mesh/Morton Mesh Array Simulation Common Device
-
-# Directory to put binaries in
-BINDIR = ../../bin
-
-# Create list of source files in module directories
-SRC :=  $(wildcard *.cu) $(wildcard *.cpp) $(foreach sdir,$(MODULES),$(wildcard $(sdir)/*.cu)) $(foreach sdir,$(MODULES),$(wildcard $(sdir)/*.cpp))
-
-# Create list of objects from .cu and .cpp in module directories
-OBJ := $(patsubst %.cu,%.o,$(wildcard *.cu)) $(patsubst %.cpp,%.o,$(wildcard *.cpp)) $(foreach sdir,$(MODULES),$(patsubst %.cu,%.o,$(wildcard $(sdir)/*.cu))) $(foreach sdir,$(MODULES),$(patsubst %.cpp,%.o,$(wildcard $(sdir)/*.cpp)))
-
-# Create list of dependency files from .cu and .cpp in module directories
-DEP := $(patsubst %.cu,%.d,$(wildcard *.cu)) $(patsubst %.cpp,%.d,$(wildcard *.cpp)) $(foreach sdir,$(MODULES),$(patsubst %.cu,%.d,$(wildcard $(sdir)/*.cu))) $(foreach sdir,$(MODULES),$(patsubst %.cpp,%.d,$(wildcard $(sdir)/*.cpp)))
-
-# Flags to detect 32-bit or 64-bit OS platform
-OS_SIZE = $(shell uname -m | sed -e "s/i.86/32/" -e "s/x86_64/64/" -e "s/armv7l/32/")
-OS_ARCH = $(shell uname -m | sed -e "s/i386/i686/")
-
-CUDA_INSTALL_PATH = $(shell which nvcc | sed "s/\/bin\/nvcc//")
-
-# NVCC compiler 
-NVCC:= nvcc
+# Guess CUDA install path from nvcc location
+CUDA_INSTALL_PATH ?= $(shell which nvcc | sed "s/\/bin\/nvcc//")
 
 # If not specified, compile for all supported compute capabilities 
 CUDA_COMPUTE ?= 0
 
-# internal flags
-NVCCFLAGS   := -m${OS_SIZE}
-CCFLAGS     := 
-NVCCLDFLAGS :=
-LDFLAGS     := 
+# By default, no profiling flags
+CUDA_PROFILE ?= 0
 
-# Extra user flags
-EXTRA_NVCCFLAGS   ?= -O3 -lineinfo
-#-g -G 
-#--ptxas-options=-v
-EXTRA_NVCCLDFLAGS ?=
-EXTRA_LDFLAGS     ?= -lnvToolsExt
-EXTRA_CCFLAGS     ?= -O3 -Wall -Wno-unused-private-field
-#-Wno-unused-function -Wno-unused-const-variable 
+# By default, no debug flags
+CUDA_DEBUG ?= 0
+
+# Directory to put binaries in
+BINDIR = ../../bin
+
+################################################################################
+# Create list of source, object and dependency files
+################################################################################
+
+# List of modules (must be directories in src/astrix)
+MODULES := Mesh/Predicates Mesh/Coarsen Mesh/Param Mesh/Connectivity Mesh/Refine Mesh/Delaunay Mesh/Morton Mesh Array Simulation Common Device
+
+# Create list of source files in module directories: list all .cpp and .cu files
+SRC :=  $(wildcard *.cu) $(wildcard *.cpp) $(foreach sdir,$(MODULES),$(wildcard $(sdir)/*.cu)) $(foreach sdir,$(MODULES),$(wildcard $(sdir)/*.cpp))
+
+# Create list of objects from .cu and .cpp in module directories
+OBJ = $(patsubst %.cu,%.o,$(patsubst %.cpp,%.o,$(SRC)))
+
+# Create list of dependency files from .cu and .cpp in module directories
+DEP = $(patsubst %.cu,%.d,$(patsubst %.cpp,%.d,$(SRC)))
+
+################################################################################
+# Compiler and linker flags
+################################################################################
+
+# NVCC compiler 
+NVCC:= $(CUDA_INSTALL_PATH)/bin/nvcc
+
+# Detect 32-bit or 64-bit OS platform
+OS_SIZE = $(shell uname -m | sed -e "s/i.86/32/" -e "s/x86_64/64/" -e "s/armv7l/32/")
+
+# Standard compiler and linker flags
+NVCCFLAGS   := -m${OS_SIZE} -O3
+CCFLAGS     := -Wall -Wno-unused-private-field
+NVCCLDFLAGS :=
+LDFLAGS     := -lnvToolsExt
+
+# Add lineinfo and register use info if profiling
+ifeq ($(CUDA_PROFILE),1)
+	NVCCFLAGS += -lineinfo --ptxas-options=-v
+endif
+# Add debug info if debugging
+ifeq ($(CUDA_DEBUG),1)
+	NVCCFLAGS += -g -G 
+endif
 
 # Compiler flags
 ALL_CCFLAGS :=
@@ -52,10 +66,6 @@ ALL_CCFLAGS :=
 ALL_CCFLAGS += $(NVCCFLAGS)
 # Add flags for gcc compiler
 ALL_CCFLAGS += $(addprefix -Xcompiler ,$(CCFLAGS))
-# Add user flags for nvcc compiler
-ALL_CCFLAGS += $(EXTRA_NVCCFLAGS)
-# Add user flags for gcc compiler
-ALL_CCFLAGS += $(addprefix -Xcompiler ,$(EXTRA_CCFLAGS))
 
 # Linker flags
 ALL_LDFLAGS :=
@@ -65,22 +75,22 @@ ALL_LDFLAGS += $(ALL_CCFLAGS)
 ALL_LDFLAGS += $(NVCCLDFLAGS)
 # Add flags for gcc linker
 ALL_LDFLAGS += $(addprefix -Xlinker ,$(LDFLAGS))
-# Add user flags for nvcc linker
-ALL_LDFLAGS += $(EXTRA_NVCCLDFLAGS)
-# Add user flags for gcc linker
-ALL_LDFLAGS += $(addprefix -Xlinker ,$(EXTRA_LDFLAGS))
 
 # Common includes and paths for CUDA
-INCLUDES  := 
-LIBRARIES := 
+INCLUDES  := -I$(CUDA_INSTALL_PATH)/include
+LIBRARIES := -L$(CUDA_INSTALL_PATH)/lib
 
-##############################################################################
+################################################################################
 # CUDA code generation flags
+################################################################################
+
 GENCODE_SM20    := -gencode arch=compute_20,code=sm_20
 GENCODE_SM30    := -gencode arch=compute_30,code=sm_30
 GENCODE_SM35    := -gencode arch=compute_35,code=\"sm_35,compute_35\"
+
 # By default, generate all
 GENCODE_FLAGS   := $(GENCODE_SM20) $(GENCODE_SM30) $(GENCODE_SM35)
+# If CUDA_COMPUTE is set, generate code for specific architecture
 ifeq ($(CUDA_COMPUTE),20)
 	GENCODE_FLAGS := $(GENCODE_SM20)
 endif
@@ -90,9 +100,11 @@ endif
 ifeq ($(CUDA_COMPUTE),35)
 	GENCODE_FLAGS := $(GENCODE_SM35)
 endif
+
+################################################################################
+# Target rules
 ################################################################################
 
-# Target rules
 all: build
 
 build: $(BINDIR)/astrix
@@ -107,11 +119,9 @@ clean:
 	rm -f $(BINDIR)/astrix
 
 ################################################################################
-# Rules to convert .cpp and .cu into .o
+# Rules to convert .cpp and .cu into .o. Generate new dependency file .d
 ################################################################################
 
-%.o:%.cpp
-%.o:%.cu
 %.o:%.cu
 	$(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -dc -o $@ -c $<
 	$(NVCC) -E -Xcompiler "-isystem $(CUDA_INSTALL_PATH)/include -MT $@ -MM" -o $*.d $<
@@ -119,205 +129,29 @@ clean:
 	$(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -dc -o $@ -c $<
 	$(NVCC) -E -Xcompiler "-isystem $(CUDA_INSTALL_PATH)/include -MT $@ -MM" -o $*.d $<
 
+# Keep .d files
 .PRECIOUS: %.d
 
 ##############################################################################
-# Dependency rules
+# Include dependency files
 ##############################################################################
 
 -include $(DEP)
 
-#main.o: main.cpp Common/definitions.h Simulation/simulation.h Device/device.h
+##############################################################################
+# Register limits
+##############################################################################
 
-##################
-# Common sources #
-##################
-
-#Common/cudaLow.o: Common/cudaLow.cpp Common/cudaLow.h
-#Common/nvtxEvent.o: Common/nvtxEvent.cu Common/nvtxEvent.h
-
-##################
-# Device sources #
-##################
-
-#Device/device.o: Device/device.cpp Device/device.h
-
-######################
-# Simulation sources #
-######################
-
-#Simulation/simulation.o: Simulation/simulation.cpp Common/definitions.h Simulation/simulation.h Mesh/mesh.h Array/array.h Device/device.h
-#Simulation/save.o: Simulation/save.cpp Common/definitions.h Simulation/simulation.h Mesh/mesh.h Array/array.h
-#Simulation/refine.o: Simulation/refine.cpp Common/definitions.h Simulation/simulation.h Mesh/mesh.h Array/array.h
-#Simulation/potential.o: Simulation/potential.cu Common/definitions.h Array/array.h Simulation/simulation.h Mesh/mesh.h Common/cudaLow.h
 Simulation/spaceres.o: ALL_CCFLAGS += -maxrregcount=96
-#Simulation/spaceres.o: Simulation/spaceres.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h Simulation/upwind.h
 Simulation/totalresNtot.o: ALL_CCFLAGS += -maxrregcount=96
-#Simulation/totalresNtot.o: Simulation/totalresNtot.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h Simulation/upwind.h
 Simulation/totalresLDA.o: ALL_CCFLAGS += -maxrregcount=64
-#Simulation/totalresLDA.o: Simulation/totalresLDA.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h Simulation/upwind.h
-#Simulation/selectlump.o: Simulation/selectlump.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
-#Simulation/massMatrixF34Tot.o: Simulation/massMatrixF34Tot.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
-#Simulation/massMatrixF34.o: Simulation/massMatrixF34.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
 Simulation/timestep.o: ALL_CCFLAGS += -maxrregcount=32
-#Simulation/timestep.o: Simulation/timestep.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/atomic.h Common/cudaLow.h
-#Simulation/timeloop.o: Simulation/timeloop.cpp Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/nvtxEvent.h
-#Simulation/initial.o: Simulation/initial.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
-#Simulation/param.o: Simulation/param.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h
-#Simulation/energy.o: Simulation/energy.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
-
-#Simulation/boundary_riemann.o: Simulation/boundary_riemann.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
-#Simulation/boundary_noh.o: Simulation/boundary_noh.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
-#Simulation/boundary_nonreflect.o: Simulation/boundary_nonreflect.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
-#Simulation/boundary_reflect.o: Simulation/boundary_reflect.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
-#Simulation/boundary_extrapolate.o: Simulation/boundary_extrapolate.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h Common/helper_math.h
-
 Simulation/blend.o: ALL_CCFLAGS += -maxrregcount=32
-#Simulation/blend.o: Simulation/blend.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h
 Simulation/blendx.o: ALL_CCFLAGS += -maxrregcount=32
-#Simulation/blendx.o: Simulation/blendx.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h
 Simulation/minmaxvel.o: ALL_CCFLAGS += -maxrregcount=32
-#Simulation/minmaxvel.o: Simulation/minmaxvel.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h
-#Simulation/unphysical.o: Simulation/unphysical.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
-#Simulation/replaceLDA.o: Simulation/replaceLDA.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h
-#Simulation/update.o: Simulation/update.cpp Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h 
 Simulation/update_addresidue.o: ALL_CCFLAGS += -maxrregcount=48
-#Simulation/update_addresidue.o: Simulation/update_addresidue.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/atomic.h
-#Simulation/mass.o: Simulation/mass.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h
-#Simulation/kh.o: Simulation/kh.cu Common/definitions.h Mesh/mesh.h Simulation/simulation.h Array/array.h Common/cudaLow.h Common/inlineMath.h
-#Simulation/source.o: Simulation/source.cu Common/definitions.h Array/array.h Mesh/mesh.h Simulation/simulation.h Common/cudaLow.h
 
-################
-# Mesh sources #
-################
-
-#Mesh/mesh.o: Mesh/mesh.cpp Mesh/Predicates/predicates.h Common/definitions.h Mesh/mesh.h Array/array.h Mesh/Delaunay/delaunay.h Mesh/Refine/refine.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-#Mesh/edgenormal.o: Mesh/edgenormal.cu Common/definitions.h Mesh/mesh.h Array/array.h Common/cudaLow.h Common/inlineMath.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-#Mesh/vertexarea.o: Mesh/vertexarea.cu Common/definitions.h Mesh/mesh.h Array/array.h Common/atomic.h Common/cudaLow.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-#Mesh/error.o: Mesh/error.cu Common/definitions.h Array/array.h Mesh/mesh.h Common/atomic.h Common/cudaLow.h Mesh/Connectivity/connectivity.h
-#Mesh/save.o: Mesh/save.cpp Common/definitions.h Mesh/mesh.h Array/array.h Mesh/Connectivity/connectivity.h
-#Mesh/debug.o: Mesh/debug.cu Common/definitions.h Mesh/mesh.h Array/array.h Mesh/Predicates/predicates.h Common/inlineMath.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-#Mesh/boundary.o: Mesh/boundary.cu Array/array.h Common/definitions.h Mesh/mesh.h Common/cudaLow.h Mesh/Delaunay/delaunay.h Mesh/Refine/refine.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-#Mesh/findboundaryvertices.o: Mesh/findboundaryvertices.cu Common/definitions.h Mesh/mesh.h Array/array.h Common/cudaLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-#Mesh/structured.o: Mesh/structured.cpp Common/definitions.h Mesh/mesh.h Array/array.h Mesh/Morton/morton.h Mesh/Delaunay/delaunay.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-
-#Mesh/improvequality.o: Mesh/improvequality.cpp Array/array.h Common/definitions.h Mesh/mesh.h Mesh/Morton/morton.h Mesh/Refine/refine.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-#Mesh/wantrefine.o: Mesh/wantrefine.cu Array/array.h Common/definitions.h Mesh/mesh.h Common/cudaLow.h Mesh/Param/meshparameter.h Mesh/Connectivity/connectivity.h
-#Mesh/coarsen.o: Mesh/coarsen.cpp Common/definitions.h Array/array.h Mesh/mesh.h Common/nvtxEvent.h Mesh/Delaunay/delaunay.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h Mesh/Coarsen/coarsen.h
-
-###########################
-# Mesh/Predicates sources #
-###########################
-
-#Mesh/Predicates/predicates.o: Mesh/Predicates/predicates.cu Mesh/Predicates/predicates.h Common/definitions.h Array/array.h Device/device.h
-
-#########################
-# Mesh/Coarsen sources #
-#########################
-
-#Mesh/Coarsen/coarsen.o: Mesh/Coarsen/coarsen.cpp Common/definitions.h Mesh/Coarsen/coarsen.h Array/array.h
-#Mesh/Coarsen/removevertices.o: Mesh/Coarsen/removevertices.cpp Common/definitions.h Array/array.h Mesh/Coarsen/coarsen.h Common/nvtxEvent.h Mesh/Delaunay/delaunay.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h Mesh/Predicates/predicates.h
-#Mesh/Coarsen/encroach.o: Mesh/Coarsen/encroach.cu Common/definitions.h Mesh/Coarsen/coarsen.h Array/array.h Mesh/Predicates/predicates.h Common/cudaLow.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-#Mesh/Coarsen/remove.o: Mesh/Coarsen/remove.cu Common/definitions.h Mesh/Coarsen/coarsen.h Array/array.h Common/cudaLow.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h
-#Mesh/Coarsen/adjuststate.o: Mesh/Coarsen/adjuststate.cu Common/definitions.h Mesh/Coarsen/coarsen.h Array/array.h Common/cudaLow.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-#Mesh/Coarsen/vertextriangle.o: Mesh/Coarsen/vertextriangle.cu Common/definitions.h Mesh/Coarsen/coarsen.h Array/array.h Common/cudaLow.h Common/atomic.h Mesh/Connectivity/connectivity.h
-#Mesh/Coarsen/maxtripervert.o: Mesh/Coarsen/maxtripervert.cu Common/definitions.h Mesh/Coarsen/coarsen.h Array/array.h Common/cudaLow.h Common/atomic.h Mesh/Connectivity/connectivity.h
-#Mesh/Coarsen/flagvertex.o: Mesh/Coarsen/flagvertex.cu Common/definitions.h Mesh/Coarsen/coarsen.h Array/array.h Common/cudaLow.h Common/atomic.h Mesh/Connectivity/connectivity.h
-#Mesh/Coarsen/trianglelist.o: Mesh/Coarsen/trianglelist.cu Common/definitions.h Mesh/Coarsen/coarsen.h Array/array.h Common/cudaLow.h Mesh/Connectivity/connectivity.h
-#Mesh/Coarsen/allowedtarget.o: Mesh/Coarsen/allowedtarget.cu Common/definitions.h Mesh/Coarsen/coarsen.h Array/array.h Common/cudaLow.h Mesh/Predicates/predicates.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-#Mesh/Coarsen/target.o: Mesh/Coarsen/target.cu Common/definitions.h Mesh/Coarsen/coarsen.h Array/array.h Common/cudaLow.h Mesh/Connectivity/connectivity.h
-#Mesh/Coarsen/neighbour.o: Mesh/Coarsen/neighbour.cu Common/definitions.h Mesh/Coarsen/coarsen.h Array/array.h Common/cudaLow.h Mesh/Connectivity/connectivity.h
-#Mesh/Coarsen/reject.o: Mesh/Coarsen/reject.cu Common/definitions.h Mesh/Coarsen/coarsen.h Array/array.h Common/cudaLow.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-#Mesh/Coarsen/findparalleldeletion.o: Mesh/Coarsen/findparalleldeletion.cu Array/array.h Common/definitions.h Mesh/Coarsen/coarsen.h Mesh/Coarsen/unique_triangle.h Common/cudaLow.h Mesh/Connectivity/connectivity.h
-#Mesh/Coarsen/vertexarea.o: Mesh/Coarsen/vertexarea.cu Common/definitions.h Mesh/Coarsen/coarsen.h Array/array.h Common/atomic.h Common/cudaLow.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-#Mesh/Coarsen/unique_triangle.o: Mesh/Coarsen/unique_triangle.cu Mesh/Coarsen/unique_triangle.h Array/array.h Common/cudaLow.h
-
-#########################
-# Mesh/Refine sources #
-#########################
-
-#Mesh/Refine/addtoperiodic.o: Mesh/Refine/addtoperiodic.cu Common/definitions.h Mesh/Refine/refine.h Array/array.h Common/cudaLow.h Mesh/Connectivity/connectivity.h
-#Mesh/Refine/addvertex.o: Mesh/Refine/addvertex.cpp Array/array.h Common/definitions.h Mesh/Refine/refine.h Common/nvtxEvent.h Mesh/Delaunay/delaunay.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-#Mesh/Refine/badtriangle.o: Mesh/Refine/badtriangle.cu Array/array.h Common/definitions.h Mesh/Refine/refine.h Common/cudaLow.h Common/nvtxEvent.h Common/inlineMath.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-#Mesh/Refine/circum.o: Mesh/Refine/circum.cu Array/array.h Common/definitions.h Mesh/Refine/refine.h Common/cudaLow.h Common/nvtxEvent.h Common/inlineMath.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-#Mesh/Refine/findparallelinsertion.o: Mesh/Refine/findparallelinsertion.cu Array/array.h Common/definitions.h Mesh/Refine/refine.h Common/cudaLow.h Common/nvtxEvent.h Mesh/Connectivity/connectivity.h
-#Mesh/Refine/findtriangles.o: Mesh/Refine/findtriangles.cu Common/definitions.h Mesh/Refine/refine.h Array/array.h Mesh/Predicates/predicates.h Common/cudaLow.h Common/nvtxEvent.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-#Mesh/Refine/flagsegment.o: Mesh/Refine/flagsegment.cu Common/definitions.h Mesh/Refine/refine.h Array/array.h Common/cudaLow.h Mesh/Connectivity/connectivity.h 
-#Mesh/Refine/improve.o: Mesh/Refine/improve.cpp Array/array.h Common/definitions.h Mesh/Refine/refine.h Common/nvtxEvent.h Mesh/Morton/morton.h Mesh/Delaunay/delaunay.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-#Mesh/Refine/insert.o: Mesh/Refine/insert.cu Common/definitions.h Mesh/Refine/refine.h Array/array.h Mesh/Predicates/predicates.h Common/cudaLow.h Common/nvtxEvent.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-#Mesh/Refine/interpolatestate.o: Mesh/Refine/interpolatestate.cu Common/definitions.h Mesh/Refine/refine.h Array/array.h Common/cudaLow.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h Common/helper_math.h
-#Mesh/Refine/refine.o: Mesh/Refine/refine.cpp Array/array.h Common/definitions.h Mesh/Refine/refine.h Common/nvtxEvent.h Mesh/Morton/morton.h Mesh/Delaunay/delaunay.h
-#Mesh/Refine/splitsegment.o: Mesh/Refine/splitsegment.cpp Common/definitions.h Mesh/Refine/refine.h Array/array.h Common/cudaLow.h Common/nvtxEvent.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
 Mesh/Refine/testencroach.o: ALL_CCFLAGS += -maxrregcount=52
-#Mesh/Refine/testencroach.o: Mesh/Refine/testencroach.cu Common/definitions.h Mesh/Refine/refine.h Array/array.h Common/cudaLow.h Common/nvtxEvent.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-#Mesh/Refine/testrefine.o: Mesh/Refine/testrefine.cu Array/array.h Common/definitions.h Mesh/Refine/refine.h Common/cudaLow.h Common/nvtxEvent.h Common/inlineMath.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
 
-#########################
-# Mesh/Delaunay sources #
-#########################
-
-#Mesh/Delaunay/adjuststate.o: Mesh/Delaunay/adjuststate.cu Mesh/Predicates/predicates.h Common/definitions.h Mesh/Delaunay/delaunay.h Array/array.h Common/cudaLow.h Common/atomic.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
 Mesh/Delaunay/checkedge.o: ALL_CCFLAGS += -maxrregcount=32
-#Mesh/Delaunay/checkedge.o: Mesh/Delaunay/checkedge.cu Mesh/Predicates/predicates.h Common/definitions.h Mesh/Delaunay/delaunay.h Array/array.h Common/cudaLow.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
 Mesh/Delaunay/checkflop.o: ALL_CCFLAGS += -maxrregcount=32
-#Mesh/Delaunay/checkflop.o: Mesh/Delaunay/checkflop.cu Mesh/Predicates/predicates.h Common/definitions.h Mesh/Delaunay/delaunay.h Array/array.h Common/cudaLow.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-#Mesh/Delaunay/delaunay.o: Mesh/Delaunay/delaunay.cpp Common/definitions.h Mesh/Delaunay/delaunay.h Array/array.h
-#Mesh/Delaunay/edgerepair.o: Mesh/Delaunay/edgerepair.cu Common/definitions.h Mesh/Delaunay/delaunay.h Array/array.h Common/cudaLow.h Mesh/Connectivity/connectivity.h
-#Mesh/Delaunay/fillsub.o: Mesh/Delaunay/fillsub.cu Common/definitions.h Mesh/Delaunay/delaunay.h Array/array.h Common/cudaLow.h Mesh/Connectivity/connectivity.h
-#Mesh/Delaunay/findparallelflip.o: Mesh/Delaunay/findparallelflip.cu Common/definitions.h Mesh/Delaunay/delaunay.h Array/array.h Common/cudaLow.h Mesh/Connectivity/connectivity.h
-#Mesh/Delaunay/flipedge.o: Mesh/Delaunay/flipedge.cu Common/definitions.h Mesh/Delaunay/delaunay.h Array/array.h Common/cudaLow.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h
-#Mesh/Delaunay/makedelaunay.o: Mesh/Delaunay/makedelaunay.cpp Common/definitions.h Mesh/Delaunay/delaunay.h Array/array.h Common/nvtxEvent.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-#Mesh/Delaunay/vertexarea.o: Mesh/Delaunay/vertexarea.cu Common/definitions.h Mesh/Delaunay/delaunay.h Array/array.h Common/atomic.h Common/cudaLow.h Mesh/triangleLow.h Mesh/Connectivity/connectivity.h Mesh/Param/meshparameter.h
-
-#######################
-# Mesh/Morton sources #
-#######################
-
-#Mesh/Morton/edge.o: Mesh/Morton/edge.cu Common/definitions.h Mesh/Morton/morton.h Array/array.h Common/cudaLow.h Mesh/Connectivity/connectivity.h
-#Mesh/Morton/morton.o: Mesh/Morton/morton.cpp Common/definitions.h Mesh/Morton/morton.h Array/array.h
-#Mesh/Morton/order.o: Mesh/Morton/order.cpp Common/definitions.h Mesh/Morton/morton.h Array/array.h Common/nvtxEvent.h Mesh/Connectivity/connectivity.h
-#Mesh/Morton/triangle.o: Mesh/Morton/triangle.cu Common/definitions.h Mesh/Morton/morton.h Array/array.h Common/cudaLow.h Mesh/Connectivity/connectivity.h
-#Mesh/Morton/values.o: Mesh/Morton/values.cu Common/definitions.h Mesh/Morton/morton.h Array/array.h Common/cudaLow.h Mesh/Connectivity/connectivity.h
-#Mesh/Morton/vertex.o: Mesh/Morton/vertex.cpp Common/definitions.h Mesh/Morton/morton.h Array/array.h Common/cudaLow.h Mesh/Connectivity/connectivity.h
-
-#############################
-# Mesh/Connectivity sources #
-#############################
-
-#Mesh/Connectivity/connectivity.o: Mesh/Connectivity/connectivity.cpp Common/definitions.h Array/array.h Mesh/Connectivity/connectivity.h
-
-#############################
-# Mesh/Param sources #
-#############################
-
-#Mesh/Param/checkvalidity.o: Mesh/Param/checkvalidity.cpp Common/definitions.h Mesh/Param/meshparameter.h
-#Mesh/Param/meshparameter.o: Mesh/Param/meshparameter.cpp Common/definitions.h Mesh/Param/meshparameter.h
-#Mesh/Param/readfromfile.o: Mesh/Param/readfromfile.cpp Common/definitions.h Mesh/Param/meshparameter.h
-
-#######################
-# Array sources       #
-#######################
-
-#Array/array.o: Array/array.cu Array/array.h Common/cudaLow.h
-#Array/sort.o: Array/sort.cu Array/array.h Common/cudaLow.h
-#Array/gather.o: Array/gather.cu Array/array.h Common/cudaLow.h
-#Array/random.o: Array/random.cu Array/array.h Common/cudaLow.h
-#Array/size.o: Array/size.cu Array/array.h Common/cudaLow.h
-#Array/equal.o: Array/equal.cu Array/array.h Common/cudaLow.h
-#Array/transform.o: Array/transform.cu Array/array.h Common/cudaLow.h
-#Array/single.o: Array/single.cu Array/array.h Common/cudaLow.h
-#Array/invert.o: Array/invert.cu Array/array.h Common/cudaLow.h
-#Array/value.o: Array/value.cu Array/array.h Common/cudaLow.h
-#Array/series.o: Array/series.cu Array/array.h Common/cudaLow.h
-#Array/reindex.o: Array/reindex.cu Array/array.h Common/cudaLow.h
-#Array/compact.o: Array/compact.cu Array/array.h Common/cudaLow.h
-#Array/scan.o: Array/scan.cu Array/array.h Common/cudaLow.h
-#Array/reduce.o: Array/reduce.cu Array/array.h Common/cudaLow.h
-#Array/add.o: Array/add.cu Array/array.h Common/cudaLow.h
-#Array/diff.o: Array/diff.cu Array/array.h Common/cudaLow.h
-#Array/removeevery.o: Array/removeevery.cu Array/array.h Common/cudaLow.h
-#Array/select.o: Array/select.cu Array/array.h Common/cudaLow.h
-#Array/unique.o: Array/unique.cu Array/array.h Common/cudaLow.h
-#Array/inner.o: Array/inner.cu Array/array.h Common/cudaLow.h
-#Array/lincomb.o: Array/lincomb.cu Array/array.h Common/cudaLow.h
-
