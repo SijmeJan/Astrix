@@ -185,7 +185,10 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
       state[i].x = fabs(relDiff);
 #endif
 
+      vertexState->SetEqual(vertexStateOld);
+
     }
+
     Save(nSave);
     nSave++;
 
