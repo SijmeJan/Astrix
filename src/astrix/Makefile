@@ -84,30 +84,65 @@ ALL_LDFLAGS += $(addprefix -Xlinker ,$(LDFLAGS))
 # Common includes and paths for CUDA
 INCLUDES  := -I$(CUDA_INSTALL_PATH)/include
 LIBRARIES := -L$(CUDA_INSTALL_PATH)/lib
+
+LIB_32 := $(CUDA_INSTALL_PATH)/lib
+LIB_64 := $(CUDA_INSTALL_PATH)/lib64
+WTEMP:=$(wildcard $(LIB_64))
+
 ifeq ($(OS_SIZE), 64)
-	LIBRARIES := -L$(CUDA_INSTALL_PATH)/lib64
+	ifeq ($(LIB_64),$(WTEMP))
+		LIBRARIES := -L$(CUDA_INSTALL_PATH)/lib64
+	endif
 endif
 
 ################################################################################
 # CUDA code generation flags
 ################################################################################
 
-GENCODE_SM20    := -gencode arch=compute_20,code=sm_20
-GENCODE_SM30    := -gencode arch=compute_30,code=sm_30
-GENCODE_SM35    := -gencode arch=compute_35,code=\"sm_35,compute_35\"
+# Virtual architecture, as low as possible (compute_20 is deprecated)
+CUDA_ARCH := compute_30
 
-# By default, generate all
-GENCODE_FLAGS   := $(GENCODE_SM20) $(GENCODE_SM30) $(GENCODE_SM35)
-# If CUDA_COMPUTE is set, generate code for specific architecture
-ifeq ($(CUDA_COMPUTE),20)
-	GENCODE_FLAGS := $(GENCODE_SM20)
-endif
+# By default, generate code for all architectures
+CUDA_SM_ARCH := sm_30,sm_32,sm_35,sm_50,sm_52,sm_53
+
+# If CUDA_COMPUTE is set, specialize appropriately
 ifeq ($(CUDA_COMPUTE),30)
-	GENCODE_FLAGS := $(GENCODE_SM30)
+	CUDA_SM_ARCH := sm_30
+endif
+ifeq ($(CUDA_COMPUTE),32)
+	CUDA_SM_ARCH := sm_32
 endif
 ifeq ($(CUDA_COMPUTE),35)
-	GENCODE_FLAGS := $(GENCODE_SM35)
+	CUDA_SM_ARCH := sm_35
 endif
+ifeq ($(CUDA_COMPUTE),50)
+	CUDA_SM_ARCH := sm_50
+endif
+ifeq ($(CUDA_COMPUTE),52)
+	CUDA_SM_ARCH := sm_52
+endif
+ifeq ($(CUDA_COMPUTE),53)
+	CUDA_SM_ARCH := sm_53
+endif
+
+GENCODE_FLAGS := -arch=$(CUDA_ARCH) -code=$(CUDA_SM_ARCH)
+
+#GENCODE_SM20    := -gencode arch=compute_20,code=sm_20
+#GENCODE_SM30    := -gencode arch=compute_30,code=sm_30
+#GENCODE_SM35    := -gencode arch=compute_35,code=\"sm_35,compute_35\"
+
+# By default, generate all
+#GENCODE_FLAGS   := $(GENCODE_SM20) $(GENCODE_SM30) $(GENCODE_SM35)
+# If CUDA_COMPUTE is set, generate code for specific architecture
+#ifeq ($(CUDA_COMPUTE),20)
+#	GENCODE_FLAGS := $(GENCODE_SM20)
+#endif
+#ifeq ($(CUDA_COMPUTE),30)
+#	GENCODE_FLAGS := $(GENCODE_SM30)
+#endif
+#ifeq ($(CUDA_COMPUTE),35)
+#	GENCODE_FLAGS := $(GENCODE_SM35)
+#endif
 
 ################################################################################
 # Target rules

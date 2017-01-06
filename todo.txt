@@ -1,4 +1,3 @@
-check register use spaceres etc
 adjust makefile register use / double prec ?
 source term integration
 test RT
