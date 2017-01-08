@@ -75,7 +75,7 @@ void Simulation::Save(int nSave)
 	  if (r < 0.25) {
 	    u1 += amp*cos(2.0*M_PI*r)*cos(2.0*M_PI*r);
 	    u2 += amp*amp*4.0*M_PI*simulationTime*(x + y)*cos(2.0*M_PI*r)*
-	      cos(2.0*M_PI*r)*cos(2.0*M_PI*r)*sin(2.0*M_PI*r)/(r + 1.0e-30);
+	      cos(2.0*M_PI*r)*cos(2.0*M_PI*r)*sin(2.0*M_PI*r)/(r + 1.0e-10);
 	  }
 	}
       }

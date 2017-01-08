@@ -15,14 +15,14 @@ namespace astrix {
 __host__ __device__
 real funcF(real t)
 {
-  if (t <= 0.0f) return 0.0; 
-  return exp(-1.0/(t + 1.0e-30));
+  if (t <= 0.0f) return (real) 0.0; 
+  return exp(-(real) 1.0/(t + 1.0e-10));
 }
 
 __host__ __device__
 real funcBump(real t)
 {
-  return funcF(t)/(funcF(t) + funcF(1.0 - t));
+  return funcF(t)/(funcF(t) + funcF((real) 1.0 - t));
 }
 
 //##############################################################################
@@ -366,7 +366,7 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
 	if (r < 0.25) {
 	  u1 += amp*cos(2.0*M_PI*r)*cos(2.0*M_PI*r);
 	  u2 += amp*amp*4.0*M_PI*time*(x + y)*cos(2.0*M_PI*r)*
-	    cos(2.0*M_PI*r)*cos(2.0*M_PI*r)*sin(2.0*M_PI*r)/(r + 1.0e-30);
+	    cos(2.0*M_PI*r)*cos(2.0*M_PI*r)*sin(2.0*M_PI*r)/(r + 1.0e-10);
 	}
       }
     }
@@ -463,6 +463,7 @@ void Simulation::SetInitial(real time)
 		       specificHeatRatio, time, Px);
   }
 
+  /*
   try {
     // Add KH eigenvector
     if (problemDef == PROBLEM_KH)
@@ -473,7 +474,7 @@ void Simulation::SetInitial(real time)
     std::cout << "Running simulation without adding KH eigenvector!"
 	      << std::endl;
   }
-
+  */
 }
 
 }

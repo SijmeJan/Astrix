@@ -51,7 +51,7 @@ void Simulation::UpdateState(real dt, int RKStep)
   if (intScheme == SCHEME_BX) CalcShockSensor();
   
   int nCycle = 0;
-  int maxCycle = mesh->GetNTriangle();
+  int maxCycle = 10;//mesh->GetNTriangle();
   
   int failFlag = 1;
   while (failFlag > 0) {

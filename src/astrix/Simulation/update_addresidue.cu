@@ -2,6 +2,7 @@
 /*! \file update_addresidue.cu
 \brief File containing functions for distributing residue over vertices*/
 #include <iostream>
+#include <fstream>
 
 #include "../Common/definitions.h"
 #include "../Array/array.h"
@@ -397,6 +398,11 @@ void Simulation::AddResidue(real dt)
   cudaEventElapsedTime(&elapsedTime, start, stop);
   std::cout << "Kernel: devAddResidue, # of elements: "
 	    << nTriangle << ", elapsed time: " << elapsedTime << std::endl;
+
+  std::ofstream outfile;
+  outfile.open("AddResidue.txt", std::ios_base::app);
+  outfile << nTriangle << " " << elapsedTime << std::endl;
+  outfile.close();
 #endif
 }
 

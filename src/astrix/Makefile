@@ -1,6 +1,13 @@
 ################################################################################
 #
-# Makefile project only supported on Mac OS X and Linux Platforms)
+# Makefile project only supported on Mac OS X and Linux Platforms
+#
+# Requires that either nvcc can be found in the PATH or else that 
+# CUDA_INSTALL_PATH contains the CUDA installation directory (e.g.
+# /usr/local/cuda). By default, compile for all possible target architectures
+# (slow). Use for example CUDA_COMPUTE=30 to compile for a 3.0 compute
+# capability only. Use CUDA_PROFILE=1 to compile for profiling, and
+# CUDA_DEBUG=1 to compile for debugging. 
 #
 ################################################################################
 

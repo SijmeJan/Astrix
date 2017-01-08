@@ -2,6 +2,7 @@
 /*! \file totalresNtot.cu
 \brief File containing functions for calculating space-time N + total residue*/
 #include <iostream>
+#include <fstream>
 
 #include "../Common/definitions.h"
 #include "../Array/array.h"
@@ -1598,8 +1599,13 @@ void Simulation::CalcTotalResNtot(real dt)
   
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  std::cout << "Kernel: devCalcTotalRes, # of elements: "
+  std::cout << "Kernel: devCalcTotalResNtot, # of elements: "
 	    << nTriangle << ", elapsed time: " << elapsedTime << std::endl;
+
+  std::ofstream outfile;
+  outfile.open("CalcTotalResNtot.txt", std::ios_base::app);
+  outfile << nTriangle << " " << elapsedTime << std::endl;
+  outfile.close();
 #endif
   
   if (transformFlag == 1) {

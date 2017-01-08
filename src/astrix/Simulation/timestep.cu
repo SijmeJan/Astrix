@@ -48,6 +48,11 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
 
   // Pressure
   real p = G1*(ener - half*id*(u*u + v*v));
+#ifndef __CUDA_ARCH__
+  if (p < zero) 
+    std::cout << "Hallo" << std::endl;
+#endif
+  
   // Sound speed
   real cs = sqrt(G*p*id);
 
@@ -66,6 +71,10 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
   absv = sqrt(u*u+v*v)*id;
 
   p = G1*(ener - half*id*(u*u + v*v));
+#ifndef __CUDA_ARCH__
+  if (p < zero) 
+    std::cout << "Hallo" << std::endl;
+#endif
   cs = sqrt(G*p*id);
     
   vmax = max(vmax, absv + cs);
@@ -82,6 +91,10 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
   absv = sqrt(u*u+v*v)*id;
     
   p = G1*(ener - half*id*(u*u + v*v));
+#ifndef __CUDA_ARCH__
+  if (p < zero) 
+    std::cout << "Hallo" << std::endl;
+#endif
   cs = sqrt(G*p*id);
     
   vmax = max(vmax, absv + cs);

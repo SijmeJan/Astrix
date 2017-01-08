@@ -1623,7 +1623,7 @@ void Simulation::CalcResidual()
 {
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
-  float elapsedTime = 0.0f;
+  float elapsedTime = 2.0f;
   cudaEventCreate(&start);
   cudaEventCreate(&stop);
 #endif
@@ -1723,8 +1723,13 @@ void Simulation::CalcResidual()
   
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  std::cout << "Kernel: devCalcSpaceRes, # of elements: "
+  std::cout << "Kernel: devCalcResidual, # of elements: "
 	    << nTriangle << ", elapsed time: " << elapsedTime << std::endl;
+
+  std::ofstream outfile;
+  outfile.open("CalcResidual.txt", std::ios_base::app);
+  outfile << nTriangle << " " << elapsedTime << std::endl;
+  outfile.close();
 #endif
 
   if (transformFlag == 1) {
