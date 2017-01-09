@@ -1,8 +1,8 @@
-// -*-c++-*-
-/*! \file findparallelinsertion.cu
+/*! \file findparallelinsertion.cpp
 \brief File containing function to find parallel insertion set.*/
 
 #include <iostream>
+#include <cuda_runtime_api.h>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -12,8 +12,8 @@
 #include "../Connectivity/connectivity.h"
 #include "../Predicates/predicates.h"
 #include "../Param/meshparameter.h"
-#include "./../triangleLow.h"
-#include "../../Common/atomic.h"
+//#include "./../triangleLow.h"
+//#include "../../Common/atomic.h"
 
 namespace astrix {
   
@@ -46,24 +46,13 @@ void Refine::FindParallelInsertionSet(Connectivity * const connectivity,
   Array <int> *triangleInCavity = new Array<int>(1, cudaFlag, nTriangle);
   Array <int> *uniqueFlag = new Array<int>(1, cudaFlag, nRefine);
   Array <int> *uniqueFlagScan = new Array<int>(1, cudaFlag, nRefine);
-  int *pUniqueFlag = uniqueFlag->GetPointer();
 
-  // Shuffle points to add to maximise parallelisation
-  unsigned int *pRandomPermutation = randomUnique->GetPointer();
-  
-  unsigned int nVertex = connectivity->vertexCoordinates->GetSize();
-  real2 *pVc = connectivity->vertexCoordinates->GetPointer();
-  int3 *pTv = connectivity->triangleVertices->GetPointer();
-  int3 *pTe = connectivity->triangleEdges->GetPointer();
-  int2 *pEt = connectivity->edgeTriangles->GetPointer();
-
-  real *pParam = predicates->GetParamPointer(cudaFlag);
-  real Px = meshParameter->maxx - meshParameter->minx;
-  real Py = meshParameter->maxy - meshParameter->miny;
-  real2 *pVcAdd = vertexCoordinatesAdd->GetPointer();
-  int *pElementAdd = elementAdd->GetPointer();
-
+  // Set pTriangleInCavity[n] = pRandomPermutation[i] if triangle \a t is part
+  // of the cavity of point i and available (i.e. not locked by another
+  // insertion point).
   LockTriangles(connectivity, predicates, meshParameter, triangleInCavity);
+
+  // Select cavities that are independent
   FindIndependentCavities(connectivity, predicates, meshParameter,
 			  triangleInCavity, uniqueFlag);
  
@@ -71,8 +60,6 @@ void Refine::FindParallelInsertionSet(Connectivity * const connectivity,
   nRefine = uniqueFlag->ExclusiveScan(uniqueFlagScan, nRefine);
   elementAdd->Compact(nRefine, uniqueFlag, uniqueFlagScan);
   vertexCoordinatesAdd->Compact(nRefine, uniqueFlag, uniqueFlagScan);
-  pVcAdd = vertexCoordinatesAdd->GetPointer();
-  pElementAdd = elementAdd->GetPointer();
 
   if (vertexOrder != 0) {
     // Compact insertion order
@@ -85,6 +72,7 @@ void Refine::FindParallelInsertionSet(Connectivity * const connectivity,
     vertexOrder->Compact(nIgnore, uniqueFlag, uniqueFlagScan);
   }
 
+  // Flag edges to be checked for Delaunay-hood later
   FlagEdgesForChecking(connectivity, predicates, meshParameter);
 
   delete triangleInCavity;
