@@ -2,7 +2,6 @@
 /*! \file insert.cu
 \brief Functions to insert new vertices in Mesh*/
 #include <iostream>
-#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -13,6 +12,7 @@
 #include "../../Common/nvtxEvent.h"
 #include "../Connectivity/connectivity.h"
 #include "../Param/meshparameter.h"
+#include "../../Common/profile.h"
 
 namespace astrix {
     
@@ -816,13 +816,7 @@ void Refine::InsertVertices(Connectivity * const connectivity,
   
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  std::cout << "Kernel: devInsert, # of elements: "
-	    << nRefine << ", elapsed time: " << elapsedTime << std::endl;
-
-  std::ofstream outfile;
-  outfile.open("Insert.txt", std::ios_base::app);
-  outfile << nRefine << " " << elapsedTime << std::endl;
-  outfile.close();
+  WriteProfileFile("Insert.txt", nRefine, elapsedTime, cudaFlag);
 #endif
   
   delete onSegmentFlagScan;

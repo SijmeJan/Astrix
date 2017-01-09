@@ -2,13 +2,13 @@
 /*! \file edgerepair.cu
 \brief Functions for repairing edges in Mesh after flipping*/
 #include <iostream>
-#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
 #include "./delaunay.h"
 #include "../../Common/cudaLow.h"
 #include "../Connectivity/connectivity.h"
+#include "../../Common/profile.h"
 
 namespace astrix {
   
@@ -137,13 +137,7 @@ void Delaunay::EdgeRepair(Connectivity * const connectivity)
 
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  std::cout << "Kernel: devEdgeRepair, # of elements: "
-	    << nEdge << ", elapsed time: " << elapsedTime << std::endl;
-
-  std::ofstream outfile;
-  outfile.open("EdgeRepair.txt", std::ios_base::app);
-  outfile << nEdge << " " << elapsedTime << std::endl;
-  outfile.close();
+  WriteProfileFile("EdgeRepair.txt", nEdge, elapsedTime, cudaFlag);
 #endif
 }
 

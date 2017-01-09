@@ -2,7 +2,6 @@
 /*! \file circum.cu
 \brief File containing function to find circumcentres of low-quality triangles.*/
 #include <iostream>
-#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -13,6 +12,7 @@
 #include "../../Common/nvtxEvent.h"
 #include "../Connectivity/connectivity.h"
 #include "../Param/meshparameter.h"
+#include "../../Common/profile.h"
 
 namespace astrix {
 
@@ -164,13 +164,7 @@ void Refine::FindCircum(Connectivity * const connectivity,
 
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  std::cout << "Kernel: devCircum, # of elements: "
-	    << nRefine << ", elapsed time: " << elapsedTime << std::endl;
-
-  std::ofstream outfile;
-  outfile.open("Circum.txt", std::ios_base::app);
-  outfile << nRefine << " " << elapsedTime << std::endl;
-  outfile.close();
+  WriteProfileFile("Circum.txt", nRefine, elapsedTime, cudaFlag);
 #endif
 
   delete nvtxCircum;

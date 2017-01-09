@@ -2,7 +2,6 @@
 /*! \file badtriangle.cu
 \brief File containing function to test all triangles for refinement.*/
 #include <iostream>
-#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -13,6 +12,7 @@
 #include "../../Common/nvtxEvent.h"
 #include "../Connectivity/connectivity.h"
 #include "../Param/meshparameter.h"
+#include "../../Common/profile.h"
 
 namespace astrix {
 
@@ -318,13 +318,7 @@ int Refine::TestTrianglesQuality(Connectivity * const connectivity,
   
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  std::cout << "Kernel: devTestQuality, # of elements: "
-	    << nTriangle << ", elapsed time: " << elapsedTime << std::endl;
-
-  std::ofstream outfile;
-  outfile.open("TestQuality.txt", std::ios_base::app);
-  outfile << nTriangle << " " << elapsedTime << std::endl;
-  outfile.close();
+  WriteProfileFile("TestQuality.txt", nTriangle, elapsedTime, cudaFlag);
 #endif
 
   nvtxTemp = new nvtxEvent("Remove", 3);

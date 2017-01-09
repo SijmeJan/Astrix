@@ -2,7 +2,6 @@
 /*! \file flagedge.cu
 \brief File containing functions to flag edges to be checked for Delaunay-hood.*/
 #include <iostream>
-#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -12,6 +11,7 @@
 #include "../Predicates/predicates.h"
 #include "../Param/meshparameter.h"
 #include "./../triangleLow.h"
+#include "../../Common/profile.h"
 
 namespace astrix {
 
@@ -275,13 +275,7 @@ void Refine::FlagEdgesForChecking(Connectivity * const connectivity,
 
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  std::cout << "Kernel: devFlagEdges, # of elements: "
-	    << nRefine << ", elapsed time: " << elapsedTime << std::endl;
-
-  std::ofstream outfile;
-  outfile.open("FlagEdge.txt", std::ios_base::app);
-  outfile << nRefine << " " << elapsedTime << std::endl;
-  outfile.close();
+  WriteProfileFile("FlagEdge.txt", nRefine, elapsedTime, cudaFlag);
 #endif
 
 }

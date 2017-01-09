@@ -11,6 +11,7 @@
 #include "../Common/cudaLow.h"
 #include "../Common/inlineMath.h"
 #include "./upwind.h"
+#include "../Common/profile.h"
 
 namespace astrix {
 
@@ -965,13 +966,7 @@ void Simulation::CalcTotalResLDA()
   
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  std::cout << "Kernel: devCalcTotalResLDA, # of elements: "
-	    << nTriangle << ", elapsed time: " << elapsedTime << std::endl;
-
-  std::ofstream outfile;
-  outfile.open("CalcTotalResLDA.txt", std::ios_base::app);
-  outfile << nTriangle << " " << elapsedTime << std::endl;
-  outfile.close();
+  WriteProfileFile("CalcTotalResLDA.txt", nTriangle, elapsedTime, cudaFlag);
 #endif
   
   if (transformFlag == 1) {

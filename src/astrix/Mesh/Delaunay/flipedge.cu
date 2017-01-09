@@ -2,7 +2,6 @@
 /*! \file delaunay_flipedge.cu
 \brief Functions for flipping edges to make trianglation Delaunay*/
 #include <iostream>
-#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -10,6 +9,7 @@
 #include "../triangleLow.h"
 #include "../../Common/cudaLow.h"
 #include "../Connectivity/connectivity.h"
+#include "../../Common/profile.h"
 
 namespace astrix {
   
@@ -225,13 +225,7 @@ void Delaunay::FlipEdge(Connectivity * const connectivity,
 
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  std::cout << "Kernel: devFlipEdge, # of elements: "
-	    << nNonDel << ", elapsed time: " << elapsedTime << std::endl;
-
-  std::ofstream outfile;
-  outfile.open("FlipEdge.txt", std::ios_base::app);
-  outfile << nNonDel << " " << elapsedTime << std::endl;
-  outfile.close();
+  WriteProfileFile("FlipEdge.txt", nNonDel, elapsedTime, cudaFlag);
 #endif
 
 }

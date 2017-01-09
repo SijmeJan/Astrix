@@ -2,7 +2,6 @@
 /*! \file findparallelflip.cu
 \brief File containing function to find parallel flip set.*/
 #include <iostream>
-#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -10,6 +9,7 @@
 #include "../../Common/cudaLow.h"
 #include "../Connectivity/connectivity.h"
 #include "../../Common/atomic.h"
+#include "../../Common/profile.h"
 
 #define NEW_FIND_PARALLEL_FLIP
 
@@ -231,13 +231,7 @@ int Delaunay::FindParallelFlipSet(Connectivity * const connectivity,
 
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  std::cout << "Kernel: devFindParallelFlip, # of elements: "
-	    << nFlip << ", elapsed time: " << elapsedTime << std::endl;
-
-  std::ofstream outfile;
-  outfile.open("ParallelFlip.txt", std::ios_base::app);
-  outfile << nFlip << " " << elapsedTime << std::endl;
-  outfile.close();
+  WriteProfileFile("ParallelFlip.txt", nFlip, elapsedTime, cudaFlag);
 #endif
 
   return nFlipParallel;

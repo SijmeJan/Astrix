@@ -2,13 +2,13 @@
 /*! \file fillsub.cu
 \brief Functions for determining substitution triangles for repairing edges in Mesh after flipping*/
 #include <iostream>
-#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
 #include "./delaunay.h"
 #include "../../Common/cudaLow.h"
 #include "../Connectivity/connectivity.h"
+#include "../../Common/profile.h"
 
 namespace astrix {
   
@@ -124,13 +124,7 @@ void Delaunay::FillTriangleSubstitute(Connectivity * const connectivity,
 
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  std::cout << "Kernel: devFillTriangleSubstitute, # of elements: "
-	    << nNonDel << ", elapsed time: " << elapsedTime << std::endl;
-
-  std::ofstream outfile;
-  outfile.open("FillSub.txt", std::ios_base::app);
-  outfile << nNonDel << " " << elapsedTime << std::endl;
-  outfile.close();
+  WriteProfileFile("FillSub.txt", nNonDel, elapsedTime, cudaFlag);
 #endif
 
 }

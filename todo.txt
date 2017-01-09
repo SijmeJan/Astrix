@@ -1,5 +1,5 @@
 profiling
-new parallel selection test?
+new parallel flip selection test?
 adjust makefile register use / double prec ?
 source term integration
 test RT

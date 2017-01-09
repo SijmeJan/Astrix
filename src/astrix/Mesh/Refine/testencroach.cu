@@ -2,7 +2,6 @@
 /*! \file testencroach.cu
 \brief File containing function to test if any points to add encroaches on a segment.*/
 #include <iostream>
-#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -12,6 +11,7 @@
 #include "../../Common/nvtxEvent.h"
 #include "../Connectivity/connectivity.h"
 #include "../Param/meshparameter.h"
+#include "../../Common/profile.h"
 
 namespace astrix {
 
@@ -492,13 +492,7 @@ void Refine::TestEncroach(Connectivity * const connectivity,
 
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  std::cout << "Kernel: devTestEncroach, # of elements: "
-	    << nRefine << ", elapsed time: " << elapsedTime << std::endl;
-
-  std::ofstream outfile;
-  outfile.open("TestEncroach.txt", std::ios_base::app);
-  outfile << nRefine << " " << elapsedTime << std::endl;
-  outfile.close();
+  WriteProfileFile("TestEncroach.txt", nRefine, elapsedTime, cudaFlag);
 #endif
 
   delete nvtxEncroach;

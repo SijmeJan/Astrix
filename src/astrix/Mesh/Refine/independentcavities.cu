@@ -2,7 +2,6 @@
 /*! \file independentcavities.cu
 \brief File containing function to find independent cavities.*/
 #include <iostream>
-#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -12,6 +11,7 @@
 #include "../Predicates/predicates.h"
 #include "../Param/meshparameter.h"
 #include "./../triangleLow.h"
+#include "../../Common/profile.h"
 
 namespace astrix {
 
@@ -301,13 +301,7 @@ void Refine::FindIndependentCavities(Connectivity * const connectivity,
 
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  std::cout << "Kernel: devIndependentCavities, # of elements: "
-	    << nRefine << ", elapsed time: " << elapsedTime << std::endl;
-
-  std::ofstream outfile;
-  outfile.open("IndependentCavities.txt", std::ios_base::app);
-  outfile << nRefine << " " << elapsedTime << std::endl;
-  outfile.close();
+  WriteProfileFile("IndependentCavities.txt", nRefine, elapsedTime, cudaFlag);
 #endif
 
 }

@@ -2,7 +2,7 @@
 /*! \file checkedge.cu
 \brief Functions for checking edges in Mesh for Delaunay property*/
 #include <iostream>
-#include <fstream>
+//#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -12,6 +12,7 @@
 #include "../../Common/cudaLow.h"
 #include "../Connectivity/connectivity.h"
 #include "../Param/meshparameter.h"
+#include "../../Common/profile.h"
 
 namespace astrix {
     
@@ -292,14 +293,7 @@ void Delaunay::CheckEdges(Connectivity * const connectivity,
    
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-
-  std::cout << "Kernel: devCheckEdgeDelaunay, # of elements: "
-	    << nEdgeCheck << ", elapsed time: " << elapsedTime << std::endl;
-
-  std::ofstream outfile;
-  outfile.open("CheckEdge.txt", std::ios_base::app);
-  outfile << nEdgeCheck << " " << elapsedTime << std::endl;
-  outfile.close();
+  WriteProfileFile("CheckEdge.txt", nEdgeCheck, elapsedTime, cudaFlag);
 #endif
 
 }

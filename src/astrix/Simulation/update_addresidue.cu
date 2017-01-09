@@ -2,7 +2,6 @@
 /*! \file update_addresidue.cu
 \brief File containing functions for distributing residue over vertices*/
 #include <iostream>
-#include <fstream>
 
 #include "../Common/definitions.h"
 #include "../Array/array.h"
@@ -10,6 +9,7 @@
 #include "./simulation.h"
 #include "../Common/atomic.h"
 #include "../Common/cudaLow.h"
+#include "../Common/profile.h"
 
 namespace astrix {
   
@@ -396,13 +396,7 @@ void Simulation::AddResidue(real dt)
   
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  std::cout << "Kernel: devAddResidue, # of elements: "
-	    << nTriangle << ", elapsed time: " << elapsedTime << std::endl;
-
-  std::ofstream outfile;
-  outfile.open("AddResidue.txt", std::ios_base::app);
-  outfile << nTriangle << " " << elapsedTime << std::endl;
-  outfile.close();
+  WriteProfileFile("AddResidual.txt", nTriangle, elapsedTime, cudaFlag);
 #endif
 }
 

@@ -3,7 +3,6 @@
 \brief File containing function lock triangles in cavities of insertion points.*/
 
 #include <iostream>
-#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -14,6 +13,7 @@
 #include "../Param/meshparameter.h"
 #include "./../triangleLow.h"
 #include "../../Common/atomic.h"
+#include "../../Common/profile.h"
 
 namespace astrix {
 
@@ -290,13 +290,7 @@ void Refine::LockTriangles(Connectivity * const connectivity,
 
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  std::cout << "Kernel: devLockTriangles, # of elements: "
-	    << nRefine << ", elapsed time: " << elapsedTime << std::endl;
-
-  std::ofstream outfile;
-  outfile.open("LockTriangle.txt", std::ios_base::app);
-  outfile << nRefine << " " << elapsedTime << std::endl;
-  outfile.close();
+  WriteProfileFile("LockTriangle.txt", nRefine, elapsedTime, cudaFlag);
 #endif
   
 }

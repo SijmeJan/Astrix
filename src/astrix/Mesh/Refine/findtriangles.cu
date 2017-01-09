@@ -3,7 +3,6 @@
 \brief File containing function to find triangles containing point (x,y).*/
 
 #include <iostream>
-#include <fstream>
 #include <stdexcept>
 
 #include "../../Common/definitions.h"
@@ -15,6 +14,7 @@
 #include "../../Common/nvtxEvent.h"
 #include "../Connectivity/connectivity.h"
 #include "../Param/meshparameter.h"
+#include "../../Common/profile.h"
 
 namespace astrix {
 
@@ -349,13 +349,7 @@ void Refine::FindTriangles(Connectivity * const connectivity,
 
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  std::cout << "Kernel: devFindTriangles, # of elements: "
-	    << nRefine << ", elapsed time: " << elapsedTime << std::endl;
-
-  std::ofstream outfile;
-  outfile.open("FindTriangle.txt", std::ios_base::app);
-  outfile << nRefine << " " << elapsedTime << std::endl;
-  outfile.close();
+  WriteProfileFile("FindTriangle.txt", nRefine, elapsedTime, cudaFlag);
 #endif
 
   delete nvtxFind;

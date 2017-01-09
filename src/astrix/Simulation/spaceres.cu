@@ -2,7 +2,6 @@
 /*! \file spaceres.cu
 \brief File containing functions for calculating spatial residue*/
 #include <iostream>
-#include <fstream>
 #include <iomanip>
 
 #include "../Common/definitions.h"
@@ -12,6 +11,7 @@
 #include "../Common/cudaLow.h"
 #include "../Common/inlineMath.h"
 #include "./upwind.h"
+#include "../Common/profile.h"
 
 namespace astrix {
   
@@ -1723,13 +1723,7 @@ void Simulation::CalcResidual()
   
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  std::cout << "Kernel: devCalcResidual, # of elements: "
-	    << nTriangle << ", elapsed time: " << elapsedTime << std::endl;
-
-  std::ofstream outfile;
-  outfile.open("CalcResidual.txt", std::ios_base::app);
-  outfile << nTriangle << " " << elapsedTime << std::endl;
-  outfile.close();
+  WriteProfileFile("CalcResidual.txt", nTriangle, elapsedTime, cudaFlag);
 #endif
 
   if (transformFlag == 1) {
