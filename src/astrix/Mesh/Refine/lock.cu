@@ -3,6 +3,7 @@
 \brief File containing function lock triangles in cavities of insertion points.*/
 
 #include <iostream>
+#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -220,6 +221,13 @@ void Refine::LockTriangles(Connectivity * const connectivity,
 			   const MeshParameter *meshParameter,
 			   Array<int> *triangleInCavity)
 {
+#ifdef TIME_ASTRIX
+  cudaEvent_t start, stop;
+  float elapsedTime = 0.0f;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
+#endif
+
   // Number of triangles and number of insertion points
   unsigned int nTriangle = connectivity->triangleVertices->GetSize();
   unsigned int nRefine = elementAdd->GetSize();
@@ -252,22 +260,45 @@ void Refine::LockTriangles(Connectivity * const connectivity,
 				       (const void *) devLockTriangles, 
 				       (size_t) 0, 0);
 
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     devLockTriangles<<<nBlocks, nThreads>>>
       (nRefine, pVcAdd, pElementAdd, nTriangle, pTiC,
        pTv, pTe, pEt, pVc, nVertex, Px, Py, predicates,
        pParam, pRandomPermutation);
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif      
     
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     for (int n = 0; n < (int) nRefine; n++) 
       LockTriangle(pVcAdd[n], pElementAdd[n], nTriangle, pTiC,
 		   pTv, pTe, pEt, pVc, nVertex, Px, Py, predicates,
 		   pParam, pRandomPermutation[n]);
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif      
   }
- 
-  // pTiC[n] = pRandomPermutation[i]: triangle n is part of cavity of
-  // insertion point i and available
+
+#ifdef TIME_ASTRIX
+  cudaEventElapsedTime(&elapsedTime, start, stop);
+  std::cout << "Kernel: devLockTriangles, # of elements: "
+	    << nRefine << ", elapsed time: " << elapsedTime << std::endl;
+
+  std::ofstream outfile;
+  outfile.open("LockTriangle.txt", std::ios_base::app);
+  outfile << nRefine << " " << elapsedTime << std::endl;
+  outfile.close();
+#endif
+  
 }
 
 }

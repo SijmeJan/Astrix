@@ -1,8 +1,8 @@
 // -*-c++-*-
 /*! \file flagedge.cu
 \brief File containing functions to flag edges to be checked for Delaunay-hood.*/
-
 #include <iostream>
+#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -209,6 +209,13 @@ void Refine::FlagEdgesForChecking(Connectivity * const connectivity,
 				  const Predicates *predicates,
 				  const MeshParameter *meshParameter)
 {
+#ifdef TIME_ASTRIX
+  cudaEvent_t start, stop;
+  float elapsedTime = 0.0f;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
+#endif
+
   // Number of triangles and number of insertion points
   unsigned int nTriangle = connectivity->triangleVertices->GetSize();
   unsigned int nRefine = elementAdd->GetSize();
@@ -238,19 +245,44 @@ void Refine::FlagEdgesForChecking(Connectivity * const connectivity,
 				       (const void *) devFlagEdgesForChecking, 
 				       (size_t) 0, 0);
 
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     devFlagEdgesForChecking<<<nBlocks, nThreads>>>
       (nRefine, pVcAdd, pElementAdd, nTriangle,
        pTv, pTe, pEt, pVc, nVertex, Px, Py, predicates,
        pParam, pEnC);
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif      
     
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     for (int n = 0; n < (int) nRefine; n++) 
       FlagEdgeForChecking(n, pVcAdd, pElementAdd, nTriangle,
 			  pTv, pTe, pEt, pVc, nVertex, Px, Py,
 			  predicates, pParam, pEnC);
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif      
    }
+
+#ifdef TIME_ASTRIX
+  cudaEventElapsedTime(&elapsedTime, start, stop);
+  std::cout << "Kernel: devFlagEdges, # of elements: "
+	    << nRefine << ", elapsed time: " << elapsedTime << std::endl;
+
+  std::ofstream outfile;
+  outfile.open("FlagEdge.txt", std::ios_base::app);
+  outfile << nRefine << " " << elapsedTime << std::endl;
+  outfile.close();
+#endif
 
 }
 

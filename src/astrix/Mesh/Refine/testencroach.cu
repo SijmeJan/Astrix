@@ -438,6 +438,7 @@ void Refine::TestEncroach(Connectivity * const connectivity,
   cudaEventCreate(&start);
   cudaEventCreate(&stop);
 #endif
+  
   nvtxEvent *nvtxEncroach = new nvtxEvent("TestEncroach", 2);
 
   int nTriangle = connectivity->triangleVertices->GetSize();

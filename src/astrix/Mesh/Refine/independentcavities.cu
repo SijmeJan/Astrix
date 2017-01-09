@@ -1,8 +1,8 @@
 // -*-c++-*-
 /*! \file independentcavities.cu
 \brief File containing function to find independent cavities.*/
-
 #include <iostream>
+#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -230,6 +230,13 @@ void Refine::FindIndependentCavities(Connectivity * const connectivity,
 				     Array<int> * const triangleInCavity,
 				     Array<int> *uniqueFlag)
 {
+#ifdef TIME_ASTRIX
+  cudaEvent_t start, stop;
+  float elapsedTime = 0.0f;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
+#endif
+
   // Number of triangles and number of insertion points
   unsigned int nTriangle = connectivity->triangleVertices->GetSize();
   unsigned int nRefine = elementAdd->GetSize();
@@ -263,21 +270,46 @@ void Refine::FindIndependentCavities(Connectivity * const connectivity,
 				       devFindIndependentCavities, 
 				       (size_t) 0, 0);
 
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     devFindIndependentCavities<<<nBlocks, nThreads>>>
       (nRefine, pVcAdd, pElementAdd, nTriangle, pTiC,
        pTv, pTe, pEt, pVc, nVertex, Px, Py, predicates,
        pParam, pRandomPermutation, pUniqueFlag);
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif      
     
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     for (int n = 0; n < (int) nRefine; n++) 
       FindIndependentCavity(n, pVcAdd, pElementAdd, nTriangle,
 			    pTiC, pTv, pTe, pEt, pVc, nVertex, Px, Py,
 			    predicates, pParam, pRandomPermutation,
 			    pUniqueFlag);
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif      
   }
-  
+
+#ifdef TIME_ASTRIX
+  cudaEventElapsedTime(&elapsedTime, start, stop);
+  std::cout << "Kernel: devIndependentCavities, # of elements: "
+	    << nRefine << ", elapsed time: " << elapsedTime << std::endl;
+
+  std::ofstream outfile;
+  outfile.open("IndependentCavities.txt", std::ios_base::app);
+  outfile << nRefine << " " << elapsedTime << std::endl;
+  outfile.close();
+#endif
+
 }
 
 }
