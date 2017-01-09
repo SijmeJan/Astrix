@@ -164,7 +164,7 @@ void Refine::FindCircum(Connectivity * const connectivity,
 
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  WriteProfileFile("Circum.txt", nRefine, elapsedTime, cudaFlag);
+  WriteProfileFile("Circum.prof", nRefine, elapsedTime, cudaFlag);
 #endif
 
   delete nvtxCircum;

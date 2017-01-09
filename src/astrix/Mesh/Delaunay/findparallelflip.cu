@@ -237,7 +237,7 @@ int Delaunay::FindParallelFlipSet(Connectivity * const connectivity,
 
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  WriteProfileFile("ParallelFlip.txt", nFlip, elapsedTime, cudaFlag);
+  WriteProfileFile("ParallelFlip.prof", nFlip, elapsedTime, cudaFlag);
 #endif
 
   return nFlipParallel;

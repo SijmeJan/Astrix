@@ -275,7 +275,7 @@ void Refine::FlagEdgesForChecking(Connectivity * const connectivity,
 
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  WriteProfileFile("FlagEdge.txt", nRefine, elapsedTime, cudaFlag);
+  WriteProfileFile("FlagEdge.prof", nRefine, elapsedTime, cudaFlag);
 #endif
 
 }

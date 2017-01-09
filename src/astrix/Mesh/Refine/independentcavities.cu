@@ -301,7 +301,7 @@ void Refine::FindIndependentCavities(Connectivity * const connectivity,
 
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  WriteProfileFile("IndependentCavities.txt", nRefine, elapsedTime, cudaFlag);
+  WriteProfileFile("IndependentCavities.prof", nRefine, elapsedTime, cudaFlag);
 #endif
 
 }

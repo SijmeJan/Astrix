@@ -349,7 +349,7 @@ void Refine::FindTriangles(Connectivity * const connectivity,
 
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  WriteProfileFile("FindTriangle.txt", nRefine, elapsedTime, cudaFlag);
+  WriteProfileFile("FindTriangle.prof", nRefine, elapsedTime, cudaFlag);
 #endif
 
   delete nvtxFind;

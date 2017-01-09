@@ -124,7 +124,7 @@ void Delaunay::FillTriangleSubstitute(Connectivity * const connectivity,
 
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  WriteProfileFile("FillSub.txt", nNonDel, elapsedTime, cudaFlag);
+  WriteProfileFile("FillSub.prof", nNonDel, elapsedTime, cudaFlag);
 #endif
 
 }

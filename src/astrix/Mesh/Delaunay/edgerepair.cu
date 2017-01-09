@@ -137,7 +137,7 @@ void Delaunay::EdgeRepair(Connectivity * const connectivity)
 
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  WriteProfileFile("EdgeRepair.txt", nEdge, elapsedTime, cudaFlag);
+  WriteProfileFile("EdgeRepair.prof", nEdge, elapsedTime, cudaFlag);
 #endif
 }
 

@@ -225,7 +225,7 @@ void Delaunay::FlipEdge(Connectivity * const connectivity,
 
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  WriteProfileFile("FlipEdge.txt", nNonDel, elapsedTime, cudaFlag);
+  WriteProfileFile("FlipEdge.prof", nNonDel, elapsedTime, cudaFlag);
 #endif
 
 }

@@ -290,7 +290,7 @@ void Refine::LockTriangles(Connectivity * const connectivity,
 
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  WriteProfileFile("LockTriangle.txt", nRefine, elapsedTime, cudaFlag);
+  WriteProfileFile("LockTriangle.prof", nRefine, elapsedTime, cudaFlag);
 #endif
   
 }

@@ -1599,7 +1599,7 @@ void Simulation::CalcTotalResNtot(real dt)
   
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  WriteProfileFile("CalcTotalResNtot.txt", nTriangle, elapsedTime, cudaFlag);
+  WriteProfileFile("CalcTotalResNtot.prof", nTriangle, elapsedTime, cudaFlag);
 #endif
   
   if (transformFlag == 1) {

@@ -816,7 +816,7 @@ void Refine::InsertVertices(Connectivity * const connectivity,
   
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  WriteProfileFile("Insert.txt", nRefine, elapsedTime, cudaFlag);
+  WriteProfileFile("Insert.prof", nRefine, elapsedTime, cudaFlag);
 #endif
   
   delete onSegmentFlagScan;

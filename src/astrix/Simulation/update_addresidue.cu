@@ -396,7 +396,7 @@ void Simulation::AddResidue(real dt)
   
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  WriteProfileFile("AddResidual.txt", nTriangle, elapsedTime, cudaFlag);
+  WriteProfileFile("AddResidual.prof", nTriangle, elapsedTime, cudaFlag);
 #endif
 }
 

@@ -318,7 +318,7 @@ int Refine::TestTrianglesQuality(Connectivity * const connectivity,
   
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  WriteProfileFile("TestQuality.txt", nTriangle, elapsedTime, cudaFlag);
+  WriteProfileFile("TestQuality.prof", nTriangle, elapsedTime, cudaFlag);
 #endif
 
   nvtxTemp = new nvtxEvent("Remove", 3);

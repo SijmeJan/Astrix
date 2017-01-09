@@ -492,7 +492,7 @@ void Refine::TestEncroach(Connectivity * const connectivity,
 
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  WriteProfileFile("TestEncroach.txt", nRefine, elapsedTime, cudaFlag);
+  WriteProfileFile("TestEncroach.prof", nRefine, elapsedTime, cudaFlag);
 #endif
 
   delete nvtxEncroach;

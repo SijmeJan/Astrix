@@ -293,7 +293,7 @@ void Delaunay::CheckEdges(Connectivity * const connectivity,
    
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  WriteProfileFile("CheckEdge.txt", nEdgeCheck, elapsedTime, cudaFlag);
+  WriteProfileFile("CheckEdge.prof", nEdgeCheck, elapsedTime, cudaFlag);
 #endif
 
 }
