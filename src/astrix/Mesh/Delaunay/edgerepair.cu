@@ -2,6 +2,7 @@
 /*! \file edgerepair.cu
 \brief Functions for repairing edges in Mesh after flipping*/
 #include <iostream>
+#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -92,7 +93,7 @@ void Delaunay::EdgeRepair(Connectivity * const connectivity)
   
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
-  float elapsedTime;
+  float elapsedTime = 0.0f;
   cudaEventCreate(&start);
   cudaEventCreate(&stop);
 #endif
@@ -134,13 +135,16 @@ void Delaunay::EdgeRepair(Connectivity * const connectivity)
 #endif
   }
 
-  /*
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
   std::cout << "Kernel: devEdgeRepair, # of elements: "
 	    << nEdge << ", elapsed time: " << elapsedTime << std::endl;
+
+  std::ofstream outfile;
+  outfile.open("EdgeRepair.txt", std::ios_base::app);
+  outfile << nEdge << " " << elapsedTime << std::endl;
+  outfile.close();
 #endif
-  */
 }
 
 }

@@ -2,6 +2,7 @@
 /*! \file insert.cu
 \brief Functions to insert new vertices in Mesh*/
 #include <iostream>
+#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -691,6 +692,13 @@ void Refine::InsertVertices(Connectivity * const connectivity,
 			    Array<realNeq> * const vertexState,
 			    Array<int> * const triangleWantRefine)
 {
+#ifdef TIME_ASTRIX
+  cudaEvent_t start, stop;
+  float elapsedTime = 0.0f;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
+#endif
+
   nvtxEvent *nvtxInsert = new nvtxEvent("Insert", 4);
   nvtxEvent *temp = new nvtxEvent("Segment", 0);
 
@@ -759,6 +767,9 @@ void Refine::InsertVertices(Connectivity * const connectivity,
 				       devInsertVertices, 
 				       (size_t) 0, 0);
 
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     devInsertVertices<<<nBlocks, nThreads>>>
       (nRefine, pElementAdd,
        nVertex, nEdge, nTriangle, 
@@ -768,10 +779,17 @@ void Refine::InsertVertices(Connectivity * const connectivity,
        meshParameter->miny, meshParameter->maxy, nv_add,
        meshParameter->periodicFlagX, meshParameter->periodicFlagY, 
        predicates, pParam, pWantRefine);
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif      
     
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     for (int n = 0; n < nRefine; n++) {      
       int t = pElementAdd[n];
       int e = -1;
@@ -790,12 +808,22 @@ void Refine::InsertVertices(Connectivity * const connectivity,
 		   meshParameter->periodicFlagX, meshParameter->periodicFlagY,
 		   predicates, pParam, pWantRefine);
     }
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif      
   }
   
-  // Update number of vertices, triangles and edges
-  //nVertex   += nv_add;
-  //nTriangle += nt_add;
-  //nEdge     += ne_add;
+#ifdef TIME_ASTRIX
+  cudaEventElapsedTime(&elapsedTime, start, stop);
+  std::cout << "Kernel: devInsert, # of elements: "
+	    << nRefine << ", elapsed time: " << elapsedTime << std::endl;
+
+  std::ofstream outfile;
+  outfile.open("Insert.txt", std::ios_base::app);
+  outfile << nRefine << " " << elapsedTime << std::endl;
+  outfile.close();
+#endif
   
   delete onSegmentFlagScan;
 

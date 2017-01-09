@@ -2,6 +2,7 @@
 /*! \file checkedge.cu
 \brief Functions for checking edges in Mesh for Delaunay property*/
 #include <iostream>
+#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -171,7 +172,7 @@ void Delaunay::CheckEdges(Connectivity * const connectivity,
   
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
-  float elapsedTime;
+  float elapsedTime = 0.0f;
   cudaEventCreate(&start);
   cudaEventCreate(&stop);
 #endif
@@ -288,14 +289,19 @@ void Delaunay::CheckEdges(Connectivity * const connectivity,
 #endif
     }
   }
-  
-  /*  
+   
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
+
   std::cout << "Kernel: devCheckEdgeDelaunay, # of elements: "
-	    << nEdge << ", elapsed time: " << elapsedTime << std::endl;
+	    << nEdgeCheck << ", elapsed time: " << elapsedTime << std::endl;
+
+  std::ofstream outfile;
+  outfile.open("CheckEdge.txt", std::ios_base::app);
+  outfile << nEdgeCheck << " " << elapsedTime << std::endl;
+  outfile.close();
 #endif
-  */
+
 }
   
 }

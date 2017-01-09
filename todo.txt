@@ -1,3 +1,4 @@
+new parallel selection test?
 adjust makefile register use / double prec ?
 source term integration
 test RT

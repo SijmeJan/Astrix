@@ -1,6 +1,8 @@
 // -*-c++-*-
 /*! \file testencroach.cu
 \brief File containing function to test if any points to add encroaches on a segment.*/
+#include <iostream>
+#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -430,6 +432,12 @@ void Refine::TestEncroach(Connectivity * const connectivity,
 			  const MeshParameter *meshParameter,
 			  const int nRefine)
 {
+#ifdef TIME_ASTRIX
+  cudaEvent_t start, stop;
+  float elapsedTime = 0.0f;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
+#endif
   nvtxEvent *nvtxEncroach = new nvtxEvent("TestEncroach", 2);
 
   int nTriangle = connectivity->triangleVertices->GetSize();
@@ -455,17 +463,42 @@ void Refine::TestEncroach(Connectivity * const connectivity,
 				       devTestEncroach, 
 				       (size_t) 0, 0);
 
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     devTestEncroach<<<nBlocks, nThreads>>>
       (nRefine, pElementAdd, pVcAdd,
        pTv, pTe, pEt, pVc, nVertex, Px, Py, nTriangle);
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif      
 
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
   } else {
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     for (int i = 0; i < nRefine; i++)
       TestEncroachSingle(i, pElementAdd, pVcAdd,
 			 pTv, pTe, pEt, pVc, nVertex, Px, Py, nTriangle);
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif      
   }
+
+#ifdef TIME_ASTRIX
+  cudaEventElapsedTime(&elapsedTime, start, stop);
+  std::cout << "Kernel: devTestEncroach, # of elements: "
+	    << nRefine << ", elapsed time: " << elapsedTime << std::endl;
+
+  std::ofstream outfile;
+  outfile.open("TestEncroach.txt", std::ios_base::app);
+  outfile << nRefine << " " << elapsedTime << std::endl;
+  outfile.close();
+#endif
 
   delete nvtxEncroach;
 }

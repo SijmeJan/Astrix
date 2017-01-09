@@ -3,6 +3,7 @@
 \brief File containing function to find triangles containing point (x,y).*/
 
 #include <iostream>
+#include <fstream>
 #include <stdexcept>
 
 #include "../../Common/definitions.h"
@@ -251,6 +252,13 @@ void Refine::FindTriangles(Connectivity * const connectivity,
 			   const MeshParameter *meshParameter,
 			   const Predicates *predicates)
 {
+#ifdef TIME_ASTRIX
+  cudaEvent_t start, stop;
+  float elapsedTime = 0.0f;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
+#endif
+
   nvtxEvent *nvtxFind = new nvtxEvent("FindTriangles", 1);
 
   int nVertex = connectivity->vertexCoordinates->GetSize();
@@ -281,16 +289,26 @@ void Refine::FindTriangles(Connectivity * const connectivity,
     				       devFindTriangles, 
     				       (size_t) 0, 0);
 
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     devFindTriangles<<<nBlocks, nThreads>>>
       (nRefine, nTriangle, pBadTriangles,
        pElementAdd, pVcAdd,
        pVc, pTv, pTe, pEt,
        predicates, pParam,
        nVertex, Px, Py);
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif      
     
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());      
   } else {
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     for (int i = 0; i < nRefine; i++) {
       // Coordinates of point to be inserted
       real x = pVcAdd[i].x;
@@ -322,8 +340,24 @@ void Refine::FindTriangles(Connectivity * const connectivity,
 	//int qq; std::cin >> qq;
       }
     }
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif      
+
   }
- 
+
+#ifdef TIME_ASTRIX
+  cudaEventElapsedTime(&elapsedTime, start, stop);
+  std::cout << "Kernel: devFindTriangles, # of elements: "
+	    << nRefine << ", elapsed time: " << elapsedTime << std::endl;
+
+  std::ofstream outfile;
+  outfile.open("FindTriangle.txt", std::ios_base::app);
+  outfile << nRefine << " " << elapsedTime << std::endl;
+  outfile.close();
+#endif
+
   delete nvtxFind;
 }
 

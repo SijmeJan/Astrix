@@ -1,6 +1,8 @@
 // -*-c++-*-
 /*! \file circum.cu
 \brief File containing function to find circumcentres of low-quality triangles.*/
+#include <iostream>
+#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -55,52 +57,6 @@ void CircumSingle(int i,
   real Cx = cx + (real)0.5*det1*invdet2;
   det1 = (ax - cx)*lb - (bx - cx)*lc;
   real Cy = cy + (real)0.5*det1*invdet2;
-
-#if OFF_CENTRE == 1
-  real la = Sq(bx - ax) + Sq(by - ay);
-
-  real det = (ax - cx)*(by - cy) - (ay - cy)*(bx - cx);
-  real invdet = (real)1.0/(det + (real)1.0e-30);
-  
-  // Circumscribed radius abc (squared)
-  real r2 = (real)0.25*la*lb*lc*Sq(invdet);
-
-  // Find shortest edge
-  real lpq = la;
-  real px = ax;
-  real py = ay;
-  real qx = bx;
-  real qy = by;
-
-  if (lb < lpq) {
-    px = bx;
-    py = by;
-    qx = cx;
-    qy = cy;
-    lpq = lb;
-  }
-
-  if (lc < lpq) {
-    px = cx;
-    py = cy;
-    qx = ax;
-    qy = ay;
-    lpq = lc;
-  }
-
-  det = (px - Cx)*(qy - Cy) - (py - Cy)*(qx - Cx);
-  invdet = (real)1.0/(det + (real)1.0e-30);
-
-  // Circumradius pqC (squared)
-  r2 = (real)0.25*lpq*r2*r2*Sq(invdet);
-
-  real beta = 2.0;
-  real f = r2/(beta*lpq);
-  if (f > 1.0) {
-    Cx = f*Cx + (1.0 - f)*0.5*(px + qx);
-    Cy = f*Cy + (1.0 - f)*0.5*(py + qy);
-  }
-#endif
   
   // Add point in circumcentre (coalesced write)
   pVcAdd[i].x = Cx;
@@ -151,6 +107,13 @@ void Refine::FindCircum(Connectivity * const connectivity,
 			const MeshParameter *meshParameter,
 			const int nRefine)
 {
+#ifdef TIME_ASTRIX
+  cudaEvent_t start, stop;
+  float elapsedTime = 0.0f;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
+#endif
+
   nvtxEvent *nvtxCircum = new nvtxEvent("Circum", 0);
 
   int nVertex = connectivity->vertexCoordinates->GetSize();
@@ -175,16 +138,41 @@ void Refine::FindCircum(Connectivity * const connectivity,
 				       devCircum, 
 				       (size_t) 0, 0);
 
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     devCircum<<<nBlocks, nThreads>>>
       (nRefine, pTv, pVc, pVcAdd, pBt, nVertex, Px, Py);
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif      
     
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     for (int i = 0; i < nRefine; i++) 
       CircumSingle(i, pTv, pVc, pVcAdd, pBt, nVertex, Px, Py);
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif      
   }
-  
+
+#ifdef TIME_ASTRIX
+  cudaEventElapsedTime(&elapsedTime, start, stop);
+  std::cout << "Kernel: devCircum, # of elements: "
+	    << nRefine << ", elapsed time: " << elapsedTime << std::endl;
+
+  std::ofstream outfile;
+  outfile.open("Circum.txt", std::ios_base::app);
+  outfile << nRefine << " " << elapsedTime << std::endl;
+  outfile.close();
+#endif
+
   delete nvtxCircum;
 }
 

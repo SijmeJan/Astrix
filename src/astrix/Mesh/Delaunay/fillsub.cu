@@ -2,6 +2,7 @@
 /*! \file fillsub.cu
 \brief Functions for determining substitution triangles for repairing edges in Mesh after flipping*/
 #include <iostream>
+#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -77,7 +78,7 @@ void Delaunay::FillTriangleSubstitute(Connectivity * const connectivity,
 {
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
-  float elapsedTime;
+  float elapsedTime = 0.0f;
   cudaEventCreate(&start);
   cudaEventCreate(&stop);
 #endif
@@ -121,13 +122,17 @@ void Delaunay::FillTriangleSubstitute(Connectivity * const connectivity,
 #endif
   }  
 
-  /*
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
   std::cout << "Kernel: devFillTriangleSubstitute, # of elements: "
 	    << nNonDel << ", elapsed time: " << elapsedTime << std::endl;
+
+  std::ofstream outfile;
+  outfile.open("FillSub.txt", std::ios_base::app);
+  outfile << nNonDel << " " << elapsedTime << std::endl;
+  outfile.close();
 #endif
-  */
+
 }
 
 }

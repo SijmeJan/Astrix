@@ -65,7 +65,7 @@ LDFLAGS     := -lnvToolsExt
 
 # Add lineinfo and register use info if profiling
 ifeq ($(CUDA_PROFILE),1)
-	NVCCFLAGS += -lineinfo --ptxas-options=-v
+	NVCCFLAGS += -lineinfo --ptxas-options=-v -DTIME_ASTRIX
 endif
 # Add debug info if debugging
 ifeq ($(CUDA_DEBUG),1)

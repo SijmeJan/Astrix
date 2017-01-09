@@ -2,6 +2,7 @@
 /*! \file delaunay_flipedge.cu
 \brief Functions for flipping edges to make trianglation Delaunay*/
 #include <iostream>
+#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -175,6 +176,13 @@ devFlipEdge(int nNonDel, int *pEnd,
 void Delaunay::FlipEdge(Connectivity * const connectivity,
 			const int nNonDel)
 {
+#ifdef TIME_ASTRIX
+  cudaEvent_t start, stop;
+  float elapsedTime = 0.0f;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
+#endif
+
   int nVertex = connectivity->vertexCoordinates->GetSize();
   
   int *pEnd = edgeNonDelaunay->GetPointer();
@@ -192,14 +200,40 @@ void Delaunay::FlipEdge(Connectivity * const connectivity,
 				       devFlipEdge, 
 				       (size_t) 0, 0);
 
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     devFlipEdge<<<nBlocks, nThreads>>>
       (nNonDel, pEnd, pTv, pTe, pEt, nVertex);
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
   } else {
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     for (int i = 0; i < nNonDel; i++)
       FlipSingleEdge(i, pEnd, pTv, pTe, pEt, nVertex);
-  }  
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif
+  }
+
+#ifdef TIME_ASTRIX
+  cudaEventElapsedTime(&elapsedTime, start, stop);
+  std::cout << "Kernel: devFlipEdge, # of elements: "
+	    << nNonDel << ", elapsed time: " << elapsedTime << std::endl;
+
+  std::ofstream outfile;
+  outfile.open("FlipEdge.txt", std::ios_base::app);
+  outfile << nNonDel << " " << elapsedTime << std::endl;
+  outfile.close();
+#endif
+
 }
 
 }

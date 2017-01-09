@@ -1,6 +1,8 @@
 // -*-c++-*-
 /*! \file findparallelflip.cu
 \brief File containing function to find parallel flip set.*/
+#include <iostream>
+#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -8,6 +10,8 @@
 #include "../../Common/cudaLow.h"
 #include "../Connectivity/connectivity.h"
 #include "../../Common/atomic.h"
+
+#define NEW_FIND_PARALLEL_FLIP
 
 namespace astrix {
 
@@ -145,7 +149,18 @@ void FillAffectedTriangles(Array<int> * const triangleAffected,
 int Delaunay::FindParallelFlipSet(Connectivity * const connectivity,
 				  const int nFlip)
 {
-  /*
+#ifdef TIME_ASTRIX
+  cudaEvent_t start, stop;
+  float elapsedTime = 0.0f;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
+#endif
+
+#ifdef TIME_ASTRIX
+  cudaEventRecord(start, 0);
+#endif
+
+#ifdef NEW_FIND_PARALLEL_FLIP
   int nTriangle = connectivity->triangleVertices->GetSize();
   
   Array<int> *triangleTaken = new Array<int>(1, cudaFlag, nTriangle);
@@ -178,7 +193,8 @@ int Delaunay::FindParallelFlipSet(Connectivity * const connectivity,
   int nFlipParallel = edgeNonDelaunay->RemoveValue(-1, nFlip);
 
   delete triangleTaken;
-  */
+  
+#else
   
   // Fill triangleAffected and triangleAffectedEdge (direct only)
   FillAffectedTriangles(triangleAffected,
@@ -206,9 +222,24 @@ int Delaunay::FindParallelFlipSet(Connectivity * const connectivity,
     nFlipParallel = 1;
   }
   
-  //std::cout << nFlip << " " << nFlipParallel << std::endl;
-  
-  
+#endif
+
+#ifdef TIME_ASTRIX
+  cudaEventRecord(stop, 0);
+  cudaEventSynchronize(stop);
+#endif
+
+#ifdef TIME_ASTRIX
+  cudaEventElapsedTime(&elapsedTime, start, stop);
+  std::cout << "Kernel: devFindParallelFlip, # of elements: "
+	    << nFlip << ", elapsed time: " << elapsedTime << std::endl;
+
+  std::ofstream outfile;
+  outfile.open("ParallelFlip.txt", std::ios_base::app);
+  outfile << nFlip << " " << elapsedTime << std::endl;
+  outfile.close();
+#endif
+
   return nFlipParallel;
 }
 

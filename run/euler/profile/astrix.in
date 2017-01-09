@@ -4,9 +4,9 @@ problemDefinition	KH	# Test problem definition
 # Simulation parameters
 ###############################################################################
 
-maxSimulationTime 	1.0e-3	# Maximum simulation time
-saveIntervalTimeFine  	1.0e-10	# Fine save interval
-saveIntervalTime  	1.0e-10	# Save interval
+maxSimulationTime 	1.0e-10	# Maximum simulation time
+saveIntervalTimeFine  	0.1	# Fine save interval
+saveIntervalTime  	0.1	# Save interval
 integrationScheme 	B	# Integration scheme (N, LDA or B)
 integrationOrder  	2	# Integration order (1 or 2)
 massMatrix		1	# Mass matrix formulation (1, 2, 3 or 4)

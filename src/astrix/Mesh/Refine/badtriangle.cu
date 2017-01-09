@@ -1,6 +1,8 @@
 // -*-c++-*-
 /*! \file badtriangle.cu
 \brief File containing function to test all triangles for refinement.*/
+#include <iostream>
+#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -216,6 +218,13 @@ int Refine::TestTrianglesQuality(Connectivity * const connectivity,
 				 const MeshParameter *meshParameter,
 				 const Array<int> *triangleWantRefine)
 {
+#ifdef TIME_ASTRIX
+  cudaEvent_t start, stop;
+  float elapsedTime = 0.0f;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
+#endif
+
   nvtxEvent *nvtxQuality = new nvtxEvent("TestQuality", 0);
   nvtxEvent *nvtxTemp = new nvtxEvent("Init", 1);
 
@@ -279,21 +288,45 @@ int Refine::TestTrianglesQuality(Connectivity * const connectivity,
 					 devTestQuality, 
 					 (size_t) 0, 0);
       
+#ifdef TIME_ASTRIX
+      cudaEventRecord(start, 0);
+#endif
       devTestQuality<<<nBlocks, nThreads>>>
 	(nTriangle, pTv, pVc, pBadTriangles,
 	 dMax, nVertex, Px, Py, qualityBound);
-      
+#ifdef TIME_ASTRIX
+      cudaEventRecord(stop, 0);
+      cudaEventSynchronize(stop);
+#endif      
       gpuErrchk( cudaPeekAtLastError() );
       gpuErrchk( cudaDeviceSynchronize() );
       
       delete nvtxTemp;
     } else {
+#ifdef TIME_ASTRIX
+      cudaEventRecord(start, 0);
+#endif
       for (int i = 0; i < nTriangle; i++) 
 	TestQualitySingle(i, pTv, pVc, pBadTriangles, dMax,
 			  nVertex, Px, Py, qualityBound);
+#ifdef TIME_ASTRIX
+      cudaEventRecord(stop, 0);
+      cudaEventSynchronize(stop);
+#endif
     }
   }
   
+#ifdef TIME_ASTRIX
+  cudaEventElapsedTime(&elapsedTime, start, stop);
+  std::cout << "Kernel: devTestQuality, # of elements: "
+	    << nTriangle << ", elapsed time: " << elapsedTime << std::endl;
+
+  std::ofstream outfile;
+  outfile.open("TestQuality.txt", std::ios_base::app);
+  outfile << nTriangle << " " << elapsedTime << std::endl;
+  outfile.close();
+#endif
+
   nvtxTemp = new nvtxEvent("Remove", 3);
 
   // The first nBad values in badTriangles are low-quality triangles

@@ -112,6 +112,19 @@ class Refine
 		    const MeshParameter *meshParameter,
 		    const int nRefine);
 
+  void LockTriangles(Connectivity * const connectivity,
+		     const Predicates *predicates,
+		     const MeshParameter *meshParameter,
+		     Array<int> *triangleInCavity);
+  void FindIndependentCavities(Connectivity * const connectivity,
+			       const Predicates *predicates,
+			       const MeshParameter *meshParameter,
+			       Array<int> * const triangleInCavity,
+			       Array<int> *uniqueFlag);
+  void FlagEdgesForChecking(Connectivity * const connectivity,
+			    const Predicates *predicates,
+			    const MeshParameter *meshParameter);
+
 };
 
 }
