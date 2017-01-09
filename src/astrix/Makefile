@@ -57,11 +57,23 @@ NVCC:= $(CUDA_INSTALL_PATH)/bin/nvcc
 # Detect 32-bit or 64-bit OS platform
 OS_SIZE = $(shell uname -m | sed -e "s/i.86/32/" -e "s/x86_64/64/" -e "s/armv7l/32/")
 
+# If on 64 bit system, use lib64/ rather than lib/ if lib64/ exists
+LIB_32 := $(CUDA_INSTALL_PATH)/lib
+LIB_64 := $(CUDA_INSTALL_PATH)/lib64
+WTEMP:=$(wildcard $(LIB_64))
+
+LIB_PATH := $(LIB_32)
+ifeq ($(OS_SIZE), 64)
+	ifeq ($(LIB_64),$(WTEMP))
+		LIB_PATH := $(LIB_64)
+	endif
+endif
+
 # Standard compiler and linker flags
 NVCCFLAGS   := -m${OS_SIZE} -O3
 CCFLAGS     := -Wall -Wno-unused-private-field
 NVCCLDFLAGS :=
-LDFLAGS     := -lnvToolsExt
+LDFLAGS     := -lnvToolsExt -rpath $(LIB_PATH)
 
 # Add lineinfo and register use info if profiling
 ifeq ($(CUDA_PROFILE),1)
@@ -90,17 +102,7 @@ ALL_LDFLAGS += $(addprefix -Xlinker ,$(LDFLAGS))
 
 # Common includes and paths for CUDA
 INCLUDES  := -I$(CUDA_INSTALL_PATH)/include
-LIBRARIES := -L$(CUDA_INSTALL_PATH)/lib
-
-# If on 64 bit system, use lib64/ rather than lib/ if lib64/ exists
-LIB_64 := $(CUDA_INSTALL_PATH)/lib64
-WTEMP:=$(wildcard $(LIB_64))
-
-ifeq ($(OS_SIZE), 64)
-	ifeq ($(LIB_64),$(WTEMP))
-		LIBRARIES := -L$(CUDA_INSTALL_PATH)/lib64
-	endif
-endif
+LIBRARIES := -L$(LIB_PATH)
 
 ################################################################################
 # CUDA code generation flags
