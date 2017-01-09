@@ -1,5 +1,6 @@
 profiling
 new parallel flip selection test?
+edgerepair for selected edges only?
 adjust makefile register use / double prec ?
 source term integration
 test RT
