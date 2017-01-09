@@ -156,9 +156,6 @@ int Delaunay::FindParallelFlipSet(Connectivity * const connectivity,
   cudaEventCreate(&stop);
 #endif
 
-#ifdef TIME_ASTRIX
-  cudaEventRecord(start, 0);
-#endif
 
 #ifdef NEW_FIND_PARALLEL_FLIP
   int nTriangle = connectivity->triangleVertices->GetSize();
@@ -179,14 +176,28 @@ int Delaunay::FindParallelFlipSet(Connectivity * const connectivity,
 				       devSelectParallelFlip, 
 				       (size_t) 0, 0);
 
+#ifdef TIME_ASTRIX
+  cudaEventRecord(start, 0);
+#endif
     devSelectParallelFlip<<<nBlocks, nThreads>>>
       (nFlip, pEdgeNonDelaunay, pTriangleTaken, pEt);
+#ifdef TIME_ASTRIX
+  cudaEventRecord(stop, 0);
+  cudaEventSynchronize(stop);
+#endif
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
+#ifdef TIME_ASTRIX
+  cudaEventRecord(start, 0);
+#endif
     for (int i = 0; i < nFlip; i++) 
       SelectParallelFlip(i, pEdgeNonDelaunay, pTriangleTaken, pEt);
+#ifdef TIME_ASTRIX
+  cudaEventRecord(stop, 0);
+  cudaEventSynchronize(stop);
+#endif
   }
   
   // Keep only entries >= 0 (note: size of Array not changed!)
@@ -222,11 +233,6 @@ int Delaunay::FindParallelFlipSet(Connectivity * const connectivity,
     nFlipParallel = 1;
   }
   
-#endif
-
-#ifdef TIME_ASTRIX
-  cudaEventRecord(stop, 0);
-  cudaEventSynchronize(stop);
 #endif
 
 #ifdef TIME_ASTRIX
