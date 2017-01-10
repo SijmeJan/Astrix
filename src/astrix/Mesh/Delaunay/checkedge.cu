@@ -132,6 +132,25 @@ devCheckEdge(int nEdge,
   }
 }
 
+//######################################################################
+/*! \brief Kernel checking limited amount of edges for Delaunay-hood
+
+Check edges and write result in \a pEnd (1 if not Delaunay, 0 otherwise). Only the first \a nEdgeCheck entries of \a pEnc are checked. 
+
+\param nEdgeCheck Total number of edges to check
+\param *pEnC Pointer to array listing of edges to be checked
+\param *pVc Pointer to vertex coordinates
+\param *pTv Pointer to triangle vertices
+\param *pTe Pointer to triangle edges
+\param *pEt Pointer to edge triangles
+\param *pEnd Pointer to list of edges that are not Delaunay (output)
+\param *pred Pointer to initialised Predicates object
+\param *pParam Pointer to initialised Predicates parameter vector
+\param nVertex Total number of vertices in Mesh
+\param Px Periodic domain size x
+\param Py Periodic domain size y*/
+//######################################################################
+
 __global__ void
 devCheckEdgeLimit(int nEdgeCheck,
 		  const int *pEnC,
@@ -159,7 +178,10 @@ devCheckEdgeLimit(int nEdgeCheck,
 
 \param *connectivity Pointer to basic Mesh data
 \param *predicates Pointer to exact geometric predicates
-\param *meshParameter Pointer to Mesh parameters*/
+\param *meshParameter Pointer to Mesh parameters
+\param *edgeNeedsChecking pEdgeNeedsChecking[i] = i if edge \a i needs to be checked. If \a edgeNeedsChecking == 0 then all edges are checked
+\param nEdgeCheck Number of edges to check if \a edgeNeedsChecking != 0
+*/
 //#########################################################################
 
 void Delaunay::CheckEdges(Connectivity * const connectivity,

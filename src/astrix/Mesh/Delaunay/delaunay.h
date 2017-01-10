@@ -70,7 +70,9 @@ class Delaunay
   void FillTriangleSubstitute(Connectivity * const connectivity,
 			      const int nNonDel);
   //! Repair damaged edges after flipping
-  void EdgeRepair(Connectivity * const connectivity);
+  void EdgeRepair(Connectivity * const connectivity,
+		  Array<int> * const edgeNeedsChecking,
+		  const int nEdgeCheck);
   //! Adjust state in order to remain conservative
   void AdjustState(Connectivity * const connectivity,
 		   Array<realNeq> * const vertexState,
