@@ -43,7 +43,7 @@ void LockTriangle(const real2 VcAdd,
 		  const int elementAdd,
 		  const int nTriangle,
 		  int * const pTiC,
-		  const int3 * const pTv,
+		  const int3* __restrict__ pTv,
 		  const int3 * const pTe,
 		  const int2 * const pEt,
 		  const real2 * const pVc,
@@ -212,7 +212,9 @@ Upon return, pTiC[t] = pRandom[i] means that triangle \a t is part of the cavity
 
   __global__ void 
 devLockTriangles(int nRefine, real2 *pVcAdd, int *pElementAdd, int nTriangle,
-		 int *pTiC, int3 *pTv, int3 *pTe, int2 *pEt, real2 *pVc,
+		 int *pTiC,
+		 const int3* __restrict__ pTv,
+		 int3 *pTe, int2 *pEt, real2 *pVc,
 		 int nVertex, real Px, real Py, const Predicates *pred,
 		 real *pParam, unsigned int *pRandom)
 {
