@@ -92,7 +92,8 @@ void LockTriangle(const real2 VcAdd,
     int eNext = -1;
 
     int e1 = -1, e2 = -1, e3 = -1;
-    
+
+#pragma unroll
     for (int de = 2; de >= 0; de--) {
       // Choose eNext clockwise from eCrossed
       if (eCrossed == e[0]) eNext = e[de % 3];
