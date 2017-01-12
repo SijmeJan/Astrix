@@ -187,6 +187,7 @@ Simulation/minmaxvel.o: ALL_CCFLAGS += -maxrregcount=32
 Simulation/update_addresidue.o: ALL_CCFLAGS += -maxrregcount=48
 
 Mesh/Refine/testencroach.o: ALL_CCFLAGS += -maxrregcount=52
-Mesh/Refine/lock.o: ALL_CCFLAGS += -maxrregcount=52
+Mesh/Refine/lock.o: ALL_CCFLAGS += -maxrregcount=32
+
 Mesh/Delaunay/checkedge.o: ALL_CCFLAGS += -maxrregcount=32
 Mesh/Delaunay/checkflop.o: ALL_CCFLAGS += -maxrregcount=32

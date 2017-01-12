@@ -139,7 +139,6 @@ void LockTriangle(const real2 VcAdd,
 	if (f != F) translateFlag = 1;
 	TranslateVertexToVertex(f, F, Px, Py, nVertex, dxNew, dyNew);
 
-	
 	real det = pred->incircle(ax, ay, bx, by, cx, cy, dxNew, dyNew, pParam);
 
 	// Check if triangle is part of cavity if we translate triangle
