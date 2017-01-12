@@ -618,7 +618,8 @@ inline real Predicates::incircleadapt(real ax, real ay,
 				      real permanent,
 				      const real * const pParam) const
 {
-  real zero = 0.0;
+  real zero = (real) 0.0;
+  real two = (real) 2.0;
   
   real adx, bdx, cdx, ady, bdy, cdy;
   real det, errbound;
@@ -739,13 +740,13 @@ inline real Predicates::incircleadapt(real ax, real ay,
   errbound = pParam[11] * permanent + pParam[2] * Absolute(det);
   det += ((adx * adx + ady * ady) * ((bdx * cdytail + cdy * bdxtail)
                                      - (bdy * cdxtail + cdx * bdytail))
-          + 2.0 * (adx * adxtail + ady * adytail) * (bdx * cdy - bdy * cdx))
+          + two * (adx * adxtail + ady * adytail) * (bdx * cdy - bdy * cdx))
        + ((bdx * bdx + bdy * bdy) * ((cdx * adytail + ady * cdxtail)
                                      - (cdy * adxtail + adx * cdytail))
-          + 2.0 * (bdx * bdxtail + bdy * bdytail) * (cdx * ady - cdy * adx))
+          + two * (bdx * bdxtail + bdy * bdytail) * (cdx * ady - cdy * adx))
        + ((cdx * cdx + cdy * cdy) * ((adx * bdytail + bdy * adxtail)
                                      - (ady * bdxtail + bdx * adytail))
-          + 2.0 * (cdx * cdxtail + cdy * cdytail) * (adx * bdy - ady * bdx));
+          + two * (cdx * cdxtail + cdy * cdytail) * (adx * bdy - ady * bdx));
   if ((det >= errbound) || (-det >= errbound)) {
     return det;
   }
@@ -780,7 +781,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
 
   if (adxtail != zero) {
     axtbclen = scale_expansion_zeroelim(4, bc, adxtail, axtbc, pParam);
-    temp16alen = scale_expansion_zeroelim(axtbclen, axtbc, 2.0 * adx,
+    temp16alen = scale_expansion_zeroelim(axtbclen, axtbc, two * adx,
                                           temp16a, pParam);
 
     axtcclen = scale_expansion_zeroelim(4, cc, adxtail, axtcc, pParam);
@@ -801,7 +802,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
   }
   if (adytail != zero) {
     aytbclen = scale_expansion_zeroelim(4, bc, adytail, aytbc, pParam);
-    temp16alen = scale_expansion_zeroelim(aytbclen, aytbc, 2.0 * ady,
+    temp16alen = scale_expansion_zeroelim(aytbclen, aytbc, two * ady,
                                           temp16a, pParam);
 
     aytbblen = scale_expansion_zeroelim(4, bb, adytail, aytbb, pParam);
@@ -822,7 +823,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
   }
   if (bdxtail != zero) {
     bxtcalen = scale_expansion_zeroelim(4, ca, bdxtail, bxtca, pParam);
-    temp16alen = scale_expansion_zeroelim(bxtcalen, bxtca, 2.0 * bdx,
+    temp16alen = scale_expansion_zeroelim(bxtcalen, bxtca, two * bdx,
                                           temp16a, pParam);
 
     bxtaalen = scale_expansion_zeroelim(4, aa, bdxtail, bxtaa, pParam);
@@ -843,7 +844,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
   }
   if (bdytail != zero) {
     bytcalen = scale_expansion_zeroelim(4, ca, bdytail, bytca, pParam);
-    temp16alen = scale_expansion_zeroelim(bytcalen, bytca, 2.0 * bdy,
+    temp16alen = scale_expansion_zeroelim(bytcalen, bytca, two * bdy,
                                           temp16a, pParam);
 
     bytcclen = scale_expansion_zeroelim(4, cc, bdytail, bytcc, pParam);
@@ -864,7 +865,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
   }
   if (cdxtail != zero) {
     cxtablen = scale_expansion_zeroelim(4, ab, cdxtail, cxtab, pParam);
-    temp16alen = scale_expansion_zeroelim(cxtablen, cxtab, 2.0 * cdx,
+    temp16alen = scale_expansion_zeroelim(cxtablen, cxtab, two * cdx,
                                           temp16a, pParam);
 
     cxtbblen = scale_expansion_zeroelim(4, bb, cdxtail, cxtbb, pParam);
@@ -885,7 +886,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
   }
   if (cdytail != zero) {
     cytablen = scale_expansion_zeroelim(4, ab, cdytail, cytab, pParam);
-    temp16alen = scale_expansion_zeroelim(cytablen, cytab, 2.0 * cdy,
+    temp16alen = scale_expansion_zeroelim(cytablen, cytab, two * cdy,
                                           temp16a, pParam);
 
     cytaalen = scale_expansion_zeroelim(4, aa, cdytail, cytaa, pParam);
@@ -938,7 +939,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
 					    temp16a, pParam);
       axtbctlen = scale_expansion_zeroelim(bctlen, bct, adxtail, axtbct, 
 					   pParam);
-      temp32alen = scale_expansion_zeroelim(axtbctlen, axtbct, 2.0 * adx,
+      temp32alen = scale_expansion_zeroelim(axtbctlen, axtbct, two * adx,
                                             temp32a, pParam);
       temp48len = fast_expansion_sum_zeroelim(temp16alen, temp16a,
                                               temp32alen, temp32a, temp48);
@@ -966,7 +967,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
                                             temp32a, pParam);
       axtbcttlen = scale_expansion_zeroelim(bcttlen, bctt, adxtail, axtbctt, 
 					    pParam);
-      temp16alen = scale_expansion_zeroelim(axtbcttlen, axtbctt, 2.0 * adx,
+      temp16alen = scale_expansion_zeroelim(axtbcttlen, axtbctt, two * adx,
                                             temp16a, pParam);
       temp16blen = scale_expansion_zeroelim(axtbcttlen, axtbctt, adxtail,
                                             temp16b, pParam);
@@ -983,7 +984,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
 					    temp16a, pParam);
       aytbctlen = scale_expansion_zeroelim(bctlen, bct, adytail, aytbct, 
 					   pParam);
-      temp32alen = scale_expansion_zeroelim(aytbctlen, aytbct, 2.0 * ady,
+      temp32alen = scale_expansion_zeroelim(aytbctlen, aytbct, two * ady,
                                             temp32a, pParam);
       temp48len = fast_expansion_sum_zeroelim(temp16alen, temp16a,
                                               temp32alen, temp32a, temp48);
@@ -996,7 +997,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
                                             temp32a, pParam);
       aytbcttlen = scale_expansion_zeroelim(bcttlen, bctt, adytail, aytbctt, 
 					    pParam);
-      temp16alen = scale_expansion_zeroelim(aytbcttlen, aytbctt, 2.0 * ady,
+      temp16alen = scale_expansion_zeroelim(aytbcttlen, aytbctt, two * ady,
                                             temp16a, pParam);
       temp16blen = scale_expansion_zeroelim(aytbcttlen, aytbctt, adytail,
                                             temp16b, pParam);
@@ -1042,7 +1043,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
 					    temp16a, pParam);
       bxtcatlen = scale_expansion_zeroelim(catlen, cat, bdxtail, bxtcat, 
 					   pParam);
-      temp32alen = scale_expansion_zeroelim(bxtcatlen, bxtcat, 2.0 * bdx,
+      temp32alen = scale_expansion_zeroelim(bxtcatlen, bxtcat, two * bdx,
                                             temp32a, pParam);
       temp48len = fast_expansion_sum_zeroelim(temp16alen, temp16a,
                                               temp32alen, temp32a, temp48);
@@ -1070,7 +1071,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
                                             temp32a, pParam);
       bxtcattlen = scale_expansion_zeroelim(cattlen, catt, bdxtail, bxtcatt, 
 					    pParam);
-      temp16alen = scale_expansion_zeroelim(bxtcattlen, bxtcatt, 2.0 * bdx,
+      temp16alen = scale_expansion_zeroelim(bxtcattlen, bxtcatt, two * bdx,
                                             temp16a, pParam);
       temp16blen = scale_expansion_zeroelim(bxtcattlen, bxtcatt, bdxtail,
                                             temp16b, pParam);
@@ -1087,7 +1088,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
 					    temp16a, pParam);
       bytcatlen = scale_expansion_zeroelim(catlen, cat, bdytail, bytcat, 
 					   pParam);
-      temp32alen = scale_expansion_zeroelim(bytcatlen, bytcat, 2.0 * bdy,
+      temp32alen = scale_expansion_zeroelim(bytcatlen, bytcat, two * bdy,
                                             temp32a, pParam);
       temp48len = fast_expansion_sum_zeroelim(temp16alen, temp16a,
                                               temp32alen, temp32a, temp48);
@@ -1100,7 +1101,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
                                             temp32a, pParam);
       bytcattlen = scale_expansion_zeroelim(cattlen, catt, bdytail, bytcatt, 
 					    pParam);
-      temp16alen = scale_expansion_zeroelim(bytcattlen, bytcatt, 2.0 * bdy,
+      temp16alen = scale_expansion_zeroelim(bytcattlen, bytcatt, two * bdy,
                                             temp16a, pParam);
       temp16blen = scale_expansion_zeroelim(bytcattlen, bytcatt, bdytail,
                                             temp16b, pParam);
@@ -1146,7 +1147,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
 					    temp16a, pParam);
       cxtabtlen = scale_expansion_zeroelim(abtlen, abt, cdxtail, cxtabt, 
 					   pParam);
-      temp32alen = scale_expansion_zeroelim(cxtabtlen, cxtabt, 2.0 * cdx,
+      temp32alen = scale_expansion_zeroelim(cxtabtlen, cxtabt, two * cdx,
                                             temp32a, pParam);
       temp48len = fast_expansion_sum_zeroelim(temp16alen, temp16a,
                                               temp32alen, temp32a, temp48);
@@ -1174,7 +1175,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
                                             temp32a, pParam);
       cxtabttlen = scale_expansion_zeroelim(abttlen, abtt, cdxtail, cxtabtt, 
 					    pParam);
-      temp16alen = scale_expansion_zeroelim(cxtabttlen, cxtabtt, 2.0 * cdx,
+      temp16alen = scale_expansion_zeroelim(cxtabttlen, cxtabtt, two * cdx,
                                             temp16a, pParam);
       temp16blen = scale_expansion_zeroelim(cxtabttlen, cxtabtt, cdxtail,
                                             temp16b, pParam);
@@ -1191,7 +1192,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
 					    temp16a, pParam);
       cytabtlen = scale_expansion_zeroelim(abtlen, abt, cdytail, cytabt, 
 					   pParam);
-      temp32alen = scale_expansion_zeroelim(cytabtlen, cytabt, 2.0 * cdy,
+      temp32alen = scale_expansion_zeroelim(cytabtlen, cytabt, two * cdy,
                                             temp32a, pParam);
       temp48len = fast_expansion_sum_zeroelim(temp16alen, temp16a,
                                               temp32alen, temp32a, temp48);
@@ -1204,7 +1205,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
                                             temp32a, pParam);
       cytabttlen = scale_expansion_zeroelim(abttlen, abtt, cdytail, cytabtt, 
 					    pParam);
-      temp16alen = scale_expansion_zeroelim(cytabttlen, cytabtt, 2.0 * cdy,
+      temp16alen = scale_expansion_zeroelim(cytabttlen, cytabtt, two * cdy,
                                             temp16a, pParam);
       temp16blen = scale_expansion_zeroelim(cytabttlen, cytabtt, cdytail,
                                             temp16b, pParam);
