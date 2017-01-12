@@ -56,6 +56,11 @@ void LockTriangle(const real2 VcAdd,
   real dx = VcAdd.x;
   real dy = VcAdd.y;
 
+  real dxOld = dx;
+  real dyOld = dy;
+  // Flag if cavity lies across periodic boundary
+  int translateFlag = 0;
+
   // Start at insertion triangle
   int tStart = elementAdd;
   if (tStart >= nTriangle) {
@@ -129,12 +134,28 @@ void LockTriangle(const real2 VcAdd,
 	real dxNew = dx;
 	real dyNew = dy;
 	
+	// Indicate that cavity lies across periodic boundary
+	if (f != F) translateFlag = 1;
 	TranslateVertexToVertex(f, F, Px, Py, nVertex, dxNew, dyNew);
 
 	real det = pred->incircle(ax, ay, bx, by, cx, cy, dxNew, dyNew, pParam);
+
+	// Check if triangle is part of cavity if we translate triangle
+	// in stead of vertex
+	real det2 = det;
+	// Do this only when cavity lies across periodic boundary
+	if (translateFlag == 1) {
+	  real DeltaX = dxOld - dxNew;
+	  real DeltaY = dyOld - dyNew;
+
+	  det2 = pred->incircle(ax + DeltaX, ay + DeltaY,
+				bx + DeltaX, by + DeltaY,
+				cx + DeltaX, cy + DeltaY,
+				dxOld, dyOld, pParam);
+	}
 	
 	// If triangle not part of cavity, do not move into it
-	if (det < (real) 0.0) {
+	if (det < (real) 0.0 && det2 < (real) 0.0) {
 	  tNext = -1;
 	} else {
 	  // Move into tNext; use new coordinates

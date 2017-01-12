@@ -10,6 +10,8 @@
 #include "../Connectivity/connectivity.h"
 #include "../../Common/profile.h"
 
+#include "../triangleLow.h"
+
 namespace astrix {
   
 //#########################################################################
@@ -25,7 +27,8 @@ Check if edge is part of both neighbouring triangles. If not, it has been corrup
 
 __host__ __device__
 void SingleEdgeRepair(int i, const int* __restrict__ pTsub,
-		      const int3* __restrict__ pTe, int2 *pEt)
+		      const int3* __restrict__ pTe, int2 *pEt,
+		      int printFlag)
 {
   // Indices of triangles
   int t1 = pEt[i].x;
@@ -38,7 +41,20 @@ void SingleEdgeRepair(int i, const int* __restrict__ pTsub,
     int e2 = pTe[t1].y;
     int e3 = pTe[t1].z;
     
-    if (i != e1 && i != e2 && i != e3) t1 = tS1;
+    if (i != e1 && i != e2 && i != e3) {
+      /*
+#ifndef __CUDA_ARCH__
+      if (printFlag == 1) {
+	std::cout << "Error in edgeRepair!" << std::endl;
+	std::cout << "Edge: " << i << std::endl;
+	std::cout << "Triangles " << t1 << " " << t2 << std::endl;
+	
+	int qq; std::cin >> qq;
+      }
+#endif
+      */
+      t1 = tS1;
+    }
   }
   
   if (t2 != -1) {
@@ -48,7 +64,20 @@ void SingleEdgeRepair(int i, const int* __restrict__ pTsub,
     int e2 = pTe[t2].y;
     int e3 = pTe[t2].z;
     
-    if (i != e1 && i != e2 && i != e3) t2 = tS2;
+    if (i != e1 && i != e2 && i != e3) {
+      /*
+#ifndef __CUDA_ARCH__
+      if (printFlag == 1) {
+	std::cout << "Error in edgeRepair!" << std::endl;
+	std::cout << "Edge: " << i << std::endl;
+	std::cout << "Triangles " << t1 << " " << t2 << std::endl;
+
+	int qq; std::cin >> qq;
+      }
+#endif
+      */
+      t2 = tS2;
+    }
   }
     
   pEt[i].x = t1;
@@ -75,7 +104,7 @@ devEdgeRepair(int nEdge,
   int i = blockIdx.x*blockDim.x + threadIdx.x;
   
   while (i < nEdge) {
-    SingleEdgeRepair(i, pTsub, pTe, pEt);
+    SingleEdgeRepair(i, pTsub, pTe, pEt, 1);
 
     i += gridDim.x*blockDim.x;
   }
@@ -104,7 +133,7 @@ devEdgeRepairLimit(int nEdgeCheck,
   
   while (i < nEdgeCheck) {
     int e = pEnC[i];
-    SingleEdgeRepair(e, pTsub, pTe, pEt);
+    SingleEdgeRepair(e, pTsub, pTe, pEt, 0);
 
     i += gridDim.x*blockDim.x;
   }
@@ -138,6 +167,58 @@ void Delaunay::EdgeRepair(Connectivity * const connectivity,
   int *pTsub = triangleSubstitute->GetPointer();
  
   if (edgeNeedsChecking == 0) {
+
+    /*
+    int nVertex = connectivity->vertexCoordinates->GetSize();
+    int nTriangle = connectivity->triangleVertices->GetSize();
+    real2 *pVc = connectivity->vertexCoordinates->GetPointer();
+    int3 *pTv = connectivity->triangleVertices->GetPointer();
+    real Px = 1.0;
+    real Py = 1.0;
+    int t = 23208870;
+    if (nTriangle >= t) {
+      int a = pTv[t].x;
+      int b = pTv[t].y;
+      int c = pTv[t].z;
+      
+      real ax, bx, cx, ay, by, cy;
+      GetTriangleCoordinates(pVc, a, b, c, nVertex, Px, Py,
+			     ax, bx, cx, ay, by, cy);
+      std::cout << "Triangle " << t << " coordinates: "
+		<< ax << " " << ay << " " << bx << " " << by << " "
+		<< cx << " " << cy << std::endl;
+      while (a >= nVertex) a -= nVertex;
+      while (a < 0) a += nVertex;
+      while (b >= nVertex) b -= nVertex;
+      while (b < 0) b += nVertex;
+      while (c >= nVertex) c -= nVertex;
+      while (c < 0) c += nVertex;
+      std::cout << "Triangle " << t << " vertices: "
+		<< a << " " << b << " " << c << std::endl;
+    }
+    t = 5483649;
+    if (nTriangle >= t) {
+      int a = pTv[t].x;
+      int b = pTv[t].y;
+      int c = pTv[t].z;
+      
+      real ax, bx, cx, ay, by, cy;
+      GetTriangleCoordinates(pVc, a, b, c, nVertex, Px, Py, 
+			     ax, bx, cx, ay, by, cy);
+      std::cout << "Triangle " << t << " coordinates: "
+		<< ax << " " << ay << " " << bx << " " << by << " "
+		<< cx << " " << cy << std::endl;
+      while (a >= nVertex) a -= nVertex;
+      while (a < 0) a += nVertex;
+      while (b >= nVertex) b -= nVertex;
+      while (b < 0) b += nVertex;
+      while (c >= nVertex) c -= nVertex;
+      while (c < 0) c += nVertex;
+      std::cout << "Triangle " << t << " vertices: "
+		<< a << " " << b << " " << c << std::endl;
+    }
+    */
+    
     if (cudaFlag == 1) {
       int nBlocks = 128;
       int nThreads = 128; 
@@ -163,7 +244,7 @@ void Delaunay::EdgeRepair(Connectivity * const connectivity,
       cudaEventRecord(start, 0);
 #endif
       for (int i = 0; i < nEdge; i++) 
-	SingleEdgeRepair(i, pTsub, pTe, pEt);
+	SingleEdgeRepair(i, pTsub, pTe, pEt, 1);
 #ifdef TIME_ASTRIX
       cudaEventRecord(stop, 0);
       cudaEventSynchronize(stop);
@@ -204,7 +285,7 @@ void Delaunay::EdgeRepair(Connectivity * const connectivity,
       cudaEventRecord(start, 0);
 #endif
       for (int i = 0; i < nEdgeCheck; i++) 
-	SingleEdgeRepair(pEnC[i], pTsub, pTe, pEt);
+	SingleEdgeRepair(pEnC[i], pTsub, pTe, pEt, 0);
 #ifdef TIME_ASTRIX
       cudaEventRecord(stop, 0);
       cudaEventSynchronize(stop);

@@ -170,17 +170,6 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
 
 	
 	int nEdgeCheck = edgeNeedsChecking->RemoveValue(-1);
-	//int nEdgeCheck = connectivity->edgeTriangles->GetSize();
-	//edgeNeedsChecking->SetToSeries();
-
-	/*
-	int *pEnC = edgeNeedsChecking->GetPointer();
-	for (int n = 0; n < nEdgeCheck; n++) 
-	  std::cout << n << " " << pEnC[n] << std::endl;
-	std::cout << "Total number of edges: "
-		  << connectivity->edgeTriangles->GetSize() << std::endl;
-	int qq; std::cin >> qq; 
-	*/
 	
 	if (verboseLevel > 2) 
 	  std::cout << "Delaunay..." << std::endl;

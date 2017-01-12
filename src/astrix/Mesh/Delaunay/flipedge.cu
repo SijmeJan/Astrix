@@ -30,7 +30,7 @@ void FlipSingleEdge(int i, int *pEnd, int3 *pTv, int3 *pTe,
 {
   // Edge to be flipped
   int edge = pEnd[i];
-
+  
   // Neighbouring triangles
   int t1 = pEt[edge].x;
   int t2 = pEt[edge].y;
