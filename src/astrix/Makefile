@@ -80,7 +80,7 @@ LDFLAGS     := -lnvToolsExt -rpath $(LIB_PATH)
 
 # Add lineinfo and register use info if profiling
 ifeq ($(CUDA_PROFILE),1)
-	NVCCFLAGS += -lineinfo --ptxas-options=-v -DTIME_ASTRIX
+	NVCCFLAGS += -lineinfo --ptxas-options=-v
 endif
 ifeq ($(CUDA_TIMING),1)
 	NVCCFLAGS += -DTIME_ASTRIX
