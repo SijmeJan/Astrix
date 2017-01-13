@@ -20,6 +20,9 @@ CUDA_COMPUTE ?= 0
 # By default, no profiling flags
 CUDA_PROFILE ?= 0
 
+# By default, do not time
+CUDA_TIMING ?= 0
+
 # By default, no debug flags
 CUDA_DEBUG ?= 0
 
@@ -78,6 +81,9 @@ LDFLAGS     := -lnvToolsExt -rpath $(LIB_PATH)
 # Add lineinfo and register use info if profiling
 ifeq ($(CUDA_PROFILE),1)
 	NVCCFLAGS += -lineinfo --ptxas-options=-v -DTIME_ASTRIX
+endif
+ifeq ($(CUDA_TIMING),1)
+	NVCCFLAGS += -DTIME_ASTRIX
 endif
 # Add debug info if debugging
 ifeq ($(CUDA_DEBUG),1)
