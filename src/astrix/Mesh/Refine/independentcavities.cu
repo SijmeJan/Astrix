@@ -44,7 +44,8 @@ void FindIndependentCavity(int i, real2 *pVcAdd, int *pElementAdd,
 			   const int3* __restrict__ pTv,
 			   const int3* __restrict__ pTe,
 			   const int2* __restrict__ pEt,
-			   real2 *pVc, int nVertex, real Px,
+			   const real2* __restrict__ pVc,
+			   int nVertex, real Px,
 			   real Py, const Predicates *pred, real *pParam,
 			   unsigned int *pRandom, int *pUniqueFlag)
 {
@@ -229,7 +230,8 @@ devFindIndependentCavities(int nRefine, real2 *pVcAdd, int *pElementAdd,
 			   const int3* __restrict__ pTv,
 			   const int3* __restrict__ pTe,
 			   const int2* __restrict__ pEt,
-			   real2 *pVc, int nVertex, real Px, real Py,
+			   const real2* __restrict__ pVc,
+			   int nVertex, real Px, real Py,
 			   const Predicates *pred, real *pParam,
 			   unsigned int *pRandom, int *pUniqueFlag)
 {
