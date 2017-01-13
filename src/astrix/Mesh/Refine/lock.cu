@@ -178,7 +178,7 @@ void LockTriangle(const real2 VcAdd,
       // Found a triangle to move into
       if (tNext != -1) break;
     }
-    
+
     eCrossed = eNext;
     t = tNext;
     e[0] = e1;
