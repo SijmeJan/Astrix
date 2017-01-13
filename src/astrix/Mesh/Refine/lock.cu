@@ -86,8 +86,11 @@ void LockTriangle(const real2 VcAdd,
   
   while (finished == 0) {
     // Set pTiC to maximum of pTiC and pRandom
-    AtomicMax(&(pTiC[t]), randomInt);
+    int old = AtomicMax(&(pTiC[t]), randomInt);
+    // Stop if old pTic[t] was larger 
+    if (old > randomInt) finished = 1;
 
+    if (finished == 0) {
     int tNext = -1;
     int eNext = -1;
 
@@ -185,7 +188,7 @@ void LockTriangle(const real2 VcAdd,
     // Done if we are moving back into tStart across eStart or if no
     // next triangle can be found
     if ((t == tStart && eCrossed == eStart) || t == -1) finished = 1;
-
+    }
   }
 }
   

@@ -86,11 +86,15 @@ void FindIndependentCavity(int i, real2 *pVcAdd, int *pElementAdd,
     if (pTiC[t] != -i - 2) {
       if (pTiC[t] != randomInt) {
 	ret = 0;
+	// We might as well stop
+	finished = 1;
       } else {
 	pTiC[t] = -i - 2;
       }
     }
 
+    if (finished == 0) {
+      
     int tNext = -1;
     int eNext = -1;
     
@@ -186,7 +190,8 @@ void FindIndependentCavity(int i, real2 *pVcAdd, int *pElementAdd,
 
     // Done if we are moving back into tStart across eStart or if no
     // next triangle can be found
-    if ((t == tStart && eCrossed == eStart) || t == -1) finished = 1; 
+    if ((t == tStart && eCrossed == eStart) || t == -1) finished = 1;
+    }
   }
 
   pUniqueFlag[i] = ret;
