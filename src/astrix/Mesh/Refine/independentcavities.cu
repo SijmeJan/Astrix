@@ -41,10 +41,11 @@ Start at the insertion triangle and move in clockwise direction along the edge o
 __host__ __device__
 void FindIndependentCavity(int i, real2 *pVcAdd, int *pElementAdd,
 			   int nTriangle, int *pTiC,
-			   const int3* __restrict__ pTv,
-			   const int3* __restrict__ pTe,
-			   const int2* __restrict__ pEt,
-			   const real2* __restrict__ pVc,
+			   int3 *pTv, int3 *pTe, int2 *pEt, real2 *pVc,
+			   //const int3* __restrict__ pTv,
+			   //const int3* __restrict__ pTe,
+			   //const int2* __restrict__ pEt,
+			   //const real2* __restrict__ pVc,
 			   int nVertex, real Px,
 			   real Py, const Predicates *pred, real *pParam,
 			   unsigned int *pRandom, int *pUniqueFlag)
@@ -227,10 +228,11 @@ Upon return, pUniqueFlag[i] = 1 is point can be inserted independently of all ot
 __global__ void 
 devFindIndependentCavities(int nRefine, real2 *pVcAdd, int *pElementAdd,
 			   int nTriangle, int *pTiC,
-			   const int3* __restrict__ pTv,
-			   const int3* __restrict__ pTe,
-			   const int2* __restrict__ pEt,
-			   const real2* __restrict__ pVc,
+			   int3 *pTv, int3 *pTe, int2 *pEt, real2 *pVc,
+			   //const int3* __restrict__ pTv,
+			   //const int3* __restrict__ pTe,
+			   //const int2* __restrict__ pEt,
+			   //const real2* __restrict__ pVc,
 			   int nVertex, real Px, real Py,
 			   const Predicates *pred, real *pParam,
 			   unsigned int *pRandom, int *pUniqueFlag)
