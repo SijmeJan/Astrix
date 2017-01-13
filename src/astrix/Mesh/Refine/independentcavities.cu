@@ -130,7 +130,6 @@ void FindIndependentCavity(int i, real2 *pVcAdd, int *pElementAdd,
 	int B = pTv[t].y;
 	int C = pTv[t].z;
 
-       
 	int F = B;
 	if (e[1] == eNext) F = C;
 	if (e[2] == eNext) F = A;
