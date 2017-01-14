@@ -8,6 +8,7 @@
 #include "../Mesh/mesh.h"
 #include "./simulation.h"
 #include "../Common/cudaLow.h"
+#include "../Common/profile.h"
 
 namespace astrix {
 
@@ -163,6 +164,13 @@ devCalcBlendFactor(int nTriangle, const real3* __restrict__ pTl,
 
 void Simulation::CalcBlend()
 {
+#ifdef TIME_ASTRIX
+  cudaEvent_t start, stop;
+  float elapsedTime = 0.0f;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
+#endif
+
   int nTriangle = mesh->GetNTriangle();
 
   // N residuals
@@ -189,16 +197,35 @@ void Simulation::CalcBlend()
 				       (size_t) 0, 0);
     
     // Execute kernel... 
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     devCalcBlendFactor<<<nBlocks,nThreads>>>
       (nTriangle, pTl, pTresN0, pTresN1, pTresN2, pTres, pBlend,
        preferMinMaxBlend);
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif      
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     for (int n = 0; n < nTriangle; n++) 
       CalcBlendSingle(n, pTl, pTresN0, pTresN1, pTresN2, pTres, pBlend,
 		      preferMinMaxBlend);
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif      
   }
+
+#ifdef TIME_ASTRIX
+  cudaEventElapsedTime(&elapsedTime, start, stop);
+  WriteProfileFile("Blend.prof2", nTriangle, elapsedTime, cudaFlag);
+#endif
 }
 
 }

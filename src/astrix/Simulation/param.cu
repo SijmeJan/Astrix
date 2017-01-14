@@ -7,6 +7,7 @@
 #include "../Mesh/mesh.h"
 #include "./simulation.h"
 #include "../Common/cudaLow.h"
+#include "../Common/profile.h"
 
 namespace astrix {   
 
@@ -83,6 +84,13 @@ devCalcParamVec(int nVertex, realNeq *pState, realNeq *pVz, real G1)
 
 void Simulation::CalculateParameterVector(int useOldFlag)	
 {
+#ifdef TIME_ASTRIX
+  cudaEvent_t start, stop;
+  float elapsedTime = 0.0f;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
+#endif
+
   int nVertex = mesh->GetNVertex();
 
   realNeq *pState = vertexState->GetPointer();
@@ -103,14 +111,34 @@ void Simulation::CalculateParameterVector(int useOldFlag)
 				       (size_t) 0, 0);
 
     // Execute kernel... 
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     devCalcParamVec<<<nBlocks,nThreads>>>
       (nVertex, pState, pVz, specificHeatRatio - 1.0);
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif      
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     for (int n = 0; n < nVertex; n++)
       CalcParamVecSingle(n, pState, pVz, specificHeatRatio - 1.0);
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif      
   }
+
+#ifdef TIME_ASTRIX
+  cudaEventElapsedTime(&elapsedTime, start, stop);
+  WriteProfileFile("Param.prof2", nVertex, elapsedTime, cudaFlag);
+#endif
+
 }
   
 }

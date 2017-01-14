@@ -8,6 +8,7 @@
 #include "./simulation.h"
 #include "../Common/atomic.h"
 #include "../Common/cudaLow.h"
+#include "../Common/profile.h"
 
 namespace astrix {
   
@@ -239,6 +240,13 @@ devCalcVertexTimeStep(int nVertex, real *pVts, const real *pVarea)
 
 real Simulation::CalcVertexTimeStep()
 {
+#ifdef TIME_ASTRIX
+  cudaEvent_t start, stop;
+  float elapsedTime = 0.0f;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
+#endif
+
   unsigned int nVertex = mesh->GetNVertex();
   int nTriangle = mesh->GetNTriangle();
 
@@ -263,17 +271,36 @@ real Simulation::CalcVertexTimeStep()
 				       (size_t) 0, 0);
 
     // Execute kernel... 
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     devCalcVmax<<<nBlocks,nThreads>>>
       (nTriangle, pTv, pState, pTl, pVts, nVertex,
        specificHeatRatio, specificHeatRatio - 1.0);
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif      
     
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     for (int n = 0; n < nTriangle; n++)
       CalcVmaxSingle(n, pTv, pState, pTl, pVts, nVertex,
 		     specificHeatRatio, specificHeatRatio - 1.0);
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif      
   }
+
+#ifdef TIME_ASTRIX
+  cudaEventElapsedTime(&elapsedTime, start, stop);
+  WriteProfileFile("SignalSpeed.prof2", nTriangle, elapsedTime, cudaFlag);
+#endif
 
   // Convert maximum signal speed into vertex time step
   if (cudaFlag == 1) {
@@ -286,15 +313,34 @@ real Simulation::CalcVertexTimeStep()
 				       (size_t) 0, 0);
 
     // Execute kernel... 
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     devCalcVertexTimeStep<<<nBlocks,nThreads>>>
       (nVertex, pVts, pVarea);
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif      
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
+#ifdef TIME_ASTRIX
+    cudaEventRecord(start, 0);
+#endif
     for (unsigned int n = 0; n < nVertex; n++)
       CalcVertexTimeStepSingle(n, pVts, pVarea);
+#ifdef TIME_ASTRIX
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+#endif      
   }
+
+#ifdef TIME_ASTRIX
+  cudaEventElapsedTime(&elapsedTime, start, stop);
+  WriteProfileFile("CalcTimeStep.prof2", nVertex, elapsedTime, cudaFlag);
+#endif
 
   // Find the minimum
   real dt = CFLnumber*vertexTimestep->Minimum();

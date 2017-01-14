@@ -1723,7 +1723,7 @@ void Simulation::CalcResidual()
   
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  WriteProfileFile("CalcResidual.prof", nTriangle, elapsedTime, cudaFlag);
+  WriteProfileFile("CalcResidual.prof2", nTriangle, elapsedTime, cudaFlag);
 #endif
 
   if (transformFlag == 1) {

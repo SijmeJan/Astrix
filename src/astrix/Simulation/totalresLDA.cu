@@ -966,7 +966,7 @@ void Simulation::CalcTotalResLDA()
   
 #ifdef TIME_ASTRIX
   cudaEventElapsedTime(&elapsedTime, start, stop);
-  WriteProfileFile("CalcTotalResLDA.prof", nTriangle, elapsedTime, cudaFlag);
+  WriteProfileFile("CalcTotalResLDA.prof2", nTriangle, elapsedTime, cudaFlag);
 #endif
   
   if (transformFlag == 1) {

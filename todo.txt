@@ -1,5 +1,4 @@
-profiling
-register requirements
+profiling simulation
 new parallel flip selection test?
 adjust makefile register use / double prec ?
 check documentation
