@@ -4,8 +4,6 @@
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
 
-//#define TIME_ASTRIX
-
 #define USE_DOUBLE -1
 #define N_EQUATION 4
 

@@ -237,6 +237,20 @@ template Array<int>::~Array();
 
 //#############################################################################
 
+template Array<int4>::Array();
+template Array<int4>::Array(unsigned int _nDims,
+			    int _cudaFlag);
+template Array<int4>::Array(unsigned int _nDims, 
+			    int _cudaFlag,
+			    unsigned int _size);
+template Array<int4>::Array(unsigned int _nDims, 
+			    int _cudaFlag,
+			    unsigned int _size,
+			    int _dynArrayStep);
+template Array<int4>::~Array();
+
+//#############################################################################
+
 template Array<int3>::Array();
 template Array<int3>::Array(unsigned int _nDims,
 			    int _cudaFlag);

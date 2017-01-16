@@ -14,8 +14,16 @@
 #include "../Param/meshparameter.h"
 #include "../../Common/profile.h"
 
+#define REPLACE_INT3
+
 namespace astrix {
 
+#ifdef REPLACE_INT3
+  typedef int4 newInt3;
+#else
+  typedef int3 newInt3;
+#endif
+  
 //##############################################################################
 /*! \brief Test if triangle \a i is low-quality
 
@@ -35,7 +43,7 @@ This kernel tests triangles if they need to be refined. Upon return, the array \
 
 __host__ __device__
 void TestQualitySingleW(int i,
-			const int3* __restrict__ pTv,
+			newInt3 *pTv,
 			const real2* __restrict__ pVc, 
 			int *pTriangleList, int *pWantRefine,
 			real dMax, int nVertex, real Px, real Py,
@@ -95,7 +103,7 @@ This kernel tests triangles if they need to be refined. Upon return, the array \
 
 __host__ __device__
 void TestQualitySingle(int i,
-		       const int3* __restrict__ pTv,
+		       newInt3 *pTv,
 		       const real2* __restrict__ pVc, 
 		       int *pTriangleList, 
 		       real dMax, int nVertex, real Px, real Py,
@@ -155,7 +163,7 @@ This kernel tests triangles if they need to be refined. Upon return, the array \
 
 __global__ void
 devTestQualityW(int nTriangle,
-		const int3* __restrict__ pTv,
+		newInt3 *pTv,
 		const real2* __restrict__ pVc, 
 		int *pTriangleList, int *pWantRefine, 
 		real dMax, int nVertex, real Px, real Py, real qualityBound)
@@ -190,7 +198,7 @@ This kernel tests triangles if they need to be refined. Upon return, the array \
 
 __global__ void
 devTestQuality(int nTriangle,
-	       const int3* __restrict__ pTv,
+	       newInt3 *pTv,
 	       const real2* __restrict__ pVc, 
 	       int *pTriangleList,
 	       real dMax, int nVertex, real Px, real Py, real qualityBound)
@@ -235,9 +243,31 @@ int Refine::TestTrianglesQuality(Connectivity * const connectivity,
   int *pBadTriangles = badTriangles->GetPointer();
   delete nvtxTemp;
 
-  real2 *pVc = connectivity->vertexCoordinates->GetPointer();
-  int3 *pTv = connectivity->triangleVertices->GetPointer();
+#ifdef REPLACE_INT3
+  Array<newInt3> *newTv = new Array<newInt3>(1, 0, nTriangle);
+  if (cudaFlag == 1) 
+    connectivity->triangleVertices->CopyToHost();
   
+  int3 *pTvH = connectivity->triangleVertices->GetHostPointer();
+  int4 *pNewTv = newTv->GetPointer();
+
+  for(int i = 0; i < nTriangle; i++) {
+    pNewTv[i].x = pTvH[i].x;
+    pNewTv[i].y = pTvH[i].y;
+    pNewTv[i].z = pTvH[i].z;
+    pNewTv[i].w = -1;
+  }
+
+  if (cudaFlag == 1)
+    newTv->TransformToDevice();
+
+  newInt3 *pTv = newTv->GetPointer();
+#else
+  int3 *pTv = connectivity->triangleVertices->GetPointer();
+#endif
+  
+  real2 *pVc = connectivity->vertexCoordinates->GetPointer();
+
   real Px = meshParameter->maxx - meshParameter->minx;
   real Py = meshParameter->maxy - meshParameter->miny;
   real dMax = meshParameter->baseResolution;

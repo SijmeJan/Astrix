@@ -169,6 +169,13 @@ template void Array<int3>::TransformToDevice();
 
 //###################################################
 
+template void Array<int4>::CopyToDevice();
+template void Array<int4>::CopyToHost();
+template void Array<int4>::TransformToHost();
+template void Array<int4>::TransformToDevice();
+
+//###################################################
+
 template void Array<int2>::CopyToDevice();
 template void Array<int2>::CopyToHost();
 template void Array<int2>::TransformToHost();
