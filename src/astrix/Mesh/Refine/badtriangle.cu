@@ -358,6 +358,10 @@ int Refine::TestTrianglesQuality(Connectivity * const connectivity,
 
   delete nvtxTemp;
   delete nvtxQuality;
+
+#ifdef REPLACE_INT3
+  delete newTv;
+#endif
   
   return nBad;
 }
