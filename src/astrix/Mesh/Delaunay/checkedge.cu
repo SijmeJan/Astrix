@@ -2,7 +2,6 @@
 /*! \file checkedge.cu
 \brief Functions for checking edges in Mesh for Delaunay property*/
 #include <iostream>
-//#include <fstream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -35,13 +34,13 @@ Check edge \a i and write result in \a eNonDel (1 if not Delaunay, 0 otherwise)
 //#########################################################################
 
 __host__ __device__
-void CheckEdge(int i,
-	       const real2* __restrict__ pVc,
-	       const int3* __restrict__ pTv,
-	       const int3* __restrict__ pTe,
-	       const int2* __restrict__ pEt,
-	       int *pEnd, const Predicates *pred, real *pParam,
-	       int nVertex, real Px, real Py)
+int CheckEdge(int i,
+	      real2 *pVc,
+	      const int3* __restrict__ pTv,
+	      const int3* __restrict__ pTe,
+	      int2 *pEt,
+	      const Predicates *pred, real *pParam,
+	      int nVertex, real Px, real Py)
 {
   // Assume edge is Delaunay
   int ret = -1;
@@ -91,7 +90,8 @@ void CheckEdge(int i,
     if (detNew > (real) 0.0) ret = i;
   }
 
-  pEnd[i] = ret;
+  //pEnd[i] = ret;
+  return ret;
 }
   
 //######################################################################
@@ -114,10 +114,10 @@ Check edges and write result in \a pEnd (1 if not Delaunay, 0 otherwise)
 
 __global__ void
 devCheckEdge(int nEdge,
-	     const real2* __restrict__ pVc,
+	     real2 *pVc,
 	     const int3* __restrict__ pTv,
 	     const int3* __restrict__ pTe,
-	     const int2* __restrict__ pEt,
+	     int2 *pEt,
 	     int *pEnd, const Predicates *pred, real *pParam,
 	     int nVertex, real Px, real Py)
 {
@@ -125,7 +125,8 @@ devCheckEdge(int nEdge,
   int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nEdge) {
-    CheckEdge(i, pVc, pTv, pTe, pEt, pEnd, pred, pParam, nVertex, Px, Py);
+    pEnd[i] = 
+      CheckEdge(i, pVc, pTv, pTe, pEt, pred, pParam, nVertex, Px, Py);
 
     // Next edge
     i += blockDim.x*gridDim.x;
@@ -153,11 +154,11 @@ Check edges and write result in \a pEnd (1 if not Delaunay, 0 otherwise). Only t
 
 __global__ void
 devCheckEdgeLimit(int nEdgeCheck,
-		  const int *pEnC,
-		  const real2* __restrict__ pVc,
+		  int *pEnC,
+		  real2 *pVc,
 		  const int3* __restrict__ pTv,
 		  const int3* __restrict__ pTe,
-		  const int2* __restrict__ pEt,
+		  int2 *pEt,
 		  int *pEnd, const Predicates *pred, real *pParam,
 		  int nVertex, real Px, real Py)
 {
@@ -166,7 +167,8 @@ devCheckEdgeLimit(int nEdgeCheck,
 
   while (i < nEdgeCheck) {
     int e = pEnC[i];
-    CheckEdge(e, pVc, pTv, pTe, pEt, pEnd, pred, pParam, nVertex, Px, Py);
+    pEnd[i] = 
+      CheckEdge(e, pVc, pTv, pTe, pEt, pred, pParam, nVertex, Px, Py);
 
     // Next edge
     i += blockDim.x*gridDim.x;
@@ -242,8 +244,9 @@ void Delaunay::CheckEdges(Connectivity * const connectivity,
 #endif
 
       for (int i = 0; i < nEdge; i++) 
-	CheckEdge(i, pVc, pTv, pTe, pEt, pEnd, predicates,
-		  pParam, nVertex, Px, Py);
+	pEnd[i] = 
+	  CheckEdge(i, pVc, pTv, pTe, pEt, predicates,
+		    pParam, nVertex, Px, Py);
 
       // Make structured mesh less uniform
       if (meshParameter->structuredFlag == 2) {
@@ -285,11 +288,11 @@ void Delaunay::CheckEdges(Connectivity * const connectivity,
 #ifdef TIME_ASTRIX
       cudaEventRecord(start, 0);
 #endif
-      
+
       devCheckEdgeLimit<<<nBlocks, nThreads>>>
 	(nEdgeCheck, pEnC, pVc, pTv, pTe, pEt, pEnd,
 	 predicates, pParam, nVertex, Px, Py);
-      
+
 #ifdef TIME_ASTRIX
       cudaEventRecord(stop, 0);
       cudaEventSynchronize(stop);
@@ -303,8 +306,9 @@ void Delaunay::CheckEdges(Connectivity * const connectivity,
 #endif
 
       for (int i = 0; i < nEdgeCheck; i++) 
-	CheckEdge(pEnC[i], pVc, pTv, pTe, pEt, pEnd, predicates,
-		  pParam, nVertex, Px, Py);
+	pEnd[i] = 
+	  CheckEdge(pEnC[i], pVc, pTv, pTe, pEt, predicates,
+		    pParam, nVertex, Px, Py);
       
 #ifdef TIME_ASTRIX
       cudaEventRecord(stop, 0);

@@ -38,8 +38,12 @@ void Delaunay::MakeDelaunay(Connectivity * const connectivity,
   int nTriangle = connectivity->triangleVertices->GetSize();
 
   triangleSubstitute->SetSize(nTriangle);
-  edgeNonDelaunay->SetSize(nEdge);
 
+  if (edgeNeedsChecking == 0) 
+    edgeNonDelaunay->SetSize(nEdge);
+  else
+    edgeNonDelaunay->SetSize(nEdgeCheck);
+    
   triangleAffected->SetSize(2*nEdge);
   triangleAffectedEdge->SetSize(2*nEdge);
 

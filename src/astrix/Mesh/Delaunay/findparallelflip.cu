@@ -11,7 +11,7 @@
 #include "../../Common/atomic.h"
 #include "../../Common/profile.h"
 
-#define NEW_FIND_PARALLEL_FLIP
+//#define NEW_FIND_PARALLEL_FLIP
 
 namespace astrix {
 
