@@ -41,9 +41,11 @@ void CalcTotalResLDASingle(int n,
 			   const real4* __restrict__ pVz, 
 			   real4 *pTresLDA0, real4 *pTresLDA1, 
 			   real4 *pTresLDA2, real4 *pTresTot,
-			   const real2 *pTn1, const real2 *pTn2,
-			   const real2 *pTn3, const real3 *pTl, int nVertex, 
-			   real G, real G1, real G2)
+			   const real2 *pTn1, 
+			   const real2 *pTn2,
+			   const real2 *pTn3, 
+			   const real3* __restrict__ pTl, 
+			   int nVertex, real G, real G1, real G2)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -430,9 +432,11 @@ void CalcTotalResLDASingle(int n,
 			   const real3* __restrict__ pVz, 
 			   real3 *pTresLDA0, real3 *pTresLDA1, 
 			   real3 *pTresLDA2, real3 *pTresTot,
-			   const real2 *pTn1, const real2 *pTn2,
-			   const real2 *pTn3, const real3 *pTl, int nVertex, 
-			   real G, real G1, real G2)
+			   const real2 *pTn1, 
+			   const real2 *pTn2,
+			   const real2 *pTn3, 
+			   const real3* __restrict__ pTl, 
+			   int nVertex, real G, real G1, real G2)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -712,9 +716,11 @@ void CalcTotalResLDASingle(int n,
 			   const real* __restrict__ pVz, 
 			   real *pTresLDA0, real *pTresLDA1, 
 			   real *pTresLDA2, real *pTresTot,
-			   const real2 *pTn1, const real2 *pTn2,
-			   const real2 *pTn3, const real3 *pTl, int nVertex, 
-			   real G, real G1, real G2)
+			   const real2 *pTn1, 
+			   const real2 *pTn2,
+			   const real2 *pTn3, 
+			   const real3* __restrict__  pTl, 
+			   int nVertex, real G, real G1, real G2)
 {
   const real zero  = (real) 0.0;
   const real half  = (real) 0.5;
@@ -857,7 +863,8 @@ devCalcTotalResLDA(int nTriangle, const int3* __restrict__ pTv,
 		   const realNeq* __restrict__ pVz, 
 		   realNeq *pTresLDA0, realNeq *pTresLDA1, realNeq *pTresLDA2,
 		   realNeq *pTresTot, const real2 *pTn1, const real2 *pTn2,
-		   const real2 *pTn3, const real3 *pTl,
+		   const real2 *pTn3, 
+		   const real3* __restrict__ pTl,
 		   int nVertex, real G, real G1, real G2)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;

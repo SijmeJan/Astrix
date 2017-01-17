@@ -11,6 +11,7 @@
 #include "../Array/array.h"
 #include "../Mesh/mesh.h"
 #include "./simulation.h"
+#include "../Common/nvtxEvent.h"
 
 namespace astrix {
   
@@ -25,6 +26,8 @@ namespace astrix {
 
 void Simulation::Save(int nSave)
 {
+  nvtxEvent *nvtxSave = new nvtxEvent("Save", 3);
+
   std::cout << "Save #" << nSave << "...";
 
   std::ofstream outFile;
@@ -187,6 +190,8 @@ void Simulation::Save(int nSave)
   outFile.close();
   
   std::cout << " Done" << std::endl;
+
+  delete nvtxSave;
 }
 
 //#########################################################################

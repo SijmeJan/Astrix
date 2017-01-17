@@ -14,7 +14,7 @@
 #include "../Param/meshparameter.h"
 #include "../../Common/profile.h"
 
-#define REPLACE_INT3
+//#define REPLACE_INT3
 
 namespace astrix {
 

@@ -41,12 +41,18 @@ namespace astrix {
 __host__ __device__
 void CalcTotalResNtotSingle(const int n, const real dt,
 			    const int3* __restrict__ pTv, 
-			    const real4* __restrict__ pVz, real4 *pDstate,
-			    const real2 *pTn1, const real2 *pTn2,
-			    const real2 *pTn3, const real3* __restrict__ pTl,
-			    real4 *pResSource, real4 *pTresN0, real4 *pTresN1,
-			    real4 *pTresN2, real4 *pTresTot, int nVertex,
-			    const real G, const real G1,
+			    const real4* __restrict__ pVz, 
+			    real4 *pDstate,
+			    const real2 *pTn1, 
+			    const real2 *pTn2,
+			    const real2 *pTn3, 
+			    const real3* __restrict__ pTl,
+			    real4 *pResSource, 
+			    real4 *pTresN0, 
+			    real4 *pTresN1,
+			    real4 *pTresN2, 
+			    real4 *pTresTot, 
+			    int nVertex, const real G, const real G1,
 			    const real G2, const real iG)
 {
   const real zero  = (real) 0.0;
@@ -1572,7 +1578,6 @@ void Simulation::CalcTotalResNtot(real dt)
        pTresTot, nVertex, specificHeatRatio,
        specificHeatRatio - 1.0, specificHeatRatio - 2.0,
        1.0/specificHeatRatio);
-    
 #ifdef TIME_ASTRIX
     cudaEventRecord(stop, 0);
     cudaEventSynchronize(stop);

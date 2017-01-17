@@ -127,7 +127,9 @@ endif
 ifeq ($(CUDA_COMPUTE),32)
 	CUDA_SM_ARCH := sm_32
 endif
+# Set CUDA_ARCH to allow for LDG
 ifeq ($(CUDA_COMPUTE),35)
+	CUDA_ARCH := compute_35
 	CUDA_SM_ARCH := sm_35
 endif
 ifeq ($(CUDA_COMPUTE),50)
