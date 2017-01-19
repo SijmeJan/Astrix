@@ -6,7 +6,6 @@
 #include "./Common/definitions.h"
 #include "./Simulation/simulation.h"
 #include "./Device/device.h"
-#include "./Common/timer.h"
 
 //###########################################################################
 // main
