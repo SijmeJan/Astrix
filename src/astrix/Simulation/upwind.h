@@ -1,5 +1,17 @@
 /*! \file upwind.h
-\brief Upwind matrix entries*/
+\brief Upwind matrix entries
+
+\section LICENSE
+Copyright (c) 2017 Sijme-Jan Paardekooper
+
+This file is part of Astrix.
+
+Astrix is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #ifndef ASTRIX_UPWIND_H
 #define ASTRIX_UPWIND_H
 
@@ -30,7 +42,7 @@ isoK02(real ny)
 __host__ __device__ inline real
 isoK10(real nx, real c, real w, real u)
 {
-  return c*c*nx - w*u; 
+  return c*c*nx - w*u;
 }
 
 __host__ __device__ inline real
@@ -64,7 +76,7 @@ isoK22(real ny, real w, real v)
 }
 
 //#############################################################################
- 
+
 __host__ __device__ inline real
 isoKMP00(real ic, real w, real l12, real l2)
 {
@@ -74,7 +86,7 @@ isoKMP00(real ic, real w, real l12, real l2)
 __host__ __device__ inline real
 isoKMP01(real nx, real ic, real l12)
 {
-   return ic*nx*l12;
+  return ic*nx*l12;
 }
 
 __host__ __device__ inline real
@@ -86,21 +98,21 @@ isoKMP02(real ny, real ic, real l12)
 __host__ __device__ inline real
 isoKMP10(real nx, real c, real uc, real w, real l123, real l12)
 {
-   return c*(uc*l123 + nx*l12) - w*(nx*l123 + uc*l12); 
+  return c*(uc*l123 + nx*l12) - w*(nx*l123 + uc*l12);
 }
 
 __host__ __device__ inline real
 isoKMP11(real nx, real uc, real l123, real l12, real l3)
 {
-   return l3 + Sq(nx)*l123 + uc*nx*l12;
+  return l3 + Sq(nx)*l123 + uc*nx*l12;
 }
 
 __host__ __device__ inline real
 isoKMP12(real nx, real ny, real uc, real l123, real l12)
 {
-   return uc*ny*l12 + nx*ny*l123;
+  return uc*ny*l12 + nx*ny*l123;
 }
- 
+
 __host__ __device__ inline real
 isoKMP20(real ny, real c, real vc, real w, real l123, real l12)
 {
@@ -120,7 +132,7 @@ isoKMP22(real ny, real vc, real l123, real l12, real l3)
 }
 
 //###########################################################################
-// 2D Euler 
+// 2D Euler
 //###########################################################################
 
 __host__ __device__ inline real
@@ -150,7 +162,7 @@ eulerK03()
 __host__ __device__ inline real
 eulerK10(real nx, real a, real w, real u)
 {
-  return a*nx - w*u; 
+  return a*nx - w*u;
 }
 
 __host__ __device__ inline real
@@ -220,7 +232,7 @@ eulerK33(real G, real w)
 }
 
 //#############################################################################
- 
+
 __host__ __device__ inline real
 eulerKMP00(real ac, real ic, real w, real l123, real l12, real l3)
 {
@@ -230,7 +242,7 @@ eulerKMP00(real ac, real ic, real w, real l123, real l12, real l3)
 __host__ __device__ inline real
 eulerKMP01(real G1, real nx, real ic, real uc, real l123, real l12)
 {
-   return ic*(nx*l12 - G1*uc*l123);
+  return ic*(nx*l12 - G1*uc*l123);
 }
 
 __host__ __device__ inline real
@@ -242,31 +254,31 @@ eulerKMP02(real G1, real ny, real ic, real vc, real l123, real l12)
 __host__ __device__ inline real
 eulerKMP03(real G1, real ic, real l123)
 {
-   return G1*l123*ic*ic;
+  return G1*l123*ic*ic;
 }
 
 __host__ __device__ inline real
 eulerKMP10(real nx, real ac, real uc, real w, real l123, real l12)
 {
-   return ac*(uc*l123 + nx*l12) - w*(nx*l123 + uc*l12); 
+  return ac*(uc*l123 + nx*l12) - w*(nx*l123 + uc*l12);
 }
 
 __host__ __device__ inline real
 eulerKMP11(real G1, real G2, real nx, real uc, real l123, real l12, real l3)
 {
-   return l3 + Sq(nx)*l123 - uc*(nx*G2*l12 + G1*uc*l123);
+  return l3 + Sq(nx)*l123 - uc*(nx*G2*l12 + G1*uc*l123);
 }
 
 __host__ __device__ inline real
 eulerKMP12(real G1, real nx, real ny, real uc, real vc, real l123, real l12)
 {
-   return uc*ny*l12 + nx*ny*l123 - vc*G1*(nx*l12 + uc*l123);
+  return uc*ny*l12 + nx*ny*l123 - vc*G1*(nx*l12 + uc*l123);
 }
- 
+
 __host__ __device__ inline real
 eulerKMP13(real G1, real nx, real ic, real uc, real l123, real l12)
 {
-   return G1*(uc*l123 + nx*l12)*ic;
+  return G1*(uc*l123 + nx*l12)*ic;
 }
 
 __host__ __device__ inline real
@@ -316,7 +328,7 @@ eulerKMP33(real G1, real ic, real hc, real w, real l123, real l12, real l3)
 {
   return G1*ic*(hc*l123 + w*l12) + l3;
 }
- 
-}
 
-#endif
+}  // namespace astrix
+
+#endif  // ASTRIX_UPWIND_H

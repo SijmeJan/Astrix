@@ -1,5 +1,17 @@
-/*! \file predicates.h 
+/*! \file predicates.h
 \brief Header file containing Predicates class definition
+
+\section LICENSE
+Copyright (c) 2017 Sijme-Jan Paardekooper
+
+This file is part of Astrix.
+
+Astrix is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 */
 #ifndef PREDICATES_H
 #define PREDICATES_H
@@ -11,7 +23,7 @@ template <class T> class Array;
 class Device;
 
 //! Class for exact geometric predicates
-/*! Creating and updating Delaunay triangulations requires exact evaluation of certain geometric tests, in particular whether a point d lies inside or outside the circle through three other points a, b and c, and whether three points a, b and c are orientated in anti-clockwise direction or not. This class uses the algorithms by Shewchuck (1997).*/ 
+/*! Creating and updating Delaunay triangulations requires exact evaluation of certain geometric tests, in particular whether a point d lies inside or outside the circle through three other points a, b and c, and whether three points a, b and c are orientated in anti-clockwise direction or not. This class uses the algorithms by Shewchuck (1997).*/
 class Predicates
 {
  public:
@@ -36,10 +48,10 @@ class Predicates
   */
   __host__ __device__
   real incircle(real ax, real ay,
-		real bx, real by,
-		real cx, real cy,
-		real dx, real dy, 
-		const real * const pParam) const;
+                real bx, real by,
+                real cx, real cy,
+                real dx, real dy,
+                const real * const pParam) const;
 
   //! Test whether points a, b and c lie in counterclockwise orientation.
   /*! Test whether points (\a ax, \a ay), (\a bx, \a by) and (\a cx, \a cy) are orientated in counterclockwise direction. Return value > 0 if a, b, c occur in counterclockwise order, < 0 if in clockwise order, and = 0 if points are collinear.
@@ -53,18 +65,18 @@ class Predicates
   */
   __host__ __device__
   real orient2d(real ax, real ay,
-		real bx, real by,
-		real cx, real cy,
-		const real * const pParam) const;
+                real bx, real by,
+                real cx, real cy,
+                const real * const pParam) const;
 
   //! Get pointer to parameter vector
   /*! Return pointer to parameter vector, either device pointer (if \a cudaFlag = 1) or host pointer (if cudaFlag = 0). Note that both exist unless there is no CUDA capable device.
     \param cudaFlag Flag whether to return device pointer (= 1) or host pointer (= 0).
   */
   real* GetParamPointer(int cudaFlag) const;
-  
+
  private:
-  //! Parameter vector. 
+  //! Parameter vector.
   Array<real> *param;
 
   //! Return absolute value of \a a
@@ -79,17 +91,17 @@ class Predicates
 
   __host__ __device__
   real incircleadapt(real ax, real ay,
-		     real bx, real by,
-		     real cx, real cy,
-		     real dx, real dy,
-		     real permanent,
-		     const real * const pParam) const;
+                     real bx, real by,
+                     real cx, real cy,
+                     real dx, real dy,
+                     real permanent,
+                     const real * const pParam) const;
   __host__ __device__
   real orient2dadapt(real ax, real ay,
-		     real bx, real by,
-		     real cx, real cy,
-		     real detsum,
-		     const real * const pParam) const;
+                     real bx, real by,
+                     real cx, real cy,
+                     real detsum,
+                     const real * const pParam) const;
 
   /***************************************************************************/
   /*                                                                         */
@@ -106,8 +118,8 @@ class Predicates
   /***************************************************************************/
   __host__ __device__
     int fast_expansion_sum_zeroelim(int elen, real *e, int flen,
-				    real *f, real *h) const
-  // h cannot be e or f. 
+                                    real *f, real *h) const
+  // h cannot be e or f.
   {
     real zero = 0.0;
     real Q;
@@ -115,7 +127,7 @@ class Predicates
     real hh;
     int eindex, findex, hindex;
     real enow, fnow;
-    
+
     enow = e[0];
     fnow = f[0];
     eindex = findex = 0;
@@ -129,28 +141,28 @@ class Predicates
     hindex = 0;
     if ((eindex < elen) && (findex < flen)) {
       if ((fnow > enow) == (fnow > -enow)) {
-	Fast_Two_Sum(enow, Q, Qnew, hh);
-	enow = e[++eindex];
+        Fast_Two_Sum(enow, Q, Qnew, hh);
+        enow = e[++eindex];
       } else {
-	Fast_Two_Sum(fnow, Q, Qnew, hh);
-	fnow = f[++findex];
+        Fast_Two_Sum(fnow, Q, Qnew, hh);
+        fnow = f[++findex];
       }
       Q = Qnew;
       if (hh != zero) {
-	h[hindex++] = hh;
+        h[hindex++] = hh;
       }
       while ((eindex < elen) && (findex < flen)) {
-	if ((fnow > enow) == (fnow > -enow)) {
-	  Two_Sum(Q, enow, Qnew, hh);
-	  enow = e[++eindex];
-	} else {
-	  Two_Sum(Q, fnow, Qnew, hh);
-	  fnow = f[++findex];
-	}
-	Q = Qnew;
-	if (hh != zero) {
-	  h[hindex++] = hh;
-	}
+        if ((fnow > enow) == (fnow > -enow)) {
+          Two_Sum(Q, enow, Qnew, hh);
+          enow = e[++eindex];
+        } else {
+          Two_Sum(Q, fnow, Qnew, hh);
+          fnow = f[++findex];
+        }
+        Q = Qnew;
+        if (hh != zero) {
+          h[hindex++] = hh;
+        }
       }
     }
     while (eindex < elen) {
@@ -158,7 +170,7 @@ class Predicates
       enow = e[++eindex];
       Q = Qnew;
       if (hh != zero) {
-	h[hindex++] = hh;
+        h[hindex++] = hh;
       }
     }
     while (findex < flen) {
@@ -166,7 +178,7 @@ class Predicates
       fnow = f[++findex];
       Q = Qnew;
       if (hh != zero) {
-	h[hindex++] = hh;
+        h[hindex++] = hh;
       }
     }
     if ((Q != zero) || (hindex == 0)) {
@@ -192,12 +204,12 @@ class Predicates
 
   __host__ __device__
     inline int scale_expansion_zeroelim(int elen, real *e,
-					real b, real *h,
-					const real * const pParam) const
+                                        real b, real *h,
+                                        const real * const pParam) const
   /* e and h cannot be the same. */
   {
     real zero = 0.0;
-    
+
     real Q, sum;
     real hh;
     real product1;
@@ -205,7 +217,7 @@ class Predicates
     int eindex, hindex;
     real enow;
     real ahi, alo, bhi, blo;
-    
+
     Split(b, bhi, blo, pParam[0]);
     Two_Product_Presplit(e[0], b, bhi, blo, Q, hh, pParam[0], ahi, alo);
     hindex = 0;
@@ -215,14 +227,14 @@ class Predicates
     for (eindex = 1; eindex < elen; eindex++) {
       enow = e[eindex];
       Two_Product_Presplit(enow, b, bhi, blo, product1, product0,
-			   pParam[0], ahi, alo);
+                           pParam[0], ahi, alo);
       Two_Sum(Q, product0, sum, hh);
       if (hh != 0) {
-	h[hindex++] = hh;
+        h[hindex++] = hh;
       }
       Fast_Two_Sum(product1, sum, Q, hh);
       if (hh != 0) {
-	h[hindex++] = hh;
+        h[hindex++] = hh;
       }
     }
     if ((Q != zero) || (hindex == 0)) {
@@ -244,7 +256,7 @@ class Predicates
   {
     real Q;
     int eindex;
-    
+
     Q = e[0];
     for (eindex = 1; eindex < elen; eindex++) {
       Q += e[eindex];
@@ -252,195 +264,195 @@ class Predicates
     return Q;
   }
 
-  // Many of the operations are broken up into two pieces, a main part that  
-  // performs an approximate operation, and a "tail" that computes the       
-  // roundoff error of that operation.                                       
+  // Many of the operations are broken up into two pieces, a main part that
+  // performs an approximate operation, and a "tail" that computes the
+  // roundoff error of that operation.
 
   __host__ __device__
     inline void Fast_Two_Sum_Tail(real a, real b, real x, real& y) const
   {
-    real bvirt = x - a; 
+    real bvirt = x - a;
     y = b - bvirt;
   }
-  
+
   __host__ __device__
     inline void Fast_Two_Sum(real a, real b, real& x, real& y) const
   {
-    x = (real) (a + b); 
+    x = (real) (a + b);
     Fast_Two_Sum_Tail(a, b, x, y);
   }
-  
+
   __host__ __device__
     inline void Fast_Two_Diff_Tail(real a, real b, real x, real& y) const
   {
-    real bvirt = a - x; 
+    real bvirt = a - x;
     y = bvirt - b;
   }
-  
+
   __host__ __device__
     inline void Fast_Two_Diff(real a, real b, real& x, real& y) const
   {
-    x = (real) (a - b); 
+    x = (real) (a - b);
     Fast_Two_Diff_Tail(a, b, x, y);
   }
-  
+
   __host__ __device__
     inline void Two_Sum_Tail(real a, real b, real x, real& y) const
   {
-    real bvirt = (real) (x - a); 
-    real avirt = x - bvirt; 
-    real bround = b - bvirt; 
-    real around = a - avirt; 
+    real bvirt = (real) (x - a);
+    real avirt = x - bvirt;
+    real bround = b - bvirt;
+    real around = a - avirt;
     y = around + bround;
   }
-  
+
   __host__ __device__
     inline void Two_Sum(real a, real b, real& x, real& y) const
   {
-    x = (real) (a + b); 
+    x = (real) (a + b);
     Two_Sum_Tail(a, b, x, y);
   }
-  
+
   __host__ __device__
     inline void Two_Diff_Tail(real a, real b, real x, real& y) const
   {
-    real bvirt = (real) (a - x); 
-    real avirt = x + bvirt; 
-    real bround = bvirt - b; 
-    real around = a - avirt; 
+    real bvirt = (real) (a - x);
+    real avirt = x + bvirt;
+    real bround = bvirt - b;
+    real around = a - avirt;
     y = around + bround;
   }
-  
+
   __host__ __device__
     inline void Two_Diff(real a, real b, real& x, real& y) const
   {
-    x = (real) (a - b); 
+    x = (real) (a - b);
     Two_Diff_Tail(a, b, x, y);
   }
-  
+
   __host__ __device__
     inline void Split(real a, real& ahi, real& alo, real splitter) const
   {
-    real c = (real) (splitter * a); 
-    real abig = (real) (c - a); 
-    ahi = c - abig; 
+    real c = (real) (splitter * a);
+    real abig = (real) (c - a);
+    ahi = c - abig;
     alo = a - ahi;
   }
-  
+
   __host__ __device__
     inline void Two_Product_Tail(real a, real b,
-				 real x, real& y,
-				 real splitter,
-				 real& ahi, real& alo,
-				 real& bhi, real& blo) const
+                                 real x, real& y,
+                                 real splitter,
+                                 real& ahi, real& alo,
+                                 real& bhi, real& blo) const
   {
-    Split(a, ahi, alo, splitter);		     
-    Split(b, bhi, blo, splitter);			     
-    real err1 = x - (ahi * bhi); 
-    real err2 = err1 - (alo * bhi); 
-    real err3 = err2 - (ahi * blo); 
+    Split(a, ahi, alo, splitter);
+    Split(b, bhi, blo, splitter);
+    real err1 = x - (ahi * bhi);
+    real err2 = err1 - (alo * bhi);
+    real err3 = err2 - (ahi * blo);
     y = (alo * blo) - err3;
   }
-  
+
   __host__ __device__
     inline void Two_Product(real a, real b,
-			    real& x, real& y,
-			    real splitter,
-			    real& ahi, real& alo,
-			    real& bhi, real& blo) const
+                            real& x, real& y,
+                            real splitter,
+                            real& ahi, real& alo,
+                            real& bhi, real& blo) const
   {
-    x = (real) (a * b); 
+    x = (real) (a * b);
     Two_Product_Tail(a, b, x, y, splitter, ahi, alo, bhi, blo);
   }
-  
+
   __host__ __device__
     inline void Two_Product_Presplit(real a, real b,
-				     real bhi, real blo,
-				     real& x, real& y, real splitter,
-				     real& ahi, real& alo) const
+                                     real bhi, real blo,
+                                     real& x, real& y, real splitter,
+                                     real& ahi, real& alo) const
   {
-    x = (real) (a * b); 
-    Split(a, ahi, alo, splitter);	  
-    real err1 = x - (ahi * bhi); 
-    real err2 = err1 - (alo * bhi); 
-    real err3 = err2 - (ahi * blo); 
+    x = (real) (a * b);
+    Split(a, ahi, alo, splitter);
+    real err1 = x - (ahi * bhi);
+    real err2 = err1 - (alo * bhi);
+    real err3 = err2 - (ahi * blo);
     y = (alo * blo) - err3;
   }
-  
+
   __host__ __device__
     inline void Two_Product_2Presplit(real a, real ahi, real alo,
-				      real b, real bhi, real blo,
-				      real& x, real& y) const
+                                      real b, real bhi, real blo,
+                                      real& x, real& y) const
   {
-    x = (real) (a * b); 
-    real err1 = x - (ahi * bhi); 
-    real err2 = err1 - (alo * bhi); 
-    real err3 = err2 - (ahi * blo); 
+    x = (real) (a * b);
+    real err1 = x - (ahi * bhi);
+    real err2 = err1 - (alo * bhi);
+    real err3 = err2 - (ahi * blo);
     y = (alo * blo) - err3;
   }
-  
+
   __host__ __device__
     inline void Square_Tail(real a, real x, real& y, real splitter,
-			    real& ahi, real& alo) const
+                            real& ahi, real& alo) const
   {
-    Split(a, ahi, alo, splitter);					
-    real err1 = x - (ahi * ahi); 
-    real err3 = err1 - ((ahi + ahi) * alo); 
+    Split(a, ahi, alo, splitter);
+    real err1 = x - (ahi * ahi);
+    real err3 = err1 - ((ahi + ahi) * alo);
     y = (alo * alo) - err3;
   }
-  
+
   __host__ __device__
     inline void Square(real a, real& x, real& y, real splitter,
-		       real& ahi, real& alo) const
+                       real& ahi, real& alo) const
   {
-    x = (real) (a * a); 
+    x = (real) (a * a);
     Square_Tail(a, x, y, splitter, ahi, alo);
   }
-  
+
   __host__ __device__
     inline void Two_One_Sum(real a1, real a0, real b,
-			    real& x2, real& x1, real& x0, real& _i) const
+                            real& x2, real& x1, real& x0, real& _i) const
   {
-    Two_Sum(a0, b , _i, x0); 
+    Two_Sum(a0, b , _i, x0);
     Two_Sum(a1, _i, x2, x1);
   }
-  
+
   __host__ __device__
     inline void Two_Two_Sum(real a1, real a0, real b1, real b0,
-			    real& x3, real& x2, real& x1, real& x0,
-			    real& _j, real& _0, real& _i) const
+                            real& x3, real& x2, real& x1, real& x0,
+                            real& _j, real& _0, real& _i) const
   {
-    Two_One_Sum(a1, a0, b0, _j, _0, x0, _i); 
+    Two_One_Sum(a1, a0, b0, _j, _0, x0, _i);
     Two_One_Sum(_j, _0, b1, x3, x2, x1, _i);
   }
-  
+
   __host__ __device__
     inline void Two_One_Diff(real a1, real a0, real b,
-			     real& x2, real& x1, real& x0, real& _i) const
+                             real& x2, real& x1, real& x0, real& _i) const
   {
-    Two_Diff(a0, b , _i, x0); 
+    Two_Diff(a0, b , _i, x0);
     Two_Sum( a1, _i, x2, x1);
   }
-  
+
   __host__ __device__
     inline void Two_Two_Diff(real a1, real a0, real b1, real b0,
-			     real& x3, real& x2, real& x1, real& x0,
-			     real& _i, real& _j, real& _0) const
+                             real& x3, real& x2, real& x1, real& x0,
+                             real& _i, real& _j, real& _0) const
   {
-    Two_One_Diff(a1, a0, b0, _j, _0, x0, _i); 
+    Two_One_Diff(a1, a0, b0, _j, _0, x0, _i);
     Two_One_Diff(_j, _0, b1, x3, x2, x1, _i);
   }
 
 };
 
 //######################################################################
-// 
+//
 //######################################################################
 
 inline real Predicates::orient2d(real ax, real ay,
-				 real bx, real by,
-				 real cx, real cy,
-				 const real * const pParam) const
+                                 real bx, real by,
+                                 real cx, real cy,
+                                 const real * const pParam) const
 {
   real zero = 0.0;
   real detleft, detright, det;
@@ -453,12 +465,12 @@ inline real Predicates::orient2d(real ax, real ay,
   if ( (detleft > zero && detright <= zero) ||
        (detleft < zero && detright >= zero) ||
        detleft == zero) return det;
-  
+
   if (detleft > zero)
     detsum = detleft + detright;
   else
     detsum = -detleft - detright;
-  
+
   errbound = pParam[3] * detsum;
   if ((det >= errbound) || (-det >= errbound)) {
     return det;
@@ -468,13 +480,13 @@ inline real Predicates::orient2d(real ax, real ay,
 }
 
 //######################################################################
-// 
+//
 //######################################################################
 
 inline real Predicates::orient2dadapt(real ax, real ay,
-				      real bx, real by,
-				      real cx, real cy,
-				      real detsum, const real * const pParam) const
+                                      real bx, real by,
+                                      real cx, real cy,
+                                      real detsum, const real * const pParam) const
 {
   real zero = 0.0;
   real acx, acy, bcx, bcy;
@@ -556,15 +568,15 @@ inline real Predicates::orient2dadapt(real ax, real ay,
 }
 
 //######################################################################
-// 
+//
 //######################################################################
 
 //__host__ __device__
 inline real Predicates::incircle(real ax, real ay,
-				 real bx, real by,
-				 real cx, real cy,
-				 real dx, real dy,
-				 const real * const pParam) const
+                                 real bx, real by,
+                                 real cx, real cy,
+                                 real dx, real dy,
+                                 const real * const pParam) const
 {
   real adx, bdx, cdx, ady, bdy, cdy;
   real bdxcdy, cdxbdy, cdxady, adxcdy, adxbdy, bdxady;
@@ -602,25 +614,25 @@ inline real Predicates::incircle(real ax, real ay,
   if ((det > errbound) || (-det > errbound)) {
     return det;
   }
-  
+
   return incircleadapt(ax, ay, bx, by, cx, cy, dx, dy, permanent, pParam);
 }
 
 //######################################################################
-// 
+//
 //######################################################################
 
 //__host__ __device__
 inline real Predicates::incircleadapt(real ax, real ay,
-				      real bx, real by,
-				      real cx, real cy,
-				      real dx, real dy,
-				      real permanent,
-				      const real * const pParam) const
+                                      real bx, real by,
+                                      real cx, real cy,
+                                      real dx, real dy,
+                                      real permanent,
+                                      const real * const pParam) const
 {
   real zero = (real) 0.0;
   real two = (real) 2.0;
-  
+
   real adx, bdx, cdx, ady, bdy, cdy;
   real det, errbound;
 
@@ -683,11 +695,11 @@ inline real Predicates::incircleadapt(real ax, real ay,
   ady = (real) (ay - dy);
   bdy = (real) (by - dy);
   cdy = (real) (cy - dy);
-  
+
   Two_Product(bdx, cdy, bdxcdy1, bdxcdy0, pParam[0], ahi, alo, bhi, blo);
   Two_Product(cdx, bdy, cdxbdy1, cdxbdy0, pParam[0], ahi, alo, bhi, blo);
   Two_Two_Diff(bdxcdy1, bdxcdy0, cdxbdy1, cdxbdy0, bc3, bc[2], bc[1], bc[0],
-	       _i, _j, _0);
+               _i, _j, _0);
   bc[3] = bc3;
   axbclen = scale_expansion_zeroelim(4, bc, adx, axbc, pParam);
   axxbclen = scale_expansion_zeroelim(axbclen, axbc, adx, axxbc, pParam);
@@ -698,7 +710,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
   Two_Product(cdx, ady, cdxady1, cdxady0, pParam[0], ahi, alo, bhi, blo);
   Two_Product(adx, cdy, adxcdy1, adxcdy0, pParam[0], ahi, alo, bhi, blo);
   Two_Two_Diff(cdxady1, cdxady0, adxcdy1, adxcdy0, ca3, ca[2], ca[1], ca[0],
-	       _i, _j, _0);
+               _i, _j, _0);
   ca[3] = ca3;
   bxcalen = scale_expansion_zeroelim(4, ca, bdx, bxca, pParam);
   bxxcalen = scale_expansion_zeroelim(bxcalen, bxca, bdx, bxxca, pParam);
@@ -709,7 +721,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
   Two_Product(adx, bdy, adxbdy1, adxbdy0, pParam[0], ahi, alo, bhi, blo);
   Two_Product(bdx, ady, bdxady1, bdxady0, pParam[0], ahi, alo, bhi, blo);
   Two_Two_Diff(adxbdy1, adxbdy0, bdxady1, bdxady0, ab3, ab[2], ab[1], ab[0],
-	       _i, _j, _0);
+               _i, _j, _0);
   ab[3] = ab3;
   cxablen = scale_expansion_zeroelim(4, ab, cdx, cxab, pParam);
   cxxablen = scale_expansion_zeroelim(cxablen, cxab, cdx, cxxab, pParam);
@@ -759,7 +771,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
     Square(adx, adxadx1, adxadx0, pParam[0], ahi, alo);
     Square(ady, adyady1, adyady0, pParam[0], ahi, alo);
     Two_Two_Sum(adxadx1, adxadx0, adyady1, adyady0,
-		aa3, aa[2], aa[1], aa[0], _j, _0, _i);
+                aa3, aa[2], aa[1], aa[0], _j, _0, _i);
     aa[3] = aa3;
   }
   if ((cdxtail != zero) || (cdytail != zero)
@@ -767,7 +779,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
     Square(bdx, bdxbdx1, bdxbdx0, pParam[0], ahi, alo);
     Square(bdy, bdybdy1, bdybdy0, pParam[0], ahi, alo);
     Two_Two_Sum(bdxbdx1, bdxbdx0, bdybdy1,
-		bdybdy0, bb3, bb[2], bb[1], bb[0], _j, _0, _i);
+                bdybdy0, bb3, bb[2], bb[1], bb[0], _j, _0, _i);
     bb[3] = bb3;
   }
   if ((adxtail != zero) || (adytail != zero)
@@ -775,7 +787,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
     Square(cdx, cdxcdx1, cdxcdx0, pParam[0], ahi, alo);
     Square(cdy, cdycdy1, cdycdy0, pParam[0], ahi, alo);
     Two_Two_Sum(cdxcdx1, cdxcdx0, cdycdy1, cdycdy0,
-		cc3, cc[2], cc[1], cc[0], _j, _0, _i);
+                cc3, cc[2], cc[1], cc[0], _j, _0, _i);
     cc[3] = cc3;
   }
 
@@ -785,12 +797,12 @@ inline real Predicates::incircleadapt(real ax, real ay,
                                           temp16a, pParam);
 
     axtcclen = scale_expansion_zeroelim(4, cc, adxtail, axtcc, pParam);
-    temp16blen = scale_expansion_zeroelim(axtcclen, axtcc, bdy, temp16b, 
-					  pParam);
+    temp16blen = scale_expansion_zeroelim(axtcclen, axtcc, bdy, temp16b,
+                                          pParam);
 
     axtbblen = scale_expansion_zeroelim(4, bb, adxtail, axtbb, pParam);
-    temp16clen = scale_expansion_zeroelim(axtbblen, axtbb, -cdy, temp16c, 
-					  pParam);
+    temp16clen = scale_expansion_zeroelim(axtbblen, axtbb, -cdy, temp16c,
+                                          pParam);
 
     temp32alen = fast_expansion_sum_zeroelim(temp16alen, temp16a,
                                             temp16blen, temp16b, temp32a);
@@ -806,15 +818,15 @@ inline real Predicates::incircleadapt(real ax, real ay,
                                           temp16a, pParam);
 
     aytbblen = scale_expansion_zeroelim(4, bb, adytail, aytbb, pParam);
-    temp16blen = scale_expansion_zeroelim(aytbblen, aytbb, cdx, temp16b, 
-					  pParam);
+    temp16blen = scale_expansion_zeroelim(aytbblen, aytbb, cdx, temp16b,
+                                          pParam);
 
     aytcclen = scale_expansion_zeroelim(4, cc, adytail, aytcc, pParam);
-    temp16clen = scale_expansion_zeroelim(aytcclen, aytcc, -bdx, temp16c, 
-					  pParam);
+    temp16clen = scale_expansion_zeroelim(aytcclen, aytcc, -bdx, temp16c,
+                                          pParam);
 
     temp32alen = fast_expansion_sum_zeroelim(temp16alen, temp16a,
-					     temp16blen, temp16b, temp32a);
+                                             temp16blen, temp16b, temp32a);
     temp48len = fast_expansion_sum_zeroelim(temp16clen, temp16c,
                                             temp32alen, temp32a, temp48);
     finlength = fast_expansion_sum_zeroelim(finlength, finnow, temp48len,
@@ -827,12 +839,12 @@ inline real Predicates::incircleadapt(real ax, real ay,
                                           temp16a, pParam);
 
     bxtaalen = scale_expansion_zeroelim(4, aa, bdxtail, bxtaa, pParam);
-    temp16blen = scale_expansion_zeroelim(bxtaalen, bxtaa, cdy, temp16b, 
-					  pParam);
+    temp16blen = scale_expansion_zeroelim(bxtaalen, bxtaa, cdy, temp16b,
+                                          pParam);
 
     bxtcclen = scale_expansion_zeroelim(4, cc, bdxtail, bxtcc, pParam);
-    temp16clen = scale_expansion_zeroelim(bxtcclen, bxtcc, -ady, temp16c, 
-					  pParam);
+    temp16clen = scale_expansion_zeroelim(bxtcclen, bxtcc, -ady, temp16c,
+                                          pParam);
 
     temp32alen = fast_expansion_sum_zeroelim(temp16alen, temp16a,
                                             temp16blen, temp16b, temp32a);
@@ -848,12 +860,12 @@ inline real Predicates::incircleadapt(real ax, real ay,
                                           temp16a, pParam);
 
     bytcclen = scale_expansion_zeroelim(4, cc, bdytail, bytcc, pParam);
-    temp16blen = scale_expansion_zeroelim(bytcclen, bytcc, adx, temp16b, 
-					  pParam);
+    temp16blen = scale_expansion_zeroelim(bytcclen, bytcc, adx, temp16b,
+                                          pParam);
 
     bytaalen = scale_expansion_zeroelim(4, aa, bdytail, bytaa, pParam);
-    temp16clen = scale_expansion_zeroelim(bytaalen, bytaa, -cdx, temp16c, 
-					  pParam);
+    temp16clen = scale_expansion_zeroelim(bytaalen, bytaa, -cdx, temp16c,
+                                          pParam);
 
     temp32alen = fast_expansion_sum_zeroelim(temp16alen, temp16a,
                                             temp16blen, temp16b, temp32a);
@@ -869,12 +881,12 @@ inline real Predicates::incircleadapt(real ax, real ay,
                                           temp16a, pParam);
 
     cxtbblen = scale_expansion_zeroelim(4, bb, cdxtail, cxtbb, pParam);
-    temp16blen = scale_expansion_zeroelim(cxtbblen, cxtbb, ady, temp16b, 
-					  pParam);
+    temp16blen = scale_expansion_zeroelim(cxtbblen, cxtbb, ady, temp16b,
+                                          pParam);
 
     cxtaalen = scale_expansion_zeroelim(4, aa, cdxtail, cxtaa, pParam);
-    temp16clen = scale_expansion_zeroelim(cxtaalen, cxtaa, -bdy, temp16c, 
-					  pParam);
+    temp16clen = scale_expansion_zeroelim(cxtaalen, cxtaa, -bdy, temp16c,
+                                          pParam);
 
     temp32alen = fast_expansion_sum_zeroelim(temp16alen, temp16a,
                                             temp16blen, temp16b, temp32a);
@@ -890,12 +902,12 @@ inline real Predicates::incircleadapt(real ax, real ay,
                                           temp16a, pParam);
 
     cytaalen = scale_expansion_zeroelim(4, aa, cdytail, cytaa, pParam);
-    temp16blen = scale_expansion_zeroelim(cytaalen, cytaa, bdx, temp16b, 
-					  pParam);
+    temp16blen = scale_expansion_zeroelim(cytaalen, cytaa, bdx, temp16b,
+                                          pParam);
 
     cytbblen = scale_expansion_zeroelim(4, bb, cdytail, cytbb, pParam);
-    temp16clen = scale_expansion_zeroelim(cytbblen, cytbb, -adx, temp16c, 
-					  pParam);
+    temp16clen = scale_expansion_zeroelim(cytbblen, cytbb, -adx, temp16c,
+                                          pParam);
 
     temp32alen = fast_expansion_sum_zeroelim(temp16alen, temp16a,
                                             temp16blen, temp16b, temp32a);
@@ -924,7 +936,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
       Two_Product(bdxtail, cdytail, ti1, ti0, pParam[0], ahi, alo, bhi, blo);
       Two_Product(cdxtail, bdytail, tj1, tj0, pParam[0], ahi, alo, bhi, blo);
       Two_Two_Diff(ti1, ti0, tj1, tj0, bctt3, bctt[2], bctt[1], bctt[0],
-		   _i, _j, _0);
+                   _i, _j, _0);
       bctt[3] = bctt3;
       bcttlen = 4;
     } else {
@@ -935,10 +947,10 @@ inline real Predicates::incircleadapt(real ax, real ay,
     }
 
     if (adxtail != zero) {
-      temp16alen = scale_expansion_zeroelim(axtbclen, axtbc, adxtail, 
-					    temp16a, pParam);
-      axtbctlen = scale_expansion_zeroelim(bctlen, bct, adxtail, axtbct, 
-					   pParam);
+      temp16alen = scale_expansion_zeroelim(axtbclen, axtbc, adxtail,
+                                            temp16a, pParam);
+      axtbctlen = scale_expansion_zeroelim(bctlen, bct, adxtail, axtbct,
+                                           pParam);
       temp32alen = scale_expansion_zeroelim(axtbctlen, axtbct, two * adx,
                                             temp32a, pParam);
       temp48len = fast_expansion_sum_zeroelim(temp16alen, temp16a,
@@ -965,8 +977,8 @@ inline real Predicates::incircleadapt(real ax, real ay,
 
       temp32alen = scale_expansion_zeroelim(axtbctlen, axtbct, adxtail,
                                             temp32a, pParam);
-      axtbcttlen = scale_expansion_zeroelim(bcttlen, bctt, adxtail, axtbctt, 
-					    pParam);
+      axtbcttlen = scale_expansion_zeroelim(bcttlen, bctt, adxtail, axtbctt,
+                                            pParam);
       temp16alen = scale_expansion_zeroelim(axtbcttlen, axtbctt, two * adx,
                                             temp16a, pParam);
       temp16blen = scale_expansion_zeroelim(axtbcttlen, axtbctt, adxtail,
@@ -980,10 +992,10 @@ inline real Predicates::incircleadapt(real ax, real ay,
       finswap = finnow; finnow = finother; finother = finswap;
     }
     if (adytail != zero) {
-      temp16alen = scale_expansion_zeroelim(aytbclen, aytbc, adytail, 
-					    temp16a, pParam);
-      aytbctlen = scale_expansion_zeroelim(bctlen, bct, adytail, aytbct, 
-					   pParam);
+      temp16alen = scale_expansion_zeroelim(aytbclen, aytbc, adytail,
+                                            temp16a, pParam);
+      aytbctlen = scale_expansion_zeroelim(bctlen, bct, adytail, aytbct,
+                                           pParam);
       temp32alen = scale_expansion_zeroelim(aytbctlen, aytbct, two * ady,
                                             temp32a, pParam);
       temp48len = fast_expansion_sum_zeroelim(temp16alen, temp16a,
@@ -995,8 +1007,8 @@ inline real Predicates::incircleadapt(real ax, real ay,
 
       temp32alen = scale_expansion_zeroelim(aytbctlen, aytbct, adytail,
                                             temp32a, pParam);
-      aytbcttlen = scale_expansion_zeroelim(bcttlen, bctt, adytail, aytbctt, 
-					    pParam);
+      aytbcttlen = scale_expansion_zeroelim(bcttlen, bctt, adytail, aytbctt,
+                                            pParam);
       temp16alen = scale_expansion_zeroelim(aytbcttlen, aytbctt, two * ady,
                                             temp16a, pParam);
       temp16blen = scale_expansion_zeroelim(aytbcttlen, aytbctt, adytail,
@@ -1028,7 +1040,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
       Two_Product(cdxtail, adytail, ti1, ti0, pParam[0], ahi, alo, bhi, blo);
       Two_Product(adxtail, cdytail, tj1, tj0, pParam[0], ahi, alo, bhi, blo);
       Two_Two_Diff(ti1, ti0, tj1, tj0, catt3, catt[2], catt[1], catt[0],
-		   _i, _j, _0);
+                   _i, _j, _0);
       catt[3] = catt3;
       cattlen = 4;
     } else {
@@ -1039,10 +1051,10 @@ inline real Predicates::incircleadapt(real ax, real ay,
     }
 
     if (bdxtail != zero) {
-      temp16alen = scale_expansion_zeroelim(bxtcalen, bxtca, bdxtail, 
-					    temp16a, pParam);
-      bxtcatlen = scale_expansion_zeroelim(catlen, cat, bdxtail, bxtcat, 
-					   pParam);
+      temp16alen = scale_expansion_zeroelim(bxtcalen, bxtca, bdxtail,
+                                            temp16a, pParam);
+      bxtcatlen = scale_expansion_zeroelim(catlen, cat, bdxtail, bxtcat,
+                                           pParam);
       temp32alen = scale_expansion_zeroelim(bxtcatlen, bxtcat, two * bdx,
                                             temp32a, pParam);
       temp48len = fast_expansion_sum_zeroelim(temp16alen, temp16a,
@@ -1069,8 +1081,8 @@ inline real Predicates::incircleadapt(real ax, real ay,
 
       temp32alen = scale_expansion_zeroelim(bxtcatlen, bxtcat, bdxtail,
                                             temp32a, pParam);
-      bxtcattlen = scale_expansion_zeroelim(cattlen, catt, bdxtail, bxtcatt, 
-					    pParam);
+      bxtcattlen = scale_expansion_zeroelim(cattlen, catt, bdxtail, bxtcatt,
+                                            pParam);
       temp16alen = scale_expansion_zeroelim(bxtcattlen, bxtcatt, two * bdx,
                                             temp16a, pParam);
       temp16blen = scale_expansion_zeroelim(bxtcattlen, bxtcatt, bdxtail,
@@ -1084,10 +1096,10 @@ inline real Predicates::incircleadapt(real ax, real ay,
       finswap = finnow; finnow = finother; finother = finswap;
     }
     if (bdytail != zero) {
-      temp16alen = scale_expansion_zeroelim(bytcalen, bytca, bdytail, 
-					    temp16a, pParam);
-      bytcatlen = scale_expansion_zeroelim(catlen, cat, bdytail, bytcat, 
-					   pParam);
+      temp16alen = scale_expansion_zeroelim(bytcalen, bytca, bdytail,
+                                            temp16a, pParam);
+      bytcatlen = scale_expansion_zeroelim(catlen, cat, bdytail, bytcat,
+                                           pParam);
       temp32alen = scale_expansion_zeroelim(bytcatlen, bytcat, two * bdy,
                                             temp32a, pParam);
       temp48len = fast_expansion_sum_zeroelim(temp16alen, temp16a,
@@ -1099,8 +1111,8 @@ inline real Predicates::incircleadapt(real ax, real ay,
 
       temp32alen = scale_expansion_zeroelim(bytcatlen, bytcat, bdytail,
                                             temp32a, pParam);
-      bytcattlen = scale_expansion_zeroelim(cattlen, catt, bdytail, bytcatt, 
-					    pParam);
+      bytcattlen = scale_expansion_zeroelim(cattlen, catt, bdytail, bytcatt,
+                                            pParam);
       temp16alen = scale_expansion_zeroelim(bytcattlen, bytcatt, two * bdy,
                                             temp16a, pParam);
       temp16blen = scale_expansion_zeroelim(bytcattlen, bytcatt, bdytail,
@@ -1132,7 +1144,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
       Two_Product(adxtail, bdytail, ti1, ti0, pParam[0], ahi, alo, bhi, blo);
       Two_Product(bdxtail, adytail, tj1, tj0, pParam[0], ahi, alo, bhi, blo);
       Two_Two_Diff(ti1, ti0, tj1, tj0, abtt3, abtt[2], abtt[1], abtt[0],
-		   _i, _j, _0);
+                   _i, _j, _0);
       abtt[3] = abtt3;
       abttlen = 4;
     } else {
@@ -1143,10 +1155,10 @@ inline real Predicates::incircleadapt(real ax, real ay,
     }
 
     if (cdxtail != zero) {
-      temp16alen = scale_expansion_zeroelim(cxtablen, cxtab, cdxtail, 
-					    temp16a, pParam);
-      cxtabtlen = scale_expansion_zeroelim(abtlen, abt, cdxtail, cxtabt, 
-					   pParam);
+      temp16alen = scale_expansion_zeroelim(cxtablen, cxtab, cdxtail,
+                                            temp16a, pParam);
+      cxtabtlen = scale_expansion_zeroelim(abtlen, abt, cdxtail, cxtabt,
+                                           pParam);
       temp32alen = scale_expansion_zeroelim(cxtabtlen, cxtabt, two * cdx,
                                             temp32a, pParam);
       temp48len = fast_expansion_sum_zeroelim(temp16alen, temp16a,
@@ -1173,8 +1185,8 @@ inline real Predicates::incircleadapt(real ax, real ay,
 
       temp32alen = scale_expansion_zeroelim(cxtabtlen, cxtabt, cdxtail,
                                             temp32a, pParam);
-      cxtabttlen = scale_expansion_zeroelim(abttlen, abtt, cdxtail, cxtabtt, 
-					    pParam);
+      cxtabttlen = scale_expansion_zeroelim(abttlen, abtt, cdxtail, cxtabtt,
+                                            pParam);
       temp16alen = scale_expansion_zeroelim(cxtabttlen, cxtabtt, two * cdx,
                                             temp16a, pParam);
       temp16blen = scale_expansion_zeroelim(cxtabttlen, cxtabtt, cdxtail,
@@ -1188,10 +1200,10 @@ inline real Predicates::incircleadapt(real ax, real ay,
       finswap = finnow; finnow = finother; finother = finswap;
     }
     if (cdytail != zero) {
-      temp16alen = scale_expansion_zeroelim(cytablen, cytab, cdytail, 
-					    temp16a, pParam);
-      cytabtlen = scale_expansion_zeroelim(abtlen, abt, cdytail, cytabt, 
-					   pParam);
+      temp16alen = scale_expansion_zeroelim(cytablen, cytab, cdytail,
+                                            temp16a, pParam);
+      cytabtlen = scale_expansion_zeroelim(abtlen, abt, cdytail, cytabt,
+                                           pParam);
       temp32alen = scale_expansion_zeroelim(cytabtlen, cytabt, two * cdy,
                                             temp32a, pParam);
       temp48len = fast_expansion_sum_zeroelim(temp16alen, temp16a,
@@ -1203,8 +1215,8 @@ inline real Predicates::incircleadapt(real ax, real ay,
 
       temp32alen = scale_expansion_zeroelim(cytabtlen, cytabt, cdytail,
                                             temp32a, pParam);
-      cytabttlen = scale_expansion_zeroelim(abttlen, abtt, cdytail, cytabtt, 
-					    pParam);
+      cytabttlen = scale_expansion_zeroelim(abttlen, abtt, cdytail, cytabtt,
+                                            pParam);
       temp16alen = scale_expansion_zeroelim(cytabttlen, cytabtt, two * cdy,
                                             temp16a, pParam);
       temp16blen = scale_expansion_zeroelim(cytabttlen, cytabtt, cdytail,

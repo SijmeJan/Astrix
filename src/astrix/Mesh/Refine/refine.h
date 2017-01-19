@@ -1,10 +1,22 @@
 /*! \file refine.h
-\brief Header file for Refine class*/
+\brief Header file for Refine class
+
+\section LICENSE
+Copyright (c) 2017 Sijme-Jan Paardekooper
+
+This file is part of Astrix.
+
+Astrix is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #ifndef ASTRIX_REFINE_H
 #define ASTRIX_REFINE_H
 
 namespace astrix {
-  
+
 // Forward declarations
 template <class T> class Array;
 class Predicates;
@@ -12,32 +24,32 @@ class Morton;
 class Delaunay;
 class Connectivity;
 class MeshParameter;
- 
+
 class Refine
 {
  public:
   //! Constructor
   Refine(int _cudaFlag, int _debugLevel, int _verboseLevel);
   //! Destructor; releases memory.
-  ~Refine();  
+  ~Refine();
 
   //! Add vertices to Mesh until quality constraints met
-  int ImproveQuality(Connectivity * const connectivity,		
-		     const MeshParameter *meshParameter,
-		     const Predicates *predicates,
-		     Morton * const morton,
-		     Delaunay * const delaunay,
-		     Array<realNeq> * const vertexState,
-		     const real specificHeatRatio,
-		     Array<int> * const triangleWantRefine);
+  int ImproveQuality(Connectivity * const connectivity,
+                     const MeshParameter *meshParameter,
+                     const Predicates *predicates,
+                     Morton * const morton,
+                     Delaunay * const delaunay,
+                     Array<realNeq> * const vertexState,
+                     const real specificHeatRatio,
+                     Array<int> * const triangleWantRefine);
 
   //! Add list of vertices to Mesh
   int AddVertices(Connectivity * const connectivity,
-		  const MeshParameter *meshParameter,
-		  const Predicates *predicates,
-		  Delaunay * const delaunay,
-		  Array<real2> * const vertexBoundaryCoordinates,
-		  Array<int> * const vertexOrder);
+                  const MeshParameter *meshParameter,
+                  const Predicates *predicates,
+                  Delaunay * const delaunay,
+                  Array<real2> * const vertexBoundaryCoordinates,
+                  Array<int> * const vertexOrder);
 
  private:
   //! Flag whether to use device or host
@@ -55,75 +67,75 @@ class Refine
   Array <int> *elementAdd;
   //! Triangles affected by inserting vertices
   Array <int> *triangleAffected;
-  //! Vertices to be inserted affecting triangles (0...nRefine) 
+  //! Vertices to be inserted affecting triangles (0...nRefine)
   Array <int> *triangleAffectedIndex;
   //! Flag if edge needs checking for Delaunay-hood
   Array<int> *edgeNeedsChecking;
   //! Unique random numbers
   Array<unsigned int> *randomUnique;
-  
+
   //! Find low-quality triangles
   int TestTrianglesQuality(Connectivity * const connectivity,
-			   const MeshParameter *meshParameter,
+                           const MeshParameter *meshParameter,
                            const Array<int> *triangleWantRefine);
   //! Find circumcentres of bad triangles
   void FindCircum(Connectivity * const connectivity,
-		  const MeshParameter *meshParameter,
-		  const int nRefine);
+                  const MeshParameter *meshParameter,
+                  const int nRefine);
   //! Find triangles or edges to put new vertices in/on
   void FindTriangles(Connectivity * const connectivity,
-		     const MeshParameter *meshParameter,
-		     const Predicates *predicates);
+                     const MeshParameter *meshParameter,
+                     const Predicates *predicates);
   //! Adjust indices of periodic vertices for new \a nVertex
   void AddToPeriodic(Connectivity * const connectivity,
-		     const int nAdd);
+                     const int nAdd);
   void FindParallelInsertionSet(Connectivity * const connectivity,
-				Array<int> * const vertexOrder,
-				Array<int> * const vertexOrderInsert,
-				Array<real2> * const vOBCoordinates,
-				const Predicates *predicates,
-				const MeshParameter *meshParameter);
-  
+                                Array<int> * const vertexOrder,
+                                Array<int> * const vertexOrderInsert,
+                                Array<real2> * const vOBCoordinates,
+                                const Predicates *predicates,
+                                const MeshParameter *meshParameter);
+
   //! Flag points to be inserted on segments
   int FlagSegment(Connectivity * const connectivity,
-		  Array<unsigned int> * const onSegmentFlagScan);
+                  Array<unsigned int> * const onSegmentFlagScan);
   //! Insert new vertices into Mesh
   void InsertVertices(Connectivity * const connectivity,
-		      const MeshParameter *meshParameter,
-		      const Predicates *predicates,
-		      Array<realNeq> * const vertexState,
-		      Array<int> * const triangleWantRefine);
+                      const MeshParameter *meshParameter,
+                      const Predicates *predicates,
+                      Array<realNeq> * const vertexState,
+                      Array<int> * const triangleWantRefine);
   //! Interpolate state at new vertices
   void InterpolateState(Connectivity * const connectivity,
-			const MeshParameter *meshParameter,
-			Array<realNeq> * const vertexState,
-			Array<int> * const triangleWantRefine,
-			const real specificHeatRatio);
+                        const MeshParameter *meshParameter,
+                        Array<realNeq> * const vertexState,
+                        Array<int> * const triangleWantRefine,
+                        const real specificHeatRatio);
   //! Split any additional segments
   void SplitSegment(Connectivity * const connectivity,
-		    const MeshParameter *meshParameter,
-		    const Predicates *predicates,
-		    Array<realNeq> * const vertexState,
-		    Array<int> * const triangleWantRefine,
-		    const real specificHeatRatio,
-		    const int nTriangleOld);
+                    const MeshParameter *meshParameter,
+                    const Predicates *predicates,
+                    Array<realNeq> * const vertexState,
+                    Array<int> * const triangleWantRefine,
+                    const real specificHeatRatio,
+                    const int nTriangleOld);
   //! Test whether any new vertices encroach a segment
   void TestEncroach(Connectivity * const connectivity,
-		    const MeshParameter *meshParameter,
-		    const int nRefine);
+                    const MeshParameter *meshParameter,
+                    const int nRefine);
 
   void LockTriangles(Connectivity * const connectivity,
-		     const Predicates *predicates,
-		     const MeshParameter *meshParameter,
-		     Array<int> *triangleInCavity);
+                     const Predicates *predicates,
+                     const MeshParameter *meshParameter,
+                     Array<int> *triangleInCavity);
   void FindIndependentCavities(Connectivity * const connectivity,
-			       const Predicates *predicates,
-			       const MeshParameter *meshParameter,
-			       Array<int> * const triangleInCavity,
-			       Array<int> *uniqueFlag);
+                               const Predicates *predicates,
+                               const MeshParameter *meshParameter,
+                               Array<int> * const triangleInCavity,
+                               Array<int> *uniqueFlag);
   void FlagEdgesForChecking(Connectivity * const connectivity,
-			    const Predicates *predicates,
-			    const MeshParameter *meshParameter);
+                            const Predicates *predicates,
+                            const MeshParameter *meshParameter);
 
 };
 

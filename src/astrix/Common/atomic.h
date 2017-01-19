@@ -1,5 +1,17 @@
 /*! \file atomic.h
     \brief Header file for unified atomic operations.
+
+\section LICENSE
+Copyright (c) 2017 Sijme-Jan Paardekooper
+
+This file is part of Astrix.
+
+Astrix is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 */
 #ifndef ATOMIC_H
 #define ATOMIC_H
@@ -20,8 +32,8 @@ __device__ inline double AstrixAtomicAdd(double* address, double val)
   do {
     assumed = old;
     old = atomicCAS(address_as_ull, assumed,
-		    __double_as_longlong(val +
-					 __longlong_as_double(assumed)));
+                    __double_as_longlong(val +
+                                         __longlong_as_double(assumed)));
   } while (assumed != old);
   return __longlong_as_double(old);
 }
@@ -37,7 +49,7 @@ __device__ inline int AstrixAtomicAdd(int* address, int val)
 }
 
 namespace astrix {
-  
+
 //######################################################################
 // Atomic add wrapper; on host do normal add
 //######################################################################
@@ -77,7 +89,7 @@ T AtomicMax(T *x, T y)
 //######################################################################
 
 template<typename T>
-__host__ __device__ 
+__host__ __device__
 T AtomicCAS(T *x, T cmp, T y)
 {
 #ifndef __CUDA_ARCH__

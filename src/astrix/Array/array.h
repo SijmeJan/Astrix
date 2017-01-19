@@ -1,5 +1,17 @@
 /*! \file array.h
 \brief Header file for Array class
+
+\section LICENSE
+Copyright (c) 2017 Sijme-Jan Paardekooper
+
+This file is part of Astrix.
+
+Astrix is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 */
 #ifndef ASTRIXARRAY_H
 #define ASTRIXARRAY_H
@@ -8,9 +20,9 @@
 #include <thrust/device_vector.h>
 
 namespace astrix {
-  
+
 //! Basic vector-like class used in Astrix
-/*! An Array object can be thought of as a vector that can either live on the host or on the device.*/    
+/*! An Array object can be thought of as a vector that can either live on the host or on the device.*/
 template <class T> class Array
 {
  public:
@@ -37,8 +49,8 @@ template <class T> class Array
     \param _size Size of every dimension
     \param _dynArrayStep Increase physical size of array in these steps*/
   Array(unsigned int _nDims, int _cudaFlag,
-	unsigned int _size, int _dynArrayStep);
-  
+        unsigned int _size, int _dynArrayStep);
+
   //! Destructor, releases allocated memory
   /*! Destroy Array object, releasing both host and device memory*/
   ~Array();
@@ -53,7 +65,7 @@ template <class T> class Array
   void TransformToDevice();
   //! Transform from device vector to host vector
   void TransformToHost();
-  
+
   //! Return size of array
   unsigned int GetSize() const;
   //! Return realSize of array
@@ -93,11 +105,11 @@ template <class T> class Array
   /*! Set a[i] = reindex[a[i]]. If a[i] = -1, leave it at -1. If a[i] >= maxValue, subtract maxValue n times until a[i] < maxValue, and set a[i] = a[reindex[a[i]-n*maxValue]] + n*maxValue*/
   void InverseReindex(unsigned int *reindex, int maxValue, bool ignoreValue);
   void InverseReindex(int *reindex);
-  
+
   //! Compact; keep only entries where keepFlag == 1
   void Compact(int nKeep, Array<int> *keepFlag,
-	       Array<int> *keepFlagScan);
-  
+               Array<int> *keepFlagScan);
+
   //! Copy data from host to device
   void CopyToDevice();
   //! Copy data from device to host
@@ -157,7 +169,7 @@ template <class T> class Array
     S MinimumComb(int N);
   template <class S>
     S MaximumComb(int N);
-  
+
   //! Return sum of elements
   T Sum();
 
@@ -180,10 +192,10 @@ template <class T> class Array
     int SelectLargerThan(T value, Array<S> *A);
   template<class S>
     int SelectWhereDifferent(Array<T> *A, Array<S> *B);
-  
+
   //! At a unique entry of \a A, \a i, (ignoring \a ignoreValue) set \a hostVec[B[i]] = \a value.
   void ScatterUnique(Array<int> *A, Array<int> *B,
-		     int maxIndex, int ignoreValue, T value);
+                     int maxIndex, int ignoreValue, T value);
 
   //! Shuffle array (non-random!)
   void Shuffle();
@@ -191,10 +203,10 @@ template <class T> class Array
   T InnerProduct(Array<T> *A);
   void LinComb(T a1, Array<T> *A1);
   void LinComb(T a1, Array<T> *A1,
-	       T a2, Array<T> *A2);
+               T a2, Array<T> *A2);
   void LinComb(T a1, Array<T> *A1,
-	       T a2, Array<T> *A2,
-	       T a3, Array<T> *A3);
+               T a2, Array<T> *A2,
+               T a3, Array<T> *A3);
 
   //! Return pointer to host memory
   T* GetHostPointer() const { return hostVec; }
@@ -210,9 +222,9 @@ template <class T> class Array
   T* GetPointer() const
   { if (cudaFlag == 0) return hostVec; else return deviceVec; }
   //! Return pointer to either host or device memory for dimension \a _dim
-  T* GetPointer(unsigned int _dim) const { 
-    if (cudaFlag == 0) return &(hostVec[_dim*realSize]); 
-    else return &(deviceVec[_dim*realSize]); 
+  T* GetPointer(unsigned int _dim) const {
+    if (cudaFlag == 0) return &(hostVec[_dim*realSize]);
+    else return &(deviceVec[_dim*realSize]);
   }
 
   int dynArrayStep;

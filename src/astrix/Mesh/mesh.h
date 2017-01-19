@@ -1,5 +1,17 @@
 /*! \file mesh.h
 \brief Header file for Mesh class
+
+\section LICENSE
+Copyright (c) 2017 Sijme-Jan Paardekooper
+
+This file is part of Astrix.
+
+Astrix is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 */
 #ifndef ASTRIX_MESH_H
 #define ASTRIX_MESH_H
@@ -8,7 +20,7 @@
 #include <cuda_runtime_api.h>
 
 namespace astrix {
-  
+
 // Forward declarations
 class Predicates;
 template <class T> class Array;
@@ -19,8 +31,8 @@ class Refine;
 class Coarsen;
 class Connectivity;
 class MeshParameter;
- 
-//! Class containing functions acting on the whole mesh 
+
+//! Class containing functions acting on the whole mesh
 /*! A Mesh object can be thought of representing the Delaunay mesh on which the computations are performed.*/
 class Mesh
 {
@@ -30,17 +42,17 @@ class Mesh
        const char *fileName, Device *device, int restartNumber,
        int extraFlag);
   //! Destructor; releases memory.
-  ~Mesh();  
- 
+  ~Mesh();
+
   //! Refine mesh
   int ImproveQuality(Array<realNeq> *vertexState,
-		     real specificHeatRatio,
-		     int nTimeStep);
+                     real specificHeatRatio,
+                     int nTimeStep);
   //! Coarsen mesh
   int RemoveVertices(Array<realNeq> *vertexState,
-		     real specificHeatRatio,
-		     int nTimeStep);
-  
+                     real specificHeatRatio,
+                     int nTimeStep);
+
   //! Save mesh to disk
   void Save(int nSave);
   //! Read previously created mesh from disk
@@ -66,9 +78,9 @@ class Mesh
   real GetMinY();
   //! Return maximum y
   real GetMaxY();
-  
+
   // Give access to Mesh data through constant pointers to the data
-  
+
   //! Return pointer to vertex coordinates data
   const real2* VertexCoordinatesData();
   //! Return pointer to vertex boundary flag data
@@ -89,10 +101,10 @@ class Mesh
   const int2* EdgeTrianglesData();
 
   // Allow switch between host and device memory
-  
+
   //! Transform all Arrays
   void Transform();
-  
+
  private:
   // General Mesh Arrays
 
@@ -100,7 +112,7 @@ class Mesh
   Connectivity *connectivity;
 
   MeshParameter *meshParameter;
-  
+
   //! Flag whether vertex is part of boundary
   Array <int> *vertexBoundaryFlag;
   //! Vertex area (area of Voronoi cell)
@@ -116,18 +128,18 @@ class Mesh
   Array <real> *triangleErrorEstimate;
 
   Array<unsigned int> *randomVector;
-  
+
   // Runtime flags
-  
+
   //! Flag whether running on CUDA device
   int cudaFlag;
   //! How much to output to screen
   int verboseLevel;
   //! Level of extra checks on mesh
   int debugLevel;
-  
+
   // Derived Mesh properties
-  
+
   //! Number of vertices
   //int nVertex;
   //! Number of triangles
@@ -146,7 +158,7 @@ class Mesh
   void OutputStat();
 
   // Functions calculating important Mesh properties
-  
+
   //! Calculate triangle normals and edge lengths
   void CalcNormalEdge();
   //! Calculate areas associated with vertices (Voronoi cells)
@@ -158,16 +170,16 @@ class Mesh
   void ConstructBoundaries();
   //! Create structured mesh
   void CreateStructuredMesh();
- 
+
   // Functions for adaptive Mesh
-  
+
   //! Calculate estimate of discretization error
   void CalcErrorEstimate(Array<realNeq> *vertexState, real G);
   //! Check which triangles want refining based of state
   void FillWantRefine(Array<realNeq> *vertexState, real specificHeatRatio);
 
   // Debugging functions
-  
+
   //! Return maximum edge length for triangle \a i
   real MaxEdgeLengthTriangle(int i);
   //! Return maximum edge length for whole grid

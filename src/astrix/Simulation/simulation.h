@@ -1,5 +1,17 @@
 /*! \file simulation.h
-\brief Header file for Simulation class*/
+\brief Header file for Simulation class
+
+\section LICENSE
+Copyright (c) 2017 Sijme-Jan Paardekooper
+
+This file is part of Astrix.
+
+Astrix is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #ifndef ASTRIX_SIMULATION_H
 #define ASTRIX_SIMULATION_H
 
@@ -9,7 +21,7 @@ namespace astrix {
 
 class Mesh;
 template <class T> class Array;
-class Device; 
+class Device;
 
 //! Simulation: class containing simulation
 /*! This is the basic class needed to run an Astrix simulation.  */
@@ -19,17 +31,17 @@ class Simulation
  public:
   //! Constructor for Simulation object.
   Simulation(int _verboseLevel, int _debugLevel,
-	     char *fileName, Device *_device, int restartNumber,
-	     int extraFlag);
-  //! Destructor, releases all dynamically allocated 
+             char *fileName, Device *_device, int restartNumber,
+             int extraFlag);
+  //! Destructor, releases all dynamically allocated
   ~Simulation();
 
   //! Run simulation
   void Run(int restartNumber, real maxWallClockHours);
-  
+
  private:
   Device *device;
-  
+
   //! Flag whether to use CUDA
   int cudaFlag;
 
@@ -38,20 +50,20 @@ class Simulation
   //! Level of debugging
   int debugLevel;
   int extraFlag;
-  
+
   //! Mesh on which to do simulation
   Mesh *mesh;
 
   //! Number of time steps taken
   int nTimeStep;
-  
+
   //! Problem specification (see Common/definitions.h)
-  /*! Read from input file: LIN: Linear wave, 
-      RT: Rayleigh-Taylor, 
-      KH: Kelvin-Helmholz, 
-      RIEMANN: 2D Riemann problem, 
-      SOD: Sod shock tube, 
-      VORTEX: Vortex advection, 
+  /*! Read from input file: LIN: Linear wave,
+      RT: Rayleigh-Taylor,
+      KH: Kelvin-Helmholz,
+      RIEMANN: 2D Riemann problem,
+      SOD: Sod shock tube,
+      VORTEX: Vortex advection,
       Converted to int using definitions in definitions.h.*/
   ProblemDefinition problemDef;
 
@@ -68,22 +80,22 @@ class Simulation
   real CFLnumber;
   //! Preference for using minimum/maximum value of blend parameter
   int preferMinMaxBlend;
-  
+
   //! Number of space dimensions (fixed to 2)
   int nSpaceDim;
 
   //! Ratio of specific heats
   real specificHeatRatio;
-  
+
   //! Time variable.
   real simulationTime;
-  //! Maximum simulation time 
+  //! Maximum simulation time
   real maxSimulationTime;
   //! Time between 2D saves
   real saveIntervalTime;
   //! Time between 0D saves
   real saveIntervalTimeFine;
-  
+
   //! State vector at vertex
   Array <realNeq> *vertexState;
   //! Old state vector at vertex
@@ -92,7 +104,7 @@ class Simulation
   Array <real> *vertexPotential;
   //! Difference state vector at vertex
   Array <realNeq> *vertexStateDiff;
-  //! Roe parameter vector 
+  //! Roe parameter vector
   Array <realNeq> *vertexParameterVector;
 
   //! Residual for N scheme
@@ -107,12 +119,12 @@ class Simulation
   Array<real> *triangleShockSensor;
   //! Source contribution to residual
   Array <realNeq> *triangleResidueSource;
-  
+
   //! Set up the simulation
   void Init(int restartNumber);
   //! Read input file
   void ReadInputFile(const char *fileName);
-  
+
   //! Save current state
   void Save(int nSave);
   //! Restore state from disc
@@ -131,12 +143,12 @@ class Simulation
   //! Calculate gravitational potential
   void CalcPotential();
   void CalcSource(Array<realNeq> *state);
- 
-  //! For every vertex, calculate the maximum allowed timestep.  
+
+  //! For every vertex, calculate the maximum allowed timestep.
   real CalcVertexTimeStep();
   //! Set reflecting boundary conditions
   void ReflectingBoundaries(real dt);
-  //! Set boundary conditions using extrapolation	
+  //! Set boundary conditions using extrapolation
   void ExtrapolateBoundaries();
   //! Set non-reflecting boundaries
   void SetNonReflectingBoundaries();
@@ -175,14 +187,13 @@ class Simulation
   void Refine();
   //! Coarsen mesh
   void Coarsen(int maxCycle);
-  
+
   //! In state vector, replace total energy with pressure
   void ReplaceEnergyWithPressure();
   //! In state vector, replace pressure with total energy
   void ReplacePressureWithEnergy();
 
   real TotalMass();
-  //void CalcVorticity(Array<real> *vorticity);
 
   void CalcShockSensor();
   void CheckSymmetry();
@@ -193,5 +204,5 @@ class Simulation
   void UpdateFirst(real dt);
 };
 
-}
+}  // namespace astrix
 #endif  // ASTRIX_SIMULATION_H

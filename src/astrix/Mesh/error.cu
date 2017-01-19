@@ -3,7 +3,18 @@
 \brief File containing function to estimate the local truncation error, which can be used to decide where to refine the mesh.
 
 When using an adaptive mesh, we have to decide, based on the current state of the flow, where mesh refinement is needed. We use the method outlined in Lapenta (2004), comparing cell-based and node-based operators, which gives an estimate of the local truncation error.
-*/
+
+\section LICENSE
+Copyright (c) 2017 Sijme-Jan Paardekooper
+
+This file is part of Astrix.
+
+Astrix is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include "../Common/definitions.h"
 #include "../Array/array.h"
