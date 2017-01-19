@@ -185,7 +185,7 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
 	// Morton ordering to preserve data locality
 	int nVertex = connectivity->vertexCoordinates->GetSize();
 	real fracAdded = (real) nAddedSinceMorton/(real) nVertex;
-	if (debugLevel == 0 && fracAdded > maxFracAddedMorton) {
+	if (debugLevel < 10 && fracAdded > maxFracAddedMorton) {
 	  morton->Order(connectivity, triangleWantRefine, vertexState);
 	  nAddedSinceMorton = 0;
 	}
@@ -197,7 +197,8 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
     //if (ncycle > 1) finished = 1;
   }
 
-  if (debugLevel != 0 || nAddedSinceMorton > 0)
+  // Final Morton ordering
+  if (debugLevel >= 10 || nAddedSinceMorton > 0)
     morton->Order(connectivity, triangleWantRefine, vertexState);
   
   cudaEventRecord(stop, 0);

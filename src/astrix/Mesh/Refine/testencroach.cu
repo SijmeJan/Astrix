@@ -381,7 +381,7 @@ void TestEncroachSingle(int i, int *pElementAdd, real2 *pVcAdd,
 }
   
 //######################################################################
-/*! \brief Kernel testing points if they encroache a segment. 
+/*! \brief Kernel testing points if they encroach a segment. 
 
 This function tests if point to add \a i leads to an encroached segment. We take a triangle close to \a i (either the triangle containing \a i or, if \a i is to be placed on edge \a e, one of the neighbouring triangles of \a e) and consider all of its vertices v. We check all triangles sharing v to see if any edges will turn into encriached segments when inserting \a i. If this is the case, move \a i so that it lies on the segment in question. 
 

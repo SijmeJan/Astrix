@@ -110,10 +110,7 @@ int Mesh::ImproveQuality(Array<realNeq> *vertexState,
   std::cout << "L/lmin = " << Px/minEdgeLength << std::endl;
   
   
-  if (nAdded > 0) {
-    if (debugLevel > 0)
-      morton->Order(connectivity, triangleWantRefine, vertexState);
-  
+  if (nAdded > 0) {  
     // Calculate triangle normals and areas
     CalcNormalEdge();
     CalcVertexArea();
