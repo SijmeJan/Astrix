@@ -190,13 +190,13 @@ int Delaunay::FindParallelFlipSet(Connectivity * const connectivity,
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
 #ifdef TIME_ASTRIX
-  gpuErrchk( cudaEventRecord(start, 0) );
+    gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     for (int i = 0; i < nFlip; i++) 
       SelectParallelFlip(i, pEdgeNonDelaunay, pTriangleTaken, pEt);
 #ifdef TIME_ASTRIX
-  gpuErrchk( cudaEventRecord(stop, 0) );
-  gpuErrchk( cudaEventSynchronize(stop) );
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
 #endif
   }
   
@@ -204,7 +204,12 @@ int Delaunay::FindParallelFlipSet(Connectivity * const connectivity,
   int nFlipParallel = edgeNonDelaunay->RemoveValue(-1, nFlip);
 
   delete triangleTaken;
-  
+
+#ifdef TIME_ASTRIX
+  gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
+  WriteProfileFile("ParallelFlip.prof", nFlip, elapsedTime, cudaFlag);
+#endif
+
 #else
   
   // Fill triangleAffected and triangleAffectedEdge (direct only)
@@ -233,11 +238,6 @@ int Delaunay::FindParallelFlipSet(Connectivity * const connectivity,
     nFlipParallel = 1;
   }
   
-#endif
-
-#ifdef TIME_ASTRIX
-  gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
-  WriteProfileFile("ParallelFlip.prof", nFlip, elapsedTime, cudaFlag);
 #endif
 
   return nFlipParallel;
