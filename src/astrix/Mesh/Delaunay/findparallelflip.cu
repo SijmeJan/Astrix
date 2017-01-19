@@ -149,6 +149,8 @@ void FillAffectedTriangles(Array<int> * const triangleAffected,
 int Delaunay::FindParallelFlipSet(Connectivity * const connectivity,
 				  const int nFlip)
 {
+#ifdef NEW_FIND_PARALLEL_FLIP
+
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
@@ -156,8 +158,6 @@ int Delaunay::FindParallelFlipSet(Connectivity * const connectivity,
   gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
-
-#ifdef NEW_FIND_PARALLEL_FLIP
   int nTriangle = connectivity->triangleVertices->GetSize();
   
   Array<int> *triangleTaken = new Array<int>(1, cudaFlag, nTriangle);
