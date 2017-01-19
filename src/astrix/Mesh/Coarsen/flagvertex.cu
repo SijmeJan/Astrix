@@ -16,14 +16,14 @@
 namespace astrix {
 
 //#########################################################################
-/*! \brief Select vertices for removal 
+/*! \brief Select vertices for removal
 
-If triangle \a i is not flagged as wanting coarsening, none of its vertices can be removed. In this case, \a vertexRemoveFlag is set to zero for these vertices using atomic operations.  
+If triangle \a i is not flagged as wanting coarsening, none of its vertices can be removed. In this case, \a vertexRemoveFlag is set to zero for these vertices using atomic operations.
 
 \param i Triangle under consideration
-\param *tv1 Pointer to first vertex of triangle 
-\param *tv2 Pointer to second vertex of triangle 
-\param *tv3 Pointer to third vertex of triangle 
+\param *tv1 Pointer to first vertex of triangle
+\param *tv2 Pointer to second vertex of triangle
+\param *tv3 Pointer to third vertex of triangle
 \param nVertex Total number of vertices in Mesh
 \param *pTriangleWantRefine Pointer to array specifying if triangles need to be refined (=1) or are allowed to be coarsened (=-1)
 \param *pVertexRemoveFlag Pointer to array specifying whether vertices can be removed. Entries are set to zero if vertex can not be removed, otherwise it is left unchanged*/
@@ -31,8 +31,8 @@ If triangle \a i is not flagged as wanting coarsening, none of its vertices can 
 
 __host__ __device__
 void FillVertexRemoveFlagSingle(int i, int3 *pTv,
-				int nVertex, int *pTriangleWantRefine,
-				int *pVertexRemoveFlag)
+                                int nVertex, int *pTriangleWantRefine,
+                                int *pVertexRemoveFlag)
 {
   // If wantRefine != -1, vertex can not be removed
   if (pTriangleWantRefine[i] != -1) {
@@ -51,46 +51,46 @@ void FillVertexRemoveFlagSingle(int i, int3 *pTv,
     AtomicExch(&(pVertexRemoveFlag[v3]), 0);
   }
 }
-  
-//#########################################################################
-/*! \brief Kernel selecting vertices for removal 
 
-If a triangle is not flagged as wanting coarsening, none of its vertices can be removed. In this case, \a vertexRemoveFlag is set to zero for these vertices using atomic operations.  
+//#########################################################################
+/*! \brief Kernel selecting vertices for removal
+
+If a triangle is not flagged as wanting coarsening, none of its vertices can be removed. In this case, \a vertexRemoveFlag is set to zero for these vertices using atomic operations.
 
 \param nTriangle Total number of triangles in Mesh
-\param *tv1 Pointer to first vertex of triangle 
-\param *tv2 Pointer to second vertex of triangle 
-\param *tv3 Pointer to third vertex of triangle 
+\param *tv1 Pointer to first vertex of triangle
+\param *tv2 Pointer to second vertex of triangle
+\param *tv3 Pointer to third vertex of triangle
 \param nVertex Total number of vertices in Mesh
 \param *pTriangleWantRefine Pointer to array specifying if triangles need to be refined (=1) or are allowed to be coarsened (=-1)
-\param *pVertexRemoveFlag Pointer to array specifying whether vertices can be removed. Entries are set to zero if vertex can not be removed, otherwise it is left unchanged*/ 
+\param *pVertexRemoveFlag Pointer to array specifying whether vertices can be removed. Entries are set to zero if vertex can not be removed, otherwise it is left unchanged*/
 //#########################################################################
 
 __global__
 void devFillVertexRemoveFlag(int nTriangle, int3 *pTv,
-			     int nVertex, int *pTriangleWantRefine,
-			     int *pVertexRemoveFlag)
-{     
+                             int nVertex, int *pTriangleWantRefine,
+                             int *pVertexRemoveFlag)
+{
   int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nTriangle) {
     FillVertexRemoveFlagSingle(i, pTv, nVertex,
-			       pTriangleWantRefine, pVertexRemoveFlag);
-    
+                               pTriangleWantRefine, pVertexRemoveFlag);
+
     i += blockDim.x*gridDim.x;
   }
 }
-  
-//#########################################################################
-/*! If a triangle is not flagged as wanting coarsening, none of its vertices can be removed. In this case, \a vertexRemoveFlag is set to zero for these vertices using atomic operations.  
 
-\param *vertexRemoveFlag Pointer to Array specifying whether vertices can be removed. Entries are set to zero if vertex can not be removed, otherwise it is left unchanged*/ 
+//#########################################################################
+/*! If a triangle is not flagged as wanting coarsening, none of its vertices can be removed. In this case, \a vertexRemoveFlag is set to zero for these vertices using atomic operations.
+
+\param *vertexRemoveFlag Pointer to Array specifying whether vertices can be removed. Entries are set to zero if vertex can not be removed, otherwise it is left unchanged*/
 
 //#########################################################################
 
 void Coarsen::FlagVertexRemove(Connectivity *connectivity,
-			       Array<int> *vertexRemoveFlag,
-			       Array<int> *triangleWantRefine)
+                               Array<int> *vertexRemoveFlag,
+                               Array<int> *triangleWantRefine)
 {
   int transformFlag = 0;
 
@@ -99,21 +99,21 @@ void Coarsen::FlagVertexRemove(Connectivity *connectivity,
     if (cudaFlag == 1) {
       vertexRemoveFlag->TransformToHost();
       triangleWantRefine->TransformToHost();
-      
+
       cudaFlag = 0;
     } else {
       vertexRemoveFlag->TransformToDevice();
       triangleWantRefine->TransformToDevice();
-  
+
       cudaFlag = 1;
     }
   }
 
   int nVertex = connectivity->vertexCoordinates->GetSize();
   int nTriangle = connectivity->triangleVertices->GetSize();
-  
+
   int3 *pTv = connectivity->triangleVertices->GetPointer();
-  
+
   int *pVertexRemoveFlag = vertexRemoveFlag->GetPointer();
   int *pTriangleWantRefine = triangleWantRefine->GetPointer();
 
@@ -121,11 +121,11 @@ void Coarsen::FlagVertexRemove(Connectivity *connectivity,
   if (cudaFlag == 1) {
     int nBlocks = 128;
     int nThreads = 128;
-    
+
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devFillVertexRemoveFlag, 
-				       (size_t) 0, 0);
+                                       devFillVertexRemoveFlag,
+                                       (size_t) 0, 0);
 
     devFillVertexRemoveFlag<<<nBlocks, nThreads>>>
       (nTriangle, pTv, nVertex,
@@ -133,26 +133,26 @@ void Coarsen::FlagVertexRemove(Connectivity *connectivity,
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
-    for(int i = 0; i < nTriangle; i++) 
+    for (int i = 0; i < nTriangle; i++)
       FillVertexRemoveFlagSingle(i, pTv, nVertex,
-				 pTriangleWantRefine, pVertexRemoveFlag);
+                                 pTriangleWantRefine, pVertexRemoveFlag);
   }
-  
+
   if (transformFlag == 1) {
     connectivity->Transform();
     if (cudaFlag == 1) {
       vertexRemoveFlag->TransformToHost();
       triangleWantRefine->TransformToHost();
-      
+
       cudaFlag = 0;
     } else {
       vertexRemoveFlag->TransformToDevice();
       triangleWantRefine->TransformToDevice();
-  
+
       cudaFlag = 1;
     }
   }
 
 }
-  
+
 }

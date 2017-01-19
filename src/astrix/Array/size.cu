@@ -48,7 +48,7 @@ template <class T>
 void Array<T>::SetSizeHost(unsigned int _size)
 {
   size = _size;
- 
+
   // New physical size
   unsigned int realSizeNew = ((size + dynArrayStep)/dynArrayStep)*dynArrayStep;
 
@@ -58,27 +58,27 @@ void Array<T>::SetSizeHost(unsigned int _size)
     if (realSize < realSizeNew) {
       // Reallocate memory
       hostVec = (T *)realloc(hostVec, nDims*realSizeNew*sizeof(T));
-    
+
       // Shift data to right
-      for (int n = nDims - 1; n > 0; n--) 
-	for (int i = realSize - 1; i >= 0; i--) 
-	  hostVec[n*realSizeNew + i] = hostVec[n*realSize + i];
+      for (int n = nDims - 1; n > 0; n--)
+        for (int i = realSize - 1; i >= 0; i--)
+          hostVec[n*realSizeNew + i] = hostVec[n*realSize + i];
     }
 
     if (2*realSizeNew < realSize) {
       // Shift data to left
-      for (unsigned int n = 1; n < nDims; n++) 
-	memcpy(&(hostVec[n*realSizeNew]), 
-	       &(hostVec[n*realSize]), 
-	       realSizeNew*sizeof(T));
-      
+      for (unsigned int n = 1; n < nDims; n++)
+        memcpy(&(hostVec[n*realSizeNew]),
+               &(hostVec[n*realSize]),
+               realSizeNew*sizeof(T));
+
       // Reallocate memory
       hostVec = (T *)realloc(hostVec, nDims*realSizeNew*sizeof(T));
     }
-  
+
     int alloc = (int)nDims*((int)realSizeNew-(int)realSize)*(int)sizeof(T);
-    if (alloc > 0) memAllocatedHost += alloc; 
-    if (alloc < 0) memAllocatedHost -= std::abs(alloc); 
+    if (alloc > 0) memAllocatedHost += alloc;
+    if (alloc < 0) memAllocatedHost -= std::abs(alloc);
 
     realSize = realSizeNew;
   }
@@ -93,14 +93,14 @@ void Array<T>::SetSizeDevice(unsigned int _size)
 {
   //cudaEvent_t start, stop;
   //float elapsedTime;
-  //gpuErrchk( cudaEventCreate(&start) ) ;
+  //gpuErrchk( cudaEventCreate(&start) );
   //gpuErrchk( cudaEventCreate(&stop) );
   //gpuErrchk( cudaEventRecord(start, 0) );
 
   unsigned int sizeNew = _size;
-    
+
   // New physical size
-  unsigned int realSizeNew = 
+  unsigned int realSizeNew =
     ((sizeNew + dynArrayStep)/dynArrayStep)*dynArrayStep;
 
   // Adjust physical size if not big enough or at least two times too big
@@ -110,8 +110,8 @@ void Array<T>::SetSizeDevice(unsigned int _size)
 
     // Manual realloc on device
     T *temp;
-    gpuErrchk(cudaMalloc(reinterpret_cast<void**>(&temp), 
-			 nDims*realSizeNew*sizeof(T)));
+    gpuErrchk(cudaMalloc(reinterpret_cast<void**>(&temp),
+                         nDims*realSizeNew*sizeof(T)));
 
 
     unsigned int nToCopy = size;
@@ -119,16 +119,16 @@ void Array<T>::SetSizeDevice(unsigned int _size)
 
     for (unsigned int n = 0; n < nDims; n++)
       gpuErrchk(cudaMemcpy(&(temp[n*realSizeNew]), &(deviceVec[n*realSize]),
-			   nToCopy*sizeof(T),
-			   cudaMemcpyDeviceToDevice));
+                           nToCopy*sizeof(T),
+                           cudaMemcpyDeviceToDevice));
 
     gpuErrchk(cudaFree(deviceVec));
     deviceVec = temp;
   }
 
   int alloc = (int)nDims*((int)realSizeNew-(int)realSize)*(int)sizeof(T);
-  if (alloc > 0) memAllocatedDevice += alloc; 
-  if (alloc < 0) memAllocatedDevice -= std::abs(alloc); 
+  if (alloc > 0) memAllocatedDevice += alloc;
+  if (alloc < 0) memAllocatedDevice -= std::abs(alloc);
 
   realSize = realSizeNew;
   size = sizeNew;
@@ -185,10 +185,10 @@ template void Array<unsigned int>::SetSize(unsigned int _size);
 
 template unsigned int Array<int2>::GetSize() const;
 template void Array<int2>::SetSize(unsigned int _size);
-  
+
 template unsigned int Array<int3>::GetSize() const;
 template void Array<int3>::SetSize(unsigned int _size);
-  
+
 template unsigned int Array<float2>::GetSize() const;
 template void Array<float2>::SetSize(unsigned int _size);
 

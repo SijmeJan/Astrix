@@ -21,9 +21,9 @@
 #include "./mesh.h"
 
 namespace astrix {
-  
+
 //#########################################################################
-/*! Create Mesh with parameters specified in file \a fileName. 
+/*! Create Mesh with parameters specified in file \a fileName.
 
 \param meshVerboseLevel Level of output to stdout
 \param meshDebugLevel Level of debugging in Mesh construction and maintenance
@@ -34,8 +34,8 @@ namespace astrix {
 //#########################################################################
 
 Mesh::Mesh(int meshVerboseLevel, int meshDebugLevel, int meshCudaFlag,
-	   const char *fileName, Device *device, int restartNumber,
-	   int extraFlag)
+           const char *fileName, Device *device, int restartNumber,
+           int extraFlag)
 {
   verboseLevel = meshVerboseLevel;
   debugLevel = meshDebugLevel;
@@ -48,7 +48,7 @@ Mesh::Mesh(int meshVerboseLevel, int meshDebugLevel, int meshCudaFlag,
   delaunay = new Delaunay(cudaFlag, debugLevel);
   refine = new Refine(cudaFlag, debugLevel, verboseLevel);
   coarsen = new Coarsen(cudaFlag, debugLevel, verboseLevel);
-  
+
   // Define arrays
   vertexBoundaryFlag = new Array<int>(1, cudaFlag);
   vertexArea = new Array<real>(1, cudaFlag);
@@ -71,11 +71,11 @@ Mesh::Mesh(int meshVerboseLevel, int meshDebugLevel, int meshCudaFlag,
   }
   catch (...) {
     std::cout << "Error initializing mesh" << std::endl;
-    
+
     // Clean up; destructor won't be called
     delete vertexBoundaryFlag;
     delete vertexArea;
-    
+
     delete triangleWantRefine;
     delete triangleEdgeNormals;
     delete triangleEdgeLength;
@@ -90,7 +90,7 @@ Mesh::Mesh(int meshVerboseLevel, int meshDebugLevel, int meshCudaFlag,
     delete coarsen;
     delete connectivity;
     delete meshParameter;
-    
+
     throw;
   }
 }
@@ -110,7 +110,7 @@ Mesh::~Mesh()
   delete triangleErrorEstimate;
 
   delete randomVector;
-  
+
   delete predicates;
   delete morton;
   delete delaunay;
@@ -137,19 +137,19 @@ void Mesh::Init(const char *fileName, int restartNumber, int extraFlag)
     meshParameter->ReadFromFile(fileName);
   }
   catch (...) {
-    std::cout << "Error reading data into MeshParameter" << std::endl;    
+    std::cout << "Error reading data into MeshParameter" << std::endl;
     throw;
   }
 
   if (extraFlag > 0) {
     real nx = (real) (extraFlag - 1);
-  
+
     // Convert nx into base resolution requirement
     meshParameter->baseResolution =
       0.565*((meshParameter->maxx - meshParameter->minx)/nx)*
       ((meshParameter->maxx - meshParameter->minx)/nx);
   }
-  
+
   //--------------------------------------------------------------------
   // Output some mesh parameters to stdout
   //--------------------------------------------------------------------
@@ -157,14 +157,14 @@ void Mesh::Init(const char *fileName, int restartNumber, int extraFlag)
   if (verboseLevel > 0) {
     std::cout << "Creating new mesh:" << std::endl;
     std::cout << "  Domain: " << meshParameter->minx << " < x < "
-	      << meshParameter->maxx << ", " 
-	      << meshParameter->miny << " < y < "
-	      << meshParameter->maxy << std::endl;
-    if(meshParameter->periodicFlagX) 
+              << meshParameter->maxx << ", "
+              << meshParameter->miny << " < y < "
+              << meshParameter->maxy << std::endl;
+    if (meshParameter->periodicFlagX)
       std::cout << "  Periodic in x" << std::endl;
     else
       std::cout << "  Not periodic in x" << std::endl;
-    if(meshParameter->periodicFlagY) 
+    if (meshParameter->periodicFlagY)
       std::cout << "  Periodic in y" << std::endl;
     else
       std::cout << "  Not periodic in y" << std::endl;
@@ -177,28 +177,28 @@ void Mesh::Init(const char *fileName, int restartNumber, int extraFlag)
   // Construct mesh if not restarting
   if (restartNumber == 0) {
     if (meshParameter->structuredFlag == 1 ||
-	meshParameter->structuredFlag == 2) {
+        meshParameter->structuredFlag == 2) {
       // Structured mesh
       CreateStructuredMesh();
     } else {
       // Create unstructured mesh
       try {
-	// Set up mesh boundaries
-	ConstructBoundaries();
+        // Set up mesh boundaries
+        ConstructBoundaries();
       }
       catch (...) {
-	std::cout << "Error constructing mesh boundaries" << std::endl;
-	throw;
+        std::cout << "Error constructing mesh boundaries" << std::endl;
+        throw;
       }
-    
+
       try {
-	// Refine mesh to base resolution
-	ImproveQuality(0, 0.0, 0);
+        // Refine mesh to base resolution
+        ImproveQuality(0, 0.0, 0);
       }
       catch (...) {
-	std::cout << "Error refining initial mesh" << std::endl;
-	throw;
-      }        
+        std::cout << "Error refining initial mesh" << std::endl;
+        throw;
+      }
     }
   } else {
     try {
@@ -208,7 +208,7 @@ void Mesh::Init(const char *fileName, int restartNumber, int extraFlag)
     catch (...) {
       std::cout << "Error reading mesh from disk" << std::endl;
       throw;
-    }        
+    }
   }
 
   //--------------------------------------------------------------------
@@ -219,13 +219,13 @@ void Mesh::Init(const char *fileName, int restartNumber, int extraFlag)
     OutputStat();
     std::cout << "Done creating mesh." << std::endl;
     std::cout << "Memory allocated on host: "
-	      << ((real)(Array<real>::memAllocatedHost) +
-		  (real)(Array<int>::memAllocatedHost) +
-		  (real)(Array<unsigned int>::memAllocatedHost))/
+              << ((real)(Array<real>::memAllocatedHost) +
+                  (real)(Array<int>::memAllocatedHost) +
+                  (real)(Array<unsigned int>::memAllocatedHost))/
       (real) (1073741824) << " Gb, on device: "
-	      << ((real)(Array<real>::memAllocatedDevice) +
-		  (real)(Array<int>::memAllocatedDevice) +
-		  (real)(Array<unsigned int>::memAllocatedDevice))/
+              << ((real)(Array<real>::memAllocatedDevice) +
+                  (real)(Array<int>::memAllocatedDevice) +
+                  (real)(Array<unsigned int>::memAllocatedDevice))/
       (real) (1073741824) << " Gb" << std::endl;
   }
 
@@ -277,12 +277,12 @@ const int* Mesh::VertexBoundaryFlagData()
 {
   return vertexBoundaryFlag->GetPointer();
 }
-  
+
 const real* Mesh::VertexAreaData()
 {
   return vertexArea->GetPointer();
 }
-  
+
 const int3* Mesh::TriangleEdgesData()
 {
   return connectivity->triangleEdges->GetPointer();
@@ -297,7 +297,7 @@ const real2* Mesh::TriangleEdgeNormalsData(int dim)
 {
   return triangleEdgeNormals->GetPointer(dim);
 }
-  
+
 const real3* Mesh::TriangleEdgeLengthData()
 {
   return triangleEdgeLength->GetPointer();
@@ -319,9 +319,9 @@ void Mesh::Transform()
     triangleEdgeNormals->TransformToHost();
     triangleEdgeLength->TransformToHost();
     triangleErrorEstimate->TransformToHost();
-    
+
     //randomVector->TransformToHost();
-    
+
     //vertexRemove->TransformToHost();
     //vertexTriangle->TransformToHost();
     cudaFlag = 0;
@@ -332,9 +332,9 @@ void Mesh::Transform()
     triangleEdgeNormals->TransformToDevice();
     triangleEdgeLength->TransformToDevice();
     triangleErrorEstimate->TransformToDevice();
-    
+
     //randomVector->TransformToDevice();
-    
+
     //vertexRemove->TransformToDevice();
     //vertexTriangle->TransformToDevice();
     cudaFlag = 1;

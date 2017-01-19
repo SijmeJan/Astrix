@@ -31,25 +31,25 @@ namespace astrix {
 
 __host__ __device__
 void CircumSingle(int i,
-		  const int3* __restrict__ pTv,
-		  const real2* __restrict__ pVc, 
-		  real2 *pVcAdd, int *pBt, int nVertex, real Px, real Py)
+                  const int3* __restrict__ pTv,
+                  const real2* __restrict__ pVc,
+                  real2 *pVcAdd, int *pBt, int nVertex, real Px, real Py)
 {
   int t = pBt[i];
-  
+
   int a = pTv[t].x;
   int b = pTv[t].y;
   int c = pTv[t].z;
-  
+
   real ax, bx, cx, ay, by, cy;
   GetTriangleCoordinates(pVc, a, b, c,
-			 nVertex, Px, Py,
-			 ax, bx, cx, ay, by, cy);
-  
+                         nVertex, Px, Py,
+                         ax, bx, cx, ay, by, cy);
+
   // Edge lengths squared
   real lb = Sq(cx - bx) + Sq(cy - by);
   real lc = Sq(cx - ax) + Sq(cy - ay);
-  
+
   // Circumcentre coordinates
   real det1 = lc*(by - cy) - lb*(ay - cy);
   real det2 = (ax - cx)*(by - cy) - (ay - cy)*(bx - cx);
@@ -57,12 +57,12 @@ void CircumSingle(int i,
   real Cx = cx + (real)0.5*det1*invdet2;
   det1 = (ax - cx)*lb - (bx - cx)*lc;
   real Cy = cy + (real)0.5*det1*invdet2;
-  
+
   // Add point in circumcentre (coalesced write)
   pVcAdd[i].x = Cx;
   pVcAdd[i].y = Cy;
 }
-  
+
 //##############################################################################
 /*! \brief Kernel computing circumcentres of bad triangles.
 
@@ -81,20 +81,20 @@ This kernel computes the circumcentre of the first \a nRefine entries in \a *pBt
 
 __global__ void
 devCircum(int nRefine,
-	  const int3* __restrict__ pTv,
-	  const real2* __restrict__ pVc, 
-	  real2 *pVcAdd, int *pBt, int nVertex, real Px, real Py)
+          const int3* __restrict__ pTv,
+          const real2* __restrict__ pVc,
+          real2 *pVcAdd, int *pBt, int nVertex, real Px, real Py)
 {
   int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nRefine) {
     CircumSingle(i, pTv, pVc, pVcAdd, pBt, nVertex, Px, Py);
-    
+
     // Next triangle
     i += blockDim.x*gridDim.x;
   }
 }
-    
+
 //##############################################################################
 /*! Once we have a list of low-quality triangles in \a badTriangles, we can compute the locations where we need to insert vertices. Upon return, \a vertexCoordinatesAdd contains the coordinates of the circumcentres of all \a nRefine low-quality triangle in \a badTriangles.
 
@@ -104,20 +104,20 @@ devCircum(int nRefine,
 //##############################################################################
 
 void Refine::FindCircum(Connectivity * const connectivity,
-			const MeshParameter *meshParameter,
-			const int nRefine)
+                        const MeshParameter *meshParameter,
+                        const int nRefine)
 {
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
-  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&start) );
   gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
   nvtxEvent *nvtxCircum = new nvtxEvent("Circum", 0);
 
   int nVertex = connectivity->vertexCoordinates->GetSize();
-  
+
   vertexCoordinatesAdd->SetSize(nRefine);
 
   real2 *pVc = connectivity->vertexCoordinates->GetPointer();
@@ -125,18 +125,18 @@ void Refine::FindCircum(Connectivity * const connectivity,
 
   real2 *pVcAdd = vertexCoordinatesAdd->GetPointer();
   int *pBt = badTriangles->GetPointer();
-  
+
   real Px = meshParameter->maxx - meshParameter->minx;
   real Py = meshParameter->maxy - meshParameter->miny;
-  
+
   if (cudaFlag == 1) {
     int nBlocks = 128;
     int nThreads = 128;
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devCircum, 
-				       (size_t) 0, 0);
+                                       devCircum,
+                                       (size_t) 0, 0);
 
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
@@ -146,20 +146,20 @@ void Refine::FindCircum(Connectivity * const connectivity,
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
-#endif      
-    
+#endif
+
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-    for (int i = 0; i < nRefine; i++) 
+    for (int i = 0; i < nRefine; i++)
       CircumSingle(i, pTv, pVc, pVcAdd, pBt, nVertex, Px, Py);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
-#endif      
+#endif
   }
 
 #ifdef TIME_ASTRIX

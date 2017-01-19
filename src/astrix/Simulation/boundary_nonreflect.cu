@@ -24,7 +24,7 @@ namespace astrix {
 
 __host__ __device__
 void SetNonReflectingVertex(int n, realNeq *pState, realNeq *pStateOld,
-			    const int *pVbf)
+                            const int *pVbf)
 {
   if (pVbf[n] != 0) pState[n] = pStateOld[n];
 }
@@ -32,7 +32,8 @@ void SetNonReflectingVertex(int n, realNeq *pState, realNeq *pStateOld,
 //######################################################################
 /*! \brief Kernel setting non-reflecting boundaries
 
-  Non-reflecting boundaries are implemented by setting the currect state equal to the old state, so that the state at the boundary never changes.
+  Non-reflecting boundaries are implemented by setting the currect state equal
+to the old state, so that the state at the boundary never changes.
 
 \param nVertex Total number of vertices in Mesh
 \param *pState Pointer to state vector
@@ -42,7 +43,7 @@ void SetNonReflectingVertex(int n, realNeq *pState, realNeq *pStateOld,
 
 __global__ void
 devSetNonReflectingBoundaries(int nVertex, realNeq *pState, realNeq *pStateOld,
-			      const int *pVbf)
+                              const int *pVbf)
 {
   // n=vertex number
   int n = blockIdx.x*blockDim.x + threadIdx.x;
@@ -52,9 +53,10 @@ devSetNonReflectingBoundaries(int nVertex, realNeq *pState, realNeq *pStateOld,
     n += blockDim.x*gridDim.x;
   }
 }
- 
+
 //######################################################################
-/*! Non-reflecting boundaries are implemented by setting the currect state equal to the old state, so that the state at the boundary never changes.*/
+/*! Non-reflecting boundaries are implemented by setting the currect state
+equal to the old state, so that the state at the boundary never changes.*/
 //######################################################################
 
 void Simulation::SetNonReflectingBoundaries()
@@ -69,11 +71,11 @@ void Simulation::SetNonReflectingBoundaries()
   if (cudaFlag == 1) {
     int nThreads = 128;
     int nBlocks  = 128;
-    
+
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize
       (&nBlocks, &nThreads,
-       devSetNonReflectingBoundaries, 
+       devSetNonReflectingBoundaries,
        (size_t) 0, 0);
 
     // Execute kernel...
@@ -88,4 +90,4 @@ void Simulation::SetNonReflectingBoundaries()
   }
 }
 
-}
+}  // namespace astrix

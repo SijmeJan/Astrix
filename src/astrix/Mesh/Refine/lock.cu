@@ -20,8 +20,8 @@ namespace astrix {
 //#########################################################################
 /*! \brief Lock the cavity of insertion point
 
-Start at the insertion triangle and move in clockwise direction along the edge of the cavity, flagging all triangles as part of the cavity of \i by setting pTiC[t] = randomInt. If a triangle is associated with multiple cavities, pick the largest value of randomInt.  
- 
+Start at the insertion triangle and move in clockwise direction along the edge of the cavity, flagging all triangles as part of the cavity of \i by setting pTiC[t] = randomInt. If a triangle is associated with multiple cavities, pick the largest value of randomInt.
+
 \param VcAdd Coordinates of insertion point
 \param elementAdd Insertion triangle or edge
 \param nTriangle Total number of triangles in Mesh
@@ -40,19 +40,19 @@ Start at the insertion triangle and move in clockwise direction along the edge o
 
 __host__ __device__
 void LockTriangle(const real2 VcAdd,
-		  const int elementAdd,
-		  const int nTriangle,
-		  int * const pTiC,
-		  const int3* __restrict__ pTv,
-		  const int3* __restrict__ pTe,
-		  const int2* __restrict__ pEt,
-		  const real2 * const pVc,
-		  const int nVertex,
-		  const real Px, const real Py,
-		  const Predicates *pred,
-		  const real * const pParam,
-		  const int randomInt)
-{ 
+                  const int elementAdd,
+                  const int nTriangle,
+                  int * const pTiC,
+                  const int3* __restrict__ pTv,
+                  const int3* __restrict__ pTe,
+                  const int2* __restrict__ pEt,
+                  const real2 * const pVc,
+                  const int nVertex,
+                  const real Px, const real Py,
+                  const Predicates *pred,
+                  const real * const pParam,
+                  const int randomInt)
+{
   real dx = VcAdd.x;
   real dy = VcAdd.y;
 
@@ -68,7 +68,7 @@ void LockTriangle(const real2 VcAdd,
     int e = tStart - nTriangle;
     int t1 = pEt[e].x;
     int t2 = pEt[e].y;
-    
+
     tStart = t1;
     if (t2 > t1) tStart = t2;
   }
@@ -78,16 +78,16 @@ void LockTriangle(const real2 VcAdd,
   // Choose starting edge to have two neigbours
   int e[] = {pTe[t].x, pTe[t].y, pTe[t].z};
   int eStart = -1;
-  for (int n = 0; n < 3; n++) 
+  for (int n = 0; n < 3; n++)
     if (pEt[e[n]].x != -1 && pEt[e[n]].y != -1) eStart = e[n];
-    
+
   int eCrossed = eStart;
-  int finished = 0;  
-  
+  int finished = 0;
+
   while (finished == 0) {
     // Set pTiC to maximum of pTiC and pRandom
     int old = AtomicMax(&(pTiC[t]), randomInt);
-    // Stop if old pTic[t] was larger 
+    // Stop if old pTic[t] was larger
     if (old > randomInt) finished = 1;
 
     if (finished == 0) {
@@ -111,70 +111,70 @@ void LockTriangle(const real2 VcAdd,
       if (tNext == t) tNext = tNeighbour.y;
 
       if (tNext != -1) {
-	// Check if vertex n lies in circumcircle of triangle tNext
-	int a = pTv[tNext].x;
-	int b = pTv[tNext].y;
-	int c = pTv[tNext].z;
+        // Check if vertex n lies in circumcircle of triangle tNext
+        int a = pTv[tNext].x;
+        int b = pTv[tNext].y;
+        int c = pTv[tNext].z;
 
-	real ax, bx, cx, ay, by, cy;
-	GetTriangleCoordinates(pVc, a, b, c, nVertex, Px, Py,
-			       ax, bx, cx, ay, by, cy);
+        real ax, bx, cx, ay, by, cy;
+        GetTriangleCoordinates(pVc, a, b, c, nVertex, Px, Py,
+                               ax, bx, cx, ay, by, cy);
 
-	e1 = pTe[tNext].x;
-	e2 = pTe[tNext].y;
-	e3 = pTe[tNext].z;
+        e1 = pTe[tNext].x;
+        e2 = pTe[tNext].y;
+        e3 = pTe[tNext].z;
 
-	// Translate (dx, dy) so that it lies on the same side as tNext
-	int f = a;
-	if (e2 == eNext) f = b;
-	if (e3 == eNext) f = c;
-	
-	int A = pTv[t].x;
-	int B = pTv[t].y;
-	int C = pTv[t].z;
-		
-	int F = B;
-	if (e[1] == eNext) F = C;
-	if (e[2] == eNext) F = A;
+        // Translate (dx, dy) so that it lies on the same side as tNext
+        int f = a;
+        if (e2 == eNext) f = b;
+        if (e3 == eNext) f = c;
 
-	real dxNew = dx;
-	real dyNew = dy;
-	
-	// Indicate that cavity lies across periodic boundary
-	if (f != F) translateFlag = 1;
-	TranslateVertexToVertex(f, F, Px, Py, nVertex, dxNew, dyNew);
+        int A = pTv[t].x;
+        int B = pTv[t].y;
+        int C = pTv[t].z;
 
-	
-	real det = pred->incircle(ax, ay, bx, by, cx, cy, dxNew, dyNew, pParam);
+        int F = B;
+        if (e[1] == eNext) F = C;
+        if (e[2] == eNext) F = A;
 
-	// Check if triangle is part of cavity if we translate triangle
-	// in stead of vertex
-	real det2 = det;
-	// Do this only when cavity lies across periodic boundary
-	if (translateFlag == 1) {
-	  real DeltaX = dxOld - dxNew;
-	  real DeltaY = dyOld - dyNew;
+        real dxNew = dx;
+        real dyNew = dy;
 
-	  det2 = pred->incircle(ax + DeltaX, ay + DeltaY,
-				bx + DeltaX, by + DeltaY,
-				cx + DeltaX, cy + DeltaY,
-				dxOld, dyOld, pParam);
-	}
-	
-	// If triangle not part of cavity, do not move into it
-	if (det < (real) 0.0 && det2 < (real) 0.0) {
-	  tNext = -1;
-	} else {
-	  // Move into tNext; use new coordinates
-	  dx = dxNew;
-	  dy = dyNew;
-	}
+        // Indicate that cavity lies across periodic boundary
+        if (f != F) translateFlag = 1;
+        TranslateVertexToVertex(f, F, Px, Py, nVertex, dxNew, dyNew);
+
+
+        real det = pred->incircle(ax, ay, bx, by, cx, cy, dxNew, dyNew, pParam);
+
+        // Check if triangle is part of cavity if we translate triangle
+        // in stead of vertex
+        real det2 = det;
+        // Do this only when cavity lies across periodic boundary
+        if (translateFlag == 1) {
+          real DeltaX = dxOld - dxNew;
+          real DeltaY = dyOld - dyNew;
+
+          det2 = pred->incircle(ax + DeltaX, ay + DeltaY,
+                                bx + DeltaX, by + DeltaY,
+                                cx + DeltaX, cy + DeltaY,
+                                dxOld, dyOld, pParam);
+        }
+
+        // If triangle not part of cavity, do not move into it
+        if (det < (real) 0.0 && det2 < (real) 0.0) {
+          tNext = -1;
+        } else {
+          // Move into tNext; use new coordinates
+          dx = dxNew;
+          dy = dyNew;
+        }
       }
 
       // Done if trying to move across eStart but failing
       if (eNext == eStart && tNext == -1) {
-	finished = 1;
-	break;
+        finished = 1;
+        break;
       }
 
       // Found a triangle to move into
@@ -193,13 +193,13 @@ void LockTriangle(const real2 VcAdd,
     }
   }
 }
-  
+
 //#########################################################################
 /*! \brief Kernel locking the cavities of insertion points
 
 Upon return, pTiC[t] = pRandom[i] means that triangle \a t is part of the cavity of point \a i and available (i.e. not locked by another insertion point).
 
-\param nRefine Total number of insertion points 
+\param nRefine Total number of insertion points
 \param *pVcAdd Coordinates of insertion points
 \param *pElementAdd Insertion triangles or edges
 \param nTriangle Total number of triangles in Mesh
@@ -216,23 +216,23 @@ Upon return, pTiC[t] = pRandom[i] means that triangle \a t is part of the cavity
 \param *pRandom Random integers associated with insertion points */
 //#########################################################################
 
-  __global__ void 
+  __global__ void
 devLockTriangles(int nRefine, real2 *pVcAdd, int *pElementAdd, int nTriangle,
-		 int *pTiC,
-		 const int3* __restrict__ pTv,
-		 const int3* __restrict__ pTe,
-		 const int2* __restrict__ pEt,
-		 real2 *pVc,
-		 int nVertex, real Px, real Py, const Predicates *pred,
-		 real *pParam, unsigned int *pRandom)
+                 int *pTiC,
+                 const int3* __restrict__ pTv,
+                 const int3* __restrict__ pTe,
+                 const int2* __restrict__ pEt,
+                 real2 *pVc,
+                 int nVertex, real Px, real Py, const Predicates *pred,
+                 real *pParam, unsigned int *pRandom)
 {
   unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nRefine) {
     LockTriangle(pVcAdd[i], pElementAdd[i], nTriangle, pTiC,
-		 pTv, pTe, pEt, pVc, nVertex, Px, Py, pred,
-		 pParam, pRandom[i]);
-    
+                 pTv, pTe, pEt, pVc, nVertex, Px, Py, pred,
+                 pParam, pRandom[i]);
+
     i += gridDim.x*blockDim.x;
   }
 }
@@ -240,23 +240,23 @@ devLockTriangles(int nRefine, real2 *pVcAdd, int *pElementAdd, int nTriangle,
 //#########################################################################
 /*! \brief Lock triangles in cavities of insertion points
 
-Upon return, pTriangleInCavity[n] = pRandomPermutation[i]: triangle n is part of cavity of insertion point i and available.    
+Upon return, pTriangleInCavity[n] = pRandomPermutation[i]: triangle n is part of cavity of insertion point i and available.
 
 \param *connectivity Pointer to basic Mesh data
 \param *predicates Pointer to Predicates object
 \param *meshParameter Pointer to Mesh parameters
 \param *triangleInCavity Pointer to output Array of size \a nTriangle*/
 //#########################################################################
-  
+
 void Refine::LockTriangles(Connectivity * const connectivity,
-			   const Predicates *predicates,
-			   const MeshParameter *meshParameter,
-			   Array<int> *triangleInCavity)
+                           const Predicates *predicates,
+                           const MeshParameter *meshParameter,
+                           Array<int> *triangleInCavity)
 {
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
-  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&start) );
   gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
@@ -266,7 +266,7 @@ void Refine::LockTriangles(Connectivity * const connectivity,
 
   // Shuffle points to add to maximise parallelisation
   unsigned int *pRandomPermutation = randomUnique->GetPointer();
-  
+
   unsigned int nVertex = connectivity->vertexCoordinates->GetSize();
   real2 *pVc = connectivity->vertexCoordinates->GetPointer();
   int3 *pTv = connectivity->triangleVertices->GetPointer();
@@ -285,12 +285,12 @@ void Refine::LockTriangles(Connectivity * const connectivity,
 
   if (cudaFlag == 1) {
     int nBlocks = 128;
-    int nThreads = 128; 
+    int nThreads = 128;
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       (const void *) devLockTriangles, 
-				       (size_t) 0, 0);
+                                       (const void *) devLockTriangles,
+                                       (size_t) 0, 0);
 
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
@@ -302,29 +302,28 @@ void Refine::LockTriangles(Connectivity * const connectivity,
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
-#endif      
-    
+#endif
+
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-    for (int n = 0; n < (int) nRefine; n++) 
+    for (int n = 0; n < static_cast<int>(nRefine); n++)
       LockTriangle(pVcAdd[n], pElementAdd[n], nTriangle, pTiC,
-		   pTv, pTe, pEt, pVc, nVertex, Px, Py, predicates,
-		   pParam, pRandomPermutation[n]);
+                   pTv, pTe, pEt, pVc, nVertex, Px, Py, predicates,
+                   pParam, pRandomPermutation[n]);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
-#endif      
+#endif
   }
 
 #ifdef TIME_ASTRIX
   gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("LockTriangle.prof", nRefine, elapsedTime, cudaFlag);
 #endif
-  
 }
 
-}
+}  // namespace astrix

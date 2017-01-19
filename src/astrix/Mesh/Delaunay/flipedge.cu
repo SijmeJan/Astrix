@@ -12,7 +12,7 @@
 #include "../../Common/profile.h"
 
 namespace astrix {
-  
+
 //#########################################################################
 /*! \brief Flip edge \a pEdgeNonDelaunay[i]
 
@@ -26,15 +26,15 @@ namespace astrix {
 
 __host__ __device__
 void FlipSingleEdge(int i, int *pEnd, int3 *pTv, int3 *pTe,
-		    int2 *pEt, int nVertex)
+                    int2 *pEt, int nVertex)
 {
   // Edge to be flipped
   int edge = pEnd[i];
-  
+
   // Neighbouring triangles
   int t1 = pEt[edge].x;
   int t2 = pEt[edge].y;
-  
+
   int d = pTv[t1].z;
   int e = pTv[t1].x;
   int f = pTv[t1].y;
@@ -42,7 +42,7 @@ void FlipSingleEdge(int i, int *pEnd, int3 *pTv, int3 *pTe,
   int e1 = pTe[t1].x;
   int e2 = pTe[t1].y;
   int e3 = pTe[t1].z;
-  
+
   if (edge == e2) {
     d = pTv[t1].x;
     e = pTv[t1].y;
@@ -55,7 +55,7 @@ void FlipSingleEdge(int i, int *pEnd, int3 *pTv, int3 *pTe,
     f = pTv[t1].x;
     c1 = 3;
   }
-    
+
   int a = pTv[t2].z;
   int b = pTv[t2].x;
   int c = pTv[t2].y;
@@ -75,7 +75,7 @@ void FlipSingleEdge(int i, int *pEnd, int3 *pTv, int3 *pTe,
     c = pTv[t2].x;
     c2 = 3;
   }
-  
+
   int makeValidFlag = 1;
 
   // PERIODIC
@@ -88,7 +88,7 @@ void FlipSingleEdge(int i, int *pEnd, int3 *pTv, int3 *pTe,
     int qq; std::cin >> qq;
 #endif
   }
-  
+
   if (c1 == 1) pTv[t1].x = a;
   if (c1 == 2) pTv[t1].y = a;
   if (c1 == 3) pTv[t1].z = a;
@@ -101,7 +101,7 @@ void FlipSingleEdge(int i, int *pEnd, int3 *pTv, int3 *pTe,
     MakeValidIndices(pTv[t1].x, pTv[t1].y, pTv[t1].z, nVertex);
     MakeValidIndices(pTv[t2].x, pTv[t2].y, pTv[t2].z, nVertex);
   }
-      
+
   // Triangle edges
   if (c1 == 1) {
     if (c2 == 1) pTe[t1].x = e6;
@@ -121,7 +121,7 @@ void FlipSingleEdge(int i, int *pEnd, int3 *pTv, int3 *pTe,
     if (c2 == 2) pTe[t1].z = e4;
     if (c2 == 3) pTe[t1].z = e5;
   }
-  
+
   if (c2 == 1) {
     if (c1 == 1) pTe[t2].x = e3;
     if (c1 == 2) pTe[t2].x = e1;
@@ -141,7 +141,7 @@ void FlipSingleEdge(int i, int *pEnd, int3 *pTv, int3 *pTe,
     if (c1 == 3) pTe[t2].z = e2;
   }
 }
-  
+
 //#########################################################################
 /*! \brief Kernel flipping edges in \a pEnd[i]
 
@@ -155,17 +155,17 @@ void FlipSingleEdge(int i, int *pEnd, int3 *pTv, int3 *pTe,
 
 __global__ void
 devFlipEdge(int nNonDel, int *pEnd,
-	    int3 *pTv, int3 *pTe, int2 *pEt, int nVertex)
+            int3 *pTv, int3 *pTe, int2 *pEt, int nVertex)
 {
   int i = blockIdx.x*blockDim.x + threadIdx.x;
-  
+
   while (i < nNonDel) {
     FlipSingleEdge(i, pEnd, pTv, pTe, pEt, nVertex);
 
     i += gridDim.x*blockDim.x;
   }
 }
-  
+
 //#########################################################################
 /*! Flip all edges contained in the first \a nNonDel entries of Array \a edgeNonDelaunay
 
@@ -174,31 +174,31 @@ devFlipEdge(int nNonDel, int *pEnd,
 //#########################################################################
 
 void Delaunay::FlipEdge(Connectivity * const connectivity,
-			const int nNonDel)
+                        const int nNonDel)
 {
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
-  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&start) );
   gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
   int nVertex = connectivity->vertexCoordinates->GetSize();
-  
+
   int *pEnd = edgeNonDelaunay->GetPointer();
-  
+
   int3 *pTv = connectivity->triangleVertices->GetPointer();
   int3 *pTe = connectivity->triangleEdges->GetPointer();
-  int2 *pEt = connectivity->edgeTriangles->GetPointer();  
-  
+  int2 *pEt = connectivity->edgeTriangles->GetPointer();
+
   if (cudaFlag == 1) {
     int nBlocks = 128;
-    int nThreads = 128; 
+    int nThreads = 128;
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devFlipEdge, 
-				       (size_t) 0, 0);
+                                       devFlipEdge,
+                                       (size_t) 0, 0);
 
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );

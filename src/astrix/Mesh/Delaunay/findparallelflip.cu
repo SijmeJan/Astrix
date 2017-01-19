@@ -17,8 +17,8 @@ namespace astrix {
 
 __host__ __device__
 void SelectParallelFlip(int i, int *pEdgeNonDelaunay,
-			int *pTriangleTaken,
-			const int2* __restrict__ pEt)
+                        int *pTriangleTaken,
+                        const int2* __restrict__ pEt)
 {
   int canBeFlipped = 0;
   int e = pEdgeNonDelaunay[i];
@@ -33,27 +33,27 @@ void SelectParallelFlip(int i, int *pEdgeNonDelaunay,
     if (tTaken2 == 0) canBeFlipped = 1;
     else if (t1 != -1) pTriangleTaken[t1] = 0;
   }
-  
+
   if (canBeFlipped == 0) e = -1;
   pEdgeNonDelaunay[i] = e;
 }
 
-__global__ void 
+__global__ void
 devSelectParallelFlip(int nFlip,
-		      int *pEdgeNonDelaunay,
-		      int *pTriangleTaken,
-		      const int2* __restrict__ pEt)
+                      int *pEdgeNonDelaunay,
+                      int *pTriangleTaken,
+                      const int2* __restrict__ pEt)
 {
   unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nFlip) {
     SelectParallelFlip(i, pEdgeNonDelaunay, pTriangleTaken, pEt);
-    
+
     i += gridDim.x*blockDim.x;
   }
 }
 
-  
+
 //############################################################################
 /*! \brief Kernel filling array with triangles that are affected by flipping edge
 
@@ -66,25 +66,25 @@ devSelectParallelFlip(int nFlip,
 \param *pEt Pointer to edge triangles*/
 //############################################################################
 
-__global__ void 
+__global__ void
 devFillAffectedTriangles(int nFlip, int *pTaff, int *pTaffEdge,
-			 int *pEnd, int2 *pEt)
+                         int *pEnd, int2 *pEt)
 {
   unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nFlip) {
     int e = pEnd[i];
-    
+
     pTaffEdge[i] = i;
     pTaffEdge[i + nFlip] = i;
 
     pTaff[i]         = pEt[e].x;
     pTaff[i + nFlip] = pEt[e].y;
-    
+
     i += gridDim.x*blockDim.x;
   }
 }
-  
+
 //############################################################################
 /*! \brief Fill array with triangles that are affected by flipping edge
 
@@ -100,11 +100,11 @@ devFillAffectedTriangles(int nFlip, int *pTaff, int *pTaffEdge,
 //############################################################################
 
 void FillAffectedTriangles(Array<int> * const triangleAffected,
-			   Array<int> * const triangleAffectedEdge,
-			   const Array<int> *edgeNonDelaunay,
-			   Connectivity * const connectivity,
-			   const int nFlip,
-			   const int cudaFlag)
+                           Array<int> * const triangleAffectedEdge,
+                           const Array<int> *edgeNonDelaunay,
+                           Connectivity * const connectivity,
+                           const int nFlip,
+                           const int cudaFlag)
 {
   int2 *pEt = connectivity->edgeTriangles->GetPointer();
   int *pEnd = edgeNonDelaunay->GetPointer();
@@ -114,22 +114,22 @@ void FillAffectedTriangles(Array<int> * const triangleAffected,
 
  if (cudaFlag == 1) {
     int nBlocks = 128;
-    int nThreads = 128; 
+    int nThreads = 128;
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devFillAffectedTriangles, 
-				       (size_t) 0, 0);
+                                       devFillAffectedTriangles,
+                                       (size_t) 0, 0);
 
     devFillAffectedTriangles<<<nBlocks, nThreads>>>
       (nFlip, pTaff, pTaffEdge, pEnd, pEt);
-    
+
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int i = 0; i < nFlip; i++) {
       int e = pEnd[i];
-      
+
       pTaffEdge[i] = i;
       pTaffEdge[i + nFlip] = i;
 
@@ -147,34 +147,34 @@ void FillAffectedTriangles(Array<int> * const triangleAffected,
 //#############################################################################
 
 int Delaunay::FindParallelFlipSet(Connectivity * const connectivity,
-				  const int nFlip)
+                                  const int nFlip)
 {
 #ifdef NEW_FIND_PARALLEL_FLIP
 
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
-  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&start) );
   gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
   int nTriangle = connectivity->triangleVertices->GetSize();
-  
+
   Array<int> *triangleTaken = new Array<int>(1, cudaFlag, nTriangle);
   triangleTaken->SetToValue(0);
   int *pTriangleTaken = triangleTaken->GetPointer();
   int *pEdgeNonDelaunay = edgeNonDelaunay->GetPointer();
 
   int2 *pEt = connectivity->edgeTriangles->GetPointer();
-  
+
   if (cudaFlag == 1) {
     int nBlocks = 128;
     int nThreads = 128;
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devSelectParallelFlip, 
-				       (size_t) 0, 0);
+                                       devSelectParallelFlip,
+                                       (size_t) 0, 0);
 
 #ifdef TIME_ASTRIX
   gpuErrchk( cudaEventRecord(start, 0) );
@@ -192,14 +192,14 @@ int Delaunay::FindParallelFlipSet(Connectivity * const connectivity,
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-    for (int i = 0; i < nFlip; i++) 
+    for (int i = 0; i < nFlip; i++)
       SelectParallelFlip(i, pEdgeNonDelaunay, pTriangleTaken, pEt);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
 #endif
   }
-  
+
   // Keep only entries >= 0 (note: size of Array not changed!)
   int nFlipParallel = edgeNonDelaunay->RemoveValue(-1, nFlip);
 
@@ -211,33 +211,33 @@ int Delaunay::FindParallelFlipSet(Connectivity * const connectivity,
 #endif
 
 #else
-  
+
   // Fill triangleAffected and triangleAffectedEdge (direct only)
   FillAffectedTriangles(triangleAffected,
-			triangleAffectedEdge,
-			edgeNonDelaunay,
-			connectivity,
-			nFlip, cudaFlag);
+                        triangleAffectedEdge,
+                        edgeNonDelaunay,
+                        connectivity,
+                        nFlip, cudaFlag);
 
   int firstEdge;
   edgeNonDelaunay->GetSingleValue(&firstEdge, 0);
-  
+
   // Sort triangleAffected; reindex triangleAffectedEdge
   triangleAffected->SortByKey(triangleAffectedEdge, 2*nFlip);
 
   // Set edgeNonDelaunay[i] = -1 for non-unique triangles
   edgeNonDelaunay->ScatterUnique(triangleAffected, triangleAffectedEdge,
-				 2*nFlip, -1, -1);
+                                 2*nFlip, -1, -1);
 
   // Keep only entries >= 0 (note: size of Array not changed!)
   int nFlipParallel = edgeNonDelaunay->RemoveValue(-1, nFlip);
-  
+
   // Pathological case
   if (nFlipParallel == 0 && nFlip > 0) {
     edgeNonDelaunay->SetSingleValue(firstEdge, 0);
     nFlipParallel = 1;
   }
-  
+
 #endif
 
   return nFlipParallel;

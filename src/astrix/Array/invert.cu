@@ -12,7 +12,7 @@ namespace astrix {
 //######################################################################
 
 template<class T>
-__global__ void 
+__global__ void
 devInvert(int N, T *array, int realSize, int nDims)
 {
   unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
@@ -23,7 +23,7 @@ devInvert(int N, T *array, int realSize, int nDims)
       if (array[i + n*realSize] == 0) ret = 1;
       array[i + n*realSize] = ret;
     }
-    
+
     i += gridDim.x*blockDim.x;
   }
 }
@@ -37,15 +37,15 @@ void Array<T>::Invert()
 {
   if (cudaFlag == 1) {
     int nBlocks = 128;
-    int nThreads = 128; 
+    int nThreads = 128;
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devInvert<T>, 
-				       (size_t) 0, 0);
+                                       devInvert<T>,
+                                       (size_t) 0, 0);
 
     devInvert<<<nBlocks, nThreads>>>(size, deviceVec,
-				     realSize, nDims);
+                                     realSize, nDims);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   }
@@ -53,9 +53,9 @@ void Array<T>::Invert()
   if (cudaFlag == 0) {
     for (unsigned int n = 0; n < nDims; n++) {
       for (unsigned int i = 0; i < size; i++) {
-	int ret = 0;
-	if (hostVec[i + n*realSize] == 0) ret = 1;
-	hostVec[i + n*realSize] = ret;
+        int ret = 0;
+        if (hostVec[i + n*realSize] == 0) ret = 1;
+        hostVec[i + n*realSize] = ret;
       }
     }
   }

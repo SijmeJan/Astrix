@@ -26,9 +26,9 @@ namespace astrix {
   real omega = 1.0;
 
   u->SetToValue(0.0);
-  
+
   for (int k = 0; k <= maxIter; k += l) {
-    Array<real> *uhat = new Array<real>(1, 
+    Array<real> *uhat = new Array<real>(1,
     real rho1 = r->InnerProduct(rhat);
     real beta = alpha*rho1/rho0;
 
@@ -39,7 +39,7 @@ namespace astrix {
     MultiplyByMatrix(u, v);
 
     real gamma = v->InnerProduct(rhat);
-    
+
     // alpha = rho/gamma
     alpha = rho0/gamma;
 
@@ -48,27 +48,27 @@ namespace astrix {
 
     // s = A*r
     MultiplyByMatrix(r, s);
-    
+
     // x = xi + alpha*u
     CalcX(alpha);
-    
+
     // rho1 = (rhat, s)
     rho1 = s->InnerProduct(rhat);
-    
+
     beta = alpha*rho1/rho0;
     rho0 = rho1;
-    
+
     // v = s - beta*v
     CalcV(beta);
-    
+
     // w = A*v
     MultiplyByMatrix(v, w);
-    
+
     // gamma = (w, rhat)
     real gamma = w->InnerProduct(rhat);
-    
+
     alpha = rho0/gamma;
-    
+
     // u = r - beta*u
     // r = r - alpha*v
     // s = s - alpha*w
@@ -86,8 +86,8 @@ namespace astrix {
     // ri+2 = r - omega1*s - omega2*t
     // If accurate enough quit
     // u = u - omega1*v - omega2*w
-    
+
 }
-  
+
 
 }

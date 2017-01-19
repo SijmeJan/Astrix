@@ -13,7 +13,7 @@
 #include "../triangleLow.h"
 
 namespace astrix {
-  
+
 //#########################################################################
 /*! \brief Repair edge \a i if necessary
 
@@ -22,13 +22,13 @@ Check if edge is part of both neighbouring triangles. If not, it has been corrup
 \param i Edge index to consider
 \param *pTsub Pointer to array of substitution triangles
 \param *pTe Pointer to triangle edges
-\param *pEt Pointer to edge triangles (modified)*/ 
+\param *pEt Pointer to edge triangles (modified)*/
 //#########################################################################
 
 __host__ __device__
 void SingleEdgeRepair(int i, const int* __restrict__ pTsub,
-		      const int3* __restrict__ pTe, int2 *pEt,
-		      int printFlag)
+                      const int3* __restrict__ pTe, int2 *pEt,
+                      int printFlag)
 {
   // Indices of triangles
   int t1 = pEt[i].x;
@@ -40,50 +40,50 @@ void SingleEdgeRepair(int i, const int* __restrict__ pTsub,
     int e1 = pTe[t1].x;
     int e2 = pTe[t1].y;
     int e3 = pTe[t1].z;
-    
+
     if (i != e1 && i != e2 && i != e3) {
       /*
 #ifndef __CUDA_ARCH__
       if (printFlag == 1) {
-	std::cout << "Error in edgeRepair!" << std::endl;
-	std::cout << "Edge: " << i << std::endl;
-	std::cout << "Triangles " << t1 << " " << t2 << std::endl;
-	
-	int qq; std::cin >> qq;
+        std::cout << "Error in edgeRepair!" << std::endl;
+        std::cout << "Edge: " << i << std::endl;
+        std::cout << "Triangles " << t1 << " " << t2 << std::endl;
+
+        int qq; std::cin >> qq;
       }
 #endif
       */
       t1 = tS1;
     }
   }
-  
+
   if (t2 != -1) {
     int tS2 = pTsub[t2];
 
     int e1 = pTe[t2].x;
     int e2 = pTe[t2].y;
     int e3 = pTe[t2].z;
-    
+
     if (i != e1 && i != e2 && i != e3) {
       /*
 #ifndef __CUDA_ARCH__
       if (printFlag == 1) {
-	std::cout << "Error in edgeRepair!" << std::endl;
-	std::cout << "Edge: " << i << std::endl;
-	std::cout << "Triangles " << t1 << " " << t2 << std::endl;
+        std::cout << "Error in edgeRepair!" << std::endl;
+        std::cout << "Edge: " << i << std::endl;
+        std::cout << "Triangles " << t1 << " " << t2 << std::endl;
 
-	int qq; std::cin >> qq;
+        int qq; std::cin >> qq;
       }
 #endif
       */
       t2 = tS2;
     }
   }
-    
+
   pEt[i].x = t1;
   pEt[i].y = t2;
 }
-    
+
 //#########################################################################
 /*! \brief Kernel repair edges if necessary
 
@@ -92,17 +92,17 @@ Check if all edges are part of both their neighbouring triangles. If not, it has
 \param nEdge Total number of edges in Mesh
 \param *pTsub Pointer to array of substitution triangles
 \param *pTe Pointer to triangle edges
-\param *pEt Pointer to edge triangles (modified)*/ 
+\param *pEt Pointer to edge triangles (modified)*/
 //#########################################################################
 
 __global__ void
 devEdgeRepair(int nEdge,
-	      const int* __restrict__ pTsub,
-	      const int3* __restrict__ pTe,
-	      int2 *pEt)
+              const int* __restrict__ pTsub,
+              const int3* __restrict__ pTe,
+              int2 *pEt)
 {
   int i = blockIdx.x*blockDim.x + threadIdx.x;
-  
+
   while (i < nEdge) {
     SingleEdgeRepair(i, pTsub, pTe, pEt, 1);
 
@@ -119,18 +119,18 @@ Check if edges are part of both their neighbouring triangles. If not, it has bee
 \param *pEnC Array listing edges to check
 \param *pTsub Pointer to array of substitution triangles
 \param *pTe Pointer to triangle edges
-\param *pEt Pointer to edge triangles (modified)*/ 
+\param *pEt Pointer to edge triangles (modified)*/
 //#########################################################################
 
 __global__ void
 devEdgeRepairLimit(int nEdgeCheck,
-		   const int *pEnC,
-		   const int* __restrict__ pTsub,
-		   const int3* __restrict__ pTe,
-		   int2 *pEt)
+                   const int *pEnC,
+                   const int* __restrict__ pTsub,
+                   const int3* __restrict__ pTe,
+                   int2 *pEt)
 {
   int i = blockIdx.x*blockDim.x + threadIdx.x;
-  
+
   while (i < nEdgeCheck) {
     int e = pEnC[i];
     SingleEdgeRepair(e, pTsub, pTe, pEt, 0);
@@ -149,15 +149,15 @@ devEdgeRepairLimit(int nEdgeCheck,
 //#########################################################################
 
 void Delaunay::EdgeRepair(Connectivity * const connectivity,
-			  Array<int> * const edgeNeedsChecking,
-			  const int nEdgeCheck)
+                          Array<int> * const edgeNeedsChecking,
+                          const int nEdgeCheck)
 {
   int nEdge = connectivity->edgeTriangles->GetSize();
-  
+
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
-  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&start) );
   gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
@@ -165,7 +165,7 @@ void Delaunay::EdgeRepair(Connectivity * const connectivity,
   int2 *pEt = connectivity->edgeTriangles->GetPointer();
 
   int *pTsub = triangleSubstitute->GetPointer();
- 
+
   if (edgeNeedsChecking == 0) {
 
     /*
@@ -180,13 +180,13 @@ void Delaunay::EdgeRepair(Connectivity * const connectivity,
       int a = pTv[t].x;
       int b = pTv[t].y;
       int c = pTv[t].z;
-      
+
       real ax, bx, cx, ay, by, cy;
       GetTriangleCoordinates(pVc, a, b, c, nVertex, Px, Py,
-			     ax, bx, cx, ay, by, cy);
+                             ax, bx, cx, ay, by, cy);
       std::cout << "Triangle " << t << " coordinates: "
-		<< ax << " " << ay << " " << bx << " " << by << " "
-		<< cx << " " << cy << std::endl;
+                << ax << " " << ay << " " << bx << " " << by << " "
+                << cx << " " << cy << std::endl;
       while (a >= nVertex) a -= nVertex;
       while (a < 0) a += nVertex;
       while (b >= nVertex) b -= nVertex;
@@ -194,20 +194,20 @@ void Delaunay::EdgeRepair(Connectivity * const connectivity,
       while (c >= nVertex) c -= nVertex;
       while (c < 0) c += nVertex;
       std::cout << "Triangle " << t << " vertices: "
-		<< a << " " << b << " " << c << std::endl;
+                << a << " " << b << " " << c << std::endl;
     }
     t = 5483649;
     if (nTriangle >= t) {
       int a = pTv[t].x;
       int b = pTv[t].y;
       int c = pTv[t].z;
-      
+
       real ax, bx, cx, ay, by, cy;
-      GetTriangleCoordinates(pVc, a, b, c, nVertex, Px, Py, 
-			     ax, bx, cx, ay, by, cy);
+      GetTriangleCoordinates(pVc, a, b, c, nVertex, Px, Py,
+                             ax, bx, cx, ay, by, cy);
       std::cout << "Triangle " << t << " coordinates: "
-		<< ax << " " << ay << " " << bx << " " << by << " "
-		<< cx << " " << cy << std::endl;
+                << ax << " " << ay << " " << bx << " " << by << " "
+                << cx << " " << cy << std::endl;
       while (a >= nVertex) a -= nVertex;
       while (a < 0) a += nVertex;
       while (b >= nVertex) b -= nVertex;
@@ -215,24 +215,24 @@ void Delaunay::EdgeRepair(Connectivity * const connectivity,
       while (c >= nVertex) c -= nVertex;
       while (c < 0) c += nVertex;
       std::cout << "Triangle " << t << " vertices: "
-		<< a << " " << b << " " << c << std::endl;
+                << a << " " << b << " " << c << std::endl;
     }
     */
-    
+
     if (cudaFlag == 1) {
       int nBlocks = 128;
-      int nThreads = 128; 
-      
+      int nThreads = 128;
+
       // Base nThreads and nBlocks on maximum occupancy
       cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-					 devEdgeRepair, 
-					 (size_t) 0, 0);
+                                         devEdgeRepair,
+                                         (size_t) 0, 0);
 
 #ifdef TIME_ASTRIX
       gpuErrchk( cudaEventRecord(start, 0) );
 #endif
       devEdgeRepair<<<nBlocks, nThreads>>>
-	(nEdge, pTsub, pTe, pEt);
+        (nEdge, pTsub, pTe, pEt);
 #ifdef TIME_ASTRIX
       gpuErrchk( cudaEventRecord(stop, 0) );
       gpuErrchk( cudaEventSynchronize(stop) );
@@ -243,8 +243,8 @@ void Delaunay::EdgeRepair(Connectivity * const connectivity,
 #ifdef TIME_ASTRIX
       gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-      for (int i = 0; i < nEdge; i++) 
-	SingleEdgeRepair(i, pTsub, pTe, pEt, 1);
+      for (int i = 0; i < nEdge; i++)
+        SingleEdgeRepair(i, pTsub, pTe, pEt, 1);
 #ifdef TIME_ASTRIX
       gpuErrchk( cudaEventRecord(stop, 0) );
       gpuErrchk( cudaEventSynchronize(stop) );
@@ -262,18 +262,18 @@ void Delaunay::EdgeRepair(Connectivity * const connectivity,
 
     if (cudaFlag == 1) {
       int nBlocks = 128;
-      int nThreads = 128; 
-      
+      int nThreads = 128;
+
       // Base nThreads and nBlocks on maximum occupancy
       cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-					 devEdgeRepairLimit, 
-					 (size_t) 0, 0);
+                                         devEdgeRepairLimit,
+                                         (size_t) 0, 0);
 
 #ifdef TIME_ASTRIX
       gpuErrchk( cudaEventRecord(start, 0) );
 #endif
       devEdgeRepairLimit<<<nBlocks, nThreads>>>
-	(nEdgeCheck, pEnC, pTsub, pTe, pEt);
+        (nEdgeCheck, pEnC, pTsub, pTe, pEt);
 #ifdef TIME_ASTRIX
       gpuErrchk( cudaEventRecord(stop, 0) );
       gpuErrchk( cudaEventSynchronize(stop) );
@@ -284,20 +284,20 @@ void Delaunay::EdgeRepair(Connectivity * const connectivity,
 #ifdef TIME_ASTRIX
       gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-      for (int i = 0; i < nEdgeCheck; i++) 
-	SingleEdgeRepair(pEnC[i], pTsub, pTe, pEt, 0);
+      for (int i = 0; i < nEdgeCheck; i++)
+        SingleEdgeRepair(pEnC[i], pTsub, pTe, pEt, 0);
 #ifdef TIME_ASTRIX
       gpuErrchk( cudaEventRecord(stop, 0) );
       gpuErrchk( cudaEventSynchronize(stop) );
 #endif
     }
-    
+
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
     WriteProfileFile("EdgeRepair.prof", nEdgeCheck, elapsedTime, cudaFlag);
 #endif
   }
-  
+
 }
 
 }

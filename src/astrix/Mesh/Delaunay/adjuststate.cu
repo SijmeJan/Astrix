@@ -35,9 +35,9 @@ namespace astrix {
 
 __host__ __device__
 void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
-		       int nVertex, real2 *pVc, real *pVarea,
-		       const Predicates *pred, real *pParam,
-		       real Px, real Py, real4 *pState)
+                       int nVertex, real2 *pVc, real *pVarea,
+                       const Predicates *pred, real *pParam,
+                       real Px, real Py, real4 *pState)
 {
   const real zero  = (real) 0.0;
   const real sixth = (real) (1.0/6.0);
@@ -55,8 +55,8 @@ void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
 
   real Dx, Ex, Fx, Dy, Ey, Fy;
   GetTriangleCoordinates(pVc, e, f, d,
-			 nVertex, Px, Py,
-			 Dx, Ex, Fx, Dy, Ey, Fy);
+                         nVertex, Px, Py,
+                         Dx, Ex, Fx, Dy, Ey, Fy);
 
   real dx = Fx;
   real dy = Fy;
@@ -64,7 +64,7 @@ void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
   //int e1 = pTe[t1].x;
   int e2 = pTe[t1].y;
   int e3 = pTe[t1].z;
-  
+
   if (edge == e2) {
     d = pTv[t1].x;
     f = pTv[t1].z;
@@ -77,15 +77,15 @@ void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
     dx = Ex;
     dy = Ey;
   }
- 
+
   int a = pTv[t2].z;
   int b = pTv[t2].x;
   int c = pTv[t2].y;
 
   real Ax, Bx, Cx, Ay, By, Cy;
   GetTriangleCoordinates(pVc, b, c, a,
-			 nVertex, Px, Py,
-			 Ax, Bx, Cx, Ay, By, Cy);
+                         nVertex, Px, Py,
+                         Ax, Bx, Cx, Ay, By, Cy);
 
   real ax = Cx;
   real ay = Cy;
@@ -131,7 +131,7 @@ void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
   while (a < 0) a += nVertex;
   while (b < 0) b += nVertex;
   while (c < 0) c += nVertex;
- 
+
   // Twice triangle area
   real T1 = (cx - dx)*(by - dy) - (cy - dy)*(bx - dx);
   real T2 = (ax - cx)*(by - cy) - (ay - cy)*(bx - cx);
@@ -162,7 +162,7 @@ void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
   real Vc = AtomicAdd(&(pVarea[c]), -dVc*sixth);
   real Vd = AtomicAdd(&(pVarea[d]), -dVd*sixth);
 
-  real denom = 
+  real denom =
     6.0*(Va + Vb + Vc + Vd) - dVa - dVb - dVc - dVd;
   denom = 1.0/denom;
 
@@ -180,7 +180,7 @@ void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
   AtomicAdd(&(pState[b].y), momxAdjust);
   AtomicAdd(&(pState[c].y), momxAdjust);
   AtomicAdd(&(pState[d].y), momxAdjust);
-    
+
   AtomicAdd(&(pState[a].z), momyAdjust);
   AtomicAdd(&(pState[b].z), momyAdjust);
   AtomicAdd(&(pState[c].z), momyAdjust);
@@ -189,9 +189,9 @@ void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
 
 __host__ __device__
 void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
-		       int nVertex, real2 *pVc, real *pVarea,
-		       const Predicates *pred, real *pParam,
-		       real Px, real Py, real *pState)
+                       int nVertex, real2 *pVc, real *pVarea,
+                       const Predicates *pred, real *pParam,
+                       real Px, real Py, real *pState)
 {
   // Dummy: not supported for one equation
 }
@@ -216,22 +216,22 @@ void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
 
 __global__ void
 devAdjustState(int nNonDel, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
-	       int nVertex, real2 *pVc, real *pVarea,
-	       const Predicates *pred, real *pParam,
-	       real Px, real Py, realNeq *pState)
+               int nVertex, real2 *pVc, real *pVarea,
+               const Predicates *pred, real *pParam,
+               real Px, real Py, realNeq *pState)
 {
   // i = edge number
   int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nNonDel) {
     AdjustStateSingle(i, pEnd, pTv, pTe, pEt, nVertex, pVc, pVarea,
-		      pred, pParam, Px, Py, pState);
+                      pred, pParam, Px, Py, pState);
 
     // Next edge
     i += blockDim.x*gridDim.x;
   }
 }
-  
+
 //######################################################################
 /*! Adjust state to conserve mass and momentum when flipping edges. All edges in \a edgeNonDelaunay are considered.
 
@@ -243,18 +243,18 @@ devAdjustState(int nNonDel, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
 //######################################################################
 
 void Delaunay::AdjustState(Connectivity * const connectivity,
-			   Array<realNeq> * const vertexState,
-			   const Predicates *predicates,
-			   const MeshParameter *meshParameter,
-			   const int nNonDel)
+                           Array<realNeq> * const vertexState,
+                           const Predicates *predicates,
+                           const MeshParameter *meshParameter,
+                           const int nNonDel)
 {
   int nVertex = connectivity->vertexCoordinates->GetSize();
-  
+
   int *pEnd = edgeNonDelaunay->GetPointer();
 
   real Px = meshParameter->maxx - meshParameter->minx;
   real Py = meshParameter->maxy - meshParameter->miny;
-  
+
   CalcVertexArea(connectivity, meshParameter);
   real *pVarea = vertexArea->GetPointer();
 
@@ -264,17 +264,17 @@ void Delaunay::AdjustState(Connectivity * const connectivity,
   int3 *pTv = connectivity->triangleVertices->GetPointer();
   int3 *pTe = connectivity->triangleEdges->GetPointer();
   int2 *pEt = connectivity->edgeTriangles->GetPointer();
-  
+
   real *pParam = predicates->GetParamPointer(cudaFlag);
-  
+
   if (cudaFlag == 1) {
     int nBlocks = 128;
-    int nThreads = 128; 
-    
+    int nThreads = 128;
+
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devAdjustState, 
-				       (size_t) 0, 0);
+                                       devAdjustState,
+                                       (size_t) 0, 0);
 
     devAdjustState<<<nBlocks, nThreads>>>
       (nNonDel, pEnd, pTv, pTe, pEt, nVertex, pVc, pVarea,
@@ -285,8 +285,8 @@ void Delaunay::AdjustState(Connectivity * const connectivity,
   } else {
     for (int i = 0; i < nNonDel; i++)
       AdjustStateSingle(i, pEnd, pTv, pTe, pEt, nVertex, pVc, pVarea,
-			predicates, pParam, Px, Py, pState);
+                        predicates, pParam, Px, Py, pState);
   }
 }
-  
+
 }

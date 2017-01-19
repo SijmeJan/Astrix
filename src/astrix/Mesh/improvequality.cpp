@@ -17,7 +17,7 @@
 #include "./triangleLow.h"
 
 namespace astrix {
- 
+
 //#########################################################################
 /*! Refine Delaunay mesh, depending on the state vector (i.e. density, momentum, etc). If \a *vertexState != 0, we first calculate an estimate of the discretization error and flag triangles to be refined; otherwise, all triangles can be refined, necessary for example when building the mesh for the first time. It returns the number of vertices added.
 
@@ -25,9 +25,9 @@ namespace astrix {
 \param specificHeatRatio Ratio of specific heats
 \param nTimeStep Number of time steps taken so far. Used in combination with \a nStepSkipRefine to possibly avoid refining every timestep*/
 //#########################################################################
-  
+
 int Mesh::ImproveQuality(Array<realNeq> *vertexState,
-			 real specificHeatRatio, int nTimeStep)
+                         real specificHeatRatio, int nTimeStep)
 {
   if (nTimeStep % meshParameter->nStepSkipRefine != 0) return 0;
 
@@ -36,28 +36,28 @@ int Mesh::ImproveQuality(Array<realNeq> *vertexState,
   int nEdge = connectivity->edgeTriangles->GetSize();
 
   int nAdded = 0;
-  
+
   // Flag triangles if refinement is needed
   if (vertexState != 0) {
     triangleWantRefine->SetSize(nTriangle);
     FillWantRefine(vertexState, specificHeatRatio);
     //dmax = dMaxBase/((real)(maxRefineFactor*maxRefineFactor));
-    
+
     nAdded = refine->ImproveQuality(connectivity,
-				    meshParameter,
-				    predicates,
-				    morton, delaunay,
-				    vertexState,
-				    specificHeatRatio,
-				    triangleWantRefine);
+                                    meshParameter,
+                                    predicates,
+                                    morton, delaunay,
+                                    vertexState,
+                                    specificHeatRatio,
+                                    triangleWantRefine);
   } else {
     try {
       nAdded = refine->ImproveQuality(connectivity,
-				      meshParameter,
-				      predicates,
-				      morton, delaunay,
-				      vertexState,
-				      specificHeatRatio, 0);
+                                      meshParameter,
+                                      predicates,
+                                      morton, delaunay,
+                                      vertexState,
+                                      specificHeatRatio, 0);
     }
     catch (...) {
       std::cout << "Error improving Mesh, saving Mesh" << std::endl;
@@ -66,7 +66,7 @@ int Mesh::ImproveQuality(Array<realNeq> *vertexState,
     }
 
   }
-  
+
   nVertex = connectivity->vertexCoordinates->GetSize();
   nTriangle = connectivity->triangleVertices->GetSize();
   nEdge = connectivity->edgeTriangles->GetSize();
@@ -80,22 +80,22 @@ int Mesh::ImproveQuality(Array<realNeq> *vertexState,
 
   real2 *pVc = connectivity->vertexCoordinates->GetHostPointer();
   int3 *pTv = connectivity->triangleVertices->GetHostPointer();
-  
+
   real Px = meshParameter->maxx - meshParameter->minx;
   real Py = meshParameter->maxy - meshParameter->miny;
 
   real minEdgeLength = Px;
-  
+
   for (int i = 0; i < nTriangle; i++) {
-  
+
       int a = pTv[i].x;
       int b = pTv[i].y;
       int c = pTv[i].z;
-  
+
       real ax, bx, cx, ay, by, cy;
       GetTriangleCoordinates(pVc, a, b, c,
-			     nVertex, Px, Py,
-			     ax, bx, cx, ay, by, cy);
+                             nVertex, Px, Py,
+                             ax, bx, cx, ay, by, cy);
 
       // Three edges
       real l1 = sqrt((ax - bx)*(ax - bx) + (ay - by)*(ay - by));
@@ -108,15 +108,15 @@ int Mesh::ImproveQuality(Array<realNeq> *vertexState,
   }
 
   std::cout << "L/lmin = " << Px/minEdgeLength << std::endl;
-  
-  
-  if (nAdded > 0) {  
+
+
+  if (nAdded > 0) {
     // Calculate triangle normals and areas
     CalcNormalEdge();
     CalcVertexArea();
     FindBoundaryVertices();
   }
-  
+
   return nAdded;
 }
 

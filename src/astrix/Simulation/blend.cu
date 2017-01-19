@@ -25,9 +25,9 @@ namespace astrix {
 //######################################################################
 
 __host__ __device__
-void CalcBlendSingle(int n, const real3* __restrict__ pTl, 
-		     real4 *pTresN0, real4 *pTresN1, real4 *pTresN2,
-		     real4 *pTres, real4 *pBlend, int setToMinMaxFlag)
+void CalcBlendSingle(int n, const real3* __restrict__ pTl,
+                     real4 *pTresN0, real4 *pTresN1, real4 *pTresN2,
+                     real4 *pTres, real4 *pBlend, int setToMinMaxFlag)
 {
   real small = (real) 1.0e-10;
 
@@ -67,7 +67,7 @@ void CalcBlendSingle(int n, const real3* __restrict__ pTl,
   real blend3 = fabs(tTot3)/
     (fabs(tN03)*tl1 + fabs(tN13)*tl2 + fabs(tN23)*tl3 + small);
 
-  // Set all to minimum 
+  // Set all to minimum
   if (setToMinMaxFlag == -1) {
     real blendMin = min(blend0, min(blend1, min(blend2, blend3)));
     blend0 = blendMin;
@@ -89,7 +89,7 @@ void CalcBlendSingle(int n, const real3* __restrict__ pTl,
   pBlend[n].y = blend1;
   pBlend[n].z = blend2;
   pBlend[n].w = blend3;
-  
+
   /*
   // Calculate blend parameter
   pBlend[n].x = fabs(tTot0)/
@@ -101,13 +101,12 @@ void CalcBlendSingle(int n, const real3* __restrict__ pTl,
   pBlend[n].w = fabs(tTot3)/
     (fabs(tN03)*tl1 + fabs(tN13)*tl2 + fabs(tN23)*tl3 + small);
   */
-  
 }
 
 __host__ __device__
-void CalcBlendSingle(int n, const real3* __restrict__ pTl, 
-		     real *pTresN0, real *pTresN1, real *pTresN2,
-		     real *pTres, real *pBlend, int setToMinMaxFlag)
+void CalcBlendSingle(int n, const real3* __restrict__ pTl,
+                     real *pTresN0, real *pTresN1, real *pTresN2,
+                     real *pTres, real *pBlend, int setToMinMaxFlag)
 {
   real small = (real) 1.0e-10;
 
@@ -142,24 +141,26 @@ void CalcBlendSingle(int n, const real3* __restrict__ pTl,
 
 //######################################################################
 
-__global__ void 
-devCalcBlendFactor(int nTriangle, const real3* __restrict__ pTl, 
-		   realNeq *pTresN0, realNeq *pTresN1, realNeq *pTresN2,
-		   realNeq *pTres, realNeq *pBlend, int setToMinMaxFlag)
+__global__ void
+devCalcBlendFactor(int nTriangle, const real3* __restrict__ pTl,
+                   realNeq *pTresN0, realNeq *pTresN1, realNeq *pTresN2,
+                   realNeq *pTres, realNeq *pBlend, int setToMinMaxFlag)
 {
   // n=vertex number
-  int n = blockIdx.x*blockDim.x + threadIdx.x; 
+  int n = blockIdx.x*blockDim.x + threadIdx.x;
 
-  while(n < nTriangle){
+  while (n < nTriangle) {
     CalcBlendSingle(n, pTl, pTresN0, pTresN1, pTresN2, pTres, pBlend,
-		    setToMinMaxFlag);
+                    setToMinMaxFlag);
 
     n += blockDim.x*gridDim.x;
   }
 }
-  
+
 //######################################################################
-/*! Calculate blend parameter for all triangles. When using the B scheme, we need to blend the N and LDA residuals. This function calculates the blend parameter \a triangleBlendFactor*/
+/*! Calculate blend parameter for all triangles. When using the B scheme,
+we need to blend the N and LDA residuals. This function calculates the
+blend parameter \a triangleBlendFactor*/
 //######################################################################
 
 void Simulation::CalcBlend()
@@ -167,7 +168,7 @@ void Simulation::CalcBlend()
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
-  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&start) );
   gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
@@ -190,36 +191,36 @@ void Simulation::CalcBlend()
   if (cudaFlag == 1) {
     int nThreads = 128;
     int nBlocks  = 128;
-    
+
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devCalcBlendFactor, 
-				       (size_t) 0, 0);
-    
-    // Execute kernel... 
+                                       devCalcBlendFactor,
+                                       (size_t) 0, 0);
+
+    // Execute kernel...
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-    devCalcBlendFactor<<<nBlocks,nThreads>>>
+    devCalcBlendFactor<<<nBlocks, nThreads>>>
       (nTriangle, pTl, pTresN0, pTresN1, pTresN2, pTres, pBlend,
        preferMinMaxBlend);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
-#endif      
+#endif
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-    for (int n = 0; n < nTriangle; n++) 
+    for (int n = 0; n < nTriangle; n++)
       CalcBlendSingle(n, pTl, pTresN0, pTresN1, pTresN2, pTres, pBlend,
-		      preferMinMaxBlend);
+                      preferMinMaxBlend);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
-#endif      
+#endif
   }
 
 #ifdef TIME_ASTRIX
@@ -228,4 +229,4 @@ void Simulation::CalcBlend()
 #endif
 }
 
-}
+}  // namespace astrix

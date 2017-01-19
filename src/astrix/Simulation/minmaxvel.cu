@@ -21,8 +21,8 @@ namespace astrix {
 //#########################################################################
 
 __host__ __device__
-void FillMinMaxVelocitySingle(unsigned int i, real4 *pState, 
-			      real *pMinVel, real *pMaxVel)
+void FillMinMaxVelocitySingle(unsigned int i, real4 *pState,
+                              real *pMinVel, real *pMaxVel)
 {
   real dens = pState[i].x;
   real momx = pState[i].y;
@@ -45,13 +45,13 @@ void FillMinMaxVelocitySingle(unsigned int i, real4 *pState,
 }
 
 __host__ __device__
-void FillMinMaxVelocitySingle(unsigned int i, real *pState, 
-			      real *pMinVel, real *pMaxVel)
+void FillMinMaxVelocitySingle(unsigned int i, real *pState,
+                              real *pMinVel, real *pMaxVel)
 {
 #if BURGERS == 1
   pMinVel[i] = pState[i];
   pMaxVel[i] = pState[i];
-#else  
+#else
   pMinVel[i] = (real) 1.0;
   pMaxVel[i] = (real) 1.0;
 #endif
@@ -66,15 +66,15 @@ void FillMinMaxVelocitySingle(unsigned int i, real *pState,
 \param *pMinVel Pointer to maximum velocities (output)*/
 //#########################################################################
 
-__global__ void 
-devFillMinMaxVelocity(unsigned int nVertex, realNeq *pState, 
-		      real *pMinVel, real *pMaxVel)
+__global__ void
+devFillMinMaxVelocity(unsigned int nVertex, realNeq *pState,
+                      real *pMinVel, real *pMaxVel)
 {
   unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nVertex) {
     FillMinMaxVelocitySingle(i, pState, pMinVel, pMaxVel);
-    
+
     i += gridDim.x*blockDim.x;
   }
 }
@@ -89,14 +89,14 @@ devFillMinMaxVelocity(unsigned int nVertex, realNeq *pState,
 void Simulation::FindMinMaxVelocity(real& minVel, real& maxVel)
 {
   unsigned int nVertex = mesh->GetNVertex();
-  
+
   // State at vertices
-  realNeq *pState = vertexState->GetPointer(); 
+  realNeq *pState = vertexState->GetPointer();
 
   // Arrays containing minimum/maximum velocity for each vertex
   Array<real> *minVelocity = new Array<real>(1, cudaFlag, nVertex);
   Array<real> *maxVelocity = new Array<real>(1, cudaFlag, nVertex);
-  
+
   real *pMinVel = minVelocity->GetPointer();
   real *pMaxVel = maxVelocity->GetPointer();
 
@@ -107,24 +107,24 @@ void Simulation::FindMinMaxVelocity(real& minVel, real& maxVel)
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devFillMinMaxVelocity, 
-				       (size_t) 0, 0);
+                                       devFillMinMaxVelocity,
+                                       (size_t) 0, 0);
 
     devFillMinMaxVelocity<<<nBlocks, nThreads>>>
       (nVertex, pState, pMinVel, pMaxVel);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
-    for (unsigned int i = 0; i < nVertex; i++) 
+    for (unsigned int i = 0; i < nVertex; i++)
       FillMinMaxVelocitySingle(i, pState, pMinVel, pMaxVel);
   }
 
   // Find minimum/maximum velocity
-  minVel = minVelocity->Minimum(); 
+  minVel = minVelocity->Minimum();
   maxVel = maxVelocity->Maximum();
 
   delete minVelocity;
   delete maxVelocity;
 }
 
-}
+}  // namespace astrix

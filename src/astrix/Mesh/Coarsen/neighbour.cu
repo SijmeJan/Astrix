@@ -22,12 +22,12 @@ Find all vertices sharing an edge with \a vRemove and put the result in \a *vNei
 \param vRemove Vertex under consideration
 \param *vTri Pointer to list of triangles sharing vertex \a vRemove
 \param maxTriPerVert Maximum number of triangles sharing any vertex
-\param *tv1 Pointer to first vertex of triangle 
-\param *tv2 Pointer to second vertex of triangle 
-\param *tv3 Pointer to third vertex of triangle 
-\param *te1 Pointer to first edge of triangle 
-\param *te2 Pointer to second edge of triangle 
-\param *te3 Pointer to third edge of triangle 
+\param *tv1 Pointer to first vertex of triangle
+\param *tv2 Pointer to second vertex of triangle
+\param *tv3 Pointer to third vertex of triangle
+\param *te1 Pointer to first edge of triangle
+\param *te2 Pointer to second edge of triangle
+\param *te3 Pointer to third edge of triangle
 \param *et1 Pointer to first triangle neighbouring edge
 \param *et2 Pointer to second triangle neighbouring edge
 \param nVertex Total number of vertices in Mesh
@@ -37,8 +37,8 @@ Find all vertices sharing an edge with \a vRemove and put the result in \a *vNei
 
 __host__ __device__
 void FindVertexNeighbourSingle(int vRemove, int *vTri, const int maxTriPerVert,
-			       int3 *pTv, int3 *pTe, int2 *pEt, 
-			       int nVertex, int tTarget, int *vNeighbour)
+                               int3 *pTv, int3 *pTe, int2 *pEt,
+                               int nVertex, int tTarget, int *vNeighbour)
 {
   // Return if vertex cannot be removed
   if (tTarget == -1) return;
@@ -65,7 +65,7 @@ void FindVertexNeighbourSingle(int vRemove, int *vTri, const int maxTriPerVert,
   int t22 = pEt[e2].y;
   int t13 = pEt[e3].x;
   int t23 = pEt[e3].y;
-  
+
   // Check if vertex is part of segment
   int onSegmentFlag = 0;
   if ((a == vRemove || b == vRemove) && (t11 == -1 || t21 == -1))
@@ -74,31 +74,31 @@ void FindVertexNeighbourSingle(int vRemove, int *vTri, const int maxTriPerVert,
     onSegmentFlag = 1;
   if ((c == vRemove || a == vRemove) && (t13 == -1 || t23 == -1))
     onSegmentFlag = 1;
-  
+
   // Check all triangles sharing vRemove
   for (int i = 0; i < maxTriPerVert; i++) {
     int ret = -1;
-    
+
     int t = vTri[i];
-    
+
     if (t != -1) {
       int a = pTv[t].x;
       int b = pTv[t].y;
       int c = pTv[t].z;
-      
+
       while (a >= nVertex) a -= nVertex;
       while (b >= nVertex) b -= nVertex;
       while (c >= nVertex) c -= nVertex;
       while (a < 0) a += nVertex;
       while (b < 0) b += nVertex;
       while (c < 0) c += nVertex;
-    
+
       // Select 'next' vertex
       if (a == vRemove) ret = b;
       if (b == vRemove) ret = c;
       if (c == vRemove) ret = a;
     }
-    
+
     vNeighbour[i] = ret;
   }
 
@@ -106,35 +106,35 @@ void FindVertexNeighbourSingle(int vRemove, int *vTri, const int maxTriPerVert,
   if (onSegmentFlag == 1) {
     for (int i = 0; i < maxTriPerVert; i++) {
       int ret = -1;
-      
+
       int t = vTri[i];
-      
+
       if (t != -1) {
-	int a = pTv[t].x;
-	int b = pTv[t].y;
-	int c = pTv[t].z;
-	
-	while (a >= nVertex) a -= nVertex;
-	while (b >= nVertex) b -= nVertex;
-	while (c >= nVertex) c -= nVertex;
-	while (a < 0) a += nVertex;
-	while (b < 0) b += nVertex;
-	while (c < 0) c += nVertex;
-	
-	if (a == vRemove) ret = c;
-	if (b == vRemove) ret = a;
-	if (c == vRemove) ret = b;
+        int a = pTv[t].x;
+        int b = pTv[t].y;
+        int c = pTv[t].z;
 
-	int uniqueFlag = 1;
-	for (int j = 0; j < maxTriPerVert; j++)
-	  uniqueFlag *= (ret != vNeighbour[j]);
+        while (a >= nVertex) a -= nVertex;
+        while (b >= nVertex) b -= nVertex;
+        while (c >= nVertex) c -= nVertex;
+        while (a < 0) a += nVertex;
+        while (b < 0) b += nVertex;
+        while (c < 0) c += nVertex;
 
-	if (uniqueFlag == 1) vNeighbour[maxTriPerVert - 1] = ret;
+        if (a == vRemove) ret = c;
+        if (b == vRemove) ret = a;
+        if (c == vRemove) ret = b;
+
+        int uniqueFlag = 1;
+        for (int j = 0; j < maxTriPerVert; j++)
+          uniqueFlag *= (ret != vNeighbour[j]);
+
+        if (uniqueFlag == 1) vNeighbour[maxTriPerVert - 1] = ret;
       }
     }
   }
 }
-  
+
 //#########################################################################
 /*! \brief Find all neighbouring vertices for all vertices in \a *pVertexRemove
 
@@ -144,12 +144,12 @@ Find all vertices sharing an edge with vertices in  \a *pVertexRemove and put th
 \param nRemove Number of vertices in \a *pVertexRemove
 \param *pVertexTriangleList Pointer to list of triangles sharing vertices
 \param maxTriPerVert Maximum number of triangles sharing any vertex
-\param *tv1 Pointer to first vertex of triangle 
-\param *tv2 Pointer to second vertex of triangle 
-\param *tv3 Pointer to third vertex of triangle 
-\param *te1 Pointer to first edge of triangle 
-\param *te2 Pointer to second edge of triangle 
-\param *te3 Pointer to third edge of triangle 
+\param *tv1 Pointer to first vertex of triangle
+\param *tv2 Pointer to second vertex of triangle
+\param *tv3 Pointer to third vertex of triangle
+\param *te1 Pointer to first edge of triangle
+\param *te2 Pointer to second edge of triangle
+\param *te3 Pointer to third edge of triangle
 \param *et1 Pointer to first triangle neighbouring edge
 \param *et2 Pointer to second triangle neighbouring edge
 \param nVertex Total number of vertices in Mesh
@@ -159,27 +159,27 @@ Find all vertices sharing an edge with vertices in  \a *pVertexRemove and put th
 
 __global__
 void devFindVertexNeighbour(int *pVertexRemove, int nRemove,
-			    int *pVertexTriangleList,
-			    const int maxTriPerVert,
-			    int3 *pTv, int3 *pTe, int2 *pEt, 
-			    int nVertex, int *pTriangleTarget,
-			    int *pVertexNeighbour)
-{     
+                            int *pVertexTriangleList,
+                            const int maxTriPerVert,
+                            int3 *pTv, int3 *pTe, int2 *pEt,
+                            int nVertex, int *pTriangleTarget,
+                            int *pVertexNeighbour)
+{
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nRemove) {
-    FindVertexNeighbourSingle(pVertexRemove[n], 
-			      &(pVertexTriangleList[n*maxTriPerVert]),
-			      maxTriPerVert, pTv, pTe, pEt,
-			      nVertex, pTriangleTarget[n],
-			      &(pVertexNeighbour[n*maxTriPerVert]));
+    FindVertexNeighbourSingle(pVertexRemove[n],
+                              &(pVertexTriangleList[n*maxTriPerVert]),
+                              maxTriPerVert, pTv, pTe, pEt,
+                              nVertex, pTriangleTarget[n],
+                              &(pVertexNeighbour[n*maxTriPerVert]));
 
     n += blockDim.x*gridDim.x;
   }
 }
-  
+
 //#########################################################################
-/*! For every vertex, find its neighbours (vertices sharing an edge). 
+/*! For every vertex, find its neighbours (vertices sharing an edge).
 
 \param *vertexNeighbour Pointer to Array of neighbouring vertices (output)
 \param *triangleTarget Pointer to Array containing target triangles
@@ -188,10 +188,10 @@ void devFindVertexNeighbour(int *pVertexRemove, int nRemove,
 //#########################################################################
 
 void Coarsen::FindVertexNeighbours(Connectivity *connectivity,
-				   Array<int> *vertexNeighbour,
-				   Array<int> *triangleTarget,
-				   Array<int> *vertexTriangleList,
-				   int maxTriPerVert)
+                                   Array<int> *vertexNeighbour,
+                                   Array<int> *triangleTarget,
+                                   Array<int> *vertexTriangleList,
+                                   int maxTriPerVert)
 {
   int transformFlag = 0;
 
@@ -202,14 +202,14 @@ void Coarsen::FindVertexNeighbours(Connectivity *connectivity,
       triangleTarget->TransformToHost();
       vertexTriangleList->TransformToHost();
       vertexRemove->TransformToHost();
-      
+
       cudaFlag = 0;
     } else {
       vertexNeighbour->TransformToDevice();
       triangleTarget->TransformToDevice();
       vertexTriangleList->TransformToDevice();
       vertexRemove->TransformToDevice();
- 
+
       cudaFlag = 1;
     }
   }
@@ -226,16 +226,16 @@ void Coarsen::FindVertexNeighbours(Connectivity *connectivity,
   int3 *pTv = connectivity->triangleVertices->GetPointer();
   int3 *pTe = connectivity->triangleEdges->GetPointer();
   int2 *pEt = connectivity->edgeTriangles->GetPointer();
-  
+
   // Find neighbouring vertices
   if (cudaFlag == 1) {
     int nBlocks = 128;
     int nThreads = 128;
-    
+
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devFindVertexNeighbour, 
-				       (size_t) 0, 0);
+                                       devFindVertexNeighbour,
+                                       (size_t) 0, 0);
 
     devFindVertexNeighbour<<<nBlocks, nThreads>>>
       (pVertexRemove, nRemove, pVertexTriangleList,
@@ -244,14 +244,14 @@ void Coarsen::FindVertexNeighbours(Connectivity *connectivity,
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
-    for (int n = 0; n < nRemove; n++) 
-      FindVertexNeighbourSingle(pVertexRemove[n], 
-				&(pVertexTriangleList[n*maxTriPerVert]),
-				maxTriPerVert, pTv, pTe, pEt,
-				nVertex, pTriangleTarget[n],
-				&(pVertexNeighbour[n*maxTriPerVert]));
+    for (int n = 0; n < nRemove; n++)
+      FindVertexNeighbourSingle(pVertexRemove[n],
+                                &(pVertexTriangleList[n*maxTriPerVert]),
+                                maxTriPerVert, pTv, pTe, pEt,
+                                nVertex, pTriangleTarget[n],
+                                &(pVertexNeighbour[n*maxTriPerVert]));
   }
-  
+
   if (transformFlag == 1) {
     connectivity->Transform();
     if (cudaFlag == 1) {
@@ -259,14 +259,14 @@ void Coarsen::FindVertexNeighbours(Connectivity *connectivity,
       triangleTarget->TransformToHost();
       vertexTriangleList->TransformToHost();
       vertexRemove->TransformToHost();
-      
+
       cudaFlag = 0;
     } else {
       vertexNeighbour->TransformToDevice();
       triangleTarget->TransformToDevice();
       vertexTriangleList->TransformToDevice();
       vertexRemove->TransformToDevice();
- 
+
       cudaFlag = 1;
     }
   }

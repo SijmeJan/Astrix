@@ -1,20 +1,20 @@
+#include <cuda_runtime_api.h>
 #include <cstring>
 #include <cstdlib>
 #include <iostream>
-#include <cuda_runtime_api.h>
 
 #include "./Common/definitions.h"
 #include "./Simulation/simulation.h"
 #include "./Device/device.h"
 
-//###########################################################################
+// ###########################################################################
 // main
-//###########################################################################
+// ###########################################################################
 
 int main(int argc, char *argv[])
 {
-  std::cout << "Welcome to Astrix!" << std::endl;  
-  
+  std::cout << "Welcome to Astrix!" << std::endl;
+
   // Parse command line arguments
   int checkDeviceFlag = 0;               // Exit after check for devices
   int verboseLevel = 0;                  // How much screen output
@@ -25,10 +25,6 @@ int main(int argc, char *argv[])
   double maxWallClockHours = 1.0e10;     // Maximum wallclock hours to run
   int extraFlag = 0;
 
-  //astrix::Timer *timer = new astrix::Timer("main.prof", 100000, cudaFlag);
-  //delete timer;
-  //return 0;
-  
   // Walk through all command line arguments
   for (int i = 1; i < argc; ++i) {
     // Set flag for just checking for device
@@ -71,7 +67,7 @@ int main(int argc, char *argv[])
         strcmp(argv[i], "-wcl") == 0) {
       maxWallClockHours = atof(argv[i+1]);
       std::cout << "Maximum wall clock time: " << maxWallClockHours
-		<< " hours" << std::endl;
+                << " hours" << std::endl;
       nSwitches += 2;
     }
     // Extra flag
@@ -92,25 +88,25 @@ int main(int argc, char *argv[])
     std::cout << "Device initialisation failed; exiting..." << std::endl;
     return 0;
   }
-  
+
   // Exit if just checking device
   if (checkDeviceFlag == 1) {
     std::cout << "Devices checked, exiting..." << std::endl;
     delete device;
     return 0;
   }
-  
+
   // Check for correct number of arguments
   if (argc != 2 + nSwitches) {
-    std::cout << "Usage: " << argv[0] 
-	      << " [-c]"
-	      << " [-d]"
-	      << " [-v verboseLevel]"
-	      << " [-D debugLevel]" 
-	      << " [-r restartNumber]"
-	      << " [-e extraFlag]"
-	      << " filename" 
-	      << std::endl;
+    std::cout << "Usage: " << argv[0]
+              << " [-c]"
+              << " [-d]"
+              << " [-v verboseLevel]"
+              << " [-D debugLevel]"
+              << " [-r restartNumber]"
+              << " [-e extraFlag]"
+              << " filename"
+              << std::endl;
     delete device;
     return 1;
   }
@@ -123,8 +119,8 @@ int main(int argc, char *argv[])
   try {
     simulation =
       new astrix::Simulation(verboseLevel, debugLevel,
-			     fileName, device, restartNumber,
-			     extraFlag);
+                             fileName, device, restartNumber,
+                             extraFlag);
   }
   catch (...) {
     std::cout << "Could not create Simulation object, exiting..." << std::endl;

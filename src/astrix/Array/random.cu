@@ -19,18 +19,18 @@ void Array<T>::SetToRandom()
 {
   // Seed random generator
   srand(3);
-  
+
   T *temp = new T[size];
   for (unsigned int i = 0; i < size; i++) temp[i] = rand();
 
   if (cudaFlag == 1) {
     gpuErrchk(cudaMemcpy(deviceVec, temp, size*sizeof(T),
-			 cudaMemcpyHostToDevice));    
+                         cudaMemcpyHostToDevice));
   } else {
     memcpy(hostVec, temp, size*sizeof(T));
   }
 
-  delete[] temp;  
+  delete[] temp;
 }
 
 //###################################################

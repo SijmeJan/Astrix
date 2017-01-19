@@ -11,7 +11,7 @@
 #include "../Connectivity/connectivity.h"
 
 namespace astrix {
-    
+
 //#########################################################################
 /*! Order vertices according to Morton value to increase data locality. The Morton values are assumed to have been precomputed in \a vertexMorton, so all there is to do is sort the vertex coordinates and \a vertexState, and to reindex \a triangleVertices.
 
@@ -20,10 +20,10 @@ namespace astrix {
 //#########################################################################
 
 void Morton::OrderVertex(Connectivity * const connectivity,
-			 Array<realNeq> * const vertexState)
+                         Array<realNeq> * const vertexState)
 {
   int nVertex = connectivity->vertexCoordinates->GetSize();
-  
+
   // Sort Morton values
   index->SetToSeries();
   vertexMorton->SortByKey(index, nVertex);

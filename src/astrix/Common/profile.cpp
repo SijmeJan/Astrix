@@ -6,13 +6,13 @@
 #include "./profile.h"
 
 namespace astrix {
-  
+
 //#########################################################################
-// 
+//
 //#########################################################################
 
 void WriteProfileFile(const char *fileName, int nElement,
-		      float elapsedTime, int cudaFlag)
+                      float elapsedTime, int cudaFlag)
 {
   int maxElementCPU = 0;
   float maxTimeCPU = 0.0;
@@ -20,7 +20,7 @@ void WriteProfileFile(const char *fileName, int nElement,
   int maxElementGPU = 0;
   float maxTimeGPU = 0.0;
   float totalTimeGPU = 0.0;
-  
+
   // Read current file if it exists
   std::ifstream infile;
   infile.open(fileName);
@@ -44,16 +44,16 @@ void WriteProfileFile(const char *fileName, int nElement,
       maxTimeCPU = elapsedTime;
     }
   }
-  
+
   std::ofstream outfile;
   outfile.open(fileName);
 
   outfile << maxElementCPU << " "
-	  << maxTimeCPU << " "
-	  << totalTimeCPU << std::endl; 
+          << maxTimeCPU << " "
+          << totalTimeCPU << std::endl;
   outfile << maxElementGPU << " "
-	  << maxTimeGPU << " "
-	  << totalTimeGPU << std::endl;
+          << maxTimeGPU << " "
+          << totalTimeGPU << std::endl;
   outfile.close();
 }
 

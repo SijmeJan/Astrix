@@ -10,7 +10,7 @@
 #include "./refine.h"
 
 namespace astrix {
-  
+
 //#########################################################################
 /*! Constructor for Refine class.
 
@@ -32,10 +32,10 @@ Refine::Refine(int _cudaFlag, int _debugLevel, int _verboseLevel)
   triangleAffected = new Array<int>(1, cudaFlag);
   triangleAffectedIndex = new Array<int>(1, cudaFlag);
   edgeNeedsChecking = new Array<int>(1, cudaFlag);
-  
+
   randomUnique = new Array<unsigned int>(1, cudaFlag, 10000000);
   randomUnique->SetToSeries();
-  randomUnique->Shuffle();  
+  randomUnique->Shuffle();
 }
 
 //#########################################################################
@@ -52,5 +52,5 @@ Refine::~Refine()
   delete edgeNeedsChecking;
   delete randomUnique;
 }
-  
+
 }

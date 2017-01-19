@@ -13,7 +13,7 @@
 #include "./meshparameter.h"
 
 namespace astrix {
-  
+
 //#########################################################################
 /*! Read in data from input file. File is read line by line; input parameters can appear in any order but all must be present. An exception is thrown if any parameter is missing or has an invalid value.
 
@@ -33,7 +33,7 @@ void MeshParameter::ReadFromFile(const char *fileName)
   std::string line;
   while (getline(inFile, line)) {
     std::string firstWord, secondWord;
-    
+
     // Extract first two words from line
     std::istringstream iss(line);
     iss >> firstWord;
@@ -55,81 +55,81 @@ void MeshParameter::ReadFromFile(const char *fileName)
     // Equivalent no of points x-direction (check if number)
     if (firstWord == "equivalentPointsX") {
       if (!secondWord.empty() &&
-	  secondWord.find_first_not_of("0123456789") == std::string::npos)
-	equivalentPointsX = atof(secondWord.c_str());
+          secondWord.find_first_not_of("0123456789") == std::string::npos)
+        equivalentPointsX = atof(secondWord.c_str());
     }
 
     if (firstWord == "minX") {
       if (!secondWord.empty() &&
-	  secondWord.find_first_not_of("0123456789-.e") == std::string::npos)
-	minx = atof(secondWord.c_str());
+          secondWord.find_first_not_of("0123456789-.e") == std::string::npos)
+        minx = atof(secondWord.c_str());
     }
     if (firstWord == "maxX") {
       if (!secondWord.empty() &&
-	  secondWord.find_first_not_of("0123456789-.e") == std::string::npos)
-	maxx = atof(secondWord.c_str());
+          secondWord.find_first_not_of("0123456789-.e") == std::string::npos)
+        maxx = atof(secondWord.c_str());
     }
     if (firstWord == "minY") {
       if (!secondWord.empty() &&
-	  secondWord.find_first_not_of("0123456789-.e") == std::string::npos)
-	miny = atof(secondWord.c_str());
+          secondWord.find_first_not_of("0123456789-.e") == std::string::npos)
+        miny = atof(secondWord.c_str());
     }
     if (firstWord == "maxY") {
       if (!secondWord.empty() &&
-	  secondWord.find_first_not_of("0123456789-.e") == std::string::npos)
-	maxy = atof(secondWord.c_str());
+          secondWord.find_first_not_of("0123456789-.e") == std::string::npos)
+        maxy = atof(secondWord.c_str());
     }
 
     if (firstWord == "periodicFlagX") {
       if (!secondWord.empty() &&
-	  secondWord.find_first_not_of("01") == std::string::npos)
-	periodicFlagX = atof(secondWord.c_str());
+          secondWord.find_first_not_of("01") == std::string::npos)
+        periodicFlagX = atof(secondWord.c_str());
     }
     if (firstWord == "periodicFlagY") {
       if (!secondWord.empty() &&
-	  secondWord.find_first_not_of("01") == std::string::npos)
-	periodicFlagY = atof(secondWord.c_str());
+          secondWord.find_first_not_of("01") == std::string::npos)
+        periodicFlagY = atof(secondWord.c_str());
     }
 
     if (firstWord == "adaptiveMeshFlag") {
       if (!secondWord.empty() &&
-	  secondWord.find_first_not_of("01") == std::string::npos)
-	adaptiveMeshFlag = atof(secondWord.c_str());
+          secondWord.find_first_not_of("01") == std::string::npos)
+        adaptiveMeshFlag = atof(secondWord.c_str());
     }
     if (firstWord == "maxRefineFactor") {
       if (!secondWord.empty() &&
-	  secondWord.find_first_not_of("0123456789") == std::string::npos)
-	maxRefineFactor = atof(secondWord.c_str());
+          secondWord.find_first_not_of("0123456789") == std::string::npos)
+        maxRefineFactor = atof(secondWord.c_str());
     }
     if (firstWord == "nStepSkipRefine") {
       if (!secondWord.empty() &&
-	  secondWord.find_first_not_of("0123456789") == std::string::npos)
-	nStepSkipRefine = atof(secondWord.c_str());
+          secondWord.find_first_not_of("0123456789") == std::string::npos)
+        nStepSkipRefine = atof(secondWord.c_str());
     }
     if (firstWord == "nStepSkipCoarsen") {
       if (!secondWord.empty() &&
-	  secondWord.find_first_not_of("0123456789") == std::string::npos)
-	nStepSkipCoarsen = atof(secondWord.c_str());
+          secondWord.find_first_not_of("0123456789") == std::string::npos)
+        nStepSkipCoarsen = atof(secondWord.c_str());
     }
     if (firstWord == "minError") {
       if (!secondWord.empty() &&
-	  secondWord.find_first_not_of("0123456789.-e") == std::string::npos)
-	minError = atof(secondWord.c_str());
+          secondWord.find_first_not_of("0123456789.-e") == std::string::npos)
+        minError = atof(secondWord.c_str());
     }
     if (firstWord == "maxError") {
       if (!secondWord.empty() &&
-	  secondWord.find_first_not_of("0123456789.-e") == std::string::npos)
-	maxError = atof(secondWord.c_str());
+          secondWord.find_first_not_of("0123456789.-e") == std::string::npos)
+        maxError = atof(secondWord.c_str());
     }
     if (firstWord == "qualityBound") {
       if (!secondWord.empty() &&
-	  secondWord.find_first_not_of("0123456789.-e") == std::string::npos)
-	qualityBound = atof(secondWord.c_str());
+          secondWord.find_first_not_of("0123456789.-e") == std::string::npos)
+        qualityBound = atof(secondWord.c_str());
     }
     if (firstWord == "structuredFlag") {
       if (!secondWord.empty() &&
-	  secondWord.find_first_not_of("012") == std::string::npos)
-	structuredFlag = atof(secondWord.c_str());
+          secondWord.find_first_not_of("012") == std::string::npos)
+        structuredFlag = atof(secondWord.c_str());
     }
   }
 
@@ -144,9 +144,9 @@ void MeshParameter::ReadFromFile(const char *fileName)
     throw;
   }
 
-  // Need equivalentPointsX > 1 
+  // Need equivalentPointsX > 1
   real nx = (real) (equivalentPointsX - 1);
-  
+
   // Convert nx into base resolution requirement
   baseResolution = 0.565*((maxx - minx)/nx)*((maxx - minx)/nx);
   // Maximum adaptive resolution

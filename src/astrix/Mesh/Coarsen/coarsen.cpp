@@ -10,7 +10,7 @@
 #include "./coarsen.h"
 
 namespace astrix {
-  
+
 //#########################################################################
 /*! Constructor for Coarsen class.
 
@@ -51,7 +51,7 @@ Coarsen::~Coarsen()
   delete vertexRemove;
   delete vertexTriangle;
   delete vertexArea;
-  
+
   //delete randomVector;
 }
 

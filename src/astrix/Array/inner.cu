@@ -11,7 +11,7 @@
 #include "../Common/cudaLow.h"
 
 namespace astrix {
-  
+
 //###################################################
 // Calculate inner product with A
 //###################################################
@@ -22,7 +22,7 @@ T Array<T>::InnerProduct(Array<T> *A)
   T result = 0;
 
   T *pA = A->GetPointer();
-  
+
   if (cudaFlag == 1) {
     thrust::device_ptr<T> dev_ptr(deviceVec);
     thrust::device_ptr<T> dev_ptrA(&(pA[0]));

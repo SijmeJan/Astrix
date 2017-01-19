@@ -9,12 +9,12 @@
 #include "../Common/cudaLow.h"
 #include "../Common/profile.h"
 
-namespace astrix {   
+namespace astrix {
 
 //######################################################################
-/*! \brief Calculate Roe's parameter vector at vertex \a n. 
+/*! \brief Calculate Roe's parameter vector at vertex \a n.
 
-This function calculates Roe's parameter vector Z at vertex \a n. 
+This function calculates Roe's parameter vector Z at vertex \a n.
 
  \param n index of vertex.
  \param *pState Pointer to state vector at vertices
@@ -26,16 +26,16 @@ __host__ __device__
 void CalcParamVecSingle(int n, real4 *pState, real4 *pVz, real G1)
 {
   real half = (real) 0.5;
-  
+
   real dens = pState[n].x;
   real momx = pState[n].y;
   real momy = pState[n].z;
   real ener = pState[n].w;
-  
+
   real d = sqrt(dens);
   real u = momx/dens;
   real v = momy/dens;
-  
+
   // Pressure
   real p = G1*(ener - half*dens*(u*u + v*v));
 
@@ -53,9 +53,9 @@ void CalcParamVecSingle(int n, real *pState, real *pVz, real G1)
 }
 
 //######################################################################
-/*! \brief Kernel to calculate Roe's parameter vector at all vertices. 
+/*! \brief Kernel to calculate Roe's parameter vector at all vertices.
 
-This kernel function calculates Roe's parameter vector Z for all vertices in the mesh. 
+This kernel function calculates Roe's parameter vector Z for all vertices in the mesh.
 
  \param nVertex total number of vertices.
  \param *pState Pointer to state vector at vertices
@@ -63,63 +63,63 @@ This kernel function calculates Roe's parameter vector Z for all vertices in the
  \param G1 Ratio of specific heats - 1*/
 //######################################################################
 
-__global__ void 
+__global__ void
 devCalcParamVec(int nVertex, realNeq *pState, realNeq *pVz, real G1)
 {
   // n=vertex number
-  int n = blockIdx.x*blockDim.x + threadIdx.x; 
+  int n = blockIdx.x*blockDim.x + threadIdx.x;
 
-  while (n < nVertex){
+  while (n < nVertex) {
     CalcParamVecSingle(n, pState, pVz, G1);
-    
+
     n += blockDim.x*gridDim.x;
   }
 }
 
 //##############################################################################
-/*! This function calculates Roe's parameter vector Z for all vertices in the mesh, based on either \a vertexState or \a vertexStateOld. 
-    
+/*! This function calculates Roe's parameter vector Z for all vertices in the mesh, based on either \a vertexState or \a vertexStateOld.
+
   \param useOldFlag flag indicating whether to use \a vertexStateOld (1) or \a vertexState (any other value).*/
 //##############################################################################
 
-void Simulation::CalculateParameterVector(int useOldFlag)	
+void Simulation::CalculateParameterVector(int useOldFlag)
 {
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
-  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&start) );
   gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
   int nVertex = mesh->GetNVertex();
 
   realNeq *pState = vertexState->GetPointer();
-  
+
   // Use old state
-  if (useOldFlag == 1) 
+  if (useOldFlag == 1)
     pState = vertexStateOld->GetPointer();
-  
+
   realNeq *pVz = vertexParameterVector->GetPointer();
 
   if (cudaFlag == 1) {
     int nThreads = 128;
     int nBlocks  = 128;
-    
+
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devCalcParamVec, 
-				       (size_t) 0, 0);
+                                       devCalcParamVec,
+                                       (size_t) 0, 0);
 
-    // Execute kernel... 
+    // Execute kernel...
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-    devCalcParamVec<<<nBlocks,nThreads>>>
+    devCalcParamVec<<<nBlocks, nThreads>>>
       (nVertex, pState, pVz, specificHeatRatio - 1.0);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
-#endif      
+#endif
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
@@ -131,14 +131,13 @@ void Simulation::CalculateParameterVector(int useOldFlag)
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
-#endif      
+#endif
   }
 
 #ifdef TIME_ASTRIX
   gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("Param.prof2", nVertex, elapsedTime, cudaFlag);
 #endif
+}
 
-}
-  
-}
+}  // namespace astrix

@@ -10,7 +10,7 @@
 #include "./connectivity.h"
 
 namespace astrix {
-  
+
 //#########################################################################
 /*! Constructor for Connectivity class. Memory is allocated in large chunks to minimise any further calls to cudaMalloc when improving the Mesh.*/
 //#########################################################################

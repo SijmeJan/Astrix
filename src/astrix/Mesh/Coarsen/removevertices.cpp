@@ -15,7 +15,7 @@
 #include "../Predicates/predicates.h"
 
 namespace astrix {
-  
+
 //#########################################################################
 /*! Coarsen mesh. First calculate an estimate of the discretization error and flag triangles that can be coarsened. Then remove as many vertices as possible from mesh.
 
@@ -25,14 +25,14 @@ namespace astrix {
 //#########################################################################
 
 int Coarsen::RemoveVertices(Connectivity *connectivity,
-			    Predicates *predicates,
-			    Array<realNeq> *vertexState,
-			    real specificHeatRatio,
-			    Array<int> *triangleWantRefine,
-			    const MeshParameter *meshParameter,
-			    Delaunay *delaunay,
-			    int maxCycle,
-			    Array<unsigned int> *randomVector)
+                            Predicates *predicates,
+                            Array<realNeq> *vertexState,
+                            real specificHeatRatio,
+                            Array<int> *triangleWantRefine,
+                            const MeshParameter *meshParameter,
+                            Delaunay *delaunay,
+                            int maxCycle,
+                            Array<unsigned int> *randomVector)
 {
   nvtxEvent *nvtxCoarsen = new nvtxEvent("Coarsen", 0);
 
@@ -46,133 +46,133 @@ int Coarsen::RemoveVertices(Connectivity *connectivity,
   int finishedCoarsen = 0;
   int removedVerticesFlag = 0;
 
-  while (!finishedCoarsen) {    
-    if (verboseLevel > 1) std::cout << "Coarsen cycle " << nCycle; 
-    
+  while (!finishedCoarsen) {
+    if (verboseLevel > 1) std::cout << "Coarsen cycle " << nCycle;
+
     RejectLargeTriangles(connectivity, meshParameter, triangleWantRefine);
-    
+
     // For every vertex, a single triangle associated with it
     nVertex = connectivity->vertexCoordinates->GetSize();
     vertexTriangle->SetSize(nVertex);
 
     FillVertexTriangle(connectivity);
     int maxTriPerVert = MaxTriPerVert(connectivity);
-   
+
     Array<int> *vertexRemoveFlag =
       new Array<int>(1, cudaFlag, nVertex);
     // Assume all vertices can be removed
     vertexRemoveFlag->SetToValue(1);
 
     FlagVertexRemove(connectivity, vertexRemoveFlag, triangleWantRefine);
-    
+
     Array<int> *vertexRemoveFlagScan =
       new Array<int>(1, cudaFlag, nVertex);
-    int nRemove = vertexRemoveFlag->ExclusiveScan(vertexRemoveFlagScan, 
-						  nVertex);
- 
+    int nRemove = vertexRemoveFlag->ExclusiveScan(vertexRemoveFlagScan,
+                                                  nVertex);
+
     if (verboseLevel > 1)
       std::cout << " nRemove: " << nRemove;
-    
+
     if (nRemove == 0) {
       finishedCoarsen = 1;
       if (verboseLevel > 1) std::cout << std::endl;
     } else {
       vertexRemove->SetSize(nVertex);
       vertexRemove->SetToSeries();
-      vertexRemove->Compact(nRemove, vertexRemoveFlag, 
-			    vertexRemoveFlagScan);
-      vertexTriangle->Compact(nRemove, vertexRemoveFlag, 
-			      vertexRemoveFlagScan);
+      vertexRemove->Compact(nRemove, vertexRemoveFlag,
+                            vertexRemoveFlagScan);
+      vertexTriangle->Compact(nRemove, vertexRemoveFlag,
+                              vertexRemoveFlagScan);
 
       vertexRemoveFlag->SetSize(nRemove);
       vertexRemoveFlag->SetToValue(1);
 
       // Check if removing vertex leads to encroached triangle
       CheckEncroach(connectivity, predicates, vertexRemoveFlag, meshParameter);
-      
+
       vertexRemoveFlagScan->SetSize(nRemove);
-      nRemove = vertexRemoveFlag->ExclusiveScan(vertexRemoveFlagScan, 
-						nRemove);
+      nRemove = vertexRemoveFlag->ExclusiveScan(vertexRemoveFlagScan,
+                                                nRemove);
 
       if (nRemove == 0) {
-	finishedCoarsen = 1;
-	if (verboseLevel > 1) std::cout << std::endl;
+        finishedCoarsen = 1;
+        if (verboseLevel > 1) std::cout << std::endl;
       } else {
-	vertexRemove->Compact(nRemove, vertexRemoveFlag, 
-			      vertexRemoveFlagScan);
-	vertexTriangle->Compact(nRemove, vertexRemoveFlag, 
-				vertexRemoveFlagScan);
+        vertexRemove->Compact(nRemove, vertexRemoveFlag,
+                              vertexRemoveFlagScan);
+        vertexTriangle->Compact(nRemove, vertexRemoveFlag,
+                                vertexRemoveFlagScan);
 
-	if (verboseLevel > 1) 
-	  std::cout << ", vertices to be removed: " << nRemove << ", ";
-	
-	// Find list of vertices that can be removed in parallel
-	FindParallelDeletionSet(connectivity, maxTriPerVert, randomVector);
-	nRemove = vertexRemove->GetSize();
-	
-	if (verboseLevel > 1) 
-	  std::cout << "in parallel: " << nRemove << std::endl;
+        if (verboseLevel > 1)
+          std::cout << ", vertices to be removed: " << nRemove << ", ";
 
-	if (debugLevel > 0) {
-	  if (nRemove == 0) {
-	    std::cout << "Error!" << std::endl;
-	    int qq; std::cin >>qq;
-	  }
-	}
-	
-	Array<int> *vertexTriangleList =
-	  new Array<int>(1, cudaFlag, nRemove*maxTriPerVert);
-	vertexTriangleList->SetToValue(-1);
-	
-	CreateVertexTriangleList(connectivity,
-				 vertexTriangleList,
-				 maxTriPerVert);
-	
-	Array<int> *vertexTriangleAllowed =
-	  new Array<int>(1, cudaFlag, nRemove*maxTriPerVert);
-	
-	FindAllowedTargetTriangles(connectivity, predicates,
-				   vertexTriangleAllowed,
-				   vertexTriangleList, maxTriPerVert,
-				   meshParameter);
-	
-	Array<int> *triangleTarget =
-	  new Array<int>(1, cudaFlag, nRemove);
-	
-	FindTargetTriangles(connectivity, triangleWantRefine,
-			    triangleTarget, vertexTriangleAllowed,
-			    vertexTriangleList, maxTriPerVert);
-	
-	delete vertexTriangleAllowed;
-	
-	Array<int> *vertexNeighbour =
-	  new Array<int>(1, cudaFlag, nRemove*maxTriPerVert);
-	
-	FindVertexNeighbours(connectivity, vertexNeighbour, triangleTarget,
-			     vertexTriangleList, maxTriPerVert);
-	
-	AdjustState(connectivity, maxTriPerVert,
-		    vertexTriangleList,
-		    triangleTarget,
-		    vertexState,
-		    specificHeatRatio,
-		    meshParameter,
-		    vertexNeighbour);
-		
-	delete vertexNeighbour;
-	
-	// Remove vertices from mesh
-	Remove(connectivity, triangleWantRefine,
-	       vertexTriangleList, maxTriPerVert,
-	       triangleTarget, vertexState);
-	
-	delete vertexTriangleList;
-	delete triangleTarget;
-	
-	delaunay->MakeDelaunay(connectivity, vertexState,
-			       predicates, meshParameter, 0, 0, 0, 0);
+        // Find list of vertices that can be removed in parallel
+        FindParallelDeletionSet(connectivity, maxTriPerVert, randomVector);
+        nRemove = vertexRemove->GetSize();
 
-	removedVerticesFlag = 1;
+        if (verboseLevel > 1)
+          std::cout << "in parallel: " << nRemove << std::endl;
+
+        if (debugLevel > 0) {
+          if (nRemove == 0) {
+            std::cout << "Error!" << std::endl;
+            int qq; std::cin >>qq;
+          }
+        }
+
+        Array<int> *vertexTriangleList =
+          new Array<int>(1, cudaFlag, nRemove*maxTriPerVert);
+        vertexTriangleList->SetToValue(-1);
+
+        CreateVertexTriangleList(connectivity,
+                                 vertexTriangleList,
+                                 maxTriPerVert);
+
+        Array<int> *vertexTriangleAllowed =
+          new Array<int>(1, cudaFlag, nRemove*maxTriPerVert);
+
+        FindAllowedTargetTriangles(connectivity, predicates,
+                                   vertexTriangleAllowed,
+                                   vertexTriangleList, maxTriPerVert,
+                                   meshParameter);
+
+        Array<int> *triangleTarget =
+          new Array<int>(1, cudaFlag, nRemove);
+
+        FindTargetTriangles(connectivity, triangleWantRefine,
+                            triangleTarget, vertexTriangleAllowed,
+                            vertexTriangleList, maxTriPerVert);
+
+        delete vertexTriangleAllowed;
+
+        Array<int> *vertexNeighbour =
+          new Array<int>(1, cudaFlag, nRemove*maxTriPerVert);
+
+        FindVertexNeighbours(connectivity, vertexNeighbour, triangleTarget,
+                             vertexTriangleList, maxTriPerVert);
+
+        AdjustState(connectivity, maxTriPerVert,
+                    vertexTriangleList,
+                    triangleTarget,
+                    vertexState,
+                    specificHeatRatio,
+                    meshParameter,
+                    vertexNeighbour);
+
+        delete vertexNeighbour;
+
+        // Remove vertices from mesh
+        Remove(connectivity, triangleWantRefine,
+               vertexTriangleList, maxTriPerVert,
+               triangleTarget, vertexState);
+
+        delete vertexTriangleList;
+        delete triangleTarget;
+
+        delaunay->MakeDelaunay(connectivity, vertexState,
+                               predicates, meshParameter, 0, 0, 0, 0);
+
+        removedVerticesFlag = 1;
       }
     }
 
@@ -180,12 +180,12 @@ int Coarsen::RemoveVertices(Connectivity *connectivity,
     delete vertexRemoveFlagScan;
 
     nCycle++;
-    
+
     if (nCycle >= maxCycle) finishedCoarsen = 1;
   }
- 
+
   delete nvtxCoarsen;
-  
+
   return nVertexOld - nVertex;
 }
 

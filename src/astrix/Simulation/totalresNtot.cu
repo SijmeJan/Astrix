@@ -37,23 +37,23 @@ namespace astrix {
 \param G2 G - 2
 \param iG 1/G*/
 //######################################################################
-  
+
 __host__ __device__
 void CalcTotalResNtotSingle(const int n, const real dt,
-			    const int3* __restrict__ pTv, 
-			    const real4* __restrict__ pVz, 
-			    real4 *pDstate,
-			    const real2 *pTn1, 
-			    const real2 *pTn2,
-			    const real2 *pTn3, 
-			    const real3* __restrict__ pTl,
-			    real4 *pResSource, 
-			    real4 *pTresN0, 
-			    real4 *pTresN1,
-			    real4 *pTresN2, 
-			    real4 *pTresTot, 
-			    int nVertex, const real G, const real G1,
-			    const real G2, const real iG)
+                            const int3* __restrict__ pTv,
+                            const real4* __restrict__ pVz,
+                            real4 *pDstate,
+                            const real2 *pTn1,
+                            const real2 *pTn2,
+                            const real2 *pTn3,
+                            const real3* __restrict__ pTl,
+                            real4 *pResSource,
+                            real4 *pTresN0,
+                            real4 *pTresN1,
+                            real4 *pTresN2,
+                            real4 *pTresTot,
+                            int nVertex, const real G, const real G1,
+                            const real G2, const real iG)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -85,7 +85,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real dW21 = pDstate[v3].y;
   real dW22 = pDstate[v3].z;
   real dW23 = pDstate[v3].w;
-  
+
   real Tl1 = pTl[n].x;
   real Tl2 = pTl[n].y;
   real Tl3 = pTl[n].z;
@@ -119,7 +119,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real ResTot1 = pTresTot[n].y + two*Adt*(dW01 + dW11 + dW21);
   real ResTot2 = pTresTot[n].z + two*Adt*(dW02 + dW12 + dW22);
   real ResTot3 = pTresTot[n].w + two*Adt*(dW03 + dW13 + dW23);
-  
+
   // Parameter vector at vertices: 12 uncoalesced loads
   real Zv00 = pVz[v1].x;
   real Zv01 = pVz[v1].y;
@@ -133,7 +133,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real Zv21 = pVz[v3].y;
   real Zv22 = pVz[v3].z;
   real Zv23 = pVz[v3].w;
-  
+
   // Average parameter vector
   real Z0 = (Zv00 + Zv10 + Zv20)*onethird;
   real Z1 = (Zv01 + Zv11 + Zv21)*onethird;
@@ -144,15 +144,15 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real What00 = two*Z0*Zv00;
   real What01 = Z1*Zv00 + Z0*Zv01;
   real What02 = Z2*Zv00 + Z0*Zv02;
-  real What03 = (Z3*Zv00 + G1*(Z1*Zv01 + Z2*Zv02) + Z0*Zv03)*iG;      
+  real What03 = (Z3*Zv00 + G1*(Z1*Zv01 + Z2*Zv02) + Z0*Zv03)*iG;
   real What10 = two*Z0*Zv10;
   real What11 = Z1*Zv10 + Z0*Zv11;
   real What12 = Z2*Zv10 + Z0*Zv12;
-  real What13 = (Z3*Zv10 + G1*(Z1*Zv11 + Z2*Zv12) + Z0*Zv13)*iG;      
+  real What13 = (Z3*Zv10 + G1*(Z1*Zv11 + Z2*Zv12) + Z0*Zv13)*iG;
   real What20 = two*Z0*Zv20;
   real What21 = Z1*Zv20 + Z0*Zv21;
   real What22 = Z2*Zv20 + Z0*Zv22;
-  real What23 = (Z3*Zv20 + G1*(Z1*Zv21 + Z2*Zv22) + Z0*Zv23)*iG;      
+  real What23 = (Z3*Zv20 + G1*(Z1*Zv21 + Z2*Zv22) + Z0*Zv23)*iG;
 
   real tnx1 = pTn1[n].x;
   real tny1 = pTn1[n].y;
@@ -169,22 +169,22 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real ResSource1 = pResSource[n].y;
   real ResSource2 = pResSource[n].z;
   real ResSource3 = pResSource[n].w;
-  
+
   ResTot0 += ResSource0;
   ResTot1 += ResSource1;
   ResTot2 += ResSource2;
   ResTot3 += ResSource3;
-  
+
   real utilde = Z1/Z0;
   real vtilde = Z2/Z0;
   real htilde = Z3/Z0;
   real alpha = G1*half*(Sq(utilde) + Sq(vtilde));
-    
+
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate the total residue = Sum(K*What)
-  // Not necessary for first-order N scheme 
+  // Not necessary for first-order N scheme
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+
   // First direction
   real nx = half*tnx1*tl1;
   real ny = half*tny1*tl1;
@@ -208,7 +208,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
     What01*eulerK31(G1, nx, htilde, wtilde, utilde) +
     What02*eulerK32(G1, ny, htilde, wtilde, vtilde) +
     What03*eulerK33(G, wtilde);
-  
+
   // Second direction
   nx = half*tnx2*tl2;
   ny = half*tny2*tl2;
@@ -232,7 +232,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
     What11*eulerK31(G1, nx, htilde, wtilde, utilde) +
     What12*eulerK32(G1, ny, htilde, wtilde, vtilde) +
     What13*eulerK33(G, wtilde);
-  
+
   // Third direction
   nx = half*tnx3*tl3;
   ny = half*tny3*tl3;
@@ -241,26 +241,26 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   ResTot0 +=
     What21*eulerK01(nx) +
     What22*eulerK02(ny);
-  pTresTot[n].x = half*ResTot0;   
+  pTresTot[n].x = half*ResTot0;
   ResTot1 +=
     What20*eulerK10(nx, alpha, wtilde, utilde) +
     What21*eulerK11(G2, nx, wtilde, utilde) +
     What22*eulerK12(G1, nx, ny, utilde, vtilde) +
     What23*eulerK13(G1, nx);
-  pTresTot[n].y = half*ResTot1;   
+  pTresTot[n].y = half*ResTot1;
   ResTot2 +=
     What20*eulerK20(ny, alpha, wtilde, vtilde) +
     What21*eulerK21(G1, nx, ny, utilde, vtilde) +
     What22*eulerK22(G2, ny, wtilde, vtilde) +
     What23*eulerK23(G1, ny);
-  pTresTot[n].z = half*ResTot2;   
+  pTresTot[n].z = half*ResTot2;
   ResTot3 +=
     What20*eulerK30(alpha, htilde, wtilde) +
     What21*eulerK31(G1, nx, htilde, wtilde, utilde) +
     What22*eulerK32(G1, ny, htilde, wtilde, vtilde) +
     What23*eulerK33(G, wtilde);
-  pTresTot[n].w = half*ResTot3;   
-  
+  pTresTot[n].w = half*ResTot3;
+
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate Wtemp = Sum(K-*What)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -273,21 +273,21 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real km;
   real ic = one/sqrt(G1*htilde - alpha);
   real ctilde = one/ic;
-  
+
   real hc = htilde*ic;
   real uc = utilde*ic;
   real vc = vtilde*ic;
   real ac = alpha*ic;
-  
+
   // First direction
   nx = half*tnx1;
   ny = half*tny1;
   real tl = tl1;
   wtilde = utilde*nx + vtilde*ny;
-  
-  //real l1 = min(zero, wtilde + ctilde);
-  //real l2 = min(zero, wtilde - ctilde);
-  //real l3 = min(zero, wtilde);
+
+  // real l1 = min(zero, wtilde + ctilde);
+  // real l2 = min(zero, wtilde - ctilde);
+  // real l3 = min(zero, wtilde);
   real l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
   real l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
   real l3 = half*(wtilde - fabs(wtilde));
@@ -299,227 +299,227 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   km = eulerKMP00(ac, ic, wtilde, l1l2l3, l1l2, l3);
   Wtemp0 += tl*km*What00;
   real nm00 = tl*km;
-    
+
   km = eulerKMP01(G1, nx, ic, uc, l1l2l3, l1l2);
   Wtemp0 += tl*km*What01;
   real nm01 = tl*km;
-    
+
   km = eulerKMP02(G1, ny, ic, vc, l1l2l3, l1l2);
   Wtemp0 += tl*km*What02;
   real nm02 = tl*km;
-    
+
   km = eulerKMP03(G1, ic, l1l2l3);
   Wtemp0 += tl*km*What03;
   real nm03 = tl*km;
-    
+
   km = eulerKMP10(nx, ac, uc, wtilde, l1l2l3, l1l2);
   Wtemp1 += tl*km*What00;
   real nm10 = tl*km;
-    
+
   km = eulerKMP11(G1, G2, nx, uc, l1l2l3, l1l2, l3);
   Wtemp1 += tl*km*What01;
   real nm11 = tl*km;
-  
+
   km = eulerKMP12(G1, nx, ny, uc, vc, l1l2l3, l1l2);
   Wtemp1 += tl*km*What02;
   real nm12 = tl*km;
-    
+
   km = eulerKMP13(G1, nx, ic, uc, l1l2l3, l1l2);
   Wtemp1 += tl*km*What03;
   real nm13 = tl*km;
-    
+
   km = eulerKMP20(ny, ac, vc, wtilde, l1l2l3, l1l2);
   Wtemp2 += tl*km*What00;
   real nm20 = tl*km;
-    
+
   km = eulerKMP21(G1, nx, ny, uc, vc, l1l2l3, l1l2);
   Wtemp2 += tl*km*What01;
   real nm21 = tl*km;
-  
+
   km = eulerKMP22(G1, G2, ny, vc, l1l2l3, l1l2, l3);
   Wtemp2 += tl*km*What02;
   real nm22 = tl*km;
-  
+
   km = eulerKMP23(G1, ny, ic, vc, l1l2l3, l1l2);
   Wtemp2 += tl*km*What03;
   real nm23 = tl*km;
-  
+
   km = eulerKMP30(ac, hc, wtilde, l1l2l3, l1l2);
   Wtemp3 += tl*km*What00;
   real nm30 = tl*km;
-  
-  km = eulerKMP31(G1, nx, hc, uc, wtilde, l1l2l3, l1l2); 
+
+  km = eulerKMP31(G1, nx, hc, uc, wtilde, l1l2l3, l1l2);
   Wtemp3 += tl*km*What01;
   real nm31 = tl*km;
-  
+
   km = eulerKMP32(G1, ny, hc, vc, wtilde, l1l2l3, l1l2);
   Wtemp3 += tl*km*What02;
   real nm32 = tl*km;
-  
+
   km = eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
   Wtemp3 += tl*km*What03;
   real nm33 = tl*km;
-  
-  // Second direction         
+
+  // Second direction
   nx = half*tnx2;
   ny = half*tny2;
   tl = tl2;
   wtilde = (uc*nx + vc*ny)*ctilde;
-  
+
   l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
   l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
   l3 = half*(wtilde - fabs(wtilde));
- 
+
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
-  
+
   km = eulerKMP00(ac, ic, wtilde, l1l2l3, l1l2, l3);
   Wtemp0 += tl*km*What10;
   nm00 += tl*km;
-  
+
   km = eulerKMP01(G1, nx, ic, uc, l1l2l3, l1l2);
   Wtemp0 += tl*km*What11;
   nm01 += tl*km;
-  
+
   km = eulerKMP02(G1, ny, ic, vc, l1l2l3, l1l2);
   Wtemp0 += tl*km*What12;
   nm02 += tl*km;
-  
+
   km = eulerKMP03(G1, ic, l1l2l3);
   Wtemp0 += tl*km*What13;
   nm03 += tl*km;
-  
+
   km = eulerKMP10(nx, ac, uc, wtilde, l1l2l3, l1l2);
   Wtemp1 += tl*km*What10;
   nm10 += tl*km;
-  
+
   km = eulerKMP11(G1, G2, nx, uc, l1l2l3, l1l2, l3);
   Wtemp1 += tl*km*What11;
   nm11 += tl*km;
-  
+
   km = eulerKMP12(G1, nx, ny, uc, vc, l1l2l3, l1l2);
   Wtemp1 += tl*km*What12;
   nm12 += tl*km;
-  
+
   km = eulerKMP13(G1, nx, ic, uc, l1l2l3, l1l2);
   Wtemp1 += tl*km*What13;
   nm13 += tl*km;
-  
+
   km = eulerKMP20(ny, ac, vc, wtilde, l1l2l3, l1l2);
   Wtemp2 += tl*km*What10;
   nm20 += tl*km;
-  
+
   km = eulerKMP21(G1, nx, ny, uc, vc, l1l2l3, l1l2);
   Wtemp2 += tl*km*What11;
   nm21 += tl*km;
-  
+
   km = eulerKMP22(G1, G2, ny, vc, l1l2l3, l1l2, l3);
   Wtemp2 += tl*km*What12;
   nm22 += tl*km;
-  
+
   km = eulerKMP23(G1, ny, ic, vc, l1l2l3, l1l2);
   Wtemp2 += tl*km*What13;
   nm23 += tl*km;
-  
+
   km = eulerKMP30(ac, hc, wtilde, l1l2l3, l1l2);
   Wtemp3 += tl*km*What10;
   nm30 += tl*km;
-  
+
   km = eulerKMP31(G1, nx, hc, uc, wtilde, l1l2l3, l1l2);
   Wtemp3 += tl*km*What11;
   nm31 += tl*km;
-  
+
   km = eulerKMP32(G1, ny, hc, vc, wtilde, l1l2l3, l1l2);
   Wtemp3 += tl*km*What12;
   nm32 += tl*km;
-  
+
   km = eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
   Wtemp3 += tl*km*What13;
   nm33 += tl*km;
-  
+
   // Third direction
   nx = half*tnx3;
   ny = half*tny3;
   tl = tl3;
   wtilde = (uc*nx + vc*ny)*ctilde;
-  
+
   l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
   l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
   l3 = half*(wtilde - fabs(wtilde));
-  
+
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
-  
+
   km = eulerKMP00(ac, ic, wtilde, l1l2l3, l1l2, l3);
   Wtemp0 += tl*km*What20;
   nm00 += tl*km;
-  
+
   km = eulerKMP01(G1, nx, ic, uc, l1l2l3, l1l2);
   Wtemp0 += tl*km*What21;
   nm01 += tl*km;
-  
+
   km = eulerKMP02(G1, ny, ic, vc, l1l2l3, l1l2);
   Wtemp0 += tl*km*What22;
   nm02 += tl*km;
-  
+
   km = eulerKMP03(G1, ic, l1l2l3);
   Wtemp0 += tl*km*What23;
   nm03 += tl*km;
-  
+
   km = eulerKMP10(nx, ac, uc, wtilde, l1l2l3, l1l2);
   Wtemp1 += tl*km*What20;
   nm10 += tl*km;
-  
+
   km = eulerKMP11(G1, G2, nx, uc, l1l2l3, l1l2, l3);
   Wtemp1 += tl*km*What21;
   nm11 += tl*km;
-  
+
   km = eulerKMP12(G1, nx, ny, uc, vc, l1l2l3, l1l2);
   Wtemp1 += tl*km*What22;
   nm12 += tl*km;
-  
+
   km = eulerKMP13(G1, nx, ic, uc, l1l2l3, l1l2);
   Wtemp1 += tl*km*What23;
   nm13 += tl*km;
-  
+
   km = eulerKMP20(ny, ac, vc, wtilde, l1l2l3, l1l2);
   Wtemp2 += tl*km*What20;
   nm20 += tl*km;
-  
+
   km = eulerKMP21(G1, nx, ny, uc, vc, l1l2l3, l1l2);
   Wtemp2 += tl*km*What21;
   nm21 += tl*km;
-  
+
   km = eulerKMP22(G1, G2, ny, vc, l1l2l3, l1l2, l3);
   Wtemp2 += tl*km*What22;
   nm22 += tl*km;
-  
+
   km = eulerKMP23(G1, ny, ic, vc, l1l2l3, l1l2);
   Wtemp2 += tl*km*What23;
   nm23 += tl*km;
-  
+
   km = eulerKMP30(ac, hc, wtilde, l1l2l3, l1l2);
   Wtemp3 += tl*km*What20;
   nm30 += tl*km;
-  
+
   km = eulerKMP31(G1, nx, hc, uc, wtilde, l1l2l3, l1l2);
   Wtemp3 += tl*km*What21;
   nm31 += tl*km;
-  
+
   km = eulerKMP32(G1, ny, hc, vc, wtilde, l1l2l3, l1l2);
   Wtemp3 += tl*km*What22;
   nm32 += tl*km;
-  
+
   km = eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
   Wtemp3 += tl*km*What23;
   nm33 += tl*km;
-  
+
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate inverse of NM = Sum(K-)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+
   real d1 = nm03*nm12 - nm02*nm13;
   real d2 = nm03*nm11 - nm01*nm13;
   real d3 = nm02*nm11 - nm01*nm12;
@@ -557,7 +557,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Wtilde = N*(ResSource + K-*What)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+
   // Wtilde = Nm*Wtemp
   real Wtilde0 = invN00*Wtemp0 + invN01*Wtemp1 + invN02*Wtemp2 + invN03*Wtemp3;
   real Wtilde1 = invN10*Wtemp0 + invN11*Wtemp1 + invN12*Wtemp2 + invN13*Wtemp3;
@@ -570,7 +570,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   Wtilde1 *= det;
   Wtilde2 *= det;
   Wtilde3 *= det;
-  
+
   // What = What - Wtilde
   What00 -= Wtilde0;
   What01 -= Wtilde1;
@@ -594,13 +594,13 @@ void CalcTotalResNtotSingle(const int n, const real dt,
 
   nx = half*Tnx1;
   ny = half*Tny1;
-  
+
   wtilde = (uc*nx + vc*ny)*ctilde;
-  
+
   l1 = max(wtilde + ctilde, zero);
   l2 = max(wtilde - ctilde, zero);
-  l3 = max(wtilde, zero);    
-  
+  l3 = max(wtilde, zero);
+
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
@@ -632,7 +632,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
     What02*eulerKMP32(G1, ny, hc, vc, wtilde, l1l2l3, l1l2) +
     What03*eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
   pTresN0[n].w += half*ResN;
-  
+
   // Second direction
   real Tnx2 = pTn2[n].x;
   real Tny2 = pTn2[n].y;
@@ -640,11 +640,11 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   nx = half*Tnx2;
   ny = half*Tny2;
   wtilde = (uc*nx + vc*ny)*ctilde;
-  
+
   l1 = max(wtilde + ctilde, zero);
   l2 = max(wtilde - ctilde, zero);
-  l3 = max(wtilde, zero);    
-  
+  l3 = max(wtilde, zero);
+
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
@@ -684,11 +684,11 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   nx = half*Tnx3;
   ny = half*Tny3;
   wtilde = (uc*nx + vc*ny)*ctilde;
-  
+
   l1 = max(wtilde + ctilde, zero);
   l2 = max(wtilde - ctilde, zero);
   l3 = max(wtilde, zero);
-  
+
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
@@ -724,14 +724,14 @@ void CalcTotalResNtotSingle(const int n, const real dt,
 
 __host__ __device__
 void CalcTotalResNtotSingle(const int n, const real dt,
-			    const int3* __restrict__ pTv, 
-			    const real3* __restrict__ pVz, real3 *pDstate,
-			    const real2 *pTn1, const real2 *pTn2,
-			    const real2 *pTn3, const real3* __restrict__ pTl,
-			    real3 *pResSource, real3 *pTresN0, real3 *pTresN1,
-			    real3 *pTresN2, real3 *pTresTot, int nVertex,
-			    const real G, const real G1,
-			    const real G2, const real iG)
+                            const int3* __restrict__ pTv,
+                            const real3* __restrict__ pVz, real3 *pDstate,
+                            const real2 *pTn1, const real2 *pTn2,
+                            const real2 *pTn3, const real3* __restrict__ pTl,
+                            real3 *pResSource, real3 *pTresN0, real3 *pTresN1,
+                            real3 *pTresN2, real3 *pTresTot, int nVertex,
+                            const real G, const real G1,
+                            const real G2, const real iG)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -760,7 +760,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real dW20 = pDstate[v3].x;
   real dW21 = pDstate[v3].y;
   real dW22 = pDstate[v3].z;
-  
+
   real Tl1 = pTl[n].x;
   real Tl2 = pTl[n].y;
   real Tl3 = pTl[n].z;
@@ -790,7 +790,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real ResTot0 = pTresTot[n].x + two*Adt*(dW00 + dW10 + dW20);
   real ResTot1 = pTresTot[n].y + two*Adt*(dW01 + dW11 + dW21);
   real ResTot2 = pTresTot[n].z + two*Adt*(dW02 + dW12 + dW22);
-  
+
   // Parameter vector at vertices: 12 uncoalesced loads
   real Zv00 = pVz[v1].x;
   real Zv01 = pVz[v1].y;
@@ -801,7 +801,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real Zv20 = pVz[v3].x;
   real Zv21 = pVz[v3].y;
   real Zv22 = pVz[v3].z;
-  
+
   // Average parameter vector
   real Z0 = (Zv00 + Zv10 + Zv20)*onethird;
   real Z1 = (Zv01 + Zv11 + Zv21)*onethird;
@@ -819,7 +819,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real What22 = Z2*Zv20 + Z0*Zv22;
 
   // Source term residual
-  //real rhoAve  = Z0*Z0;
+  // real rhoAve  = Z0*Z0;
 
   real tnx1 = pTn1[n].x;
   real tny1 = pTn1[n].y;
@@ -835,21 +835,21 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real ResSource0 = pResSource[n].x;
   real ResSource1 = pResSource[n].y;
   real ResSource2 = pResSource[n].z;
-  
+
   ResTot0 += ResSource0;
   ResTot1 += ResSource1;
   ResTot2 += ResSource2;
-  
+
   // Matrix element K- + K+
-  //real kk;
+  // real kk;
 
   real utilde = Z1/Z0;
   real vtilde = Z2/Z0;
   real ctilde = one;
-  
+
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate the total residue = Sum(K*What)
-  // Not necessary for first-order N scheme 
+  // Not necessary for first-order N scheme
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   // First direction
@@ -869,7 +869,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
     What00*isoK20(ny, ctilde, wtilde, vtilde) +
     What01*isoK21(nx, vtilde) +
     What02*isoK22(ny, wtilde, vtilde);
-   
+
   // Second direction
   tl = tl2;
   nx = half*tl*tnx2;
@@ -887,7 +887,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
     What10*isoK20(ny, ctilde, wtilde, vtilde) +
     What11*isoK21(nx, vtilde) +
     What12*isoK22(ny, wtilde, vtilde);
-  
+
   // Third direction
   tl = tl3;
   nx = half*tl*tnx3;
@@ -897,17 +897,17 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   ResTot0 +=
     What21*isoK01(nx) +
     What22*isoK02(ny);
-  pTresTot[n].x = half*ResTot0;   
+  pTresTot[n].x = half*ResTot0;
   ResTot1 +=
     What20*isoK10(nx, ctilde, wtilde, utilde) +
     What21*isoK11(nx, wtilde, utilde) +
     What22*isoK12(ny, utilde);
-  pTresTot[n].y = half*ResTot1;   
+  pTresTot[n].y = half*ResTot1;
   ResTot2 +=
     What20*isoK20(ny, ctilde, wtilde, vtilde) +
     What21*isoK21(nx, vtilde) +
     What22*isoK22(ny, wtilde, vtilde);
-  pTresTot[n].z = half*ResTot2;   
+  pTresTot[n].z = half*ResTot2;
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate Wtemp = Sum(K-*What)
@@ -921,16 +921,16 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real ic = one/ctilde;
   real uc = utilde*ic;
   real vc = vtilde*ic;
-  
+
   // First direction
   nx = half*tnx1;
   ny = half*tny1;
   tl = tl1;
   wtilde = utilde*nx + vtilde*ny;
-  
-  //real l1 = min(zero, wtilde + ctilde);
-  //real l2 = min(zero, wtilde - ctilde);
-  //real l3 = min(zero, wtilde);
+
+  // real l1 = min(zero, wtilde + ctilde);
+  // real l2 = min(zero, wtilde - ctilde);
+  // real l3 = min(zero, wtilde);
   real l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
   real l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
   real l3 = half*(wtilde - fabs(wtilde));
@@ -938,180 +938,180 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   // Auxiliary variables
   real l1l2l3 = half*(l1 + l2) - l3;
   real l1l2 = half*(l1 - l2);
-  
-  // km[0][0][0]    
+
+  // km[0][0][0]
   km = isoKMP00(ic, wtilde, l1l2, l2);
   Wtemp0 += tl*km*What00;
   real nm00 = tl*km;
-  
+
   // km[0][0][1]
   km = isoKMP01(nx, ic, l1l2);
   Wtemp0 += tl*km*What01;
   real nm01 = tl*km;
-  
+
   // km[0][0][2]
   km = isoKMP02(ny, ic, l1l2);
   Wtemp0 += tl*km*What02;
   real nm02 = tl*km;
-  
+
   // km[0][1][0]
   km = isoKMP10(nx, ctilde, uc, wtilde, l1l2l3, l1l2);
   Wtemp1 += tl*km*What00;
   real nm10 = tl*km;
-  
+
   // km[0][1][1]
   km = isoKMP11(nx, uc, l1l2l3, l1l2, l3);
   Wtemp1 += tl*km*What01;
   real nm11 = tl*km;
-  
+
   // km[0][1][2]
   km = isoKMP12(nx, ny, uc, l1l2l3, l1l2);
   Wtemp1 += tl*km*What02;
   real nm12 = tl*km;
-  
+
   // km[0][2][0]
   km = isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2);
   Wtemp2 += tl*km*What00;
   real nm20 = tl*km;
-  
+
   // km[0][2][1]
   km = isoKMP21(nx, ny, vc, l1l2l3, l1l2);
   Wtemp2 += tl*km*What01;
   real nm21 = tl*km;
-  
+
   // km[0][2][2]
   km = isoKMP22(ny, vc, l1l2l3, l1l2, l3);
   Wtemp2 += tl*km*What02;
   real nm22 = tl*km;
-  
-  // Second direction         
+
+  // Second direction
   nx = half*tnx2;
   ny = half*tny2;
   tl = tl2;
   wtilde = (uc*nx + vc*ny)*ctilde;
-  
-  //l1 = min(wtilde + ctilde, zero);
-  //l2 = min(wtilde - ctilde, zero);
-  //l3 = min(wtilde, zero);
+
+  // l1 = min(wtilde + ctilde, zero);
+  // l2 = min(wtilde - ctilde, zero);
+  // l3 = min(wtilde, zero);
   l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
   l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
   l3 = half*(wtilde - fabs(wtilde));
- 
+
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
 
-  // km[0][0][0]    
+  // km[0][0][0]
   km = isoKMP00(ic, wtilde, l1l2, l2);
   Wtemp0 += tl*km*What10;
   nm00 += tl*km;
-  
+
   // km[0][0][1]
   km = isoKMP01(nx, ic, l1l2);
   Wtemp0 += tl*km*What11;
   nm01 += tl*km;
-  
+
   // km[0][0][2]
   km = isoKMP02(ny, ic, l1l2);
   Wtemp0 += tl*km*What12;
   nm02 += tl*km;
-  
+
   // km[0][1][0]
   km = isoKMP10(nx, ctilde, uc, wtilde, l1l2l3, l1l2);
   Wtemp1 += tl*km*What10;
   nm10 += tl*km;
-  
+
   // km[0][1][1]
   km = isoKMP11(nx, uc, l1l2l3, l1l2, l3);
   Wtemp1 += tl*km*What11;
   nm11 += tl*km;
-  
+
   // km[0][1][2]
   km = isoKMP12(nx, ny, uc, l1l2l3, l1l2);
   Wtemp1 += tl*km*What12;
   nm12 += tl*km;
-  
+
   // km[0][2][0]
   km = isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2);
   Wtemp2 += tl*km*What10;
   nm20 += tl*km;
-  
+
   // km[0][2][1]
   km = isoKMP21(nx, ny, vc, l1l2l3, l1l2);
   Wtemp2 += tl*km*What11;
   nm21 += tl*km;
-  
+
   // km[0][2][2]
   km = isoKMP22(ny, vc, l1l2l3, l1l2, l3);
   Wtemp2 += tl*km*What12;
   nm22 += tl*km;
-  
+
   // Third direction
   nx = half*tnx3;
   ny = half*tny3;
   tl = tl3;
   wtilde = (uc*nx + vc*ny)*ctilde;
-  
-  //l1 = min(wtilde + ctilde, zero);
-  //l2 = min(wtilde - ctilde, zero);
-  //l3 = min(wtilde, zero);
+
+  // l1 = min(wtilde + ctilde, zero);
+  // l2 = min(wtilde - ctilde, zero);
+  // l3 = min(wtilde, zero);
   l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
   l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
   l3 = half*(wtilde - fabs(wtilde));
-  
+
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
-  
-  // km[0][0][0]    
+
+  // km[0][0][0]
   km = isoKMP00(ic, wtilde, l1l2, l2);
   Wtemp0 += tl*km*What20;
   nm00 += tl*km;
-  
+
   // km[0][0][1]
   km = isoKMP01(nx, ic, l1l2);
   Wtemp0 += tl*km*What21;
   nm01 += tl*km;
-  
+
   // km[0][0][2]
   km = isoKMP02(ny, ic, l1l2);
   Wtemp0 += tl*km*What22;
   nm02 += tl*km;
-  
+
   // km[0][1][0]
   km = isoKMP10(nx, ctilde, uc, wtilde, l1l2l3, l1l2);
   Wtemp1 += tl*km*What20;
   nm10 += tl*km;
-  
+
   // km[0][1][1]
   km = isoKMP11(nx, uc, l1l2l3, l1l2, l3);
   Wtemp1 += tl*km*What21;
   nm11 += tl*km;
-  
+
   // km[0][1][2]
   km = isoKMP12(nx, ny, uc, l1l2l3, l1l2);
   Wtemp1 += tl*km*What22;
   nm12 += tl*km;
-  
+
   // km[0][2][0]
   km = isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2);
   Wtemp2 += tl*km*What20;
   nm20 += tl*km;
-  
+
   // km[0][2][1]
   km = isoKMP21(nx, ny, vc, l1l2l3, l1l2);
   Wtemp2 += tl*km*What21;
   nm21 += tl*km;
-  
+
   // km[0][2][2]
   km = isoKMP22(ny, vc, l1l2l3, l1l2, l3);
   Wtemp2 += tl*km*What22;
   nm22 += tl*km;
-  
+
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate inverse of NM = Sum(K-)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+
   real invN00 = nm11*nm22 - nm12*nm21;
   real invN01 = nm02*nm21 - nm01*nm22;
   real invN02 = nm01*nm12 - nm02*nm11;
@@ -1127,7 +1127,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Wtilde = N*(ResSource + K-*What)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+
   // Wtilde = Nm*Wtemp
   real Wtilde0 = invN00*Wtemp0 + invN01*Wtemp1 + invN02*Wtemp2;
   real Wtilde1 = invN10*Wtemp0 + invN11*Wtemp1 + invN12*Wtemp2;
@@ -1138,7 +1138,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   Wtilde0 *= det;
   Wtilde1 *= det;
   Wtilde2 *= det;
-  
+
   // What = What - Wtilde
   What00 -= Wtilde0;
   What01 -= Wtilde1;
@@ -1151,7 +1151,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   What22 -= Wtilde2;
 
   // ResN += 0.5*K+*(What - N*(ResSource + K-*What)
-  real ResN;//, kp;
+  real ResN;
 
   // First direction
   real Tnx1 = pTn1[n].x;
@@ -1159,13 +1159,13 @@ void CalcTotalResNtotSingle(const int n, const real dt,
 
   nx = half*Tnx1;
   ny = half*Tny1;
-  
+
   wtilde = (uc*nx + vc*ny)*ctilde;
-  
+
   l1 = max(wtilde + ctilde, zero);
   l2 = max(wtilde - ctilde, zero);
-  l3 = max(wtilde, zero);    
-  
+  l3 = max(wtilde, zero);
+
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
@@ -1187,7 +1187,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
     What01*isoKMP21(nx, ny, vc, l1l2l3, l1l2) +
     What02*isoKMP22(ny, vc, l1l2l3, l1l2, l3);
   pTresN0[n].z += half*ResN;
-  
+
   // Second direction
   real Tnx2 = pTn2[n].x;
   real Tny2 = pTn2[n].y;
@@ -1195,15 +1195,15 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   nx = half*Tnx2;
   ny = half*Tny2;
   wtilde = (uc*nx + vc*ny)*ctilde;
-  
+
   l1 = max(wtilde + ctilde, zero);
   l2 = max(wtilde - ctilde, zero);
-  l3 = max(wtilde, zero);    
-  
+  l3 = max(wtilde, zero);
+
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
-  
+
   ResN =
     What10*isoKMP00(ic, wtilde, l1l2, l2) +
     What11*isoKMP01(nx, ic, l1l2) +
@@ -1221,7 +1221,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
     What11*isoKMP21(nx, ny, vc, l1l2l3, l1l2) +
     What12*isoKMP22(ny, vc, l1l2l3, l1l2, l3);
   pTresN1[n].z += half*ResN;
-  
+
   // Third direction
   real Tnx3 = pTn3[n].x;
   real Tny3 = pTn3[n].y;
@@ -1229,15 +1229,15 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   nx = half*Tnx3;
   ny = half*Tny3;
   wtilde = (uc*nx + vc*ny)*ctilde;
-  
+
   l1 = max(wtilde + ctilde, zero);
   l2 = max(wtilde - ctilde, zero);
   l3 = max(wtilde, zero);
-  
+
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
-  
+
   ResN =
     What20*isoKMP00(ic, wtilde, l1l2, l2) +
     What21*isoKMP01(nx, ic, l1l2) +
@@ -1259,14 +1259,14 @@ void CalcTotalResNtotSingle(const int n, const real dt,
 
 __host__ __device__
 void CalcTotalResNtotSingle(const int n, const real dt,
-			    const int3* __restrict__ pTv, 
-			    const real* __restrict__ pVz, real *pDstate,
-			    const real2 *pTn1, const real2 *pTn2,
-			    const real2 *pTn3, const real3* __restrict__ pTl,
-			    real *pResSource, real *pTresN0, real *pTresN1,
-			    real *pTresN2, real *pTresTot, int nVertex,
-			    const real G, const real G1,
-			    const real G2, const real iG)
+                            const int3* __restrict__ pTv,
+                            const real* __restrict__ pVz, real *pDstate,
+                            const real2 *pTn1, const real2 *pTn2,
+                            const real2 *pTn3, const real3* __restrict__ pTl,
+                            real *pResSource, real *pTresN0, real *pTresN1,
+                            real *pTresN2, real *pTresTot, int nVertex,
+                            const real G, const real G1,
+                            const real G2, const real iG)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -1288,7 +1288,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real dW0 = pDstate[v1];
   real dW1 = pDstate[v2];
   real dW2 = pDstate[v3];
-  
+
   real Tl1 = pTl[n].x;
   real Tl2 = pTl[n].y;
   real Tl3 = pTl[n].z;
@@ -1308,14 +1308,14 @@ void CalcTotalResNtotSingle(const int n, const real dt,
 
   // Replace ResTot
   real ResTot = pTresTot[n] + two*Adt*(dW0 + dW1 + dW2);
-  
+
   ResTot += pResSource[n];
 
   // Parameter vector at vertices: 12 uncoalesced loads
   real Zv0 = pVz[v1];
   real Zv1 = pVz[v2];
   real Zv2 = pVz[v3];
-  
+
   // Average parameter vector
 #if BURGERS == 1
   real Z0 = (Zv0 + Zv1 + Zv2)*onethird;
@@ -1341,18 +1341,18 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real tl1 = pTl[n].x;
   real tl2 = pTl[n].y;
   real tl3 = pTl[n].z;
-  
+
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate the total residue = Sum(K*What)
-  // Not necessary for first-order N scheme 
+  // Not necessary for first-order N scheme
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+
   // First direction
   real nx = half*tnx1*tl1;
   real ny = half*tny1*tl1;
-  
+
   ResTot += (vx*nx + vy*ny)*What0;
-  
+
   // Second direction
   nx = half*tnx2*tl2;
   ny = half*tny2*tl2;
@@ -1372,7 +1372,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   real Wtemp = zero;
-  
+
   // First direction
   nx = half*tnx1;
   ny = half*tny1;
@@ -1381,7 +1381,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real l1 = half*(vx*nx + vy*ny - fabs(vx*nx + vy*ny));
   Wtemp += tl*l1*What0;
   real nm = tl*l1;
-    
+
   // Second direction
   nx = half*tnx2;
   ny = half*tny2;
@@ -1406,10 +1406,10 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Wtilde = N*(ResSource + K-*What)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+
   // Wtilde = Nm*Wtemp
   real Wtilde = invN*Wtemp;
-  
+
   // What = What - Wtilde
   What0 -= Wtilde;
   What1 -= Wtilde;
@@ -1417,7 +1417,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
 
   // ResN += 0.5*K+*(What - N*(ResSource + K-*What)
   real ResN;
-  
+
   // First direction
   real Tnx1 = pTn1[n].x;
   real Tny1 = pTn1[n].y;
@@ -1428,7 +1428,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   l1 = max(zero, vx*nx + vy*ny);
   ResN = l1*What0;
   pTresN0[n] += half*ResN;
-  
+
   // Second direction
   real Tnx2 = pTn2[n].x;
   real Tny2 = pTn2[n].y;
@@ -1451,7 +1451,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   ResN = l1*What2;
   pTresN2[n] += half*ResN;
 }
-  
+
 //######################################################################
 /*! Kernel calculating space-time N + total residue for all triangles
 
@@ -1478,27 +1478,27 @@ void CalcTotalResNtotSingle(const int n, const real dt,
 
 __global__ void
 devCalcTotalResNtot(int nTriangle, real dt,
-		    const int3* __restrict__ pTv, 
-		    const realNeq* __restrict__ pVz, realNeq *pDstate,
-		    const real2 *pTn1, const real2 *pTn2, const real2 *pTn3,
-		    const real3* __restrict__  pTl, realNeq *pResSource,
-		    realNeq *pTresN0, realNeq *pTresN1, realNeq *pTresN2,
-		    realNeq *pTresTot, int nVertex,
-		    real G, real G1, real G2, real iG)
+                    const int3* __restrict__ pTv,
+                    const realNeq* __restrict__ pVz, realNeq *pDstate,
+                    const real2 *pTn1, const real2 *pTn2, const real2 *pTn3,
+                    const real3* __restrict__  pTl, realNeq *pResSource,
+                    realNeq *pTresN0, realNeq *pTresN1, realNeq *pTresN2,
+                    realNeq *pTresTot, int nVertex,
+                    real G, real G1, real G2, real iG)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nTriangle) {
     CalcTotalResNtotSingle(n, dt, pTv, pVz, pDstate,
-			   pTn1, pTn2, pTn3, pTl, pResSource,
-			   pTresN0, pTresN1, pTresN2,
-			   pTresTot, nVertex, G, G1, G2, iG);
-    
+                           pTn1, pTn2, pTn3, pTl, pResSource,
+                           pTresN0, pTresN1, pTresN2,
+                           pTresTot, nVertex, G, G1, G2, iG);
+
     // Next triangle
     n += blockDim.x*gridDim.x;
   }
 }
-  
+
 //######################################################################
 /*! Calculate space-time residue (N + total) for all triangles; result in  \a triangleResidueN and \a triangleResidueTotal.
 
@@ -1510,7 +1510,7 @@ void Simulation::CalcTotalResNtot(real dt)
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
-  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&start) );
   gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
@@ -1533,7 +1533,7 @@ void Simulation::CalcTotalResNtot(real dt)
       triangleResidueN->TransformToHost();
       triangleResidueTotal->TransformToHost();
       triangleResidueSource->TransformToHost();
-      
+
       cudaFlag = 0;
     }
   }
@@ -1542,14 +1542,14 @@ void Simulation::CalcTotalResNtot(real dt)
   int nVertex = mesh->GetNVertex();
 
   realNeq *pDstate = vertexStateDiff->GetPointer();
-  
+
   real *pVpot = vertexPotential->GetPointer();
   realNeq *pVz = vertexParameterVector->GetPointer();
-  
+
   realNeq *pTresN0 = triangleResidueN->GetPointer(0);
   realNeq *pTresN1 = triangleResidueN->GetPointer(1);
   realNeq *pTresN2 = triangleResidueN->GetPointer(2);
-  
+
   realNeq *pTresTot = triangleResidueTotal->GetPointer();
   realNeq *pResSource = triangleResidueSource->GetPointer();
 
@@ -1565,8 +1565,8 @@ void Simulation::CalcTotalResNtot(real dt)
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devCalcTotalResNtot, 
-				       (size_t) 0, 0);
+                                       devCalcTotalResNtot,
+                                       (size_t) 0, 0);
 
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
@@ -1574,7 +1574,7 @@ void Simulation::CalcTotalResNtot(real dt)
     devCalcTotalResNtot<<<nBlocks, nThreads>>>
       (nTriangle, dt, pTv, pVz, pDstate,
        pTn1, pTn2, pTn3, pTl, pResSource,
-       pTresN0, pTresN1, pTresN2, 
+       pTresN0, pTresN1, pTresN2,
        pTresTot, nVertex, specificHeatRatio,
        specificHeatRatio - 1.0, specificHeatRatio - 2.0,
        1.0/specificHeatRatio);
@@ -1582,31 +1582,31 @@ void Simulation::CalcTotalResNtot(real dt)
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
 #endif
-    
+
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-    for (int n = 0; n < nTriangle; n++) 
+    for (int n = 0; n < nTriangle; n++)
       CalcTotalResNtotSingle(n, dt, pTv, pVz, pDstate,
-			     pTn1, pTn2, pTn3, pTl, pResSource,
-			     pTresN0, pTresN1, pTresN2, 
-			     pTresTot, nVertex, specificHeatRatio,
-			     specificHeatRatio - 1.0, specificHeatRatio - 2.0,
-			     1.0/specificHeatRatio);
+                             pTn1, pTn2, pTn3, pTl, pResSource,
+                             pTresN0, pTresN1, pTresN2,
+                             pTresTot, nVertex, specificHeatRatio,
+                             specificHeatRatio - 1.0, specificHeatRatio - 2.0,
+                             1.0/specificHeatRatio);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
 #endif
   }
-  
+
 #ifdef TIME_ASTRIX
   gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("CalcTotalResNtot.prof2", nTriangle, elapsedTime, cudaFlag);
 #endif
-  
+
   if (transformFlag == 1) {
     mesh->Transform();
     if (cudaFlag == 0) {
@@ -1625,10 +1625,10 @@ void Simulation::CalcTotalResNtot(real dt)
       triangleResidueN->TransformToHost();
       triangleResidueTotal->TransformToHost();
       triangleResidueSource->TransformToHost();
-      
+
       cudaFlag = 0;
     }
   }
 }
 
-}
+}  // namespace astrix

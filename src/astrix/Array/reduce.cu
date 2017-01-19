@@ -23,7 +23,7 @@ T Array<T>::Minimum()
 
   if (cudaFlag == 1) {
     thrust::device_ptr<T> dev_ptr(deviceVec);
-    
+
     typename thrust::device_vector<T>::iterator iter =
       thrust::min_element(dev_ptr, dev_ptr + size);
     result = *iter;
@@ -48,7 +48,7 @@ T Array<T>::Minimum(int N)
 
   if (cudaFlag == 1) {
     thrust::device_ptr<T> dev_ptr(&deviceVec[N*realSize]);
-    
+
     typename thrust::device_vector<T>::iterator iter =
       thrust::min_element(dev_ptr, dev_ptr + size);
     result = *iter;
@@ -74,12 +74,12 @@ T Array<T>::Maximum()
   if (cudaFlag == 1) {
     thrust::device_ptr<T> dev_ptr(deviceVec);
 
-    typename thrust::device_vector<T>::iterator iter = 
+    typename thrust::device_vector<T>::iterator iter =
       thrust::max_element(dev_ptr, dev_ptr + size);
     result = *iter;
   }
   if (cudaFlag == 0) {
-    typename thrust::host_vector<T>::iterator iter = 
+    typename thrust::host_vector<T>::iterator iter =
       thrust::max_element(hostVec, hostVec + size);
     result = *iter;
   }
@@ -99,12 +99,12 @@ T Array<T>::Maximum(int N)
   if (cudaFlag == 1) {
     thrust::device_ptr<T> dev_ptr(&deviceVec[N*realSize]);
 
-    typename thrust::device_vector<T>::iterator iter = 
+    typename thrust::device_vector<T>::iterator iter =
       thrust::max_element(dev_ptr, dev_ptr + size);
     result = *iter;
   }
   if (cudaFlag == 0) {
-    typename thrust::host_vector<T>::iterator iter = 
+    typename thrust::host_vector<T>::iterator iter =
       thrust::max_element(hostVec + N*realSize, hostVec + N*realSize + size);
     result = *iter;
   }
@@ -214,7 +214,7 @@ T Array<T>::Sum()
 
   if (cudaFlag == 1) {
     thrust::device_ptr<T> dev_ptr(deviceVec);
-    
+
     result =
       thrust::reduce(dev_ptr, dev_ptr + size, (T) 0, thrust::plus<T>());
   }

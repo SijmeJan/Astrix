@@ -11,14 +11,14 @@
 #include "../Common/profile.h"
 
 namespace astrix {
-  
+
 //######################################################################
 /*! \brief Find maximum signal speed for triangle t
 
 \param t Triangle to consider
-\param a First vertex of triangle 
-\param b Second vertex of triangle 
-\param c Third vertex of triangle 
+\param a First vertex of triangle
+\param b Second vertex of triangle
+\param c Third vertex of triangle
 \param *pState Pointer to vertex state vector
 \param *pTl Pointer to triangle edge lengths
 \param G Ratio of specific heats
@@ -27,13 +27,13 @@ namespace astrix {
 
 __host__ __device__
 real FindMaxSignalSpeed(int t, int a, int b, int c,
-			real4 *pState, const real3* __restrict__ pTl,
-			real G, real G1)
+                        real4 *pState, const real3* __restrict__ pTl,
+                        real G, real G1)
 {
   real zero = (real) 0.0;
   real half = (real) 0.5;
   real one = (real) 1.0;
-  
+
   real vmax = zero;
 
   // First vertex
@@ -50,10 +50,10 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
   // Pressure
   real p = G1*(ener - half*id*(u*u + v*v));
 #ifndef __CUDA_ARCH__
-  if (p < zero) 
+  if (p < zero)
     std::cout << "Hallo" << std::endl;
 #endif
-  
+
   // Sound speed
   real cs = sqrt(G*p*id);
 
@@ -73,11 +73,11 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
 
   p = G1*(ener - half*id*(u*u + v*v));
 #ifndef __CUDA_ARCH__
-  if (p < zero) 
+  if (p < zero)
     std::cout << "Hallo" << std::endl;
 #endif
   cs = sqrt(G*p*id);
-    
+
   vmax = max(vmax, absv + cs);
 
   // Third vertex
@@ -90,14 +90,14 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
   u = momx;
   v = momy;
   absv = sqrt(u*u+v*v)*id;
-    
+
   p = G1*(ener - half*id*(u*u + v*v));
 #ifndef __CUDA_ARCH__
-  if (p < zero) 
+  if (p < zero)
     std::cout << "Hallo" << std::endl;
 #endif
   cs = sqrt(G*p*id);
-    
+
   vmax = max(vmax, absv + cs);
 
   // Triangle edge lengths
@@ -113,8 +113,8 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
 
 __host__ __device__
 real FindMaxSignalSpeed(int t, int a, int b, int c,
-			real *pState, const real3* __restrict__ pTl,
-			real G, real G1)
+                        real *pState, const real3* __restrict__ pTl,
+                        real G, real G1)
 {
   // Triangle edge lengths
   real tl1 = pTl[t].x;
@@ -134,7 +134,7 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
 /*! \brief Find maximum signal speed for triangle t and add it atomically to all of its vertices
 
 \param t Triangle to consider
-\param *pTv Pointer to vertices of triangle 
+\param *pTv Pointer to vertices of triangle
 \param *pState Pointer to vertex state vector
 \param *pTl Pointer to triangle edge lengths
 \param *pVts Pointer to maximum time step at vertex (output)
@@ -145,10 +145,9 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
 
 __host__ __device__
 void CalcVmaxSingle(int t, const int3* __restrict__ pTv, realNeq *pState,
-		    const real3* __restrict__ pTl, real *pVts,
-		    int nVertex, real G, real G1)
+                    const real3* __restrict__ pTl, real *pVts,
+                    int nVertex, real G, real G1)
 {
-
   int a = pTv[t].x;
   int b = pTv[t].y;
   int c = pTv[t].z;
@@ -160,19 +159,19 @@ void CalcVmaxSingle(int t, const int3* __restrict__ pTv, realNeq *pState,
   while (c < 0) c += nVertex;
 
   real vMax = FindMaxSignalSpeed(t, a, b, c, pState, pTl, G, G1);
-  
+
   AtomicAdd(&pVts[a], vMax);
   AtomicAdd(&pVts[b], vMax);
-  AtomicAdd(&pVts[c], vMax); 
+  AtomicAdd(&pVts[c], vMax);
 }
 
 //######################################################################
 /*! \brief Kernel finding maximum signal speed for triangles and add it atomically to all of the vertices
 
 \param nTriangle Total number of triangles in Mesh
-\param *tv1 Pointer to first vertex of triangle 
-\param *tv2 Pointer to second vertex of triangle 
-\param *tv3 Pointer to third vertex of triangle 
+\param *tv1 Pointer to first vertex of triangle
+\param *tv2 Pointer to second vertex of triangle
+\param *tv3 Pointer to third vertex of triangle
 \param *dens Pointer to density
 \param *momx Pointer to x momentum
 \param *momy Pointer to y momentum
@@ -183,21 +182,21 @@ void CalcVmaxSingle(int t, const int3* __restrict__ pTv, realNeq *pState,
 \param G Ratio of specific heats*/
 //######################################################################
 
-__global__ void 
+__global__ void
 devCalcVmax(int nTriangle, const int3* __restrict__ pTv, realNeq *pState,
-	    const real3* __restrict__ pTl, real *pVts,
-	    int nVertex, real G, real G1)
+            const real3* __restrict__ pTl, real *pVts,
+            int nVertex, real G, real G1)
 {
   // n = triangle number
-  int n = blockIdx.x*blockDim.x + threadIdx.x; 
+  int n = blockIdx.x*blockDim.x + threadIdx.x;
 
-  while(n < nTriangle){
+  while (n < nTriangle) {
     CalcVmaxSingle(n, pTv, pState, pTl, pVts, nVertex, G, G1);
 
     n += blockDim.x*gridDim.x;
   }
 }
-  
+
 //######################################################################
 /*! \brief Calculate maximum allowed time step for vertex \a n
 
@@ -221,13 +220,13 @@ void CalcVertexTimeStepSingle(int n, real *pVts, const real *pVarea)
 \param *pVarea Pointer to array of areas assosiated with vertices (Voronoi cells)*/
 //######################################################################
 
-__global__ void 
+__global__ void
 devCalcVertexTimeStep(int nVertex, real *pVts, const real *pVarea)
 {
   // n = vertex number
-  int n = blockIdx.x*blockDim.x + threadIdx.x; 
+  int n = blockIdx.x*blockDim.x + threadIdx.x;
 
-  while(n < nVertex){
+  while (n < nVertex) {
     CalcVertexTimeStepSingle(n, pVts, pVarea);
 
     n += blockDim.x*gridDim.x;
@@ -243,7 +242,7 @@ real Simulation::CalcVertexTimeStep()
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
-  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&start) );
   gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
@@ -264,24 +263,24 @@ real Simulation::CalcVertexTimeStep()
   if (cudaFlag == 1) {
     int nThreads = 128;
     int nBlocks  = 128;
-    
+
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devCalcVmax, 
-				       (size_t) 0, 0);
+                                       devCalcVmax,
+                                       (size_t) 0, 0);
 
-    // Execute kernel... 
+    // Execute kernel...
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-    devCalcVmax<<<nBlocks,nThreads>>>
+    devCalcVmax<<<nBlocks, nThreads>>>
       (nTriangle, pTv, pState, pTl, pVts, nVertex,
        specificHeatRatio, specificHeatRatio - 1.0);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
-#endif      
-    
+#endif
+
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
@@ -290,11 +289,11 @@ real Simulation::CalcVertexTimeStep()
 #endif
     for (int n = 0; n < nTriangle; n++)
       CalcVmaxSingle(n, pTv, pState, pTl, pVts, nVertex,
-		     specificHeatRatio, specificHeatRatio - 1.0);
+                     specificHeatRatio, specificHeatRatio - 1.0);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
-#endif      
+#endif
   }
 
 #ifdef TIME_ASTRIX
@@ -306,22 +305,22 @@ real Simulation::CalcVertexTimeStep()
   if (cudaFlag == 1) {
     int nThreads = 128;
     int nBlocks  = 128;
-    
+
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devCalcVertexTimeStep, 
-				       (size_t) 0, 0);
+                                       devCalcVertexTimeStep,
+                                       (size_t) 0, 0);
 
-    // Execute kernel... 
+    // Execute kernel...
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-    devCalcVertexTimeStep<<<nBlocks,nThreads>>>
+    devCalcVertexTimeStep<<<nBlocks, nThreads>>>
       (nVertex, pVts, pVarea);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
-#endif      
+#endif
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -334,7 +333,7 @@ real Simulation::CalcVertexTimeStep()
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
-#endif      
+#endif
   }
 
 #ifdef TIME_ASTRIX
@@ -344,15 +343,14 @@ real Simulation::CalcVertexTimeStep()
 
   // Find the minimum
   real dt = CFLnumber*vertexTimestep->Minimum();
-  
+
   // End exactly on maxSimulationTime
-  if (simulationTime + dt > maxSimulationTime) 
+  if (simulationTime + dt > maxSimulationTime)
     dt = maxSimulationTime - simulationTime;
-  
+
   delete vertexTimestep;
-  
+
   return dt;
-}  
-
-
 }
+
+}  // namespace astrix

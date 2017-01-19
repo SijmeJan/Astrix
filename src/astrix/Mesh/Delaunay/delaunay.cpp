@@ -10,7 +10,7 @@
 #include "./delaunay.h"
 
 namespace astrix {
-  
+
 //#########################################################################
 /*! Constructor for Delaunay class.
 
@@ -45,5 +45,5 @@ Delaunay::~Delaunay()
   delete triangleAffected;
   delete triangleAffectedEdge;
 }
-  
+
 }

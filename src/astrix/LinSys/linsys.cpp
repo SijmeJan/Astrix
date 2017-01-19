@@ -11,20 +11,20 @@
 #include "../Device/device.h"
 
 namespace astrix {
-  
+
 //#########################################################################
 /*! Define Arrays, create Mesh and setup simulation.
-  \param _verboseLevel How much information to output to stdout in Astrix. 
+  \param _verboseLevel How much information to output to stdout in Astrix.
   \param _debugLevel Level of extra checks for correct mesh.
-  \param *fileName Input file name 
+  \param *fileName Input file name
   \param *device Device to be used for computation.
   \param restartNumber Number of saved file to restore from*/
 //#########################################################################
 
 LinSys::LinSys(int _verboseLevel,
-	       int _debugLevel,
-	       Device *_device,
-	       Mesh *_mesh)
+               int _debugLevel,
+               Device *_device,
+               Mesh *_mesh)
 {
   // How much to output to screen
   verboseLevel = _verboseLevel;

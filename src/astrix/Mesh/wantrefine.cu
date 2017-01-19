@@ -25,15 +25,15 @@ namespace astrix {
 
 __host__ __device__
 void FillWantRefineSingle(int i, real *pErrorEstimate,
-			  real maxError, real minError,
-			  int *pWantRefine)
+                          real maxError, real minError,
+                          int *pWantRefine)
 {
   int ret = 0;
-  
+
   if (pErrorEstimate[i] > maxError) ret = 1;
   if (pErrorEstimate[i] < minError) ret = -1;
-  
-  pWantRefine[i] = ret; 
+
+  pWantRefine[i] = ret;
 }
 
 //######################################################################
@@ -49,7 +49,7 @@ void FillWantRefineSingle(int i, real *pErrorEstimate,
 
 __global__ void
 devFillWantRefine(int nTriangle, real *pErrorEstimate,
-		  real maxError, real minError, int *pWantRefine)
+                  real maxError, real minError, int *pWantRefine)
 {
   int i = blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -64,7 +64,7 @@ devFillWantRefine(int nTriangle, real *pErrorEstimate,
 /*! Flag triangles for refinement or coarsening based on an estimate of the local truncation error (LTE). First the LTE is computed; then we fill the Array triangleWantRefine with either 1 (triangle needs refining), -1 (triangle can be coarsened) or 0 (nothing needs to happen).
 
 \param *vertexState Pointer to Array containing state vector (density etc). Needed to compute LTE
-\param specificHeatRatio Ratio of specific heats*/ 
+\param specificHeatRatio Ratio of specific heats*/
 // #########################################################################
 
 void Mesh::FillWantRefine(Array<realNeq> *vertexState, real specificHeatRatio)
@@ -77,22 +77,22 @@ void Mesh::FillWantRefine(Array<realNeq> *vertexState, real specificHeatRatio)
 
   real minError = meshParameter->minError;
   real maxError = meshParameter->maxError;
-  
-  if (cudaFlag == 1) {    
+
+  if (cudaFlag == 1) {
     int nBlocks = 128;
     int nThreads = 128;
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devFillWantRefine, 
-				       (size_t) 0, 0);
+                                       devFillWantRefine,
+                                       (size_t) 0, 0);
 
     devFillWantRefine<<<nBlocks, nThreads>>>
       (nTriangle, pErrorEstimate, maxError, minError, pWantRefine);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
-    for (int i = 0; i < nTriangle; i++) 
+    for (int i = 0; i < nTriangle; i++)
       FillWantRefineSingle(i, pErrorEstimate, maxError, minError, pWantRefine);
   }
 }

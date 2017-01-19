@@ -15,7 +15,7 @@
 #include "./Coarsen/coarsen.h"
 
 namespace astrix {
-  
+
 //#########################################################################
 /*! Coarsen mesh. First calculate an estimate of the discretization error and flag triangles that can be coarsened. Then remove as many vertices as possible from mesh.
 
@@ -25,7 +25,7 @@ namespace astrix {
 //#########################################################################
 
 int Mesh::RemoveVertices(Array<realNeq> *vertexState,
-			 real specificHeatRatio, int nTimeStep)
+                         real specificHeatRatio, int nTimeStep)
 {
   // Return if skipping this time step
   if (nTimeStep % meshParameter->nStepSkipCoarsen != 0) return 0;
@@ -33,18 +33,18 @@ int Mesh::RemoveVertices(Array<realNeq> *vertexState,
   int nTriangle = connectivity->triangleVertices->GetSize();
 
   triangleWantRefine->SetSize(nTriangle);
-    
+
   // Flag triangles if refinement / coarsening is needed
   FillWantRefine(vertexState, specificHeatRatio);
 
   int nRemove = coarsen->RemoveVertices(connectivity,
-					predicates,
-					vertexState,
-					specificHeatRatio,
-					triangleWantRefine,
-					meshParameter,
-					delaunay, 1,
-					randomVector);
+                                        predicates,
+                                        vertexState,
+                                        specificHeatRatio,
+                                        triangleWantRefine,
+                                        meshParameter,
+                                        delaunay, 1,
+                                        randomVector);
 
   if (nRemove > 0) {
     CalcNormalEdge();

@@ -19,34 +19,34 @@ namespace astrix {
 \param *vertexState State vector at vertices
 \param specificHeatRatio Ratio of specific heats*/
 //##############################################################################
-  
+
 void Refine::SplitSegment(Connectivity * const connectivity,
-			  const MeshParameter *meshParameter,
-			  const Predicates *predicates,
-			  Array<realNeq> * const vertexState,
-			  Array<int> * const triangleWantRefine,
-			  const real specificHeatRatio,
-			  const int nTriangleOld)
-{  
+                          const MeshParameter *meshParameter,
+                          const Predicates *predicates,
+                          Array<realNeq> * const vertexState,
+                          Array<int> * const triangleWantRefine,
+                          const real specificHeatRatio,
+                          const int nTriangleOld)
+{
   nvtxEvent *nvtxSplitSegment = new nvtxEvent("SplitSegment", 3);
 
   int nTriangle = connectivity->triangleVertices->GetSize();
 
   // We only need to consider vertices that were inserted on segments
-  
+
   // Compact to points with elementAdd >= nTriangleOld
   int nRefineGlobal = elementAdd->SelectLargerThan(nTriangleOld - 1,
-						   vertexCoordinatesAdd);
+                                                   vertexCoordinatesAdd);
   if (nRefineGlobal == 0) {
     delete nvtxSplitSegment;
     return;
   }
 
   elementAdd->AddValue(nTriangle - nTriangleOld, 0, nRefineGlobal);
-  
+
   // Edges onto which vertices were inserted
-  Array<int> *elementAddOld = new Array<int>(1, cudaFlag, 
-					     (unsigned int) nRefineGlobal);
+  Array<int> *elementAddOld = new Array<int>(1, cudaFlag,
+                                             (unsigned int) nRefineGlobal);
   elementAddOld->SetEqual(elementAdd);
 
   if (verboseLevel > 2 && cudaFlag == 0) {
@@ -55,10 +55,10 @@ void Refine::SplitSegment(Connectivity * const connectivity,
     real2 *pVadd = vertexCoordinatesAdd->GetPointer();
     for (int i = 0; i < nRefineGlobal; i++)
       std::cout << "(" << pVadd[i].x << ", " << pVadd[i].y
-		<< ") inserted on edge " << pEadd[i] - nTriangle << std::endl;
+                << ") inserted on edge " << pEadd[i] - nTriangle << std::endl;
   }
-  
-  // Test for encroached segments; if encroached move vertex onto segment 
+
+  // Test for encroached segments; if encroached move vertex onto segment
   TestEncroach(connectivity, meshParameter, nRefineGlobal);
 
   // Select where edge has changed; those vertices encroach another segment
@@ -67,26 +67,26 @@ void Refine::SplitSegment(Connectivity * const connectivity,
   if (nRefineGlobal == 0) {
     delete elementAddOld;
     delete nvtxSplitSegment;
-    
+
     return;
   }
-  
+
   if (verboseLevel > 2 && cudaFlag == 0) {
     std::cout << std::endl << "Problematic vertices:" << std::endl;
     int *pEadd = elementAdd->GetPointer();
     real2 *pVadd = vertexCoordinatesAdd->GetPointer();
     for (int i = 0; i < nRefineGlobal; i++)
       std::cout << "(" << pVadd[i].x << ", " << pVadd[i].y
-		<< ") to be inserted on edge " << pEadd[i] - nTriangle
-		<< std::endl;
+                << ") to be inserted on edge " << pEadd[i] - nTriangle
+                << std::endl;
   }
-  
+
   elementAddOld->SetEqual(elementAdd);
 
   Array<real2> *vertexCoordinatesAddOld =
     new Array<real2>(1, cudaFlag, (unsigned int) nRefineGlobal);
   vertexCoordinatesAddOld->SetEqual(vertexCoordinatesAdd);
-  
+
   // Insert vertices one by one
   for (int i = 0; i < nRefineGlobal; i++) {
     real x, y;
@@ -94,38 +94,38 @@ void Refine::SplitSegment(Connectivity * const connectivity,
     vertexCoordinatesAddOld->GetSingleValue(&X, i);
     x = X.x;
     y = X.y;
-    
+
     int e;
     elementAddOld->GetSingleValue(&e, i);
-    
+
     elementAdd->SetSize(1);
     vertexCoordinatesAdd->SetSize(1);
-  
+
     elementAdd->SetToValue(e + i);
 
     X.x = x;
     X.y = y;
     vertexCoordinatesAdd->SetSingleValue(X, 0);
-    
-    if (vertexState != 0) 
+
+    if (vertexState != 0)
       InterpolateState(connectivity,
-		       meshParameter,
-		       vertexState,
-		       triangleWantRefine,
-		       specificHeatRatio);
-      
+                       meshParameter,
+                       vertexState,
+                       triangleWantRefine,
+                       specificHeatRatio);
+
     AddToPeriodic(connectivity, 1);
-      
+
     InsertVertices(connectivity,
-		   meshParameter,
-		   predicates,
-		   vertexState,
-		   triangleWantRefine);
+                   meshParameter,
+                   predicates,
+                   vertexState,
+                   triangleWantRefine);
   }
 
   delete elementAddOld;
   delete vertexCoordinatesAddOld;
-  
+
   delete nvtxSplitSegment;
 }
 

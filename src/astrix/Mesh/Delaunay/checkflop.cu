@@ -13,7 +13,7 @@
 #include "../Param/meshparameter.h"
 
 namespace astrix {
-    
+
 //#########################################################################
 /*! \brief Check edge \a i for Delaunay-hood
 
@@ -34,23 +34,23 @@ Check edge \a i and write result in \a eNonDel (1 if not Delaunay, 0 otherwise)
 
 __host__ __device__
 void CheckEdgeFlop(int i,
-		   const real2* __restrict__ pVc,
-		   const int3* __restrict__ pTv,
-		   const int3* __restrict__ pTe,
-		   const int2* __restrict__ pEt,
-		   int *pEnd, const Predicates *pred, real *pParam,
-		   int nVertex, real Px, real Py)
+                   const real2* __restrict__ pVc,
+                   const int3* __restrict__ pTv,
+                   const int3* __restrict__ pTe,
+                   const int2* __restrict__ pEt,
+                   int *pEnd, const Predicates *pred, real *pParam,
+                   int nVertex, real Px, real Py)
 {
   // Assume edge is Delaunay
   int ret = -1;
 
   int t1 = pEt[i].x;
   int t2 = pEt[i].y;
-  
+
   if (t1 != -1 && t2 != -1) {
     int a = pTv[t1].x;
     int b = pTv[t1].y;
-    int c = pTv[t1].z;    
+    int c = pTv[t1].z;
 
     int e1 = pTe[t1].x;
     int e2 = pTe[t1].y;
@@ -61,25 +61,25 @@ void CheckEdgeFlop(int i,
     int d = (i == e1)*c + (i == e2)*a + (i == e3)*b;
     real dx, dy;
     GetTriangleCoordinatesSingle(pVc, d, nVertex, Px, Py, dx, dy);
-    
+
     a = pTv[t2].x;
     b = pTv[t2].y;
     c = pTv[t2].z;
-    
+
     real ax, bx, cx, ay, by, cy;
     GetTriangleCoordinates(pVc, a, b, c,
-			   nVertex, Px, Py, 
-			   ax, bx, cx, ay, by, cy);
+                           nVertex, Px, Py,
+                           ax, bx, cx, ay, by, cy);
 
     // Going to test if d lies in circle of t2
     e1 = pTe[t2].x;
     e2 = pTe[t2].y;
     e3 = pTe[t2].z;
-    
+
     b = (i == e1)*a + (i == e2)*b + (i == e3)*c;
 
     // Edge is between (e, c) and (f, b)
-    
+
     // PERIODIC
     TranslateVertexToVertex(b, f, Px, Py, nVertex, dx, dy);
 
@@ -92,7 +92,7 @@ void CheckEdgeFlop(int i,
 
   pEnd[i] = ret;
 }
-  
+
 //######################################################################
 /*! \brief Kernel checking edges for Delaunay-hood
 
@@ -113,12 +113,12 @@ Check edges and write result in \a pEnd (1 if not Delaunay, 0 otherwise)
 
 __global__ void
 devCheckEdgeFlop(int nEdge,
-		 const real2* __restrict__ pVc,
-		 const int3* __restrict__ pTv,
-		 const int3* __restrict__ pTe,
-		 const int2* __restrict__ pEt,
-		 int *pEnd, const Predicates *pred, real *pParam,
-		 int nVertex, real Px, real Py)
+                 const real2* __restrict__ pVc,
+                 const int3* __restrict__ pTv,
+                 const int3* __restrict__ pTe,
+                 const int2* __restrict__ pEt,
+                 int *pEnd, const Predicates *pred, real *pParam,
+                 int nVertex, real Px, real Py)
 {
   // i = edge number
   int i = blockIdx.x*blockDim.x + threadIdx.x;
@@ -133,13 +133,13 @@ devCheckEdgeFlop(int nEdge,
 
 __global__ void
 devCheckEdgeFlopLimit(int nEdgeCheck,
-		      const int *pEnC,
-		      const real2* __restrict__ pVc,
-		      const int3* __restrict__ pTv,
-		      const int3* __restrict__ pTe,
-		      const int2* __restrict__ pEt,
-		      int *pEnd, const Predicates *pred, real *pParam,
-		      int nVertex, real Px, real Py)
+                      const int *pEnC,
+                      const real2* __restrict__ pVc,
+                      const int3* __restrict__ pTv,
+                      const int3* __restrict__ pTe,
+                      const int2* __restrict__ pEt,
+                      int *pEnd, const Predicates *pred, real *pParam,
+                      int nVertex, real Px, real Py)
 {
   // i = edge number
   int i = blockIdx.x*blockDim.x + threadIdx.x;
@@ -162,18 +162,18 @@ devCheckEdgeFlopLimit(int nEdgeCheck,
 //#########################################################################
 
 void Delaunay::CheckEdgesFlop(Connectivity * const connectivity,
-			      const Predicates *predicates,
-			      const MeshParameter *meshParameter,
-			      Array<int> * const edgeNeedsChecking,
-			      const int nEdgeCheck)
+                              const Predicates *predicates,
+                              const MeshParameter *meshParameter,
+                              Array<int> * const edgeNeedsChecking,
+                              const int nEdgeCheck)
 {
   int nVertex = connectivity->vertexCoordinates->GetSize();
   int nEdge = connectivity->edgeTriangles->GetSize();
-  
+
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime;
-  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&start) );
   gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
@@ -181,9 +181,9 @@ void Delaunay::CheckEdgesFlop(Connectivity * const connectivity,
   int3 *pTv = connectivity->triangleVertices->GetPointer();
   int3 *pTe = connectivity->triangleEdges->GetPointer();
   int2 *pEt = connectivity->edgeTriangles->GetPointer();
- 
+
   int *pEnd = edgeNonDelaunay->GetPointer();
-  
+
   real *pParam = predicates->GetParamPointer(cudaFlag);
 
   real Px = meshParameter->maxx - meshParameter->minx;
@@ -193,35 +193,35 @@ void Delaunay::CheckEdgesFlop(Connectivity * const connectivity,
     if (cudaFlag == 1) {
       int nBlocks = 128;
       int nThreads = 128;
-      
+
       // Base nThreads and nBlocks on maximum occupancy
       cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-					 devCheckEdgeFlop, 
-					 (size_t) 0, 0);
-      
+                                         devCheckEdgeFlop,
+                                         (size_t) 0, 0);
+
 #ifdef TIME_ASTRIX
       gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-      
+
       devCheckEdgeFlop<<<nBlocks, nThreads>>>
-	(nEdge, pVc, pTv, pTe, pEt, pEnd, predicates, pParam, nVertex, Px, Py);
-      
+        (nEdge, pVc, pTv, pTe, pEt, pEnd, predicates, pParam, nVertex, Px, Py);
+
 #ifdef TIME_ASTRIX
       gpuErrchk( cudaEventRecord(stop, 0) );
       gpuErrchk( cudaEventSynchronize(stop) );
 #endif
-      
+
       gpuErrchk( cudaPeekAtLastError() );
       gpuErrchk( cudaDeviceSynchronize() );
     } else {
 #ifdef TIME_ASTRIX
       gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-      
-      for (int i = 0; i < nEdge; i++) 
-	CheckEdgeFlop(i, pVc, pTv, pTe, pEt, pEnd, predicates,
-		      pParam, nVertex, Px, Py);
-      
+
+      for (int i = 0; i < nEdge; i++)
+        CheckEdgeFlop(i, pVc, pTv, pTe, pEt, pEnd, predicates,
+                      pParam, nVertex, Px, Py);
+
 #ifdef TIME_ASTRIX
       gpuErrchk( cudaEventRecord(stop, 0) );
       gpuErrchk( cudaEventSynchronize(stop) );
@@ -230,29 +230,29 @@ void Delaunay::CheckEdgesFlop(Connectivity * const connectivity,
   } else {
     int *pEnC = edgeNeedsChecking->GetPointer();
     edgeNonDelaunay->SetToValue(-1);
-    
+
     if (cudaFlag == 1) {
       int nBlocks = 128;
       int nThreads = 128;
-      
+
       // Base nThreads and nBlocks on maximum occupancy
       cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-					 devCheckEdgeFlopLimit, 
-					 (size_t) 0, 0);
-      
+                                         devCheckEdgeFlopLimit,
+                                         (size_t) 0, 0);
+
 #ifdef TIME_ASTRIX
       gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-      
+
       devCheckEdgeFlopLimit<<<nBlocks, nThreads>>>
-	(nEdgeCheck, pEnC, pVc, pTv, pTe, pEt, pEnd,
-	 predicates, pParam, nVertex, Px, Py);
-      
+        (nEdgeCheck, pEnC, pVc, pTv, pTe, pEt, pEnd,
+         predicates, pParam, nVertex, Px, Py);
+
 #ifdef TIME_ASTRIX
       gpuErrchk( cudaEventRecord(stop, 0) );
       gpuErrchk( cudaEventSynchronize(stop) );
 #endif
-      
+
       gpuErrchk( cudaPeekAtLastError() );
       gpuErrchk( cudaDeviceSynchronize() );
     } else {
@@ -260,24 +260,24 @@ void Delaunay::CheckEdgesFlop(Connectivity * const connectivity,
       gpuErrchk( cudaEventRecord(start, 0) );
 #endif
 
-      for (int i = 0; i < nEdgeCheck; i++) 
-	CheckEdgeFlop(pEnC[i], pVc, pTv, pTe, pEt, pEnd, predicates,
-		      pParam, nVertex, Px, Py);
-      
+      for (int i = 0; i < nEdgeCheck; i++)
+        CheckEdgeFlop(pEnC[i], pVc, pTv, pTe, pEt, pEnd, predicates,
+                      pParam, nVertex, Px, Py);
+
 #ifdef TIME_ASTRIX
       gpuErrchk( cudaEventRecord(stop, 0) );
       gpuErrchk( cudaEventSynchronize(stop) );
 #endif
     }
   }
-  
-  /*  
+
+  /*
 #ifdef TIME_ASTRIX
   gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   std::cout << "Kernel: devCheckEdgeDelaunay, # of elements: "
-	    << nEdge << ", elapsed time: " << elapsedTime << std::endl;
+            << nEdge << ", elapsed time: " << elapsedTime << std::endl;
 #endif
   */
 }
-  
+
 }

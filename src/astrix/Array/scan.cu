@@ -83,14 +83,14 @@ T Array<T>::ExclusiveScan(Array<T> *result, unsigned int N)
 
 template int Array<int>::ExclusiveScan(Array<int> *result);
 template int Array<int>::ExclusiveScan(Array<int> *result,
-					     unsigned int N);
+                                             unsigned int N);
 
 //###################################################
 
-template unsigned int 
+template unsigned int
 Array<unsigned int>::ExclusiveScan(Array<unsigned int> *result,
-					 unsigned int N);
-template unsigned int 
+                                         unsigned int N);
+template unsigned int
 Array<unsigned int>::ExclusiveScan(Array<unsigned int> *result);
 
 }

@@ -15,15 +15,15 @@ namespace astrix {
 
 template <class T>
 void Array<T>::CopyToDevice()
-{  
+{
   // Make sure we have enough space...
   if (deviceVec != 0) gpuErrchk(cudaFree(deviceVec));
-  gpuErrchk(cudaMalloc(reinterpret_cast<void**>(&deviceVec), 
-		       nDims*realSize*sizeof(T)));
+  gpuErrchk(cudaMalloc(reinterpret_cast<void**>(&deviceVec),
+                       nDims*realSize*sizeof(T)));
 
   gpuErrchk(cudaMemcpy(deviceVec, hostVec,
-		       nDims*realSize*sizeof(T),
-		       cudaMemcpyHostToDevice));
+                       nDims*realSize*sizeof(T),
+                       cudaMemcpyHostToDevice));
 }
 
 //###################################################
@@ -36,8 +36,8 @@ void Array<T>::CopyToHost()
   free(hostVec);
   hostVec = (T *)malloc(nDims*realSize*sizeof(T));
   gpuErrchk(cudaMemcpy(hostVec, deviceVec,
-		       nDims*realSize*sizeof(T),
-		       cudaMemcpyDeviceToHost));
+                       nDims*realSize*sizeof(T),
+                       cudaMemcpyDeviceToHost));
 }
 
 //###################################################
@@ -54,13 +54,13 @@ void Array<T>::TransformToDevice()
   if (deviceVec != 0) gpuErrchk(cudaFree(deviceVec));
 
   // Allocate fresh device memory
-  gpuErrchk(cudaMalloc(reinterpret_cast<void**>(&deviceVec), 
-		       nDims*realSize*sizeof(T)));
+  gpuErrchk(cudaMalloc(reinterpret_cast<void**>(&deviceVec),
+                       nDims*realSize*sizeof(T)));
 
   // Copy to device
   gpuErrchk(cudaMemcpy(deviceVec, hostVec,
-		       nDims*realSize*sizeof(T),
-		       cudaMemcpyHostToDevice));
+                       nDims*realSize*sizeof(T),
+                       cudaMemcpyHostToDevice));
 
   // Now living on device
   cudaFlag = 1;
@@ -84,8 +84,8 @@ void Array<T>::TransformToHost()
 
   // Copy to host
   gpuErrchk(cudaMemcpy(hostVec, deviceVec,
-		       nDims*realSize*sizeof(T),
-		       cudaMemcpyDeviceToHost));
+                       nDims*realSize*sizeof(T),
+                       cudaMemcpyDeviceToHost));
 
   // Free device memory
   gpuErrchk(cudaFree(deviceVec));

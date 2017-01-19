@@ -36,16 +36,16 @@ namespace astrix {
 //######################################################################
 
 __host__ __device__
-void CalcTotalResLDASingle(int n,  
-			   const int3* __restrict__ pTv,
-			   const real4* __restrict__ pVz, 
-			   real4 *pTresLDA0, real4 *pTresLDA1, 
-			   real4 *pTresLDA2, real4 *pTresTot,
-			   const real2 *pTn1, 
-			   const real2 *pTn2,
-			   const real2 *pTn3, 
-			   const real3* __restrict__ pTl, 
-			   int nVertex, real G, real G1, real G2)
+void CalcTotalResLDASingle(int n,
+                           const int3* __restrict__ pTv,
+                           const real4* __restrict__ pVz,
+                           real4 *pTresLDA0, real4 *pTresLDA1,
+                           real4 *pTresLDA2, real4 *pTresTot,
+                           const real2 *pTn1,
+                           const real2 *pTn2,
+                           const real2 *pTn3,
+                           const real3* __restrict__ pTl,
+                           int nVertex, real G, real G1, real G2)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -93,12 +93,12 @@ void CalcTotalResLDASingle(int n,
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate Wtemp = Sum(K-*What)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+
   real hc = htilde*ic;
   real uc = utilde*ic;
   real vc = vtilde*ic;
   real ac = alpha*ic;
-  
+
   // Triangle edge lengths
   real tl1 = pTl[n].x;
   real tl2 = pTl[n].y;
@@ -112,13 +112,13 @@ void CalcTotalResLDASingle(int n,
   real ny = half*tny1;
   real tl = tl1;
   real wtilde = (uc*nx + vc*ny)*ctilde;
-  
+
   real l1 = min(zero, wtilde + ctilde);
   real l2 = min(zero, wtilde - ctilde);
   real l3 = min(zero, wtilde);
-  //real l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
-  //real l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
-  //real l3 = half*(wtilde - fabs(wtilde));
+  // real l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
+  // real l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
+  // real l3 = half*(wtilde - fabs(wtilde));
 
   // Auxiliary variables
   real l1l2l3 = half*(l1 + l2) - l3;
@@ -140,8 +140,8 @@ void CalcTotalResLDASingle(int n,
   real nm31 = tl*eulerKMP31(G1, nx, hc, uc, wtilde, l1l2l3, l1l2);
   real nm32 = tl*eulerKMP32(G1, ny, hc, vc, wtilde, l1l2l3, l1l2);
   real nm33 = tl*eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
-  
-  // Second direction         
+
+  // Second direction
   real tnx2 = pTn2[n].x;
   real tny2 = pTn2[n].y;
 
@@ -149,14 +149,14 @@ void CalcTotalResLDASingle(int n,
   ny = half*tny2;
   tl = tl2;
   wtilde = (uc*nx + vc*ny)*ctilde;
-  
+
   l1 = min(wtilde + ctilde, zero);
   l2 = min(wtilde - ctilde, zero);
   l3 = min(wtilde, zero);
-  //l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
-  //l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
-  //l3 = half*(wtilde - fabs(wtilde));
-  
+  // l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
+  // l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
+  // l3 = half*(wtilde - fabs(wtilde));
+
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
@@ -177,7 +177,7 @@ void CalcTotalResLDASingle(int n,
   nm31 += tl*eulerKMP31(G1, nx, hc, uc, wtilde, l1l2l3, l1l2);
   nm32 += tl*eulerKMP32(G1, ny, hc, vc, wtilde, l1l2l3, l1l2);
   nm33 += tl*eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
-  
+
   // Third direction
   real tnx3 = pTn3[n].x;
   real tny3 = pTn3[n].y;
@@ -186,14 +186,14 @@ void CalcTotalResLDASingle(int n,
   ny = half*tny3;
   tl = tl3;
   wtilde = (uc*nx + vc*ny)*ctilde;
-  
+
   l1 = min(wtilde + ctilde, zero);
   l2 = min(wtilde - ctilde, zero);
   l3 = min(wtilde, zero);
-  //l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
-  //l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
-  //l3 = half*(wtilde - fabs(wtilde));
- 
+  // l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
+  // l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
+  // l3 = half*(wtilde - fabs(wtilde));
+
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
@@ -214,7 +214,7 @@ void CalcTotalResLDASingle(int n,
   nm31 += tl*eulerKMP31(G1, nx, hc, uc, wtilde, l1l2l3, l1l2);
   nm32 += tl*eulerKMP32(G1, ny, hc, vc, wtilde, l1l2l3, l1l2);
   nm33 += tl*eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
-  
+
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate inverse of NM = Sum(K-)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -252,27 +252,27 @@ void CalcTotalResLDASingle(int n,
   real invN21 = -nm00*f5 - nm01*f3 + nm03*f1;
   real invN30 = nm10*f4 + nm11*f2 + nm12*f1;
   real invN31 = -nm00*f4 - nm01*f2 - nm02*f1;
-  
+
   real Wtilde0 =
-    invN00*pTresTot[n].x +  
-    invN01*pTresTot[n].y +  
-    invN02*pTresTot[n].z +  
-    invN03*pTresTot[n].w;  
+    invN00*pTresTot[n].x +
+    invN01*pTresTot[n].y +
+    invN02*pTresTot[n].z +
+    invN03*pTresTot[n].w;
   real Wtilde1 =
-    invN10*pTresTot[n].x +  
-    invN11*pTresTot[n].y +  
-    invN12*pTresTot[n].z +  
-    invN13*pTresTot[n].w;  
+    invN10*pTresTot[n].x +
+    invN11*pTresTot[n].y +
+    invN12*pTresTot[n].z +
+    invN13*pTresTot[n].w;
   real Wtilde2 =
-    invN20*pTresTot[n].x +  
-    invN21*pTresTot[n].y +  
-    invN22*pTresTot[n].z +  
-    invN23*pTresTot[n].w;  
+    invN20*pTresTot[n].x +
+    invN21*pTresTot[n].y +
+    invN22*pTresTot[n].z +
+    invN23*pTresTot[n].w;
   real Wtilde3 =
-    invN30*pTresTot[n].x +  
-    invN31*pTresTot[n].y +  
-    invN32*pTresTot[n].z +  
-    invN33*pTresTot[n].w;  
+    invN30*pTresTot[n].x +
+    invN31*pTresTot[n].y +
+    invN32*pTresTot[n].z +
+    invN33*pTresTot[n].w;
 
   if (det != zero) det = one/det;
 
@@ -282,18 +282,18 @@ void CalcTotalResLDASingle(int n,
   Wtilde3 *= det;
 
   real ResLDA;
-  
+
   real Tnx1 = pTn1[n].x;
   real Tny1 = pTn1[n].y;
 
   nx = half*Tnx1;
   ny = half*Tny1;
   wtilde = (uc*nx + vc*ny)*ctilde;
-  
-  //l1 = max(wtilde + ctilde, zero);
-  //l2 = max(wtilde - ctilde, zero);
-  //l3 = max(wtilde, zero);    
-  
+
+  // l1 = max(wtilde + ctilde, zero);
+  // l2 = max(wtilde - ctilde, zero);
+  // l3 = max(wtilde, zero);
+
   l1 = half*(wtilde + ctilde + fabs(wtilde + ctilde));
   l2 = half*(wtilde - ctilde + fabs(wtilde - ctilde));
   l3 = half*(wtilde + fabs(wtilde));
@@ -308,7 +308,7 @@ void CalcTotalResLDASingle(int n,
     -Wtilde2*eulerKMP02(G1, ny, ic, vc, l1l2l3, l1l2)
     -Wtilde3*eulerKMP03(G1, ic, l1l2l3);
   pTresLDA0[n].x = ResLDA;
-  
+
   ResLDA =
     -Wtilde0*eulerKMP10(nx, ac, uc, wtilde, l1l2l3, l1l2)
     -Wtilde1*eulerKMP11(G1, G2, nx, uc, l1l2l3, l1l2, l3)
@@ -322,14 +322,14 @@ void CalcTotalResLDASingle(int n,
     -Wtilde2*eulerKMP22(G1, G2, ny, vc, l1l2l3, l1l2, l3)
     -Wtilde3*eulerKMP23(G1, ny, ic, vc, l1l2l3, l1l2);
   pTresLDA0[n].z = ResLDA;
-  
+
   ResLDA =
     -Wtilde0*eulerKMP30(ac, hc, wtilde, l1l2l3, l1l2)
     -Wtilde1*eulerKMP31(G1, nx, hc, uc, wtilde, l1l2l3, l1l2)
     -Wtilde2*eulerKMP32(G1, ny, hc, vc, wtilde, l1l2l3, l1l2)
     -Wtilde3*eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
   pTresLDA0[n].w = ResLDA;
-  
+
   real Tnx2 = pTn2[n].x;
   real Tny2 = pTn2[n].y;
 
@@ -337,14 +337,14 @@ void CalcTotalResLDASingle(int n,
   nx = half*Tnx2;
   ny = half*Tny2;
   wtilde = (uc*nx + vc*ny)*ctilde;
-  
-  //l1 = max(wtilde + ctilde, zero);
-  //l2 = max(wtilde - ctilde, zero);
-  //l3 = max(wtilde, zero);    
+
+  // l1 = max(wtilde + ctilde, zero);
+  // l2 = max(wtilde - ctilde, zero);
+  // l3 = max(wtilde, zero);
   l1 = half*(wtilde + ctilde + fabs(wtilde + ctilde));
   l2 = half*(wtilde - ctilde + fabs(wtilde - ctilde));
   l3 = half*(wtilde + fabs(wtilde));
-  
+
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
@@ -355,28 +355,28 @@ void CalcTotalResLDASingle(int n,
     -Wtilde2*eulerKMP02(G1, ny, ic, vc, l1l2l3, l1l2)
     -Wtilde3*eulerKMP03(G1, ic, l1l2l3);
   pTresLDA1[n].x = ResLDA;
-  
+
   ResLDA =
     -Wtilde0*eulerKMP10(nx, ac, uc, wtilde, l1l2l3, l1l2)
     -Wtilde1*eulerKMP11(G1, G2, nx, uc, l1l2l3, l1l2, l3)
     -Wtilde2*eulerKMP12(G1, nx, ny, uc, vc, l1l2l3, l1l2)
     -Wtilde3*eulerKMP13(G1, nx, ic, uc, l1l2l3, l1l2);
   pTresLDA1[n].y = ResLDA;
-  
+
   ResLDA =
     -Wtilde0*eulerKMP20(ny, ac, vc, wtilde, l1l2l3, l1l2)
     -Wtilde1*eulerKMP21(G1, nx, ny, uc, vc, l1l2l3, l1l2)
     -Wtilde2*eulerKMP22(G1, G2, ny, vc, l1l2l3, l1l2, l3)
     -Wtilde3*eulerKMP23(G1, ny, ic, vc, l1l2l3, l1l2);
   pTresLDA1[n].z = ResLDA;
-  
+
   ResLDA =
     -Wtilde0*eulerKMP30(ac, hc, wtilde, l1l2l3, l1l2)
     -Wtilde1*eulerKMP31(G1, nx, hc, uc, wtilde, l1l2l3, l1l2)
     -Wtilde2*eulerKMP32(G1, ny, hc, vc, wtilde, l1l2l3, l1l2)
     -Wtilde3*eulerKMP33(G1, ic, hc, wtilde, l1l2l3, l1l2, l3);
   pTresLDA1[n].w = ResLDA;
-  
+
   real Tnx3 = pTn3[n].x;
   real Tny3 = pTn3[n].y;
 
@@ -384,14 +384,14 @@ void CalcTotalResLDASingle(int n,
   nx = half*Tnx3;
   ny = half*Tny3;
   wtilde = (uc*nx + vc*ny)*ctilde;
-  
-  //l1 = max(wtilde + ctilde, zero);
-  //l2 = max(wtilde - ctilde, zero);
-  //l3 = max(wtilde, zero);
+
+  // l1 = max(wtilde + ctilde, zero);
+  // l2 = max(wtilde - ctilde, zero);
+  // l3 = max(wtilde, zero);
   l1 = half*(wtilde + ctilde + fabs(wtilde + ctilde));
   l2 = half*(wtilde - ctilde + fabs(wtilde - ctilde));
   l3 = half*(wtilde + fabs(wtilde));
-  
+
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
@@ -402,21 +402,21 @@ void CalcTotalResLDASingle(int n,
     -Wtilde2*eulerKMP02(G1, ny, ic, vc, l1l2l3, l1l2)
     -Wtilde3*eulerKMP03(G1, ic, l1l2l3);
   pTresLDA2[n].x = ResLDA;
-  
+
   ResLDA =
     -Wtilde0*eulerKMP10(nx, ac, uc, wtilde, l1l2l3, l1l2)
     -Wtilde1*eulerKMP11(G1, G2, nx, uc, l1l2l3, l1l2, l3)
     -Wtilde2*eulerKMP12(G1, nx, ny, uc, vc, l1l2l3, l1l2)
     -Wtilde3*eulerKMP13(G1, nx, ic, uc, l1l2l3, l1l2);
   pTresLDA2[n].y = ResLDA;
-  
+
   ResLDA =
     -Wtilde0*eulerKMP20(ny, ac, vc, wtilde, l1l2l3, l1l2)
     -Wtilde1*eulerKMP21(G1, nx, ny, uc, vc, l1l2l3, l1l2)
     -Wtilde2*eulerKMP22(G1, G2, ny, vc, l1l2l3, l1l2, l3)
     -Wtilde3*eulerKMP23(G1, ny, ic, vc, l1l2l3, l1l2);
   pTresLDA2[n].z = ResLDA;
-  
+
   ResLDA =
     -Wtilde0*eulerKMP30(ac, hc, wtilde, l1l2l3, l1l2)
     -Wtilde1*eulerKMP31(G1, nx, hc, uc, wtilde, l1l2l3, l1l2)
@@ -425,18 +425,18 @@ void CalcTotalResLDASingle(int n,
   pTresLDA2[n].w = ResLDA;
 }
 
-  
+
 __host__ __device__
-void CalcTotalResLDASingle(int n,  
-			   const int3* __restrict__ pTv,
-			   const real3* __restrict__ pVz, 
-			   real3 *pTresLDA0, real3 *pTresLDA1, 
-			   real3 *pTresLDA2, real3 *pTresTot,
-			   const real2 *pTn1, 
-			   const real2 *pTn2,
-			   const real2 *pTn3, 
-			   const real3* __restrict__ pTl, 
-			   int nVertex, real G, real G1, real G2)
+void CalcTotalResLDASingle(int n,
+                           const int3* __restrict__ pTv,
+                           const real3* __restrict__ pVz,
+                           real3 *pTresLDA0, real3 *pTresLDA1,
+                           real3 *pTresLDA2, real3 *pTresTot,
+                           const real2 *pTn1,
+                           const real2 *pTn2,
+                           const real2 *pTn3,
+                           const real3* __restrict__ pTl,
+                           int nVertex, real G, real G1, real G2)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -478,10 +478,10 @@ void CalcTotalResLDASingle(int n,
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate Wtemp = Sum(K-*What)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+
   real uc = utilde*ic;
   real vc = vtilde*ic;
-  
+
   // Triangle edge lengths
   real tl1 = pTl[n].x;
   real tl2 = pTl[n].y;
@@ -495,7 +495,7 @@ void CalcTotalResLDASingle(int n,
   real ny = half*tny1;
   real tl = tl1;
   real wtilde = (uc*nx + vc*ny)*ctilde;
-  
+
   real l1 = min(zero, wtilde + ctilde);
   real l2 = min(zero, wtilde - ctilde);
   real l3 = min(zero, wtilde);
@@ -503,7 +503,7 @@ void CalcTotalResLDASingle(int n,
   // Auxiliary variables
   real l1l2l3 = half*(l1 + l2) - l3;
   real l1l2 = half*(l1 - l2);
-  
+
   real nm00 = tl*isoKMP00(ic, wtilde, l1l2, l2);
   real nm01 = tl*isoKMP01(nx, ic, l1l2);
   real nm02 = tl*isoKMP02(ny, ic, l1l2);
@@ -513,8 +513,8 @@ void CalcTotalResLDASingle(int n,
   real nm20 = tl*isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2);
   real nm21 = tl*isoKMP21(nx, ny, vc, l1l2l3, l1l2);
   real nm22 = tl*isoKMP22(ny, vc, l1l2l3, l1l2, l3);
-  
-  // Second direction         
+
+  // Second direction
   real tnx2 = pTn2[n].x;
   real tny2 = pTn2[n].y;
 
@@ -522,15 +522,15 @@ void CalcTotalResLDASingle(int n,
   ny = half*tny2;
   tl = tl2;
   wtilde = (uc*nx + vc*ny)*ctilde;
-  
+
   l1 = min(wtilde + ctilde, zero);
   l2 = min(wtilde - ctilde, zero);
   l3 = min(wtilde, zero);
-  
+
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
-  
+
   nm00 += tl*isoKMP00(ic, wtilde, l1l2, l2);
   nm01 += tl*isoKMP01(nx, ic, l1l2);
   nm02 += tl*isoKMP02(ny, ic, l1l2);
@@ -540,7 +540,7 @@ void CalcTotalResLDASingle(int n,
   nm20 += tl*isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2);
   nm21 += tl*isoKMP21(nx, ny, vc, l1l2l3, l1l2);
   nm22 += tl*isoKMP22(ny, vc, l1l2l3, l1l2, l3);
-  
+
   // Third direction
   real tnx3 = pTn3[n].x;
   real tny3 = pTn3[n].y;
@@ -549,18 +549,18 @@ void CalcTotalResLDASingle(int n,
   ny = half*tny3;
   tl = tl3;
   wtilde = (uc*nx + vc*ny)*ctilde;
-  
+
   l1 = min(wtilde + ctilde, zero);
   l2 = min(wtilde - ctilde, zero);
   l3 = min(wtilde, zero);
-  //l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
-  //l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
-  //l3 = half*(wtilde - fabs(wtilde));
- 
+  // l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
+  // l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
+  // l3 = half*(wtilde - fabs(wtilde));
+
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
-  
+
   nm00 += tl*isoKMP00(ic, wtilde, l1l2, l2);
   nm01 += tl*isoKMP01(nx, ic, l1l2);
   nm02 += tl*isoKMP02(ny, ic, l1l2);
@@ -570,7 +570,7 @@ void CalcTotalResLDASingle(int n,
   nm20 += tl*isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2);
   nm21 += tl*isoKMP21(nx, ny, vc, l1l2l3, l1l2);
   nm22 += tl*isoKMP22(ny, vc, l1l2l3, l1l2, l3);
-  
+
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate inverse of NM = Sum(K-)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -586,19 +586,19 @@ void CalcTotalResLDASingle(int n,
   real invN22 = nm00*nm11 - nm01*nm10;
 
   real det = nm00*invN00 + nm01*invN10 + nm02*invN20;
-  
+
   real Wtilde0 =
-    invN00*pTresTot[n].x +  
-    invN01*pTresTot[n].y +  
-    invN02*pTresTot[n].z ;  
+    invN00*pTresTot[n].x +
+    invN01*pTresTot[n].y +
+    invN02*pTresTot[n].z;
   real Wtilde1 =
-    invN10*pTresTot[n].x +  
-    invN11*pTresTot[n].y +  
-    invN12*pTresTot[n].z;  
+    invN10*pTresTot[n].x +
+    invN11*pTresTot[n].y +
+    invN12*pTresTot[n].z;
   real Wtilde2 =
-    invN20*pTresTot[n].x +  
-    invN21*pTresTot[n].y +  
-    invN22*pTresTot[n].z;  
+    invN20*pTresTot[n].x +
+    invN21*pTresTot[n].y +
+    invN22*pTresTot[n].z;
 
   if (det != zero) det = one/det;
 
@@ -607,14 +607,14 @@ void CalcTotalResLDASingle(int n,
   Wtilde2 *= det;
 
   real ResLDA;
-  
+
   real Tnx1 = pTn1[n].x;
   real Tny1 = pTn1[n].y;
 
   nx = half*Tnx1;
   ny = half*Tny1;
   wtilde = (uc*nx + vc*ny)*ctilde;
-  
+
   l1 = half*(wtilde + ctilde + fabs(wtilde + ctilde));
   l2 = half*(wtilde - ctilde + fabs(wtilde - ctilde));
   l3 = half*(wtilde + fabs(wtilde));
@@ -640,7 +640,7 @@ void CalcTotalResLDASingle(int n,
     -Wtilde1*isoKMP21(nx, ny, vc, l1l2l3, l1l2)
     -Wtilde2*isoKMP22(ny, vc, l1l2l3, l1l2, l3);
   pTresLDA0[n].z = ResLDA;
-  
+
   // Second direction
   real Tnx2 = pTn2[n].x;
   real Tny2 = pTn2[n].y;
@@ -648,11 +648,11 @@ void CalcTotalResLDASingle(int n,
   nx = half*Tnx2;
   ny = half*Tny2;
   wtilde = (uc*nx + vc*ny)*ctilde;
-  
+
   l1 = half*(wtilde + ctilde + fabs(wtilde + ctilde));
   l2 = half*(wtilde - ctilde + fabs(wtilde - ctilde));
   l3 = half*(wtilde + fabs(wtilde));
-  
+
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
@@ -682,15 +682,15 @@ void CalcTotalResLDASingle(int n,
   nx = half*Tnx3;
   ny = half*Tny3;
   wtilde = (uc*nx + vc*ny)*ctilde;
-  
+
   l1 = half*(wtilde + ctilde + fabs(wtilde + ctilde));
   l2 = half*(wtilde - ctilde + fabs(wtilde - ctilde));
   l3 = half*(wtilde + fabs(wtilde));
-  
+
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
-  
+
   ResLDA =
     -Wtilde0*isoKMP00(ic, wtilde, l1l2, l2)
     -Wtilde1*isoKMP01(nx, ic, l1l2)
@@ -711,16 +711,16 @@ void CalcTotalResLDASingle(int n,
 }
 
 __host__ __device__
-void CalcTotalResLDASingle(int n,  
-			   const int3* __restrict__ pTv,
-			   const real* __restrict__ pVz, 
-			   real *pTresLDA0, real *pTresLDA1, 
-			   real *pTresLDA2, real *pTresTot,
-			   const real2 *pTn1, 
-			   const real2 *pTn2,
-			   const real2 *pTn3, 
-			   const real3* __restrict__  pTl, 
-			   int nVertex, real G, real G1, real G2)
+void CalcTotalResLDASingle(int n,
+                           const int3* __restrict__ pTv,
+                           const real* __restrict__ pVz,
+                           real *pTresLDA0, real *pTresLDA1,
+                           real *pTresLDA2, real *pTresTot,
+                           const real2 *pTn1,
+                           const real2 *pTn2,
+                           const real2 *pTn3,
+                           const real3* __restrict__  pTl,
+                           int nVertex, real G, real G1, real G2)
 {
   const real zero  = (real) 0.0;
   const real half  = (real) 0.5;
@@ -739,7 +739,7 @@ void CalcTotalResLDASingle(int n,
   // Average parameter vector
 #if BURGERS == 1
   const real onethird = (real) (1.0/3.0);
-  
+
   real Zv0 = pVz[v1];
   real Zv1 = pVz[v2];
   real Zv2 = pVz[v3];
@@ -755,7 +755,7 @@ void CalcTotalResLDASingle(int n,
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate Wtemp = Sum(K-*What)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+
   // Triangle edge lengths
   real tl1 = pTl[n].x;
   real tl2 = pTl[n].y;
@@ -766,16 +766,16 @@ void CalcTotalResLDASingle(int n,
   real tny1 = pTn1[n].y;
   real nx = half*tl1*tnx1;
   real ny = half*tl1*tny1;
-  
-  real l1 = min(zero, vx*nx + vy*ny);  
+
+  real l1 = min(zero, vx*nx + vy*ny);
   real nm = l1;
 
-  // Second direction         
+  // Second direction
   real tnx2 = pTn2[n].x;
   real tny2 = pTn2[n].y;
   nx = half*tl2*tnx2;
   ny = half*tl2*tny2;
-  
+
   l1 = min(zero, vx*nx + vy*ny);
   nm += l1;
 
@@ -784,7 +784,7 @@ void CalcTotalResLDASingle(int n,
   real tny3 = pTn3[n].y;
   nx = half*tl3*tnx3;
   ny = half*tl3*tny3;
-  
+
   l1 = min(zero, vx*nx + vy*ny);
   nm += l1;
 
@@ -792,7 +792,7 @@ void CalcTotalResLDASingle(int n,
   if (nm != zero) invN /= nm;
 
   real Wtilde = invN*pTresTot[n];
- 
+
   // First direction
   real Tnx1 = pTn1[n].x;
   real Tny1 = pTn1[n].y;
@@ -802,17 +802,17 @@ void CalcTotalResLDASingle(int n,
 
   l1 = half*(vx*nx + vy*ny + fabs(vx*nx + vy*ny));
   pTresLDA0[n] = -l1*Wtilde;
-  
+
   // Second direction
   real Tnx2 = pTn2[n].x;
   real Tny2 = pTn2[n].y;
 
   nx = half*Tnx2;
   ny = half*Tny2;
-  
+
   l1 = half*(vx*nx + vy*ny + fabs(vx*nx + vy*ny));
   pTresLDA1[n] = -l1*Wtilde;
-  
+
   // Third direction
   real Tnx3 = pTn3[n].x;
   real Tny3 = pTn3[n].y;
@@ -823,16 +823,16 @@ void CalcTotalResLDASingle(int n,
   l1 = half*(vx*nx + vy*ny + fabs(vx*nx + vy*ny));
   pTresLDA2[n] = -l1*Wtilde;
 }
-  
+
 //######################################################################
 /*! \brief Kernel calculating space-time LDA residue for all triangles
 
 \param nTriangle Total number of triangles in Mesh
-\param *tv1 Pointer to first vertex of triangle 
-\param *tv2 Pointer to second vertex of triangle 
+\param *tv1 Pointer to first vertex of triangle
+\param *tv2 Pointer to second vertex of triangle
 \param *tv3 Pointer to third vertex of triangle
 \param *pVz0 pointer to array of values for zeroth component of parameter vector
-\param *pVz1 pointer to array of values for first component of parameter vector 
+\param *pVz1 pointer to array of values for first component of parameter vector
 \param *pVz2 pointer to array of values for second component of parameter vector
 \param *pVz3 pointer to array of values for third component of parameter vector
 \param *pTresLDA00 Triangle residue LDA direction 0 state 0
@@ -860,26 +860,27 @@ void CalcTotalResLDASingle(int n,
 
 __global__ void
 devCalcTotalResLDA(int nTriangle, const int3* __restrict__ pTv,
-		   const realNeq* __restrict__ pVz, 
-		   realNeq *pTresLDA0, realNeq *pTresLDA1, realNeq *pTresLDA2,
-		   realNeq *pTresTot, const real2 *pTn1, const real2 *pTn2,
-		   const real2 *pTn3, 
-		   const real3* __restrict__ pTl,
-		   int nVertex, real G, real G1, real G2)
+                   const realNeq* __restrict__ pVz,
+                   realNeq *pTresLDA0, realNeq *pTresLDA1, realNeq *pTresLDA2,
+                   realNeq *pTresTot, const real2 *pTn1, const real2 *pTn2,
+                   const real2 *pTn3,
+                   const real3* __restrict__ pTl,
+                   int nVertex, real G, real G1, real G2)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nTriangle) {
     CalcTotalResLDASingle(n, pTv, pVz, pTresLDA0, pTresLDA1, pTresLDA2,
-			  pTresTot, pTn1, pTn2, pTn3, pTl, nVertex, G, G1, G2);
-    
+                          pTresTot, pTn1, pTn2, pTn3, pTl, nVertex, G, G1, G2);
+
     // Next triangle
     n += blockDim.x*gridDim.x;
   }
 }
-  
+
 //######################################################################
-/*! Calculate space-time LDA residue for all triangles; result in \a triangleResidueLDA.*/
+/*! Calculate space-time LDA residue for all triangles; result in \a
+triangleResidueLDA.*/
 //######################################################################
 
 void Simulation::CalcTotalResLDA()
@@ -887,7 +888,7 @@ void Simulation::CalcTotalResLDA()
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
-  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&start) );
   gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
@@ -899,29 +900,29 @@ void Simulation::CalcTotalResLDA()
 
       triangleResidueTotal->TransformToDevice();
       triangleResidueLDA->TransformToDevice();
-      
+
       cudaFlag = 1;
     } else {
       vertexParameterVector->TransformToHost();
 
       triangleResidueTotal->TransformToHost();
       triangleResidueLDA->TransformToHost();
-      
+
       cudaFlag = 0;
     }
   }
-      
+
   int nTriangle = mesh->GetNTriangle();
   int nVertex = mesh->GetNVertex();
 
   realNeq *pVz = vertexParameterVector->GetPointer();
-  
+
   realNeq *pTresLDA0 = triangleResidueLDA->GetPointer(0);
   realNeq *pTresLDA1 = triangleResidueLDA->GetPointer(1);
   realNeq *pTresLDA2 = triangleResidueLDA->GetPointer(2);
-  
+
   realNeq *pTresTot = triangleResidueTotal->GetPointer();
-  
+
   const int3 *pTv = mesh->TriangleVerticesData();
   const real2 *pTn1 = mesh->TriangleEdgeNormalsData(0);
   const real2 *pTn2 = mesh->TriangleEdgeNormalsData(1);
@@ -934,8 +935,8 @@ void Simulation::CalcTotalResLDA()
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devCalcTotalResLDA, 
-				       (size_t) 0, 0);
+                                       devCalcTotalResLDA,
+                                       (size_t) 0, 0);
 
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
@@ -943,15 +944,15 @@ void Simulation::CalcTotalResLDA()
     devCalcTotalResLDA<<<nBlocks, nThreads>>>
       (nTriangle, pTv, pVz,
        pTresLDA0, pTresLDA1, pTresLDA2, pTresTot,
-       pTn1, pTn2, pTn3, pTl, nVertex, 
-       specificHeatRatio, 
+       pTn1, pTn2, pTn3, pTl, nVertex,
+       specificHeatRatio,
        specificHeatRatio - 1.0,
        specificHeatRatio - 2.0);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
 #endif
-    
+
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
 
@@ -959,23 +960,23 @@ void Simulation::CalcTotalResLDA()
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-    for (int n = 0; n < nTriangle; n++) 
+    for (int n = 0; n < nTriangle; n++)
       CalcTotalResLDASingle(n, pTv, pVz,
-			    pTresLDA0, pTresLDA1, pTresLDA2, pTresTot,
-			    pTn1, pTn2, pTn3, pTl, nVertex, 
-			    specificHeatRatio, specificHeatRatio - 1.0,
-			    specificHeatRatio - 2.0);
+                            pTresLDA0, pTresLDA1, pTresLDA2, pTresTot,
+                            pTn1, pTn2, pTn3, pTl, nVertex,
+                            specificHeatRatio, specificHeatRatio - 1.0,
+                            specificHeatRatio - 2.0);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
 #endif
   }
-  
+
 #ifdef TIME_ASTRIX
   gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("CalcTotalResLDA.prof2", nTriangle, elapsedTime, cudaFlag);
 #endif
-  
+
   if (transformFlag == 1) {
     mesh->Transform();
     if (cudaFlag == 0) {
@@ -983,18 +984,17 @@ void Simulation::CalcTotalResLDA()
 
       triangleResidueTotal->TransformToDevice();
       triangleResidueLDA->TransformToDevice();
-      
+
       cudaFlag = 1;
     } else {
       vertexParameterVector->TransformToHost();
 
       triangleResidueTotal->TransformToHost();
       triangleResidueLDA->TransformToHost();
-      
+
       cudaFlag = 0;
     }
   }
 }
 
-
-}
+}  // namespace astrix

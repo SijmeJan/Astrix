@@ -12,7 +12,7 @@
 #include "../Param/meshparameter.h"
 
 namespace astrix {
-  
+
 //#########################################################################
 /*! Transform triangulated Mesh into Delaunay Mesh. This is achieved by flipping edges that do not have the Delaunay property. First, we make a list of edges that are not Delaunay, then we select those that can be flipped in parallel, we adjust the state vector in order to conserve mass, momentum and energy, and finally we flip the edges. A repair step ensures all edges have the correct neighbouring triangles. This is repeated until all edges are Delaunay.
 
@@ -24,14 +24,14 @@ namespace astrix {
 //#########################################################################
 
 void Delaunay::MakeDelaunay(Connectivity * const connectivity,
-			    Array<realNeq> * const vertexState,
-			    const Predicates *predicates,
-			    const MeshParameter *meshParameter,
-			    const int maxCycle,
-			    Array<int> * const edgeNeedsChecking,
-			    const int nEdgeCheck,
-			    const int flopFlag)
-{  
+                            Array<realNeq> * const vertexState,
+                            const Predicates *predicates,
+                            const MeshParameter *meshParameter,
+                            const int maxCycle,
+                            Array<int> * const edgeNeedsChecking,
+                            const int nEdgeCheck,
+                            const int flopFlag)
+{
   nvtxEvent *nvtxDelaunay = new nvtxEvent("Delaunay", 6);
 
   int nEdge = connectivity->edgeTriangles->GetSize();
@@ -39,11 +39,11 @@ void Delaunay::MakeDelaunay(Connectivity * const connectivity,
 
   triangleSubstitute->SetSize(nTriangle);
 
-  if (edgeNeedsChecking == 0) 
+  if (edgeNeedsChecking == 0)
     edgeNonDelaunay->SetSize(nEdge);
   else
     edgeNonDelaunay->SetSize(nEdgeCheck);
-    
+
   triangleAffected->SetSize(2*nEdge);
   triangleAffectedEdge->SetSize(2*nEdge);
 
@@ -55,14 +55,14 @@ void Delaunay::MakeDelaunay(Connectivity * const connectivity,
     if (flopFlag != 1) {
       // Check all edges for Delaunay property
       CheckEdges(connectivity, predicates, meshParameter,
-		 edgeNeedsChecking, nEdgeCheck);
+                 edgeNeedsChecking, nEdgeCheck);
     } else {
       // Check all edges if can be flopped
       CheckEdgesFlop(connectivity, predicates, meshParameter,
-		     edgeNeedsChecking, nEdgeCheck);
+                     edgeNeedsChecking, nEdgeCheck);
       finished = 1;
     }
-    
+
     delete nvtxTemp;
     nvtxTemp = new nvtxEvent("Compact", 2);
 
@@ -88,15 +88,15 @@ void Delaunay::MakeDelaunay(Connectivity * const connectivity,
 
       // Adjust state for conservation
       if (vertexState != 0)
-	AdjustState(connectivity, vertexState, predicates,
-		    meshParameter, nNonDel);
-      
+        AdjustState(connectivity, vertexState, predicates,
+                    meshParameter, nNonDel);
+
       delete nvtxTemp;
       nvtxTemp = new nvtxEvent("Flip", 5);
 
       // Flip edges
       FlipEdge(connectivity, nNonDel);
-      
+
       delete nvtxTemp;
       nvtxTemp = new nvtxEvent("Repair", 6);
 

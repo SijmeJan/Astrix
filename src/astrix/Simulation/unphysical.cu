@@ -23,7 +23,7 @@ namespace astrix {
 
 __host__ __device__
 void FlagUnphysicalVertex(const int v, real4 *pState,
-			  int *pVertexUnphysicalFlag, const real G1)
+                          int *pVertexUnphysicalFlag, const real G1)
 {
   const real zero = (real) 0.0;
   const real half = (real) 0.5;
@@ -38,17 +38,17 @@ void FlagUnphysicalVertex(const int v, real4 *pState,
 
   // Pressure
   real p = G1*(ener - half*(Sq(momx) + Sq(momy))/dens);
-  
+
   // Flag if negative density or pressure
-  if(dens < zero || p < zero || isnan(p)) ret = 1;
-  
+  if (dens < zero || p < zero || isnan(p)) ret = 1;
+
   // Output flag
   pVertexUnphysicalFlag[v] = ret;
 }
 
 __host__ __device__
 void FlagUnphysicalVertex(const int v, real *pState,
-			  int *pVertexUnphysicalFlag, const real G1)
+                          int *pVertexUnphysicalFlag, const real G1)
 {
   // Output flag
   pVertexUnphysicalFlag[v] = 0;
@@ -60,15 +60,15 @@ void FlagUnphysicalVertex(const int v, real *pState,
 \param nVertex Total number of vertices in Mesh
 \param *pState Pointer to state at vertices
 \param *pVertexUnphysicalFlag Pointer to array of flags indicating whether state is physical (0) or unphysical (1) (output)
-\param G1 Ratio of specific heats - 1*/ 
+\param G1 Ratio of specific heats - 1*/
 //######################################################################
 
-__global__ void 
+__global__ void
 devFlagUnphysical(const int nVertex, realNeq *pState,
-		  int *pVertexUnphysicalFlag, const real G1)
+                  int *pVertexUnphysicalFlag, const real G1)
 {
   // n=vertex number
-  int n = blockIdx.x*blockDim.x + threadIdx.x; 
+  int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nVertex) {
     FlagUnphysicalVertex(n, pState, pVertexUnphysicalFlag, G1);
@@ -78,7 +78,7 @@ devFlagUnphysical(const int nVertex, realNeq *pState,
 }
 
 //######################################################################
-/*! Check all vertices for unphysical state. 
+/*! Check all vertices for unphysical state.
 
   \param *pVertexUnphysicalFlag Pointer to array of flags indicating whether state is physical (0) or unphysical (1) (output)*/
 //######################################################################
@@ -97,22 +97,22 @@ void Simulation::FlagUnphysical(Array<int> *vertexUnphysicalFlag)
   if (cudaFlag == 1) {
     int nThreads = 128;
     int nBlocks  = 128;
-    
+
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devFlagUnphysical, 
-				       (size_t) 0, 0);
-    
-    // Execute kernel... 
-    devFlagUnphysical<<<nBlocks,nThreads>>>
+                                       devFlagUnphysical,
+                                       (size_t) 0, 0);
+
+    // Execute kernel...
+    devFlagUnphysical<<<nBlocks, nThreads>>>
       (nVertex, state, pVertexUnphysicalFlag, specificHeatRatio - 1.0);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int v = 0; v < nVertex; v++)
       FlagUnphysicalVertex(v, state, pVertexUnphysicalFlag,
-			   specificHeatRatio - 1.0);
+                           specificHeatRatio - 1.0);
   }
 }
 
-}
+}  // namespace astrix

@@ -10,7 +10,7 @@
 #include "../../Device/device.h"
 
 namespace astrix {
-  
+
 real* Predicates::GetParamPointer(int cudaFlag) const
 {
   if (cudaFlag == 1) return param->GetDevicePointer();
@@ -26,15 +26,15 @@ void InitPredicates(real *pResult)
 {
   real check, lastcheck;
   int every_other;
-  
+
   every_other = 1;
   real epsilon = 1.0;
   real splitter = 1.0;
   check = 1.0;
-  // Repeatedly divide `epsilon' by two until it is too small to add to   
-  //   one without causing roundoff.  (Also check if the sum is equal to   
-  //   the previous sum, for machines that round up instead of using exact 
-  //   rounding.  Not that this library will work on such machines anyway. 
+  // Repeatedly divide `epsilon' by two until it is too small to add to
+  //   one without causing roundoff.  (Also check if the sum is equal to
+  //   the previous sum, for machines that round up instead of using exact
+  //   rounding.  Not that this library will work on such machines anyway.
   do {
     lastcheck = check;
     epsilon *= (real) 0.5;
@@ -78,7 +78,7 @@ void InitPredicates(real *pResult)
 }
 
 //######################################################################
-//! Kernel computing parameters for Predicates 
+//! Kernel computing parameters for Predicates
 //######################################################################
 
 __global__ void
@@ -86,7 +86,7 @@ devInitPredicates(real *pResult)
 {
   int i = blockIdx.x*blockDim.x + threadIdx.x;
 
-  if (i == 0) 
+  if (i == 0)
     InitPredicates(pResult);
 }
 
@@ -102,8 +102,8 @@ Predicates::Predicates(Device *device)
   // Calculate parameters on host
   real *pParamHost = param->GetHostPointer();
   InitPredicates(pParamHost);
-  
-  // Also calculate them on CUDA device (whether actually using CUDA or not) 
+
+  // Also calculate them on CUDA device (whether actually using CUDA or not)
   if (device->GetDeviceCount() > 0) {
     param->CopyToDevice();
     real *pParamDevice = param->GetDevicePointer();

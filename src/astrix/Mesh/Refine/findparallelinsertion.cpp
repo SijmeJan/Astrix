@@ -16,11 +16,11 @@
 //#include "../../Common/atomic.h"
 
 namespace astrix {
-  
+
 //#########################################################################
 /*! \brief Find independent set of insertion points
 
-Upon return, \a elementAdd and \a vertexCoordinatesAdd are compacted to a set that can be inserted in one parallel step. This set is found by finding the cavities of the insertion points, keeping an insertion point \i only if none of the triangles in its cavity are needed by points > \a i. To optimize the set, we randomize the order by assigning a unique random number to each insertion point, and keep insertion point \a i with associated random number \a r only if none of the triangles in its cavity are needed by points with associated random number > \a r.    
+Upon return, \a elementAdd and \a vertexCoordinatesAdd are compacted to a set that can be inserted in one parallel step. This set is found by finding the cavities of the insertion points, keeping an insertion point \i only if none of the triangles in its cavity are needed by points > \a i. To optimize the set, we randomize the order by assigning a unique random number to each insertion point, and keep insertion point \a i with associated random number \a r only if none of the triangles in its cavity are needed by points with associated random number > \a r.
 
 \param *connectivity Pointer to basic Mesh data
 \param *vertexOrder The order in which vertices were inserted. All entries relating to the independent set will be removed
@@ -29,13 +29,13 @@ Upon return, \a elementAdd and \a vertexCoordinatesAdd are compacted to a set th
 \param *predicates Pointer to Predicates object
 \param *meshParameter Pointer to Mesh parameters*/
 //#########################################################################
-  
+
 void Refine::FindParallelInsertionSet(Connectivity * const connectivity,
-				      Array<int> * const vertexOrder,
-				      Array<int> * const vertexOrderInsert,
-				      Array<real2> * const vOBCoordinates,
-				      const Predicates *predicates,
-				      const MeshParameter *meshParameter)
+                                      Array<int> * const vertexOrder,
+                                      Array<int> * const vertexOrderInsert,
+                                      Array<real2> * const vOBCoordinates,
+                                      const Predicates *predicates,
+                                      const MeshParameter *meshParameter)
 {
   nvtxEvent *nvtxUnique = new nvtxEvent("unique", 3);
 
@@ -54,8 +54,8 @@ void Refine::FindParallelInsertionSet(Connectivity * const connectivity,
 
   // Select cavities that are independent
   FindIndependentCavities(connectivity, predicates, meshParameter,
-			  triangleInCavity, uniqueFlag);
- 
+                          triangleInCavity, uniqueFlag);
+
   // Compact arrays to new nRefine
   nRefine = uniqueFlag->ExclusiveScan(uniqueFlagScan, nRefine);
   elementAdd->Compact(nRefine, uniqueFlag, uniqueFlagScan);
@@ -67,7 +67,7 @@ void Refine::FindParallelInsertionSet(Connectivity * const connectivity,
     // Remove inserted vertices from list of boundary vertices to be inserted
     uniqueFlag->Invert();
     int nIgnore = uniqueFlag->ExclusiveScan(uniqueFlagScan,
-					    uniqueFlag->GetSize());
+                                            uniqueFlag->GetSize());
     vOBCoordinates->Compact(nIgnore, uniqueFlag, uniqueFlagScan);
     vertexOrder->Compact(nIgnore, uniqueFlag, uniqueFlagScan);
   }
@@ -76,7 +76,7 @@ void Refine::FindParallelInsertionSet(Connectivity * const connectivity,
   FlagEdgesForChecking(connectivity, predicates, meshParameter);
 
   delete triangleInCavity;
-  
+
   delete uniqueFlag;
   delete uniqueFlagScan;
 

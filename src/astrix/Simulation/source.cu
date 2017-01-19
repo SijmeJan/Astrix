@@ -11,15 +11,15 @@
 #include "../Common/cudaLow.h"
 
 namespace astrix {
-  
+
 //######################################################################
 //######################################################################
 
 __host__ __device__
 void CalcSourceSingle(int n, const int3 *pTv, const real2 *pVc,
-		      const real2 *pTn1, const real2 *pTn2, const real2 *pTn3,
-		      const real3 *pTl, const real *pVp,
-		      const realNeq *pState, realNeq *pSource)
+                      const real2 *pTn1, const real2 *pTn2, const real2 *pTn3,
+                      const real3 *pTl, const real *pVp,
+                      const realNeq *pState, realNeq *pSource)
 {
   /*
   // Vertices belonging to triangle: 3 coalesced reads
@@ -43,12 +43,12 @@ void CalcSourceSingle(int n, const int3 *pTv, const real2 *pVc,
   real tny1 = pTn1[n].y;
   real tny2 = pTn2[n].y;
   real tny3 = pTn3[n].y;
-  
+
   real dPotdx =
     tnx1*tl1*pVp[v1] + tnx2*tl2*pVp[v2] + tnx3*tl3*pVp[v3];
   real dPotdy =
     tny1*tl1*pVp[v1] + tny2*tl2*pVp[v2] + tny3*tl3*pVp[v3];
-  
+
   pSource[n].x = 0.0;
   pSource[n].y = 0.5*rhoAve*dPotdx;
   pSource[n].z = 0.5*rhoAve*dPotdy;
@@ -58,29 +58,28 @@ void CalcSourceSingle(int n, const int3 *pTv, const real2 *pVc,
   pSource[n].y = 0.0;
   pSource[n].z = 0.0;
   pSource[n].w = 0.0;
-  
 }
-  
+
 //######################################################################
 //######################################################################
 
-__global__ void 
+__global__ void
 devCalcSource(int nTriangle, const int3 *pTv, const real2 *pVc,
-	      const real2 *pTn1, const real2 *pTn2, const real2 *pTn3,
-	      const real3 *pTl, const real *pVp,
-	      const realNeq *pState, realNeq *pSource)
+              const real2 *pTn1, const real2 *pTn2, const real2 *pTn3,
+              const real3 *pTl, const real *pVp,
+              const realNeq *pState, realNeq *pSource)
 {
   // n = vertex number
-  int n = blockIdx.x*blockDim.x + threadIdx.x; 
+  int n = blockIdx.x*blockDim.x + threadIdx.x;
 
-  while(n < nTriangle){
+  while (n < nTriangle) {
     CalcSourceSingle(n, pTv, pVc, pTn1, pTn2, pTn3,
-		     pTl, pVp, pState, pSource);
+                     pTl, pVp, pState, pSource);
 
     n += blockDim.x*gridDim.x;
   }
 }
-  
+
 //#########################################################################
 //#########################################################################
 
@@ -96,29 +95,28 @@ void Simulation::CalcSource(Array<realNeq> *state)
   const real2 *pTn1 = mesh->TriangleEdgeNormalsData(0);
   const real2 *pTn2 = mesh->TriangleEdgeNormalsData(1);
   const real2 *pTn3 = mesh->TriangleEdgeNormalsData(2);
-  
+
   const real3 *pTl = mesh->TriangleEdgeLengthData();
 
   if (cudaFlag == 1) {
     int nBlocks = 128;
     int nThreads = 128;
-    
+
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devCalcSource, 
-				       (size_t) 0, 0);
+                                       devCalcSource,
+                                       (size_t) 0, 0);
 
     devCalcSource<<<nBlocks, nThreads>>>
       (nTriangle, pTv, pVc, pTn1, pTn2, pTn3, pTl, pVp, pState, pSource);
-    
+
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int i = 0; i < nTriangle; i++)
       CalcSourceSingle(i, pTv, pVc, pTn1, pTn2, pTn3, pTl,
-		       pVp, pState, pSource);
-  }  
+                       pVp, pState, pSource);
+  }
 }
 
-}
-
+}  // namespace astrix

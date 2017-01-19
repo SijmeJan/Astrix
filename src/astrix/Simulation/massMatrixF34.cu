@@ -33,15 +33,15 @@ namespace astrix {
 //######################################################################
 
 __host__ __device__
-void MassMatrixF34Single(int n, real dt, int massMatrix, 
-			 const int3* __restrict__ pTv,
-			 const real4* __restrict__ pVz, 
-			 const real4* __restrict__ pDstate, 
-			 real4 *pTresLDA0, real4 *pTresLDA1,
-			 real4 *pTresLDA2, const real2 *pTn1,
-			 const real2 *pTn2, const real2 *pTn3,
-			 const real3 *pTl, int nVertex,
-			 real G, real G1, real G2)
+void MassMatrixF34Single(int n, real dt, int massMatrix,
+                         const int3* __restrict__ pTv,
+                         const real4* __restrict__ pVz,
+                         const real4* __restrict__ pDstate,
+                         real4 *pTresLDA0, real4 *pTresLDA1,
+                         real4 *pTresLDA2, const real2 *pTn1,
+                         const real2 *pTn2, const real2 *pTn3,
+                         const real3 *pTl, int nVertex,
+                         real G, real G1, real G2)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -93,7 +93,7 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
   dW21 *= Adt;
   dW22 *= Adt;
   dW23 *= Adt;
-    
+
   // Parameter vector at vertices: 12 uncoalesced loads
   real Zv00 = pVz[vs1].x;
   real Zv01 = pVz[vs1].y;
@@ -127,14 +127,14 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate Wtemp = Sum(K-*What)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+
   real km;
 
   real hoverc = htilde*invCtilde;
   real uoverc = utilde*invCtilde;
   real voverc = vtilde*invCtilde;
   real absvtc = G1*absvt*invCtilde;
-  
+
   real tnx1 = pTn1[n].x;
   real tny1 = pTn1[n].y;
 
@@ -143,7 +143,7 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
   real ny = half*tny1;
   real tl = tl1;
   real wtilde = utilde*nx + vtilde*ny;
-  
+
   real l1 = min(zero, wtilde + ctilde);
   real l2 = min(zero, wtilde - ctilde);
   real l3 = min(zero, wtilde);
@@ -151,35 +151,35 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
   // Auxiliary variables
   real l1l2l3 = half*(l1 + l2) - l3;
   real l1l2 = half*(l1 - l2);
-  
-  // km000    
+
+  // km000
   km = absvtc*invCtilde*l1l2l3 + l3 - l1l2*wtilde*invCtilde;
   real nm00 = tl*km;
-  
+
   // km001
   km = invCtilde*nx*l1l2 - invCtilde*G1*uoverc*l1l2l3;
   real nm01 = tl*km;
-  
+
   // km002
   km = invCtilde*(ny*l1l2 - G1*voverc*l1l2l3);
   real nm02 = tl*km;
-  
+
   // km003
   km = G1*l1l2l3*Sq(invCtilde);
   real nm03 = tl*km;
-  
+
   // km010
-  km = absvtc*(uoverc*l1l2l3 + nx*l1l2) - wtilde*(nx*l1l2l3 + uoverc*l1l2); 
+  km = absvtc*(uoverc*l1l2l3 + nx*l1l2) - wtilde*(nx*l1l2l3 + uoverc*l1l2);
   real nm10 = tl*km;
-  
+
   // km011
   km = l3 + Sq(nx)*l1l2l3 - uoverc*(nx*G2*l1l2 + G1*uoverc*l1l2l3);
   real nm11 = tl*km;
-  
+
   // km012
   km = uoverc*ny*l1l2 + nx*ny*l1l2l3 - voverc*G1*(nx*l1l2 + uoverc*l1l2l3);
   real nm12 = tl*km;
-  
+
   // km013
   km = G1*(uoverc*l1l2l3 + nx*l1l2)*invCtilde;
   real nm13 = tl*km;
@@ -187,125 +187,125 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
   // km020
   km = absvtc*(voverc*l1l2l3 + ny*l1l2) - wtilde*(voverc*l1l2 + ny*l1l2l3);
   real nm20 = tl*km;
-  
+
   // km021
   km = voverc*nx*l1l2 - G1*uoverc*(voverc*l1l2l3 + ny*l1l2) + nx*ny*l1l2l3;
   real nm21 = tl*km;
-  
+
   // km022
   km = Sq(ny)*l1l2l3 + l3 -
     voverc*(G2*ny*l1l2 + G1*voverc*l1l2l3);
   real nm22 = tl*km;
-  
+
   // km023
   km = G1*(voverc*l1l2l3 + ny*l1l2)*invCtilde;
   real nm23 = tl*km;
-  
+
   // km030
   km = absvtc*(wtilde*l1l2 + hoverc*l1l2l3) -
     wtilde*(hoverc*l1l2 + wtilde*l1l2l3);
   real nm30 = tl*km;
-  
+
   // km031
   km = nx*(hoverc*l1l2 + wtilde*l1l2l3) -
     G1*uoverc*(wtilde*l1l2 + hoverc*l1l2l3);
   real nm31 = tl*km;
-  
+
   // km032
-  km = ny*(hoverc*l1l2 + wtilde*l1l2l3) - 
+  km = ny*(hoverc*l1l2 + wtilde*l1l2l3) -
     G1*voverc*(wtilde*l1l2 + hoverc*l1l2l3);
   real nm32 = tl*km;
-  
+
   // km033
   km = G1*invCtilde*(hoverc*l1l2l3 + wtilde*l1l2) + l3;
   real nm33 = tl*km;
-  
+
   real tnx2 = pTn2[n].x;
   real tny2 = pTn2[n].y;
 
-  // Second direction         
+  // Second direction
   nx = half*tnx2;
   ny = half*tny2;
   tl = tl2;
   wtilde = (uoverc*nx + voverc*ny)*ctilde;
-  
+
   l1 = min(wtilde + ctilde, zero);
   l2 = min(wtilde - ctilde, zero);
   l3 = min(wtilde, zero);
-  
+
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
-  
-  // km100    
+
+  // km100
   km = absvtc*invCtilde*l1l2l3 + l3 - l1l2*wtilde*invCtilde;
   nm00 += tl*km;
-  
+
   // km101
   km = invCtilde*nx*l1l2 - invCtilde*G1*uoverc*l1l2l3;
   nm01 += tl*km;
-  
+
   // km102
   km = invCtilde*(ny*l1l2 - G1*voverc*l1l2l3);
   nm02 += tl*km;
-  
+
   // km103
   km = G1*l1l2l3*Sq(invCtilde);
   nm03 += tl*km;
-  
+
   // km110
-  km = absvtc*(uoverc*l1l2l3 + nx*l1l2) - wtilde*(nx*l1l2l3 + uoverc*l1l2); 
+  km = absvtc*(uoverc*l1l2l3 + nx*l1l2) - wtilde*(nx*l1l2l3 + uoverc*l1l2);
   nm10 += tl*km;
-  
+
   // km111
   km = l3 + Sq(nx)*l1l2l3 - uoverc*(nx*G2*l1l2 + G1*uoverc*l1l2l3);
   nm11 += tl*km;
-  
+
   // km112
   km = uoverc*ny*l1l2 + nx*ny*l1l2l3 -
     voverc*G1*(nx*l1l2 + uoverc*l1l2l3);
   nm12 += tl*km;
-  
+
   // km113
   km = G1*(uoverc*l1l2l3 + nx*l1l2)*invCtilde;
   nm13 += tl*km;
-  
+
   // km120
   km = absvtc*(voverc*l1l2l3 + ny*l1l2) - wtilde*(voverc*l1l2 + ny*l1l2l3);
   nm20 += tl*km;
-  
+
   // km121
   km = voverc*nx*l1l2 + nx*ny*l1l2l3 - G1*uoverc*(voverc*l1l2l3 + ny*l1l2);
   nm21 += tl*km;
-  
+
   // km122
   km = Sq(ny)*l1l2l3 + l3 -
     voverc*(G2*ny*l1l2 + G1*voverc*l1l2l3);
   nm22 += tl*km;
-  
+
   // km123
   km = G1*(voverc*l1l2l3 + ny*l1l2)*invCtilde;
   nm23 += tl*km;
-  
+
   // km130
   km = absvtc*(wtilde*l1l2 + hoverc*l1l2l3) -
     wtilde*(hoverc*l1l2 + wtilde*l1l2l3);
   nm30 += tl*km;
-  
+
   // km131
   km = nx*(hoverc*l1l2 + wtilde*l1l2l3) -
     G1*uoverc*(wtilde*l1l2 + hoverc*l1l2l3);
   nm31 += tl*km;
-  
+
   // km132
   km = ny*(hoverc*l1l2 + wtilde*l1l2l3) -
     G1*voverc*(wtilde*l1l2 + hoverc*l1l2l3);
   nm32 += tl*km;
-  
+
   // km133
   km = G1*invCtilde*(hoverc*l1l2l3 + wtilde*l1l2) + l3;
   nm33 += tl*km;
-  
+
   real tnx3 = pTn3[n].x;
   real tny3 = pTn3[n].y;
 
@@ -314,88 +314,88 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
   ny = half*tny3;
   tl = tl3;
   wtilde = (uoverc*nx + voverc*ny)*ctilde;
-  
+
   l1 = min(wtilde + ctilde, zero);
   l2 = min(wtilde - ctilde, zero);
   l3 = min(wtilde, zero);
- 
+
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
-  
-  // km200    
+
+  // km200
   km = absvtc*invCtilde*l1l2l3 + l3 - l1l2*wtilde*invCtilde;
   nm00 += tl*km;
-  
+
   // km201
   km = invCtilde*(nx*l1l2 - G1*uoverc*l1l2l3);
   nm01 += tl*km;
-  
+
   // km202
   km = invCtilde*(ny*l1l2 - G1*voverc*l1l2l3);
   nm02 += tl*km;
-  
+
   // km203
   km = G1*l1l2l3*Sq(invCtilde);
   nm03 += tl*km;
-  
+
   // km210
   km = absvtc*(uoverc*l1l2l3 + nx*l1l2) -
-    wtilde*(nx*l1l2l3 + uoverc*l1l2); 
+    wtilde*(nx*l1l2l3 + uoverc*l1l2);
   nm10 += tl*km;
-  
+
   // km211
   km = l3 + Sq(nx)*l1l2l3 -
     uoverc*(nx*G2*l1l2 + G1*uoverc*l1l2l3);
   nm11 += tl*km;
-  
+
   // km212
   km = uoverc*ny*l1l2 + nx*ny*l1l2l3 -
     voverc*G1*(nx*l1l2 + uoverc*l1l2l3);
   nm12 += tl*km;
-  
+
   // km213
   km = G1*(uoverc*l1l2l3 + nx*l1l2)*invCtilde;
   nm13 += tl*km;
-  
+
   // km220
-  km = absvtc*(voverc*l1l2l3 + ny*l1l2) - 
+  km = absvtc*(voverc*l1l2l3 + ny*l1l2) -
     wtilde*(voverc*l1l2 + ny*l1l2l3);
   nm20 += tl*km;
-  
+
   // km221
   km = voverc*nx*l1l2 + nx*ny*l1l2l3 -
     G1*uoverc*(voverc*l1l2l3 + ny*l1l2);
   nm21 += tl*km;
-  
+
   // km222
   km = Sq(ny)*l1l2l3 + l3 -
     voverc*(G2*ny*l1l2 + G1*voverc*l1l2l3);
   nm22 += tl*km;
-  
+
   // km223
   km = G1*(voverc*l1l2l3 + ny*l1l2)*invCtilde;
   nm23 += tl*km;
-  
+
   // km230
   km = absvtc*(wtilde*l1l2 + hoverc*l1l2l3) -
     wtilde*(hoverc*l1l2 + wtilde*l1l2l3);
   nm30 += tl*km;
-  
+
   // km231
   km = nx*(hoverc*l1l2 + wtilde*l1l2l3) -
     G1*uoverc*(wtilde*l1l2 + hoverc*l1l2l3);
   nm31 += tl*km;
-  
+
   // km232
   km = ny*(hoverc*l1l2 + wtilde*l1l2l3) -
     G1*voverc*(wtilde*l1l2 + hoverc*l1l2l3);
   nm32 += tl*km;
-  
+
   // km233
   km = G1*invCtilde*(hoverc*l1l2l3 + wtilde*l1l2) + l3;
   nm33 += tl*km;
- 
+
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate inverse of NM = Sum(K-)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -438,25 +438,25 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
 
   // Wtilde = N*dW0
   real Wtilde0 =
-    invN00*dW00 +  
-    invN01*dW01 +  
-    invN02*dW02 +  
-    invN03*dW03;  
+    invN00*dW00 +
+    invN01*dW01 +
+    invN02*dW02 +
+    invN03*dW03;
   real Wtilde1 =
-    invN10*dW00 +  
-    invN11*dW01 +  
-    invN12*dW02 +  
-    invN13*dW03;  
+    invN10*dW00 +
+    invN11*dW01 +
+    invN12*dW02 +
+    invN13*dW03;
   real Wtilde2 =
-    invN20*dW00 +  
-    invN21*dW01 +  
-    invN22*dW02 +  
-    invN23*dW03;  
+    invN20*dW00 +
+    invN21*dW01 +
+    invN22*dW02 +
+    invN23*dW03;
   real Wtilde3 =
-    invN30*dW00 +  
-    invN31*dW01 +  
-    invN32*dW02 +  
-    invN33*dW03;  
+    invN30*dW00 +
+    invN31*dW01 +
+    invN32*dW02 +
+    invN33*dW03;
 
   Wtilde0 *= det;
   Wtilde1 *= det;
@@ -465,7 +465,7 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
 
   // ResLDA = -Kp*Wtilde
   real ResLDA, kp;
-  
+
   real Tnx1 = pTn1[n].x;
   real Tny1 = pTn1[n].y;
 
@@ -473,7 +473,7 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
   ny = half*Tny1;
 
   wtilde = (uoverc*nx + voverc*ny)*ctilde;
-    
+
   l1 = half*(wtilde + ctilde + fabs(wtilde + ctilde));
   l2 = half*(wtilde - ctilde + fabs(wtilde - ctilde));
   l3 = half*(wtilde + fabs(wtilde));
@@ -481,109 +481,109 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
   // Auxiliary variables
   l1l2l3 = half*(l1+l2)-l3;
   l1l2 = half*(l1-l2);
-  
-  // kp000    
+
+  // kp000
   kp = absvtc*invCtilde*l1l2l3 + l3 - l1l2*wtilde*invCtilde;
   ResLDA = -kp*Wtilde0;
-  
+
   // kp001
   kp = invCtilde*(nx*l1l2 - G1*uoverc*l1l2l3);
   ResLDA -= kp*Wtilde1;
-  
+
   // kp002
   kp = invCtilde*(ny*l1l2 - G1*voverc*l1l2l3);
   ResLDA -= kp*Wtilde2;
-  
+
   // kp003
   kp = G1*l1l2l3*Sq(invCtilde);
   ResLDA -= kp*Wtilde3;
 
   pTresLDA0[n].x += ResLDA;
-  
+
   // kp010
   kp = absvtc*(uoverc*l1l2l3 + nx*l1l2) -
-    wtilde*(nx*l1l2l3 + uoverc*l1l2); 
+    wtilde*(nx*l1l2l3 + uoverc*l1l2);
   ResLDA =-kp*Wtilde0;
-  
+
   // kp011
   kp = l3 + Sq(nx)*l1l2l3 -
     uoverc*(nx*G2*l1l2 + G1*uoverc*l1l2l3);
   ResLDA -= kp*Wtilde1;
-  
+
   // kp012
   kp = uoverc*ny*l1l2 + nx*ny*l1l2l3 -
     voverc*G1*(nx*l1l2 + uoverc*l1l2l3);
   ResLDA -= kp*Wtilde2;
-  
+
   // kp013
   kp = G1*(uoverc*l1l2l3 + nx*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
-  
+
   pTresLDA0[n].y += ResLDA;
-  
+
   // kp020
-  kp = absvtc*(voverc*l1l2l3 + ny*l1l2) - 
+  kp = absvtc*(voverc*l1l2l3 + ny*l1l2) -
     wtilde*(voverc*l1l2 + ny*l1l2l3);
   ResLDA =-kp*Wtilde0;
-  
+
   // kp021
   kp = voverc*nx*l1l2 + nx*ny*l1l2l3 -
     G1*uoverc*(voverc*l1l2l3 + ny*l1l2);
   ResLDA -= kp*Wtilde1;
-  
+
   // kp022
   kp = Sq(ny)*l1l2l3 + l3 -
     voverc*(G2*ny*l1l2 + G1*voverc*l1l2l3);
   ResLDA -= kp*Wtilde2;
-  
+
   // kp023
   kp = G1*(voverc*l1l2l3 + ny*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
-  
+
   pTresLDA0[n].z += ResLDA;
-  
+
   // kp030
   kp = absvtc*(wtilde*l1l2 + hoverc*l1l2l3) -
     wtilde*(hoverc*l1l2 + wtilde*l1l2l3);
   ResLDA =-kp*Wtilde0;
-  
+
   // kp031
   kp = nx*(hoverc*l1l2 + wtilde*l1l2l3) -
     G1*uoverc*(wtilde*l1l2 + hoverc*l1l2l3);
   ResLDA -= kp*Wtilde1;
-  
+
   // kp032
   kp = ny*(hoverc*l1l2 + wtilde*l1l2l3) -
     G1*voverc*(wtilde*l1l2 + hoverc*l1l2l3);
   ResLDA -= kp*Wtilde2;
-  
+
   // kp033
   kp = G1*invCtilde*(hoverc*l1l2l3 + wtilde*l1l2) + l3;
   ResLDA -= kp*Wtilde3;
-  
+
   pTresLDA0[n].w += ResLDA;
 
   // Wtilde = N*dW1
   Wtilde0 =
-    invN00*dW10 +  
-    invN01*dW11 +  
-    invN02*dW12 +  
-    invN03*dW13;  
+    invN00*dW10 +
+    invN01*dW11 +
+    invN02*dW12 +
+    invN03*dW13;
   Wtilde1 =
-    invN10*dW10 +  
-    invN11*dW11 +  
-    invN12*dW12 +  
-    invN13*dW13;  
+    invN10*dW10 +
+    invN11*dW11 +
+    invN12*dW12 +
+    invN13*dW13;
   Wtilde2 =
-    invN20*dW10 +  
-    invN21*dW11 +  
-    invN22*dW12 +  
-    invN23*dW13;  
+    invN20*dW10 +
+    invN21*dW11 +
+    invN22*dW12 +
+    invN23*dW13;
   Wtilde3 =
-    invN30*dW10 +  
-    invN31*dW11 +  
-    invN32*dW12 +  
-    invN33*dW13;  
+    invN30*dW10 +
+    invN31*dW11 +
+    invN32*dW12 +
+    invN33*dW13;
 
   Wtilde0 *= det;
   Wtilde1 *= det;
@@ -597,121 +597,121 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
   nx = half*Tnx2;
   ny = half*Tny2;
   wtilde = (uoverc*nx + voverc*ny)*ctilde;
-  
-  //l1 = max(wtilde + ctilde, zero);
-  //l2 = max(wtilde - ctilde, zero);
-  //l3 = max(wtilde, zero);    
+
+  // l1 = max(wtilde + ctilde, zero);
+  // l2 = max(wtilde - ctilde, zero);
+  // l3 = max(wtilde, zero);
   l1 = half*(wtilde + ctilde + fabs(wtilde + ctilde));
   l2 = half*(wtilde - ctilde + fabs(wtilde - ctilde));
   l3 = half*(wtilde + fabs(wtilde));
-  
+
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
-  
-  // kp100    
-  kp = absvtc*invCtilde*l1l2l3 + 
+
+  // kp100
+  kp = absvtc*invCtilde*l1l2l3 +
     l3 - l1l2*wtilde*invCtilde;
   ResLDA = -kp*Wtilde0;
-  
+
   // kp101
   kp = invCtilde*(nx*l1l2 - G1*uoverc*l1l2l3);
   ResLDA -= kp*Wtilde1;
-  
+
   // kp102
   kp = invCtilde*(ny*l1l2 - G1*voverc*l1l2l3);
   ResLDA -= kp*Wtilde2;
-  
+
   // kp103
   kp = G1*l1l2l3*Sq(invCtilde);
   ResLDA -= kp*Wtilde3;
-  
+
   pTresLDA1[n].x += ResLDA;
-  
+
   // kp110
   kp = absvtc*(uoverc*l1l2l3 + nx*l1l2) -
-    wtilde*(nx*l1l2l3 + uoverc*l1l2); 
+    wtilde*(nx*l1l2l3 + uoverc*l1l2);
   ResLDA =-kp*Wtilde0;
-  
+
   // kp111
   kp = l3 + Sq(nx)*l1l2l3 -
     uoverc*(nx*G2*l1l2 + G1*uoverc*l1l2l3);
   ResLDA -= kp*Wtilde1;
-  
+
   // kp112
   kp = uoverc*ny*l1l2 + nx*ny*l1l2l3 -
     voverc*G1*(nx*l1l2 + uoverc*l1l2l3);
   ResLDA -= kp*Wtilde2;
-  
+
   // kp113
   kp = G1*(uoverc*l1l2l3 + nx*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
-  
+
   pTresLDA1[n].y += ResLDA;
-  
+
   // kp120
-  kp = absvtc*(voverc*l1l2l3 + ny*l1l2) - 
+  kp = absvtc*(voverc*l1l2l3 + ny*l1l2) -
     wtilde*(voverc*l1l2 + ny*l1l2l3);
   ResLDA = -kp*Wtilde0;
-  
+
   // kp121
   kp = voverc*nx*l1l2 + nx*ny*l1l2l3 -
     G1*uoverc*(voverc*l1l2l3 + ny*l1l2);
   ResLDA -= kp*Wtilde1;
-  
+
   // kp122
   kp = Sq(ny)*l1l2l3 + l3 -
     voverc*(G2*ny*l1l2 + G1*voverc*l1l2l3);
   ResLDA -= kp*Wtilde2;
-  
+
   // kp123
   kp = G1*(voverc*l1l2l3 + ny*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
-  
+
   pTresLDA1[n].z += ResLDA;
-  
+
   // kp130
   kp = absvtc*(wtilde*l1l2 + hoverc*l1l2l3) -
     wtilde*(hoverc*l1l2 + wtilde*l1l2l3);
   ResLDA =-kp*Wtilde0;
-  
+
   // kp131
   kp = nx*(hoverc*l1l2 + wtilde*l1l2l3) -
     G1*uoverc*(wtilde*l1l2 + hoverc*l1l2l3);
   ResLDA -= kp*Wtilde1;
-  
+
   // kp132
   kp = ny*(hoverc*l1l2 + wtilde*l1l2l3) -
     G1*voverc*(wtilde*l1l2 + hoverc*l1l2l3);
   ResLDA -= kp*Wtilde2;
-  
+
   // kp133
   kp = G1*invCtilde*(hoverc*l1l2l3 + wtilde*l1l2) + l3;
   ResLDA -= kp*Wtilde3;
-  
+
   pTresLDA1[n].w += ResLDA;
-  
+
   // Wtilde = N*dW1
   Wtilde0 =
-    invN00*dW20 +  
-    invN01*dW21 +  
-    invN02*dW22 +  
-    invN03*dW23;  
+    invN00*dW20 +
+    invN01*dW21 +
+    invN02*dW22 +
+    invN03*dW23;
   Wtilde1 =
-    invN10*dW20 +  
-    invN11*dW21 +  
-    invN12*dW22 +  
-    invN13*dW23;  
+    invN10*dW20 +
+    invN11*dW21 +
+    invN12*dW22 +
+    invN13*dW23;
   Wtilde2 =
-    invN20*dW20 +  
-    invN21*dW21 +  
-    invN22*dW22 +  
-    invN23*dW23;  
+    invN20*dW20 +
+    invN21*dW21 +
+    invN22*dW22 +
+    invN23*dW23;
   Wtilde3 =
-    invN30*dW20 +  
-    invN31*dW21 +  
-    invN32*dW22 +  
-    invN33*dW23;  
+    invN30*dW20 +
+    invN31*dW21 +
+    invN32*dW22 +
+    invN33*dW23;
 
   Wtilde0 *= det;
   Wtilde1 *= det;
@@ -725,111 +725,111 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
   nx = half*Tnx3;
   ny = half*Tny3;
   wtilde = (uoverc*nx + voverc*ny)*ctilde;
-  
-  //l1 = max(wtilde + ctilde, zero);
-  //l2 = max(wtilde - ctilde, zero);
-  //l3 = max(wtilde, zero);
+
+  // l1 = max(wtilde + ctilde, zero);
+  // l2 = max(wtilde - ctilde, zero);
+  // l3 = max(wtilde, zero);
   l1 = half*(wtilde + ctilde + fabs(wtilde + ctilde));
   l2 = half*(wtilde - ctilde + fabs(wtilde - ctilde));
   l3 = half*(wtilde + fabs(wtilde));
-  
+
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
   l1l2 = half*(l1 - l2);
-  
-  // kp200    
-  kp = absvtc*invCtilde*l1l2l3 + 
+
+  // kp200
+  kp = absvtc*invCtilde*l1l2l3 +
     l3 - l1l2*wtilde*invCtilde;
   ResLDA = -kp*Wtilde0;
-  
+
   // kp201
   kp = invCtilde*(nx*l1l2 - G1*uoverc*l1l2l3);
   ResLDA -= kp*Wtilde1;
-  
+
   // kp202
   kp = invCtilde*(ny*l1l2 - G1*voverc*l1l2l3);
   ResLDA -= kp*Wtilde2;
-  
+
   // kp203
   kp = G1*l1l2l3*Sq(invCtilde);
   ResLDA -= kp*Wtilde3;
-  
+
   pTresLDA2[n].x += ResLDA;
-  
+
   // kp210
   kp = absvtc*(uoverc*l1l2l3 + nx*l1l2) -
-    wtilde*(nx*l1l2l3 + uoverc*l1l2); 
+    wtilde*(nx*l1l2l3 + uoverc*l1l2);
   ResLDA =-kp*Wtilde0;
-  
+
   // kp211
   kp = l3 + Sq(nx)*l1l2l3 -
     uoverc*(nx*G2*l1l2 + G1*uoverc*l1l2l3);
   ResLDA -= kp*Wtilde1;
-  
+
   // kp212
   kp = uoverc*ny*l1l2 + nx*ny*l1l2l3 -
     voverc*G1*(nx*l1l2 + uoverc*l1l2l3);
   ResLDA -= kp*Wtilde2;
-  
+
   // kp213
   kp = G1*(uoverc*l1l2l3 + nx*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
-  
+
   pTresLDA2[n].y += ResLDA;
-  
+
   // kp220
-  kp = absvtc*(voverc*l1l2l3 + ny*l1l2) - 
+  kp = absvtc*(voverc*l1l2l3 + ny*l1l2) -
     wtilde*(voverc*l1l2 + ny*l1l2l3);
   ResLDA =-kp*Wtilde0;
-  
+
   // kp221
   kp = voverc*nx*l1l2 + nx*ny*l1l2l3 -
     G1*uoverc*(voverc*l1l2l3 + ny*l1l2);
   ResLDA -= kp*Wtilde1;
-  
+
   // kp222
   kp = Sq(ny)*l1l2l3 + l3 -
     voverc*(G2*ny*l1l2 + G1*voverc*l1l2l3);
   ResLDA -= kp*Wtilde2;
-  
+
   // kp223
   kp = G1*(voverc*l1l2l3 + ny*l1l2)*invCtilde;
   ResLDA -= kp*Wtilde3;
-  
+
   pTresLDA2[n].z += ResLDA;
-  
+
   // kp230
   kp = absvtc*(wtilde*l1l2 + hoverc*l1l2l3) -
     wtilde*(hoverc*l1l2 + wtilde*l1l2l3);
   ResLDA = -kp*Wtilde0;
-  
+
   // kp231
   kp = nx*(hoverc*l1l2 + wtilde*l1l2l3) -
     G1*uoverc*(wtilde*l1l2 + hoverc*l1l2l3);
   ResLDA -= kp*Wtilde1;
-  
+
   // kp232
   kp = ny*(hoverc*l1l2 + wtilde*l1l2l3) -
     G1*voverc*(wtilde*l1l2 + hoverc*l1l2l3);
   ResLDA -= kp*Wtilde2;
-  
+
   // kp233
   kp = G1*invCtilde*(hoverc*l1l2l3 + wtilde*l1l2) + l3;
   ResLDA -= kp*Wtilde3;
-  
+
   pTresLDA2[n].w += ResLDA;
 }
 
 __host__ __device__
-void MassMatrixF34Single(int n, real dt, int massMatrix, 
-			 const int3* __restrict__ pTv,
-			 const real* __restrict__ pVz, 
-			 const real* __restrict__ pDstate, 
-			 real *pTresLDA0, real *pTresLDA1,
-			 real *pTresLDA2, const real2 *pTn1,
-			 const real2 *pTn2, const real2 *pTn3,
-			 const real3 *pTl, int nVertex,
-			 real G, real G1, real G2)
+void MassMatrixF34Single(int n, real dt, int massMatrix,
+                         const int3* __restrict__ pTv,
+                         const real* __restrict__ pVz,
+                         const real* __restrict__ pDstate,
+                         real *pTresLDA0, real *pTresLDA1,
+                         real *pTresLDA2, const real2 *pTn1,
+                         const real2 *pTn2, const real2 *pTn3,
+                         const real3 *pTl, int nVertex,
+                         real G, real G1, real G2)
 {
   const real zero = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -862,7 +862,7 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
   dW0 *= Adt;
   dW1 *= Adt;
   dW2 *= Adt;
-    
+
   // Average parameter vector
 #if BURGERS == 1
   real Zv0 = pVz[vs1];
@@ -880,7 +880,7 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate N
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+
   real tnx1 = pTn1[n].x;
   real tny1 = pTn1[n].y;
 
@@ -888,18 +888,18 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
   real nx = half*tnx1;
   real ny = half*tny1;
   real tl = tl1;
-  
+
   real l1 = min(zero, vx*nx + vy*ny);
   real nm = l1*tl;
-    
-  // Second direction         
+
+  // Second direction
   real tnx2 = pTn2[n].x;
   real tny2 = pTn2[n].y;
 
   nx = half*tnx2;
   ny = half*tny2;
   tl = tl2;
-  
+
   l1 = min(zero, vx*nx + vy*ny);
   nm += l1*tl;
 
@@ -910,19 +910,19 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
   nx = half*tnx3;
   ny = half*tny3;
   tl = tl3;
-  
+
   l1 = min(zero, vx*nx + vy*ny);
   nm += l1*tl;
 
   real invN = (real) 1.0;
   if (nm != zero) invN /= nm;
-  
+
   // Wtilde = N*dW0
   real Wtilde = invN*dW0;
 
   // ResLDA = -Kp*Wtilde
   real ResLDA;
-  
+
   real Tnx1 = pTn1[n].x;
   real Tny1 = pTn1[n].y;
 
@@ -948,7 +948,7 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
   ResLDA = -l1*Wtilde;
 
   pTresLDA1[n] += ResLDA;
-  
+
   // Wtilde = N*dW1
   Wtilde = invN*dW2;
 
@@ -987,27 +987,27 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
 
 __global__ void
 devMassMatrixF34(int nTriangle, real dt, int massMatrix,
-		 const int3* __restrict__ pTv,
-		 const realNeq* __restrict__ pVz, 
-		 const realNeq* __restrict__ pDstate, 
-		 realNeq *pTresLDA0, realNeq *pTresLDA1,
-		 realNeq *pTresLDA2, const real2 *pTn1, const real2 *pTn2,
-		 const real2 *pTn3, const real3 *pTl,
-		 int nVertex, real G, real G1, real G2)
+                 const int3* __restrict__ pTv,
+                 const realNeq* __restrict__ pVz,
+                 const realNeq* __restrict__ pDstate,
+                 realNeq *pTresLDA0, realNeq *pTresLDA1,
+                 realNeq *pTresLDA2, const real2 *pTn1, const real2 *pTn2,
+                 const real2 *pTn3, const real3 *pTl,
+                 int nVertex, real G, real G1, real G2)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nTriangle) {
     MassMatrixF34Single(n, dt, massMatrix, pTv, pVz, pDstate,
-			pTresLDA0, pTresLDA1, pTresLDA2,
-			pTn1, pTn2, pTn3, pTl,
-			nVertex, G, G1, G2);
-    
+                        pTresLDA0, pTresLDA1, pTresLDA2,
+                        pTn1, pTn2, pTn3, pTl,
+                        nVertex, G, G1, G2);
+
     // Next triangle
     n += blockDim.x*gridDim.x;
   }
 }
-  
+
 //######################################################################
 /*! Calculate mass matrix contribution F3/F4 to residual.*/
 //######################################################################
@@ -1019,11 +1019,11 @@ void Simulation::MassMatrixF34(real dt, int massMatrix)
 
   realNeq *pVz = vertexParameterVector->GetPointer();
   realNeq *pDstate = vertexStateDiff->GetPointer();
-  
+
   realNeq *pTresLDA0 = triangleResidueLDA->GetPointer(0);
   realNeq *pTresLDA1 = triangleResidueLDA->GetPointer(1);
   realNeq *pTresLDA2 = triangleResidueLDA->GetPointer(2);
-  
+
   const int3 *pTv = mesh->TriangleVerticesData();
   const real2 *pTn1 = mesh->TriangleEdgeNormalsData(0);
   const real2 *pTn2 = mesh->TriangleEdgeNormalsData(1);
@@ -1036,28 +1036,28 @@ void Simulation::MassMatrixF34(real dt, int massMatrix)
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devMassMatrixF34, 
-				       (size_t) 0, 0);
+                                       devMassMatrixF34,
+                                       (size_t) 0, 0);
 
     devMassMatrixF34<<<nBlocks, nThreads>>>
       (nTriangle, dt, massMatrix, pTv, pVz, pDstate,
        pTresLDA0, pTresLDA1, pTresLDA2,
-       pTn1, pTn2, pTn3, pTl, nVertex, 
-       specificHeatRatio, 
+       pTn1, pTn2, pTn3, pTl, nVertex,
+       specificHeatRatio,
        specificHeatRatio - 1.0,
        specificHeatRatio - 2.0);
-    
+
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
 
   } else {
-    for (int n = 0; n < nTriangle; n++) 
+    for (int n = 0; n < nTriangle; n++)
       MassMatrixF34Single(n, dt, massMatrix, pTv, pVz, pDstate,
-			  pTresLDA0, pTresLDA1, pTresLDA2,
-			  pTn1, pTn2, pTn3, pTl, nVertex, 
-			  specificHeatRatio, specificHeatRatio - 1.0,
-			  specificHeatRatio - 2.0);
+                          pTresLDA0, pTresLDA1, pTresLDA2,
+                          pTn1, pTn2, pTn3, pTl, nVertex,
+                          specificHeatRatio, specificHeatRatio - 1.0,
+                          specificHeatRatio - 2.0);
   }
 }
 
-}
+}  // namespace astrix

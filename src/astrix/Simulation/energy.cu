@@ -15,7 +15,7 @@ namespace astrix {
 //#########################################################################
 /*! Replace energy with pressure at vertex \a i
 
-\param i Index of vertex 
+\param i Index of vertex
 \param *pState Pointer to state vector at vertices
 \param G1 Ratio of specific heats - 1*/
 //#########################################################################
@@ -26,19 +26,19 @@ void ReplaceEnergyWithPressureSingle(int i, real4 *pState, real G1)
   real half = (real) 0.5;
 
   pState[i].w = G1*(pState[i].w - half*(Sq(pState[i].y) + Sq(pState[i].z))/
-		   pState[i].x);
+                   pState[i].x);
 }
-  
+
 __host__ __device__
 void ReplaceEnergyWithPressureSingle(int i, real *pState, real G1)
 {
   // Dummy function, nothing to be done if solving only one equation
 }
 
-//######################################################################### 
+//#########################################################################
 /*! Replace pressure with energy at vertex \a i
 
-\param i Index of vertex 
+\param i Index of vertex
 \param *pState Pointer to state vector at vertices
 \param iG1 1/(Ratio of specific heats - 1)*/
 //#########################################################################
@@ -61,7 +61,7 @@ void ReplacePressureWithEnergySingle(int i, real *pState, real iG1)
 //######################################################################
 /*! Kernel replacing energy with pressure at all vertices
 
-\param nVertex Total number of vertices 
+\param nVertex Total number of vertices
 \param *pState Pointer to state vector at vertices
 \param G1 Ratio of specific heats - 1*/
 //######################################################################
@@ -82,7 +82,7 @@ devReplaceEnergyWithPressure(int nVertex, realNeq *pState, real G1)
 //######################################################################
 /*! Kernel replacing pressure with energy at all vertices
 
-\param nVertex Total number of vertices 
+\param nVertex Total number of vertices
 \param *pState Pointer to state vector at vertices
 \param iG1 1/(Ratio of specific heats - 1)*/
 //######################################################################
@@ -101,7 +101,9 @@ devReplacePressureWithEnergy(int nVertex, realNeq *pState, real iG1)
 }
 
 //#########################################################################
-/*! It can be useful, especially when interpolating, to use the pressure rather than the total energy. This function replaces the total energy with the pressure in the state vector for all vertices.*/
+/*! It can be useful, especially when interpolating, to use the pressure
+rather than the total energy. This function replaces the total energy with
+the pressure in the state vector for all vertices.*/
 //#########################################################################
 
 void Simulation::ReplaceEnergyWithPressure()
@@ -117,7 +119,7 @@ void Simulation::ReplaceEnergyWithPressure()
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize
       (&nBlocks, &nThreads,
-       devReplaceEnergyWithPressure, 
+       devReplaceEnergyWithPressure,
        (size_t) 0, 0);
 
     devReplaceEnergyWithPressure<<<nBlocks, nThreads>>>
@@ -125,13 +127,16 @@ void Simulation::ReplaceEnergyWithPressure()
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
-    for (int i = 0; i < nVertex; i++) 
+    for (int i = 0; i < nVertex; i++)
       ReplaceEnergyWithPressureSingle(i, pState, specificHeatRatio - 1.0);
   }
 }
 
 //#########################################################################
-/*! It can be useful, especially when interpolating, to use the pressure rather than the total energy. However, before doing any hydro, we have to swap them back. This function replaces the pressure with the total energy in the state vector for all vertices.*/
+/*! It can be useful, especially when interpolating, to use the pressure rather
+than the total energy. However, before doing any hydro, we have to swap them
+back. This function replaces the pressure with the total energy in the state
+vector for all vertices.*/
 //#########################################################################
 
 void Simulation::ReplacePressureWithEnergy()
@@ -147,7 +152,7 @@ void Simulation::ReplacePressureWithEnergy()
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize
       (&nBlocks, &nThreads,
-       devReplacePressureWithEnergy, 
+       devReplacePressureWithEnergy,
        (size_t) 0, 0);
 
     devReplacePressureWithEnergy<<<nBlocks, nThreads>>>
@@ -155,9 +160,9 @@ void Simulation::ReplacePressureWithEnergy()
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
-    for (int i = 0; i < nVertex; i++) 
+    for (int i = 0; i < nVertex; i++)
       ReplacePressureWithEnergySingle(i, pState, 1.0/(specificHeatRatio - 1.0));
   }
 }
 
-}
+}  // namespace astrix

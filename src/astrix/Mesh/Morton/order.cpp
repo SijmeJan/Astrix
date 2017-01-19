@@ -11,7 +11,7 @@
 #include "../Connectivity/connectivity.h"
 
 namespace astrix {
-  
+
 //######################################################################
 /*! Sort vertices, edges and triangles according to their Morton value to improve data locality. We first compute the Morton values for the vertex coordinates and use those to sort vertices, triangles and edges.
 
@@ -21,8 +21,8 @@ namespace astrix {
 //######################################################################
 
 void Morton::Order(Connectivity * const connectivity,
-		   Array<int> * const triangleWantRefine,
-		   Array<realNeq> * const vertexState)
+                   Array<int> * const triangleWantRefine,
+                   Array<realNeq> * const vertexState)
 {
   nvtxEvent *nvtxMorton = new nvtxEvent("Morton", 5);
   nvtxEvent *temp = new nvtxEvent("Minmax", 1);

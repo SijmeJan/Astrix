@@ -10,7 +10,7 @@
 #include "./morton.h"
 
 namespace astrix {
-  
+
 //#########################################################################
 /*! Constructor for Morton object. Allocates Arrays of standard size.
 
@@ -20,7 +20,7 @@ namespace astrix {
 Morton::Morton(int _cudaFlag)
 {
   cudaFlag = _cudaFlag;
-  
+
   mortValues = new Array<unsigned int>(1, cudaFlag);
   index = new Array<unsigned int>(1, cudaFlag);
   inverseIndex = new Array<unsigned int>(1, cudaFlag);
@@ -38,5 +38,5 @@ Morton::~Morton()
   delete inverseIndex;
   delete vertexMorton;
 }
-  
+
 }

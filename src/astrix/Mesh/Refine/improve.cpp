@@ -15,9 +15,9 @@
 #include "../Param/meshparameter.h"
 
 namespace astrix {
-  
+
 //#########################################################################
-/*! Function to improve quality of Mesh by adding new vertices, until the requirements as specified in MeshParameter are met. Returns the number of vertices that were added. 
+/*! Function to improve quality of Mesh by adding new vertices, until the requirements as specified in MeshParameter are met. Returns the number of vertices that were added.
 
 \param *connectivity Pointer to basic Mesh data: vertices, triangles, edges
 \param *meshParameter Pointer to Mesh parameters, read from input file
@@ -30,13 +30,13 @@ namespace astrix {
 //#########################################################################
 
 int Refine::ImproveQuality(Connectivity * const connectivity,
-			   const MeshParameter *meshParameter,
-			   const Predicates *predicates,
-			   Morton * const morton,
-			   Delaunay * const delaunay,
-	                   Array<realNeq> * const vertexState,
-			   const real specificHeatRatio,
-			   Array<int> * const triangleWantRefine)
+                           const MeshParameter *meshParameter,
+                           const Predicates *predicates,
+                           Morton * const morton,
+                           Delaunay * const delaunay,
+                           Array<realNeq> * const vertexState,
+                           const real specificHeatRatio,
+                           Array<int> * const triangleWantRefine)
 {
   nvtxEvent *nvtxRefine = new nvtxEvent("Refine", 1);
 
@@ -52,21 +52,21 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
 
   // Maintain Delaunay triangulation
   delaunay->MakeDelaunay(connectivity, vertexState,
-  			 predicates, meshParameter, 0, 0, 0, 0);
+                         predicates, meshParameter, 0, 0, 0, 0);
 
   while (!finished) {
     if (verboseLevel > 1)
       std::cout << "Refine cycle " << ncycle;
 
-    if (verboseLevel > 2) 
+    if (verboseLevel > 2)
       std::cout << std::endl << "Testing triangles..." << std::endl;
-    
+
     // Look for low-quality triangles; result in badTriangles
     int nRefine = TestTrianglesQuality(connectivity,
-				       meshParameter,
-				       triangleWantRefine);
-    
-    if (verboseLevel > 2) 
+                                       meshParameter,
+                                       triangleWantRefine);
+
+    if (verboseLevel > 2)
       std::cout << "Finding circumcentres..." << std::endl;
 
     // New points will be added in circumcentres of bad triangles
@@ -78,111 +78,111 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
     } else {
       // Adding points on triangle or edge
       elementAdd->SetSize(nRefine);
-      
-      if (verboseLevel > 2) 
-	std::cout << "Finding triangles..." << std::endl;
-      
+
+      if (verboseLevel > 2)
+        std::cout << "Finding triangles..." << std::endl;
+
       // Find triangles for all new vertices
       try {
-	FindTriangles(connectivity, meshParameter, predicates);
+        FindTriangles(connectivity, meshParameter, predicates);
       }
       catch (...) {
-	std::cout << "Error finding triangles" << std::endl;
-	throw;
+        std::cout << "Error finding triangles" << std::endl;
+        throw;
       }
 
-      if (verboseLevel > 2) 
-	std::cout << "Testing encroachment..." << std::endl;
+      if (verboseLevel > 2)
+        std::cout << "Testing encroachment..." << std::endl;
 
       // Check if any new vertex encroaches segment
-      TestEncroach(connectivity, meshParameter, nRefine);   
-      
-      if (verboseLevel > 1) 
-	std::cout << ", nBadTriangle = " << nRefine << ", ";
+      TestEncroach(connectivity, meshParameter, nRefine);
 
-      if (verboseLevel > 2) 
-	std::cout << std::endl << "Parallel insertion..." << std::endl;
+      if (verboseLevel > 1)
+        std::cout << ", nBadTriangle = " << nRefine << ", ";
+
+      if (verboseLevel > 2)
+        std::cout << std::endl << "Parallel insertion..." << std::endl;
 
       // Find unique triangle set
       FindParallelInsertionSet(connectivity, 0, 0, 0,
-			       predicates, meshParameter); 
-      
+                               predicates, meshParameter);
+
       nRefine = elementAdd->GetSize();
       if (nRefine == 0) {
-	finished = 1;
+        finished = 1;
       } else {
-	addedVerticesFlag = 1;
-	nAddedSinceMorton += nRefine;
+        addedVerticesFlag = 1;
+        nAddedSinceMorton += nRefine;
 
-	// If necessary, interpolate state
-	if (vertexState != 0) 
-	  InterpolateState(connectivity,
-			   meshParameter,
-			   vertexState,
-			   triangleWantRefine,
-			   specificHeatRatio);
+        // If necessary, interpolate state
+        if (vertexState != 0)
+          InterpolateState(connectivity,
+                           meshParameter,
+                           vertexState,
+                           triangleWantRefine,
+                           specificHeatRatio);
 
-	if (verboseLevel > 2) 
-	  std::cout << "Add periodic..." << std::endl;
+        if (verboseLevel > 2)
+          std::cout << "Add periodic..." << std::endl;
 
-	// Adjust periodic vertices
-	AddToPeriodic(connectivity, nRefine);
+        // Adjust periodic vertices
+        AddToPeriodic(connectivity, nRefine);
 
-	if (verboseLevel > 2) 
-	  std::cout << "Inserting vertices..." << std::endl;
+        if (verboseLevel > 2)
+          std::cout << "Inserting vertices..." << std::endl;
 
-	// Insert new vertices into Mesh
-	int nTriangleOld = connectivity->triangleVertices->GetSize();
-	InsertVertices(connectivity, meshParameter, predicates,
-		       vertexState, triangleWantRefine);
+        // Insert new vertices into Mesh
+        int nTriangleOld = connectivity->triangleVertices->GetSize();
+        InsertVertices(connectivity, meshParameter, predicates,
+                       vertexState, triangleWantRefine);
 
-	// Output memory usage to stdout
-	if (verboseLevel > 1) {
-	  if (cudaFlag == 0) {
-	    std::cout << ((real)(Array<real>::memAllocatedHost) +
-			  (real)(Array<int>::memAllocatedHost) +
-			  (real)(Array<unsigned int>::memAllocatedHost))/
-	      (real) (1073741824) << " Gb"
-		      << std::endl;
-	  } else {
-	    std::cout << ((real)(Array<real>::memAllocatedDevice) +
-			  (real)(Array<int>::memAllocatedDevice) +
-			  (real)(Array<unsigned int>::memAllocatedDevice))/
-	      (real) (1073741824) << " Gb"
-		      << std::endl;
-	  }
-	}
+        // Output memory usage to stdout
+        if (verboseLevel > 1) {
+          if (cudaFlag == 0) {
+            std::cout << ((real)(Array<real>::memAllocatedHost) +
+                          (real)(Array<int>::memAllocatedHost) +
+                          (real)(Array<unsigned int>::memAllocatedHost))/
+              (real) (1073741824) << " Gb"
+                      << std::endl;
+          } else {
+            std::cout << ((real)(Array<real>::memAllocatedDevice) +
+                          (real)(Array<int>::memAllocatedDevice) +
+                          (real)(Array<unsigned int>::memAllocatedDevice))/
+              (real) (1073741824) << " Gb"
+                      << std::endl;
+          }
+        }
 
-	if (verboseLevel > 2) 
-	  std::cout << std::endl << "Splitting segments..." << std::endl;
-	
-	// Check if any of the points inserted on a segment encroach
-	// a second segment; if so, split this second segment.
-	SplitSegment(connectivity, meshParameter, predicates,
-		     vertexState, triangleWantRefine,
-		     specificHeatRatio, nTriangleOld);
+        if (verboseLevel > 2)
+          std::cout << std::endl << "Splitting segments..." << std::endl;
 
-	
-	int nEdgeCheck = edgeNeedsChecking->RemoveValue(-1);
-	
-	if (verboseLevel > 2) 
-	  std::cout << "Delaunay..." << std::endl;
+        // Check if any of the points inserted on a segment encroach
+        // a second segment; if so, split this second segment.
+        SplitSegment(connectivity, meshParameter, predicates,
+                     vertexState, triangleWantRefine,
+                     specificHeatRatio, nTriangleOld);
 
-	// Maintain Delaunay triangulation
-	delaunay->MakeDelaunay(connectivity, vertexState,
-			       predicates, meshParameter, 0,
-			       edgeNeedsChecking, nEdgeCheck, 0);
 
-	if (verboseLevel > 2) 
-	  std::cout << "Morton..." << std::endl;
+        int nEdgeCheck = edgeNeedsChecking->RemoveValue(-1);
 
-	// Morton ordering to preserve data locality
-	int nVertex = connectivity->vertexCoordinates->GetSize();
-	real fracAdded = (real) nAddedSinceMorton/(real) nVertex;
-	if (debugLevel < 10 && fracAdded > maxFracAddedMorton) {
-	  morton->Order(connectivity, triangleWantRefine, vertexState);
-	  nAddedSinceMorton = 0;
-	}
+        if (verboseLevel > 2)
+          std::cout << "Delaunay..." << std::endl;
+
+        // Maintain Delaunay triangulation
+        delaunay->MakeDelaunay(connectivity, vertexState,
+                               predicates, meshParameter, 0,
+                               edgeNeedsChecking, nEdgeCheck, 0);
+
+        if (verboseLevel > 2)
+          std::cout << "Morton..." << std::endl;
+
+        // Morton ordering to preserve data locality
+        int nVertex = connectivity->vertexCoordinates->GetSize();
+        real fracAdded = (real) nAddedSinceMorton/(real) nVertex;
+        if (debugLevel < 10 && fracAdded > maxFracAddedMorton) {
+          morton->Order(connectivity, triangleWantRefine, vertexState);
+          nAddedSinceMorton = 0;
+        }
 
       }
     }
@@ -194,10 +194,10 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
   // Final Morton ordering
   if (debugLevel >= 10 || nAddedSinceMorton > 0)
     morton->Order(connectivity, triangleWantRefine, vertexState);
-  
+
   if (verboseLevel > 1)
     std::cout << std::endl
-	      << "Number of cycles needed: " << ncycle << std::endl;
+              << "Number of cycles needed: " << ncycle << std::endl;
 
   delete nvtxRefine;
 

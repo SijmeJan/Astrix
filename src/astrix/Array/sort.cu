@@ -58,7 +58,7 @@ struct subSubSortCompare
     return a1 < a2;
   }
 };
-  
+
 //###################################################
 // Sort array, producing indexing array
 //###################################################
@@ -68,7 +68,7 @@ template <class S>
 void Array<T>::SortByKey(Array<S> *indexArray)
 {
   S *index = indexArray->GetPointer();
-  
+
   if (cudaFlag == 1) {
     thrust::device_ptr<T> dev_ptr(deviceVec);
     thrust::device_ptr<S> dev_ptr_index(index);
@@ -99,7 +99,7 @@ void Array<T>::SortByKey(Array<S> *indexArray, unsigned int N)
   }
 
 }
-  
+
 //###################################################
 // Sort array, in case of equal use array B
 //###################################################
@@ -114,16 +114,16 @@ void Array<T>::Sort(Array<T> *arrayB)
     thrust::device_ptr<T> dev_ptr_B(B);
 
     thrust::sort
-      (thrust::make_zip_iterator(thrust::make_tuple(dev_ptr, dev_ptr_B)), 
+      (thrust::make_zip_iterator(thrust::make_tuple(dev_ptr, dev_ptr_B)),
        thrust::make_zip_iterator(thrust::make_tuple(dev_ptr + size,
-						    dev_ptr_B + size)), 
+                                                    dev_ptr_B + size)),
        subSortCompare());
   }
   if (cudaFlag == 0) {
     thrust::sort
-      (thrust::make_zip_iterator(thrust::make_tuple(hostVec, B)), 
-       thrust::make_zip_iterator(thrust::make_tuple(&(hostVec[size]), 
-						    &(B[size]))), 
+      (thrust::make_zip_iterator(thrust::make_tuple(hostVec, B)),
+       thrust::make_zip_iterator(thrust::make_tuple(&(hostVec[size]),
+                                                    &(B[size]))),
        subSortCompare());
   }
 }
@@ -141,15 +141,15 @@ template void Array<double>::SortByKey(Array<unsigned int> *indexArray);
 template void Array<int>::Sort(Array<int> *arrayB);
 template void Array<int>::SortByKey(Array<unsigned int> *indexArray);
 template void Array<int>::SortByKey(Array<unsigned int> *indexArray,
-				    unsigned int N);
+                                    unsigned int N);
 template void Array<int>::SortByKey(Array<int> *indexArray, unsigned int N);
 
 //##########################################################################
 
 template void Array<unsigned int>::SortByKey(Array<unsigned int> *indexArray);
 template void Array<unsigned int>::SortByKey(Array<unsigned int> *indexArray,
-  					     unsigned int N);
-  
+                                             unsigned int N);
+
 template void Array<unsigned int>::SortByKey(Array<int> *indexArray);
 
 }

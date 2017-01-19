@@ -9,7 +9,7 @@
 #include "../Common/cudaLow.h"
 
 namespace astrix {
-  
+
 //######################################################################
 /*! \brief Calculate shock sensor at triangle i
 
@@ -28,12 +28,12 @@ namespace astrix {
 //######################################################################
 
 __host__ __device__
-void CalcShockSensorSingle(int i, int nVertex, 
-			   const int3* __restrict__ pTv,
-			   const real3* __restrict__ pTl,
-			   const real2 *pTn1, const real2 *pTn2,
-			   const real2 *pTn3, real iDv, real4 *pState,
-			   real *pShockSensor, const real G, const real G1)
+void CalcShockSensorSingle(int i, int nVertex,
+                           const int3* __restrict__ pTv,
+                           const real3* __restrict__ pTl,
+                           const real2 *pTn1, const real2 *pTn2,
+                           const real2 *pTn3, real iDv, real4 *pState,
+                           real *pShockSensor, const real G, const real G1)
 {
   const real zero = (real) 0.0;
   const real half  = (real) 0.5;
@@ -103,7 +103,7 @@ void CalcShockSensorSingle(int i, int nVertex,
   real iA = rsqrtf(s*(s - tl1)*(s - tl2)*(s - tl3));
   // Shock sensor
   real sc = -half*iDv*iA;
-  
+
   // Triangle inward pointing normals
   real nx1 = pTn1[i].x*tl1;
   real ny1 = pTn1[i].y*tl1;
@@ -114,21 +114,21 @@ void CalcShockSensorSingle(int i, int nVertex,
 
   // Velocity divergence
   real divuc = u1*nx1 + v1*ny1 + u2*nx2 + v2*ny2 + u3*nx3 + v3*ny3;
-  
+
   sc = max(sc*divuc, zero);
 
   // Output shock sensor
   pShockSensor[i] = min(one, sc*sc*rsqrtf(iA));
 }
 
-// Version for 1 equation just says shock 
+// Version for 1 equation just says shock
 __host__ __device__
-void CalcShockSensorSingle(int i, int nVertex, 
-			   const int3* __restrict__ pTv,
-			   const real3* __restrict__ pTl,
-			   const real2 *pTn1, const real2 *pTn2,
-			   const real2 *pTn3, real iDv, real *pState,
-			   real *pShockSensor, const real G, const real G1)
+void CalcShockSensorSingle(int i, int nVertex,
+                           const int3* __restrict__ pTv,
+                           const real3* __restrict__ pTl,
+                           const real2 *pTn1, const real2 *pTn2,
+                           const real2 *pTn3, real iDv, real *pState,
+                           real *pShockSensor, const real G, const real G1)
 {
 #if BURGERS == 1
   // Triangle vertices
@@ -193,56 +193,57 @@ void CalcShockSensorSingle(int i, int nVertex,
 \param G1 \a G - 1*/
 // #########################################################################
 
-__global__ void 
+__global__ void
 devCalcShockSensor(int nVertex, int nTriangle,
-		   const int3* __restrict__ pTv,
-		   const real3* __restrict__ pTl,
-		   const real2 *pTn1, const real2 *pTn2, const real2 *pTn3,
-		   real iDv, realNeq *pState, real *pShockSensor,
-		   const real G, const real G1)
+                   const int3* __restrict__ pTv,
+                   const real3* __restrict__ pTl,
+                   const real2 *pTn1, const real2 *pTn2, const real2 *pTn3,
+                   real iDv, realNeq *pState, real *pShockSensor,
+                   const real G, const real G1)
 {
   unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nTriangle) {
     CalcShockSensorSingle(i, nVertex, pTv, pTl, pTn1, pTn2, pTn3,
-			  iDv, pState, pShockSensor, G, G1);
-    
+                          iDv, pState, pShockSensor, G, G1);
+
     i += gridDim.x*blockDim.x;
   }
 }
-  
+
 //##############################################################################
-/*! Calculate shock sensor for every triangle in the Mesh. This is needed for the BX scheme. Result in \a triangleShockSensor.*/ 
+/*! Calculate shock sensor for every triangle in the Mesh. This is needed for
+the BX scheme. Result in \a triangleShockSensor.*/
 //##############################################################################
-  
+
 void Simulation::CalcShockSensor()
 {
   // Determine minimum/maximum velocity on mesh
   real minVel = 0.0;
   real maxVel = 1.0;
   FindMinMaxVelocity(minVel, maxVel);
-  
+
   int nVertex = mesh->GetNVertex();
   int nTriangle = mesh->GetNTriangle();
-  
+
   // Triangle vertex indices
   const int3 *pTv = mesh->TriangleVerticesData();
-  
+
   // Inward pointing edge normals
   const real2 *pTn1 = mesh->TriangleEdgeNormalsData(0);
   const real2 *pTn2 = mesh->TriangleEdgeNormalsData(1);
   const real2 *pTn3 = mesh->TriangleEdgeNormalsData(2);
-  
+
   // Edge lengths
   const real3 *pTl = mesh->TriangleEdgeLengthData();
-  
+
   // State at vertices
   realNeq *pState = vertexState->GetPointer();
 
   // Shock sensor
   triangleShockSensor->SetSize(nTriangle);
   real *pShockSensor = triangleShockSensor->GetPointer();
-  
+
   // Calculate operators: vertex-based and triangle-based
   if (cudaFlag == 1) {
     int nBlocks = 128;
@@ -250,22 +251,22 @@ void Simulation::CalcShockSensor()
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devCalcShockSensor, 
-				       (size_t) 0, 0);
+                                       devCalcShockSensor,
+                                       (size_t) 0, 0);
 
     devCalcShockSensor<<<nBlocks, nThreads>>>
       (nVertex, nTriangle, pTv, pTl, pTn1, pTn2, pTn3,
        1.0/(maxVel - minVel), pState, pShockSensor,
        specificHeatRatio, specificHeatRatio - 1.0);
-  
+
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
-    for (int i = 0; i < nTriangle; i++) 
+    for (int i = 0; i < nTriangle; i++)
       CalcShockSensorSingle(i, nVertex, pTv, pTl, pTn1, pTn2, pTn3,
-			    1.0/(maxVel - minVel), pState, pShockSensor,
-			    specificHeatRatio, specificHeatRatio - 1.0);
+                            1.0/(maxVel - minVel), pState, pShockSensor,
+                            specificHeatRatio, specificHeatRatio - 1.0);
   }
 }
 
-}
+}  // namespace astrix

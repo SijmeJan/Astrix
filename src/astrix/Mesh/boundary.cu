@@ -36,9 +36,9 @@ Set coordinates for the nth outer boundary vertex on host or device.
 
 __host__ __device__
 void SetVertexOuterBoundarySingle(int n, ProblemDefinition problemDef,
-				  real2 *pVc, int nVertexOuterBoundary,
-				  int periodicFlagX, int periodicFlagY,
-				  real minx, real maxx, real miny, real maxy)
+                                  real2 *pVc, int nVertexOuterBoundary,
+                                  int periodicFlagX, int periodicFlagY,
+                                  real minx, real maxx, real miny, real maxy)
 {
   if (problemDef == PROBLEM_RIEMANN) {
     if (n == 0) {
@@ -61,37 +61,37 @@ void SetVertexOuterBoundarySingle(int n, ProblemDefinition problemDef,
   if (problemDef == PROBLEM_SOD || problemDef == PROBLEM_BLAST) {
     if (periodicFlagY == 1) {
       if (n == 0) {
-	pVc[n].x = maxx;
-	pVc[n].y = 0.612345543*(maxy - miny) + miny;
+        pVc[n].x = maxx;
+        pVc[n].y = 0.612345543*(maxy - miny) + miny;
       }
       if (n == 1) {
-	pVc[n].x = minx;
-	pVc[n].y = 0.7564387543*(maxy - miny) + miny;
+        pVc[n].x = minx;
+        pVc[n].y = 0.7564387543*(maxy - miny) + miny;
       }
       if (n == 2) {
-	pVc[n].x = minx;
-	pVc[n].y = 0.45576498332*(maxy - miny) + miny;
+        pVc[n].x = minx;
+        pVc[n].y = 0.45576498332*(maxy - miny) + miny;
       }
       if (n == 3) {
-	pVc[n].x = maxx;
-	pVc[n].y = 0.41766758765*(maxy - miny) + miny;
+        pVc[n].x = maxx;
+        pVc[n].y = 0.41766758765*(maxy - miny) + miny;
       }
     } else {
       if (n == 0) {
-	pVc[n].x = maxx;
-	pVc[n].y = maxy;
+        pVc[n].x = maxx;
+        pVc[n].y = maxy;
       }
       if (n == 1) {
-	pVc[n].x = minx;
-	pVc[n].y = maxy;
+        pVc[n].x = minx;
+        pVc[n].y = maxy;
       }
       if (n == 2) {
-	pVc[n].x = minx;
-	pVc[n].y = miny;
+        pVc[n].x = minx;
+        pVc[n].y = miny;
       }
       if (n == 3) {
-	pVc[n].x = maxx;
-	pVc[n].y = miny;
+        pVc[n].x = maxx;
+        pVc[n].y = miny;
       }
     }
   }
@@ -136,43 +136,43 @@ void SetVertexOuterBoundarySingle(int n, ProblemDefinition problemDef,
   if (problemDef == PROBLEM_RT) {
     if (periodicFlagX == 1) {
       if (n == 0) {
-	pVc[n].x = 0.72*(maxx - minx) + minx;
-	pVc[n].y = maxy;
+        pVc[n].x = 0.72*(maxx - minx) + minx;
+        pVc[n].y = maxy;
       }
       if (n == 1) {
-	pVc[n].x = 0.3*(maxx - minx) + minx;
-	pVc[n].y = maxy;
+        pVc[n].x = 0.3*(maxx - minx) + minx;
+        pVc[n].y = maxy;
       }
       if (n == 2) {
-	pVc[n].x = 0.3*(maxx - minx) + minx;
-	pVc[n].y = miny;
+        pVc[n].x = 0.3*(maxx - minx) + minx;
+        pVc[n].y = miny;
       }
       if (n == 3) {
-	pVc[n].x = 0.71*(maxx - minx) + minx;
-	pVc[n].y = miny;
+        pVc[n].x = 0.71*(maxx - minx) + minx;
+        pVc[n].y = miny;
       }
     } else {
       if (n == 0) {
-	pVc[n].x = maxx;
-	pVc[n].y = maxy;
+        pVc[n].x = maxx;
+        pVc[n].y = maxy;
       }
       if (n == 1) {
-	pVc[n].x = minx;
-	pVc[n].y = maxy;
+        pVc[n].x = minx;
+        pVc[n].y = maxy;
       }
       if (n == 2) {
-	pVc[n].x = minx;
-	pVc[n].y = miny;
+        pVc[n].x = minx;
+        pVc[n].y = miny;
       }
       if (n == 3) {
-	pVc[n].x = maxx;
-	pVc[n].y = miny;
+        pVc[n].x = maxx;
+        pVc[n].y = miny;
       }
-    }      
+    }
   }
   */
 }
- 
+
 //##############################################################################
 /*! \brief Set coordinates for nth inner boundary vertex
 
@@ -181,8 +181,8 @@ Set coordinates for the nth inner boundary vertex on host or device. At the mome
 \param n Index of inner boundary vertex
 \param problemDef Problem definition
 \param *pVc Pointer to vertex coordinates (output)
-\param nVertexInnerBoundary Total number of vertices on inner boundary 
-\param nVertexOuterBoundary Total number of vertices on outer boundary 
+\param nVertexInnerBoundary Total number of vertices on inner boundary
+\param nVertexOuterBoundary Total number of vertices on outer boundary
 \param minx Left x boundary
 \param maxx Right x boundary
 \param miny Left y boundary
@@ -191,13 +191,13 @@ Set coordinates for the nth inner boundary vertex on host or device. At the mome
 
 __host__ __device__
 void SetVertexInnerBoundarySingle(int n, ProblemDefinition problemDef,
-				  real2 *pVc, int nVertexInnerBoundary,
-				  int nVertexOuterBoundary,
-				  real minx, real maxx, real miny, real maxy)
+                                  real2 *pVc, int nVertexInnerBoundary,
+                                  int nVertexOuterBoundary,
+                                  real minx, real maxx, real miny, real maxy)
 {
   return;
 }
- 
+
 //######################################################################
 /*! \brief Kernel for setting outer boundary vertices
 
@@ -214,30 +214,30 @@ void SetVertexInnerBoundarySingle(int n, ProblemDefinition problemDef,
 
 __global__ void
 devSetVertexOuterBoundary(ProblemDefinition problemDef,
-			  real2 *pVc, int nVertexOuterBoundary,
-			  int periodicFlagX, int periodicFlagY,
-			  real minx, real maxx, real miny, real maxy)
+                          real2 *pVc, int nVertexOuterBoundary,
+                          int periodicFlagX, int periodicFlagY,
+                          real minx, real maxx, real miny, real maxy)
 {
   int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nVertexOuterBoundary) {
     SetVertexOuterBoundarySingle(i, problemDef, pVc,
-				 nVertexOuterBoundary,
-				 periodicFlagX, periodicFlagY,
-				 minx, maxx, miny, maxy);
-  
+                                 nVertexOuterBoundary,
+                                 periodicFlagX, periodicFlagY,
+                                 minx, maxx, miny, maxy);
+
     // Next triangle
     i += blockDim.x*gridDim.x;
   }
 }
-  
+
 //######################################################################
 /*! \brief Kernel for setting inner boundary vertices
 
 \param problemDef Problem definition
 \param *pVc Pointer to vertex coordinates (output)
-\param nVertexInnerBoundary Total number of vertices on inner boundary 
-\param nVertexOuterBoundary Total number of vertices on outer boundary 
+\param nVertexInnerBoundary Total number of vertices on inner boundary
+\param nVertexOuterBoundary Total number of vertices on outer boundary
 \param minx Left x boundary
 \param maxx Right x boundary
 \param miny Left y boundary
@@ -246,25 +246,25 @@ devSetVertexOuterBoundary(ProblemDefinition problemDef,
 
 __global__ void
 devSetVertexInnerBoundary(ProblemDefinition problemDef, real2 *pVc,
-			  int nVertexInnerBoundary, int nVertexOuterBoundary,
-			  real minx, real maxx, real miny, real maxy)
+                          int nVertexInnerBoundary, int nVertexOuterBoundary,
+                          real minx, real maxx, real miny, real maxy)
 {
   int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nVertexInnerBoundary) {
     SetVertexInnerBoundarySingle(i, problemDef, pVc,
-				 nVertexInnerBoundary, nVertexOuterBoundary,
-				 minx, maxx, miny, maxy);
-  
+                                 nVertexInnerBoundary, nVertexOuterBoundary,
+                                 minx, maxx, miny, maxy);
+
     // Next triangle
     i += blockDim.x*gridDim.x;
   }
 }
-  
+
 //######################################################################
 /*! \brief Flag vertices for removal
 
-Flag whether vertex \a i needs to be removed. Only the first four inserted vertices are flagged for removal 
+Flag whether vertex \a i needs to be removed. Only the first four inserted vertices are flagged for removal
 
 \param i Index in vertex array
 \param pVertexOrder Pointer to vertex insertion order array
@@ -281,9 +281,9 @@ void FlagVertexRemoveSingle(int i, int *pVertexOrder, int *pVertexRemoveFlag)
 }
 
 //######################################################################
-/*! \brief Kernel for flagging vertices for removal. 
+/*! \brief Kernel for flagging vertices for removal.
 
-Only the first four inserted vertices are flagged for removal 
+Only the first four inserted vertices are flagged for removal
 
 \param nVertex Total number of vertices in Mesh
 \param pVertexOrder Pointer to vertex insertion order array
@@ -306,10 +306,10 @@ devFlagVertexRemove(int nVertex, int *pVertexOrder, int *pVertexRemoveFlag)
 //######################################################################
 /*! \brief Flag triangles for removal
 
-Flag any triangle located outside the outer boundary for removal. 
+Flag any triangle located outside the outer boundary for removal.
 
 \param i Triangle to be checked
-\param *pTv Pointer to triangle vertices 
+\param *pTv Pointer to triangle vertices
 \param *pVertexRemoveFlag Pointer to flags whether vertices will be removed
 \param *pVertexOrder Pointer to vertex insertion order
 \param nVertexOuterBoundary Number of vertices making up outer boundary
@@ -318,20 +318,20 @@ Flag any triangle located outside the outer boundary for removal.
 
 __host__ __device__
 void FlagTriangleRemoveSingle(int i, int3 *pTv, int *pVertexRemoveFlag,
-			      int *pVertexOrder, int nVertexOuterBoundary,
-			      int *pTriangleRemoveFlag)
+                              int *pVertexOrder, int nVertexOuterBoundary,
+                              int *pTriangleRemoveFlag)
 {
   int ret = 0;
 
   int a = pTv[i].x;
   int b = pTv[i].y;
   int c = pTv[i].z;
-  
+
   // Remove any triangle for which at least one vertex will be removed
   if (pVertexRemoveFlag[a] == 1 ||
       pVertexRemoveFlag[b] == 1 ||
       pVertexRemoveFlag[c] == 1) ret = 1;
-  
+
   int nBad = 0;
 
   // Remove any triangle for which all vertices are part of the outer boundary
@@ -340,25 +340,25 @@ void FlagTriangleRemoveSingle(int i, int3 *pTv, int *pVertexRemoveFlag,
       pVertexOrder[b] < nVertexOuterBoundary + 4 &&
       pVertexOrder[c] < nVertexOuterBoundary + 4)
     nBad = (pVertexOrder[a] > pVertexOrder[b]) +
-			(pVertexOrder[b] > pVertexOrder[c]) +
+                        (pVertexOrder[b] > pVertexOrder[c]) +
       (pVertexOrder[c] > pVertexOrder[a]);
-  
+
   if (pVertexOrder[a] >= nVertexOuterBoundary + 4 &&
       pVertexOrder[b] >= nVertexOuterBoundary + 4 &&
       pVertexOrder[c] >= nVertexOuterBoundary + 4)
     nBad = (pVertexOrder[a] > pVertexOrder[b]) +
       (pVertexOrder[b] > pVertexOrder[c]) +
       (pVertexOrder[c] > pVertexOrder[a]);
-  
+
   if (nBad > 1) ret = 1;
-  
+
   pTriangleRemoveFlag[i] = ret;
 }
-  
+
 //######################################################################
 /*! \brief Kernel flagging triangles for removal
 
-Flag any triangle for which one of its vertices will be removed for removal. 
+Flag any triangle for which one of its vertices will be removed for removal.
 
 \param nTriangle Total number of triangles in Mesh
 \param *pTv Pointer to triangle vertices
@@ -370,21 +370,21 @@ Flag any triangle for which one of its vertices will be removed for removal.
 
 __global__ void
 devFlagTriangleRemove(int nTriangle, int3 *pTv, int *pVertexRemoveFlag,
-		      int *pVertexOrder, int nVertexOuterBoundary,
-		      int *pTriangleRemoveFlag)
+                      int *pVertexOrder, int nVertexOuterBoundary,
+                      int *pTriangleRemoveFlag)
 {
   int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nTriangle) {
     FlagTriangleRemoveSingle(i, pTv, pVertexRemoveFlag,
-			     pVertexOrder, nVertexOuterBoundary,
-			     pTriangleRemoveFlag);
+                             pVertexOrder, nVertexOuterBoundary,
+                             pTriangleRemoveFlag);
 
     // Next triangle
     i += blockDim.x*gridDim.x;
   }
 }
-    
+
 //######################################################################
 /*! \brief Flag unnecessary edges for removal
 
@@ -398,11 +398,11 @@ Flag any edge for which both neighbouring triangles will be removed
 
 __host__ __device__
 void FlagEdgeRemoveSingle(int i, int2 *pEt,
-			  int *pTriangleRemoveFlag, int *pEdgeRemoveFlag)
+                          int *pTriangleRemoveFlag, int *pEdgeRemoveFlag)
 {
   int t1 = pEt[i].x;
   int t2 = pEt[i].y;
-  
+
   if (t1 != -1)
     if (pTriangleRemoveFlag[t1] == 1) t1 = -1;
   if (t2 != -1)
@@ -414,8 +414,8 @@ void FlagEdgeRemoveSingle(int i, int2 *pEt,
   pEt[i].x = t1;
   pEt[i].y = t2;
 }
-  
-//###################################################################### 
+
+//######################################################################
 /*! \brief Kernel to flag unnecessary edges for removal
 
 Flag any edge for which both neighbouring triangles will be removed
@@ -428,7 +428,7 @@ Flag any edge for which both neighbouring triangles will be removed
 
 __global__ void
 devFlagEdgeRemove(int nEdge, int2 *pEt,
-		  int *pTriangleRemoveFlag, int *pEdgeRemoveFlag)
+                  int *pTriangleRemoveFlag, int *pEdgeRemoveFlag)
 {
   int i = blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -439,7 +439,7 @@ devFlagEdgeRemove(int nEdge, int2 *pEt,
     i += blockDim.x*gridDim.x;
   }
 }
-  
+
 //######################################################################
 /*! \brief Adjust triangle vertices for vertex removal
 
@@ -454,12 +454,12 @@ void AdjustTriangleVerticesSingle(int i, int3 *pTv, int *pVertexFlagScan)
   int a = pTv[i].x;
   int b = pTv[i].y;
   int c = pTv[i].z;
-  
+
   pTv[i].x -= pVertexFlagScan[a];
   pTv[i].y -= pVertexFlagScan[b];
   pTv[i].z -= pVertexFlagScan[c];
 }
-  
+
 //######################################################################
 /*! \brief Kernel adjusting triangle vertices for vertex removal
 
@@ -494,14 +494,14 @@ void AdjustEdgeTrianglesSingle(int i, int2 *pEt, int *pTriangleFlagScan)
 {
   int t1 = pEt[i].x;
   int t2 = pEt[i].y;
-  
+
   if (t1 != -1) t1 -= pTriangleFlagScan[t1];
   if (t2 != -1) t2 -= pTriangleFlagScan[t2];
 
   pEt[i].x = t1;
   pEt[i].y = t2;
 }
-  
+
 //######################################################################
 /*! \brief Kernel adjusting edge triangles for triangle removal
 
@@ -521,7 +521,7 @@ devAdjustEdgeTriangles(int nEdge, int2 *pEt, int *pTriangleFlagScan)
     i += blockDim.x*gridDim.x;
   }
 }
-  
+
 //######################################################################
 /*! \brief Adjust triangle edges for edge removal
 
@@ -537,13 +537,13 @@ void AdjustTriangleEdgesSingle(int i, int3 *pTe, int *pEdgeFlagScan)
   pTe[i].y -= pEdgeFlagScan[pTe[i].y];
   pTe[i].z -= pEdgeFlagScan[pTe[i].z];
 }
-  
+
 //######################################################################
 /*! \brief Kernel adjusting triangle edges for edge removal
 
 \param nTriangle Total number of triangles in Mesh
 \param *pTe Pointer to triangle edges
-\param *pEdgeFlagScan Pointer to scanned array of flags whether edges will be removed*/ 
+\param *pEdgeFlagScan Pointer to scanned array of flags whether edges will be removed*/
 //######################################################################
 
 __global__ void
@@ -557,7 +557,7 @@ devAdjustTriangleEdges(int nTriangle, int3 *pTe, int *pEdgeFlagScan)
     i += blockDim.x*gridDim.x;
   }
 }
-  
+
 //######################################################################
 /*! \brief Check if edge between v1 and v2 lies in triangle i
 
@@ -571,13 +571,13 @@ devAdjustTriangleEdges(int nTriangle, int3 *pTe, int *pEdgeFlagScan)
 
 __host__ __device__
 void FindEdgeBetween(int i, unsigned int v1, unsigned int v2,
-		     int3 *pTv, int3 *pTe, int *eBetween)
+                     int3 *pTv, int3 *pTe, int *eBetween)
 {
-  if (pTv[i].y == (int) v1 && pTv[i].x == (int) v2) eBetween[0] = pTe[i].x;  
-  if (pTv[i].z == (int) v1 && pTv[i].y == (int) v2) eBetween[0] = pTe[i].y;   
+  if (pTv[i].y == (int) v1 && pTv[i].x == (int) v2) eBetween[0] = pTe[i].x;
+  if (pTv[i].z == (int) v1 && pTv[i].y == (int) v2) eBetween[0] = pTe[i].y;
   if (pTv[i].x == (int) v1 && pTv[i].z == (int) v2) eBetween[0] = pTe[i].z;
 }
-  
+
 //######################################################################
 /*! \brief Kernel finding edge between v1 and v2
 
@@ -591,7 +591,7 @@ void FindEdgeBetween(int i, unsigned int v1, unsigned int v2,
 
 __global__ void
 devFindEdgeBetween(int nTriangle, unsigned int v1, unsigned int v2,
-		   int3 *pTv, int3 *pTe, int *pEdgeBetween)
+                   int3 *pTv, int3 *pTe, int *pEdgeBetween)
 {
   int i = blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -601,9 +601,9 @@ devFindEdgeBetween(int nTriangle, unsigned int v1, unsigned int v2,
     i += blockDim.x*gridDim.x;
   }
 }
-  
+
 //#########################################################################
-/*! Construct domain edges. For problems with a simple domain only 4 outer boundary vertices are needed. If on the other hand the outer boundary is for example a circle, all vertices on this circle need to be specified and inserted first. In addition any completely internal boundaries need to be inserted at this point as well.  
+/*! Construct domain edges. For problems with a simple domain only 4 outer boundary vertices are needed. If on the other hand the outer boundary is for example a circle, all vertices on this circle need to be specified and inserted first. In addition any completely internal boundaries need to be inserted at this point as well.
 
 \param problemDef Problem definition*/
 //#########################################################################
@@ -637,9 +637,9 @@ void Mesh::ConstructBoundaries()
     std::cout << "Error: no outer boundary vertices!" << std::endl;
     throw std::runtime_error("");
   }
-  
+
   vertexBoundaryCoordinates->SetSize(nVertexOuterBoundary +
-				     nVertexInnerBoundary);
+                                     nVertexInnerBoundary);
   real2 *pVbc = vertexBoundaryCoordinates->GetPointer();
 
   // Fill coordinates of outer boundary vertices
@@ -649,27 +649,27 @@ void Mesh::ConstructBoundaries()
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devSetVertexOuterBoundary,
-				       (size_t) 0, 0);
+                                       devSetVertexOuterBoundary,
+                                       (size_t) 0, 0);
 
     devSetVertexOuterBoundary<<<nBlocks, nThreads>>>
       (meshParameter->problemDef, pVbc, nVertexOuterBoundary,
        meshParameter->periodicFlagX, meshParameter->periodicFlagY,
        meshParameter->minx, meshParameter->maxx, meshParameter->miny,
        meshParameter->maxy);
-    
+
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
-    for (int n = 0; n < nVertexOuterBoundary; n++) 
+    for (int n = 0; n < nVertexOuterBoundary; n++)
       SetVertexOuterBoundarySingle(n, meshParameter->problemDef, pVbc,
-				   nVertexOuterBoundary,
-				   meshParameter->periodicFlagX,
-				   meshParameter->periodicFlagY,
-				   meshParameter->minx,
-				   meshParameter->maxx,
-				   meshParameter->miny,
-				   meshParameter->maxy);
+                                   nVertexOuterBoundary,
+                                   meshParameter->periodicFlagX,
+                                   meshParameter->periodicFlagY,
+                                   meshParameter->minx,
+                                   meshParameter->maxx,
+                                   meshParameter->miny,
+                                   meshParameter->maxy);
   }
 
   // Fill coordinates of inner boundary
@@ -679,23 +679,23 @@ void Mesh::ConstructBoundaries()
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devSetVertexInnerBoundary,
-				       (size_t) 0, 0);
+                                       devSetVertexInnerBoundary,
+                                       (size_t) 0, 0);
 
     devSetVertexInnerBoundary<<<nBlocks, nThreads>>>
       (meshParameter->problemDef, pVbc,
        nVertexInnerBoundary, nVertexOuterBoundary,
        meshParameter->minx, meshParameter->maxx,
        meshParameter->miny, meshParameter->maxy);
-    
+
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
-    for (int n = 0; n < nVertexInnerBoundary; n++) 
+    for (int n = 0; n < nVertexInnerBoundary; n++)
       SetVertexInnerBoundarySingle(n, meshParameter->problemDef, pVbc,
-				   nVertexInnerBoundary, nVertexOuterBoundary,
-				   meshParameter->minx, meshParameter->maxx,
-				   meshParameter->miny, meshParameter->maxy);
+                                   nVertexInnerBoundary, nVertexOuterBoundary,
+                                   meshParameter->minx, meshParameter->maxx,
+                                   meshParameter->miny, meshParameter->maxy);
   }
 
   // Find minimum/maximum x and y
@@ -703,7 +703,7 @@ void Mesh::ConstructBoundaries()
   //real maxxOld = meshParameter->maxx;
   //real minyOld = meshParameter->miny;
   //real maxyOld = meshParameter->maxy;
-  
+
   real minxBoundary = vertexBoundaryCoordinates->MinimumComb<real>(0);
   real minyBoundary = vertexBoundaryCoordinates->MinimumComb<real>(1);
   real maxxBoundary = vertexBoundaryCoordinates->MaximumComb<real>(0);
@@ -735,7 +735,7 @@ void Mesh::ConstructBoundaries()
   int3 *pTv = connectivity->triangleVertices->GetHostPointer();
   int3 *pTe = connectivity->triangleEdges->GetHostPointer();
   int2 *pEt = connectivity->edgeTriangles->GetHostPointer();
-  
+
   // First four vertices
   pVc[0].x = minx;     // Upper left
   pVc[1].x = maxx;     // Upper right
@@ -746,7 +746,7 @@ void Mesh::ConstructBoundaries()
   pVc[1].y = maxy;
   pVc[2].y = miny;
   pVc[3].y = miny;
-  
+
   // Vertices for triangles
   pTv[0].x = 2;
   pTv[0].y = 1;
@@ -754,7 +754,7 @@ void Mesh::ConstructBoundaries()
   pTv[1].x = 2;
   pTv[1].y = 3;
   pTv[1].z = 1;
-  
+
   // Edges for every triangle
   pTe[0].x = 1;
   pTe[0].y = 0;
@@ -762,7 +762,7 @@ void Mesh::ConstructBoundaries()
   pTe[1].x = 2;
   pTe[1].y = 3;
   pTe[1].z = 1;
-  
+
   // Triangles for every edge
   pEt[0].x = -1;
   pEt[0].y = 0;
@@ -774,7 +774,7 @@ void Mesh::ConstructBoundaries()
   pEt[3].y = 1;
   pEt[4].x = 0;
   pEt[4].y = -1;
-  
+
   // Copy data to device
   if (cudaFlag == 1) connectivity->CopyToDevice();
 
@@ -785,26 +785,26 @@ void Mesh::ConstructBoundaries()
   // All triangles can be refined in principle
   triangleWantRefine->SetSize(nTriangle);
   triangleWantRefine->SetToValue(1);
-  
+
   Array<int> *vertexOrder = new Array<int>(1, cudaFlag, (unsigned int) 4);
   vertexOrder->SetToSeries();
 
   int nAdded = refine->AddVertices(connectivity,
-				   meshParameter,
-				   predicates,
-				   delaunay,
-				   vertexBoundaryCoordinates,
-				   vertexOrder);
+                                   meshParameter,
+                                   predicates,
+                                   delaunay,
+                                   vertexBoundaryCoordinates,
+                                   vertexOrder);
 
   if (nAdded != nVertexOuterBoundary + nVertexInnerBoundary) {
     std::cout << "Error in Mesh::ConstructBoundaries(): number of added vertices does not match number of boundary vertices" << std::endl;
     throw std::runtime_error("");
   }
-  
+
   nVertex = connectivity->vertexCoordinates->GetSize();
   nTriangle = connectivity->triangleVertices->GetSize();
   nEdge = connectivity->edgeTriangles->GetSize();
-  
+
   delete vertexBoundaryCoordinates;
 
   //-----------------------------------------------------------------
@@ -815,7 +815,7 @@ void Mesh::ConstructBoundaries()
   pTv = connectivity->triangleVertices->GetPointer();
   pTe = connectivity->triangleEdges->GetPointer();
   pEt = connectivity->edgeTriangles->GetPointer();
-  
+
   Array<int> *vertexRemoveFlag =
     new Array<int>(1, cudaFlag, (unsigned int) nVertex);
   int *pVertexRemoveFlag = vertexRemoveFlag->GetPointer();
@@ -834,7 +834,7 @@ void Mesh::ConstructBoundaries()
   Array<int> *edgeFlagScan =
     new Array<int>(1, cudaFlag, (unsigned int) nEdge);
   int *pEdgeFlagScan = edgeFlagScan->GetPointer();
-  
+
   int *pVertexOrder = vertexOrder->GetPointer();
 
   // Flag first four vertices to be removed
@@ -844,16 +844,16 @@ void Mesh::ConstructBoundaries()
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devFlagVertexRemove, 
-				       (size_t) 0, 0);
+                                       devFlagVertexRemove,
+                                       (size_t) 0, 0);
 
     devFlagVertexRemove<<<nBlocks, nThreads>>>
       (nVertex, pVertexOrder, pVertexRemoveFlag);
-    
+
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
-    for (int i = 0; i < nVertex; i++) 
+    for (int i = 0; i < nVertex; i++)
       FlagVertexRemoveSingle(i, pVertexOrder, pVertexRemoveFlag);
   }
 
@@ -861,123 +861,123 @@ void Mesh::ConstructBoundaries()
   if (cudaFlag == 1) {
     int nBlocks = 128;
     int nThreads = 128;
-    
+
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devFlagTriangleRemove, 
-				       (size_t) 0, 0);
+                                       devFlagTriangleRemove,
+                                       (size_t) 0, 0);
 
     devFlagTriangleRemove<<<nBlocks, nThreads>>>
       (nTriangle, pTv, pVertexRemoveFlag,
        pVertexOrder, nVertexOuterBoundary, pTriangleRemoveFlag);
-    
+
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
-    for (int i = 0; i < nTriangle; i++) 
+    for (int i = 0; i < nTriangle; i++)
       FlagTriangleRemoveSingle(i, pTv, pVertexRemoveFlag,
-			       pVertexOrder, nVertexOuterBoundary,
-			       pTriangleRemoveFlag);
+                               pVertexOrder, nVertexOuterBoundary,
+                               pTriangleRemoveFlag);
   }
-  
+
   // Flag edges to be removed
   if (cudaFlag == 1) {
     int nBlocks = 128;
     int nThreads = 128;
-    
+
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devFlagEdgeRemove, 
-				       (size_t) 0, 0);
+                                       devFlagEdgeRemove,
+                                       (size_t) 0, 0);
 
     devFlagEdgeRemove<<<nBlocks, nThreads>>>
       (nEdge, pEt, pTriangleRemoveFlag, pEdgeRemoveFlag);
-    
+
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
-    for (int i = 0; i < nEdge; i++) 
+    for (int i = 0; i < nEdge; i++)
       FlagEdgeRemoveSingle(i, pEt, pTriangleRemoveFlag, pEdgeRemoveFlag);
   }
-  
+
   vertexRemoveFlag->ExclusiveScan(vertexFlagScan, nVertex);
 
   // Adjust tv's for removed vertices
   if (cudaFlag == 1) {
     int nBlocks = 128;
     int nThreads = 128;
-    
+
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize
       (&nBlocks, &nThreads,
-       devAdjustTriangleVertices, 
+       devAdjustTriangleVertices,
        (size_t) 0, 0);
 
     devAdjustTriangleVertices<<<nBlocks, nThreads>>>
       (nTriangle, pTv, pVertexFlagScan);
-    
+
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
-    for (int i = 0; i < nTriangle; i++) 
+    for (int i = 0; i < nTriangle; i++)
       AdjustTriangleVerticesSingle(i, pTv, pVertexFlagScan);
   }
-  
+
   triangleRemoveFlag->ExclusiveScan(triangleFlagScan, nTriangle);
 
   // Adjust et's for removed triangles
   if (cudaFlag == 1) {
     int nBlocks = 128;
     int nThreads = 128;
-    
+
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devAdjustEdgeTriangles, 
-				       (size_t) 0, 0);
+                                       devAdjustEdgeTriangles,
+                                       (size_t) 0, 0);
 
     devAdjustEdgeTriangles<<<nBlocks, nThreads>>>
       (nEdge, pEt, pTriangleFlagScan);
-    
+
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
-    for (int i = 0; i < nEdge; i++) 
+    for (int i = 0; i < nEdge; i++)
       AdjustEdgeTrianglesSingle(i, pEt, pTriangleFlagScan);
   }
-  
+
   edgeRemoveFlag->ExclusiveScan(edgeFlagScan, nEdge);
 
   // Adjust te's for removed edges
   if (cudaFlag == 1) {
     int nBlocks = 128;
     int nThreads = 128;
-    
+
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devAdjustTriangleEdges, 
-				       (size_t) 0, 0);
+                                       devAdjustTriangleEdges,
+                                       (size_t) 0, 0);
 
     devAdjustTriangleEdges<<<nBlocks, nThreads>>>
       (nTriangle, pTe, pEdgeFlagScan);
-    
+
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int i = 0; i < nTriangle; i++)
       AdjustTriangleEdgesSingle(i, pTe, pEdgeFlagScan);
   }
-  
+
   vertexRemoveFlag->Invert();
   int nvKeep = vertexRemoveFlag->ExclusiveScan(vertexFlagScan, nVertex);
   connectivity->vertexCoordinates->Compact(nvKeep, vertexRemoveFlag,
-					   vertexFlagScan);
+                                           vertexFlagScan);
 
   triangleRemoveFlag->Invert();
   int ntKeep = triangleRemoveFlag->ExclusiveScan(triangleFlagScan, nTriangle);
   connectivity->triangleVertices->Compact(ntKeep, triangleRemoveFlag,
-					  triangleFlagScan);
+                                          triangleFlagScan);
   connectivity->triangleEdges->Compact(ntKeep, triangleRemoveFlag,
-				       triangleFlagScan);
+                                       triangleFlagScan);
 
   edgeRemoveFlag->Invert();
   int neKeep =edgeRemoveFlag->ExclusiveScan(edgeFlagScan, nEdge);
@@ -994,7 +994,7 @@ void Mesh::ConstructBoundaries()
 
   //-----------------------------------------------------------------
   // Extra work for periodic domains: connect left of domain to the
-  // right and/or top of domain to the bottom. 
+  // right and/or top of domain to the bottom.
   //-----------------------------------------------------------------
 
   // Make periodic in x
@@ -1003,7 +1003,7 @@ void Mesh::ConstructBoundaries()
       new Array<real>(1, cudaFlag, (unsigned int) nVertex);
     Array<unsigned int> *indexArray =
       new Array<unsigned int>(1, cudaFlag, (unsigned int) nVertex);
-    
+
     // Set equal to first dimension of vertexCoordinates
     vxTemp->SetEqualComb(connectivity->vertexCoordinates, 0, 0);
     indexArray->SetToSeries();
@@ -1026,25 +1026,25 @@ void Mesh::ConstructBoundaries()
     vy1 = Vy.y;
     connectivity->vertexCoordinates->GetSingleValue(&Vy, vLeft2);
     vy2 = Vy.y;
-    
+
     if (vy1 > vy2) {
       int temp = vLeft1;
       vLeft1 = vLeft2;
       vLeft2 = temp;
     }
-    
+
     // y-coordinates of rightmost vertices
     connectivity->vertexCoordinates->GetSingleValue(&Vy, vRight1);
     vy1 = Vy.y;
     connectivity->vertexCoordinates->GetSingleValue(&Vy, vRight2);
     vy2 = Vy.y;
-    
+
     if (vy1 > vy2) {
       int temp = vRight1;
       vRight1 = vRight2;
       vRight2 = temp;
     }
-    
+
     // Find edge between two leftmost and to rightmost vertices
     Array<int> *edgeLeftRight = new Array<int>(1, cudaFlag, (unsigned int) 2);
     int *pEdgeLeftRight = edgeLeftRight->GetPointer();
@@ -1055,41 +1055,41 @@ void Mesh::ConstructBoundaries()
 
       // Base nThreads and nBlocks on maximum occupancy
       cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-					 devFindEdgeBetween, 
-					 (size_t) 0, 0);
-      
+                                         devFindEdgeBetween,
+                                         (size_t) 0, 0);
+
       devFindEdgeBetween<<<nBlocks, nThreads>>>
-	(nTriangle, vLeft1, vLeft2, pTv, pTe, &(pEdgeLeftRight[0]));
+        (nTriangle, vLeft1, vLeft2, pTv, pTe, &(pEdgeLeftRight[0]));
       devFindEdgeBetween<<<nBlocks, nThreads>>>
-	(nTriangle, vRight2, vRight1, pTv, pTe, &(pEdgeLeftRight[1]));
-    
+        (nTriangle, vRight2, vRight1, pTv, pTe, &(pEdgeLeftRight[1]));
+
       gpuErrchk( cudaPeekAtLastError() );
       gpuErrchk( cudaDeviceSynchronize() );
     } else {
       for (int i = 0; i < nTriangle; i++) {
-	FindEdgeBetween(i, vLeft1, vLeft2, pTv, pTe, &(pEdgeLeftRight[0]));
-	FindEdgeBetween(i, vRight2, vRight1, pTv, pTe, &(pEdgeLeftRight[1]));
+        FindEdgeBetween(i, vLeft1, vLeft2, pTv, pTe, &(pEdgeLeftRight[0]));
+        FindEdgeBetween(i, vRight2, vRight1, pTv, pTe, &(pEdgeLeftRight[1]));
       }
     }
-    
+
     if (cudaFlag == 1)
       edgeLeftRight->TransformToHost();
     pEdgeLeftRight = edgeLeftRight->GetPointer();
-    
+
     int eleft = pEdgeLeftRight[0];
     int eright = pEdgeLeftRight[1];
 
     delete edgeLeftRight;
-    
+
     if (eleft == -1 || eright == -1) {
       std::cout << "Could not find edges to make domain periodic! "
-		<< eleft << " " << eright << std::endl;
+                << eleft << " " << eright << std::endl;
 
       std::cout << vLeft1 << " " << vLeft2 << std::endl;
       std::cout << vRight1 << " " << vRight2 << std::endl;
       throw std::runtime_error("");
     }
- 
+
     connectivity->triangleVertices->SetSize(nTriangle + 2);
     connectivity->triangleEdges->SetSize(nTriangle + 2);
     connectivity->edgeTriangles->SetSize(nEdge + 3);
@@ -1103,7 +1103,7 @@ void Mesh::ConstructBoundaries()
     V.y = (int) vRight1;
     V.z = (int) (vLeft1 + nVertex);
     connectivity->triangleVertices->SetSingleValue(V, nTriangle + 1);
-    
+
     V.x = (int) eleft;
     V.y = nEdge + 2;
     V.z = nEdge + 1;
@@ -1112,7 +1112,7 @@ void Mesh::ConstructBoundaries()
     V.y = nEdge;
     V.z = nEdge + 1;
     connectivity->triangleEdges->SetSingleValue(V, nTriangle + 1);
-    
+
     int et1Left, et2Left, et1Right, et2Right;
     int2 T;
     connectivity->edgeTriangles->GetSingleValue(&T, eleft);
@@ -1121,7 +1121,7 @@ void Mesh::ConstructBoundaries()
     if (et1Left == -1) T.x = nTriangle;
     if (et2Left == -1) T.y = nTriangle;
     connectivity->edgeTriangles->SetSingleValue(T, eleft);
-    
+
     connectivity->edgeTriangles->GetSingleValue(&T, eright);
     et1Right = T.x;
     et2Right = T.y;
@@ -1138,18 +1138,18 @@ void Mesh::ConstructBoundaries()
     T.x = -1;
     T.y = nTriangle;
     connectivity->edgeTriangles->SetSingleValue(T, nEdge + 2);
-    
+
     nTriangle += 2;
     nEdge += 3;
   }
-  
+
   // Make periodic in y
   if (meshParameter->periodicFlagY) {
     Array<real> *vyTemp =
       new Array<real>(1, cudaFlag, (unsigned int) nVertex);
     Array<unsigned int> *indexArray =
       new Array<unsigned int>(1, cudaFlag, (unsigned int) nVertex);
-    
+
     // Set equal to second dimension of vertexCoordinates
     vyTemp->SetEqualComb(connectivity->vertexCoordinates, 0, 1);
     indexArray->SetToSeries();
@@ -1172,13 +1172,13 @@ void Mesh::ConstructBoundaries()
     vx1 = Vx.x;
     connectivity->vertexCoordinates->GetSingleValue(&Vx, vBottom2);
     vx2 = Vx.x;
-    
+
     if (vx1 > vx2) {
       int temp = vBottom1;
       vBottom1 = vBottom2;
       vBottom2 = temp;
     }
-    
+
     // x-coordinates of topmost vertices
     connectivity->vertexCoordinates->GetSingleValue(&Vx, vTop1);
     vx1 = Vx.x;
@@ -1199,44 +1199,44 @@ void Mesh::ConstructBoundaries()
     if (cudaFlag == 1) {
       int nBlocks = 128;
       int nThreads = 128;
-      
+
       // Base nThreads and nBlocks on maximum occupancy
       cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-					 devFindEdgeBetween, 
-					 (size_t) 0, 0);
-      
+                                         devFindEdgeBetween,
+                                         (size_t) 0, 0);
+
       devFindEdgeBetween<<<nBlocks, nThreads>>>
-	(nTriangle, vBottom2, vBottom1, pTv, pTe, &(pEdgeBottomTop[0]));
+        (nTriangle, vBottom2, vBottom1, pTv, pTe, &(pEdgeBottomTop[0]));
       devFindEdgeBetween<<<nBlocks, nThreads>>>
-	(nTriangle, vTop1, vTop2, pTv, pTe, &(pEdgeBottomTop[1]));
-      
+        (nTriangle, vTop1, vTop2, pTv, pTe, &(pEdgeBottomTop[1]));
+
       gpuErrchk( cudaPeekAtLastError() );
       gpuErrchk( cudaDeviceSynchronize() );
     } else {
       for (int i = 0; i < nTriangle; i++) {
-	FindEdgeBetween(i, vBottom2, vBottom1, pTv, pTe, &(pEdgeBottomTop[0]));
-	FindEdgeBetween(i, vTop1, vTop2, pTv, pTe, &(pEdgeBottomTop[1]));
+        FindEdgeBetween(i, vBottom2, vBottom1, pTv, pTe, &(pEdgeBottomTop[0]));
+        FindEdgeBetween(i, vTop1, vTop2, pTv, pTe, &(pEdgeBottomTop[1]));
       }
     }
-    
+
     if (cudaFlag == 1)
       edgeBottomTop->TransformToHost();
     pEdgeBottomTop = edgeBottomTop->GetPointer();
-    
+
     int eBottom = pEdgeBottomTop[0];
     int eTop = pEdgeBottomTop[1];
 
     delete edgeBottomTop;
-    
+
     if (eBottom == -1 || eTop == -1) {
       std::cout << "Could not find y edges to make domain periodic! "
-		<< eBottom << " " << eTop << std::endl;
+                << eBottom << " " << eTop << std::endl;
 
       std::cout << vBottom1 << " " << vBottom2 << std::endl;
       std::cout << vTop1 << " " << vTop2 << std::endl;
       throw std::runtime_error("");
     }
- 
+
     connectivity->triangleVertices->SetSize(nTriangle + 2);
     connectivity->triangleEdges->SetSize(nTriangle + 2);
     connectivity->edgeTriangles->SetSize(nEdge + 3);
@@ -1251,17 +1251,17 @@ void Mesh::ConstructBoundaries()
     V.y = (int) vTop2;
     V.z = (int) (vBottom1 + 3*nVertex);
     connectivity->triangleVertices->SetSingleValue(V, nTriangle + 1);
-   
+
     V.x = (int) eBottom;
     V.y = nEdge + 2;
     V.z = nEdge + 1;
     connectivity->triangleEdges->SetSingleValue(V, nTriangle);
-    
+
     V.x = (int) eTop;
     V.y = nEdge + 2;
     V.z = nEdge;
     connectivity->triangleEdges->SetSingleValue(V, nTriangle + 1);
-    
+
     int et1Bottom, et2Bottom, et1Top, et2Top;
     int2 T;
     connectivity->edgeTriangles->GetSingleValue(&T, eBottom);
@@ -1270,11 +1270,11 @@ void Mesh::ConstructBoundaries()
     if (et1Bottom == -1) T.x = nTriangle;
     if (et2Bottom == -1) T.y = nTriangle;
     connectivity->edgeTriangles->SetSingleValue(T, eBottom);
-    
+
     connectivity->edgeTriangles->GetSingleValue(&T, eTop);
     et1Top = T.x;
     et2Top = T.y;
-    
+
     if (et1Top == -1) T.x = nTriangle + 1;
     if (et2Top == -1) T.y = nTriangle + 1;
     connectivity->edgeTriangles->SetSingleValue(T, eTop);
@@ -1288,16 +1288,16 @@ void Mesh::ConstructBoundaries()
     T.x = nTriangle + 1;
     T.y = nTriangle;
     connectivity->edgeTriangles->SetSingleValue(T, nEdge + 2);
-    
+
     nTriangle += 2;
     nEdge += 3;
-  }  
+  }
 
   if (meshParameter->periodicFlagX && meshParameter->periodicFlagY) {
     connectivity->triangleVertices->SetSize(nTriangle + 2);
     connectivity->triangleEdges->SetSize(nTriangle + 2);
     connectivity->edgeTriangles->SetSize(nEdge + 1);
-    
+
     int e1, v1, v2;
     int3 V;
     int3 E;
@@ -1306,12 +1306,12 @@ void Mesh::ConstructBoundaries()
     connectivity->triangleVertices->GetSingleValue(&V, 5);
     v1 = V.x;
     v2 = V.y;
-    
+
     int2 T;
     connectivity->edgeTriangles->GetSingleValue(&T, e1);
     int et1e1 = T.x;
     int et2e1 = T.y;
-    
+
     if (et1e1 != -1 && et2e1 != -1) {
       e1 = E.y;
       v1 = V.y;
@@ -1354,7 +1354,7 @@ void Mesh::ConstructBoundaries()
     connectivity->edgeTriangles->GetSingleValue(&T, e3);
     int et1e3 = T.x;
     int et2e3 = T.y;
-    
+
     if (et1e3 != -1 && et2e3 != -1) {
       e3 = E.y;
       v5 = V.z;
@@ -1382,7 +1382,7 @@ void Mesh::ConstructBoundaries()
     V.x = v2;
     V.y = v1;
     V.z = v4 + 2*nVertex;
-    connectivity->triangleVertices->SetSingleValue(V, nTriangle);    
+    connectivity->triangleVertices->SetSingleValue(V, nTriangle);
 
     E.x = e1;
     E.y = e4;
@@ -1423,14 +1423,14 @@ void Mesh::ConstructBoundaries()
     nEdge += 1;
 
   }
-  
+
   delete vertexRemoveFlag;
   delete vertexFlagScan;
   delete triangleRemoveFlag;
   delete triangleFlagScan;
   delete edgeRemoveFlag;
   delete edgeFlagScan;
-  
+
   delete vertexOrder;
 
   if (verboseLevel > 0)
@@ -1441,34 +1441,34 @@ void Mesh::ConstructBoundaries()
     // Add extra vertices to break symmetry
     Array<real2> *vertexExtra = new Array<real2>(1, cudaFlag, 2);
     Array<int> *vertexExtraOrder = new Array<int>(1, cudaFlag, 2);
-    
+
     real2 temp;
     temp.y = 1.0/sqrt(2.0);
     temp.x = meshParameter->minx;
     vertexExtra->SetSingleValue(temp, 0);
-    
+
     temp.x = 1.0/M_PI;
-    temp.y = meshParameter->maxy; 
+    temp.y = meshParameter->maxy;
     vertexExtra->SetSingleValue(temp, 1);
 
     nAdded = refine->AddVertices(connectivity,
-				 meshParameter,
-				 predicates,
-				 delaunay,
-				 vertexExtra,
-				 vertexExtraOrder);
-    
+                                 meshParameter,
+                                 predicates,
+                                 delaunay,
+                                 vertexExtra,
+                                 vertexExtraOrder);
+
     std::cout << "Added " << nAdded << " extra vertices" << std::endl;
-    
+
     delete vertexExtra;
     delete vertexExtraOrder;
   }
-  
+
   /*
   int nExtraTotal = 0;
   Array<real2> *vertexExtra = new Array<real2>(1, cudaFlag);
   Array<int> *vertexExtraOrder = new Array<int>(1, cudaFlag);
-  
+
   real rMax = 0.25;
   int nRadExtra = (int) (rMax/sqrt(meshParameter->baseResolution));
 
@@ -1478,7 +1478,7 @@ void Mesh::ConstructBoundaries()
 
     vertexExtra->SetSize(nExtraTotal + nExtra);
     vertexExtraOrder->SetSize(nExtraTotal + nExtra);
-    
+
     for (int i = 0; i < nExtra; i++) {
       real phi = 2.0*M_PI*(real) i/(real) nExtra;
 
@@ -1490,14 +1490,14 @@ void Mesh::ConstructBoundaries()
 
     nExtraTotal += nExtra;
   }
-  
+
   nAdded = refine->AddVertices(connectivity,
-			       meshParameter,
-			       predicates,
-			       delaunay,
-			       vertexExtra,
-			       vertexExtraOrder);
-  
+                               meshParameter,
+                               predicates,
+                               delaunay,
+                               vertexExtra,
+                               vertexExtraOrder);
+
   std::cout << "Added " << nAdded << " extra vertices" << std::endl;
   delete vertexExtra;
   delete vertexExtraOrder;
@@ -1512,26 +1512,26 @@ void Mesh::ConstructBoundaries()
   int nyExtra = (int) ((ymax - ymin)/sqrt(meshParameter->baseResolution));
   Array<real2> *vertexExtra = new Array<real2>(1, cudaFlag, nxExtra*nyExtra);
   Array<int> *vertexExtraOrder = new Array<int>(1, cudaFlag, nxExtra*nyExtra);
-  
+
   int index = 0;
   for (int i = 0; i < nxExtra; i++) {
     for (int j = 0; j < nyExtra; j++) {
       real2 temp;
       temp.x = xmin + (real)i*(xmax - xmin)/(real) (nxExtra - 1);
       temp.y = ymin + (real)j*(ymax - ymin)/(real) (nyExtra - 1);
-      
+
       vertexExtra->SetSingleValue(temp, index);
       index++;
     }
   }
-  
+
   nAdded = refine->AddVertices(connectivity,
-			       meshParameter,
-			       predicates,
-			       delaunay,
-			       vertexExtra,
-			       vertexExtraOrder);
-  
+                               meshParameter,
+                               predicates,
+                               delaunay,
+                               vertexExtra,
+                               vertexExtraOrder);
+
   std::cout << "Added " << nAdded << " extra vertices" << std::endl;
   delete vertexExtra;
   delete vertexExtraOrder;

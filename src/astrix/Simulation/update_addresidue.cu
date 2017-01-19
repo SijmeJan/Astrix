@@ -1,6 +1,18 @@
 // -*-c++-*-
 /*! \file update_addresidue.cu
-\brief File containing functions for distributing residue over vertices*/
+\brief File containing functions for distributing residue over vertices
+
+\section LICENSE
+Copyright (c) 2017 Sijme-Jan Paardekooper
+
+This file is part of Astrix.
+
+Astrix is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with rebound.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <iostream>
 
 #include "../Common/definitions.h"
@@ -12,20 +24,20 @@
 #include "../Common/profile.h"
 
 namespace astrix {
-  
+
 //######################################################################
 /*! \brief Distribute residue of triangle \a n to its vertices
 
 \param n Triangle to consider
-\param *pTv Pointer to triangle vertices 
+\param *pTv Pointer to triangle vertices
 \param *pTl Pointer to triangle edge lengths
 \param *pVarea Pointer to vertex areas (Voronoi cells)
 \param *pBlend Pointer to blend parameter
 \param *pShock Pointer to shock sensor
 \param *pState Pointer to state vector
-\param *pTresN0 Triangle residue N direction 0 
-\param *pTresN1 Triangle residue N direction 1 
-\param *pTresN2 Triangle residue N direction 2 
+\param *pTresN0 Triangle residue N direction 0
+\param *pTresN1 Triangle residue N direction 1
+\param *pTresN2 Triangle residue N direction 2
 \param *pTresLDA0 Triangle residue LDA direction 0
 \param *pTresLDA1 Triangle residue LDA direction 1
 \param *pTresLDA2 Triangle residue LDA direction 2
@@ -35,12 +47,12 @@ namespace astrix {
 //######################################################################
 
 __host__ __device__
-void AddResidueSingle(int n, const int3* __restrict__ pTv, 
-		      const real3 *pTl, const real *pVarea, 
-		      real4 *pBlend, real *pShock, real4 *pState,
-		      real4 *pTresN0, real4 *pTresN1, real4 *pTresN2,
-		      real4 *pTresLDA0, real4 *pTresLDA1, real4 *pTresLDA2,
-		      real dt, int nVertex, IntegrationScheme intScheme)
+void AddResidueSingle(int n, const int3* __restrict__ pTv,
+                      const real3 *pTl, const real *pVarea,
+                      real4 *pBlend, real *pShock, real4 *pState,
+                      real4 *pTresN0, real4 *pTresN1, real4 *pTresN2,
+                      real4 *pTresLDA0, real4 *pTresLDA1, real4 *pTresLDA2,
+                      real dt, int nVertex, IntegrationScheme intScheme)
 {
   const real one = (real) 1.0;
 
@@ -82,23 +94,23 @@ void AddResidueSingle(int n, const int3* __restrict__ pTv,
   real res2 = one;
   real res3 = one;
 
-  real dtdx=dt*tl1/pVarea[a];
+  real dtdx = dt*tl1/pVarea[a];
   real dW;
-  
+
   if (intScheme == SCHEME_N) {
     res0 = pTresN0[n].x;
     res1 = pTresN0[n].y;
     res2 = pTresN0[n].z;
     res3 = pTresN0[n].w;
   }
-    
+
   if (intScheme == SCHEME_LDA) {
     res0 = pTresLDA0[n].x;
     res1 = pTresLDA0[n].y;
     res2 = pTresLDA0[n].z;
     res3 = pTresLDA0[n].w;
   }
-  
+
   if (intScheme == SCHEME_B || intScheme == SCHEME_BX) {
     real resN0 = pTresN0[n].x;
     real resN1 = pTresN0[n].y;
@@ -123,8 +135,8 @@ void AddResidueSingle(int n, const int3* __restrict__ pTv,
   AtomicAdd(&(pState[a].z), dW);
   dW = -dtdx*res3;
   AtomicAdd(&(pState[a].w), dW);
-  
-  dtdx=dt*tl2/pVarea[b];
+
+  dtdx = dt*tl2/pVarea[b];
 
   if (intScheme == SCHEME_N) {
     res0 = pTresN1[n].x;
@@ -132,14 +144,14 @@ void AddResidueSingle(int n, const int3* __restrict__ pTv,
     res2 = pTresN1[n].z;
     res3 = pTresN1[n].w;
   }
-    
+
   if (intScheme == SCHEME_LDA) {
     res0 = pTresLDA1[n].x;
     res1 = pTresLDA1[n].y;
     res2 = pTresLDA1[n].z;
     res3 = pTresLDA1[n].w;
   }
-  
+
   if (intScheme == SCHEME_B || intScheme == SCHEME_BX) {
     real resN0 = pTresN1[n].x;
     real resN1 = pTresN1[n].y;
@@ -164,8 +176,8 @@ void AddResidueSingle(int n, const int3* __restrict__ pTv,
   AtomicAdd(&(pState[b].z), dW);
   dW = -dtdx*res3;
   AtomicAdd(&(pState[b].w), dW);
- 
-  dtdx=dt*tl3/pVarea[c];
+
+  dtdx = dt*tl3/pVarea[c];
 
   if (intScheme == SCHEME_N) {
     res0 = pTresN2[n].x;
@@ -173,14 +185,14 @@ void AddResidueSingle(int n, const int3* __restrict__ pTv,
     res2 = pTresN2[n].z;
     res3 = pTresN2[n].w;
   }
-    
+
   if (intScheme == SCHEME_LDA) {
     res0 = pTresLDA2[n].x;
     res1 = pTresLDA2[n].y;
     res2 = pTresLDA2[n].z;
     res3 = pTresLDA2[n].w;
   }
-  
+
   if (intScheme == SCHEME_B || intScheme == SCHEME_BX) {
     real resN0 = pTresN2[n].x;
     real resN1 = pTresN2[n].y;
@@ -208,12 +220,12 @@ void AddResidueSingle(int n, const int3* __restrict__ pTv,
 }
 
 __host__ __device__
-void AddResidueSingle(int n, const int3* __restrict__ pTv, 
-		      const real3 *pTl, const real *pVarea, 
-		      real *pBlend, real *pShock, real *pState,
-		      real *pTresN0, real *pTresN1, real *pTresN2,
-		      real *pTresLDA0, real *pTresLDA1, real *pTresLDA2,
-		      real dt, int nVertex, IntegrationScheme intScheme)
+void AddResidueSingle(int n, const int3* __restrict__ pTv,
+                      const real3 *pTl, const real *pVarea,
+                      real *pBlend, real *pShock, real *pState,
+                      real *pTresN0, real *pTresN1, real *pTresN2,
+                      real *pTresLDA0, real *pTresLDA1, real *pTresLDA2,
+                      real dt, int nVertex, IntegrationScheme intScheme)
 {
   const real one = (real) 1.0;
 
@@ -241,7 +253,7 @@ void AddResidueSingle(int n, const int3* __restrict__ pTv,
 
   real dtdx = dt*tl1/pVarea[a];
   real dW;
-  
+
   if (intScheme == SCHEME_N) res0 = pTresN0[n];
   if (intScheme == SCHEME_LDA) res0 = pTresLDA0[n];
   if (intScheme == SCHEME_B || intScheme == SCHEME_BX) {
@@ -252,11 +264,11 @@ void AddResidueSingle(int n, const int3* __restrict__ pTv,
 
   dW = -dtdx*res0;
   AtomicAdd(&(pState[a]), dW);
-  
+
   dtdx = dt*tl2/pVarea[b];
 
   if (intScheme == SCHEME_N) res0 = pTresN1[n];
-  if (intScheme == SCHEME_LDA) res0 = pTresLDA1[n];  
+  if (intScheme == SCHEME_LDA) res0 = pTresLDA1[n];
   if (intScheme == SCHEME_B || intScheme == SCHEME_BX) {
     real resN0 = pTresN1[n];
     real resLDA0 = pTresLDA1[n];
@@ -265,11 +277,11 @@ void AddResidueSingle(int n, const int3* __restrict__ pTv,
 
   dW = -dtdx*res0;
   AtomicAdd(&(pState[b]), dW);
- 
+
   dtdx = dt*tl3/pVarea[c];
 
   if (intScheme == SCHEME_N) res0 = pTresN2[n];
-  if (intScheme == SCHEME_LDA) res0 = pTresLDA2[n];  
+  if (intScheme == SCHEME_LDA) res0 = pTresLDA2[n];
   if (intScheme == SCHEME_B || intScheme == SCHEME_BX) {
     real resN0 = pTresN2[n];
     real resLDA0 = pTresLDA2[n];
@@ -279,20 +291,20 @@ void AddResidueSingle(int n, const int3* __restrict__ pTv,
   dW = -dtdx*res0;
   AtomicAdd(&(pState[c]), dW);
 }
- 
+
 //######################################################################
 /*! \brief Distribute residue of triangles to their vertices
 
 \param nTriangle Total number of triangles in Mesh
-\param *pTv Pointer to triangle vertices 
+\param *pTv Pointer to triangle vertices
 \param *pTl Pointer to triangle edge lengths
 \param *pVarea Pointer to vertex areas (Voronoi cells)
 \param *pBlend Pointer to blend parameter
 \param *pShock Pointer to shock sensor
 \param *pState Pointer to state vector
-\param *pTresN0 Triangle residue N direction 0 
-\param *pTresN1 Triangle residue N direction 1 
-\param *pTresN2 Triangle residue N direction 2 
+\param *pTresN0 Triangle residue N direction 0
+\param *pTresN1 Triangle residue N direction 1
+\param *pTresN2 Triangle residue N direction 2
 \param *pTresLDA0 Triangle residue LDA direction 0
 \param *pTresLDA1 Triangle residue LDA direction 1
 \param *pTresLDA2 Triangle residue LDA direction 2
@@ -301,27 +313,27 @@ void AddResidueSingle(int n, const int3* __restrict__ pTv,
 \param intScheme Integration scheme*/
 //######################################################################
 
-__global__ void 
+__global__ void
 devAddResidue(int nTriangle, const int3* __restrict__ pTv, const real3 *pTl,
-	      const real *pVarea, realNeq *pBlend, real *pShock,
-	      realNeq *pState,
-	      realNeq *pTresN0, realNeq *pTresN1, realNeq *pTresN2,
-	      realNeq *pTresLDA0, realNeq *pTresLDA1, realNeq *pTresLDA2,
-	      real dt, int nVertex, IntegrationScheme intScheme)
+              const real *pVarea, realNeq *pBlend, real *pShock,
+              realNeq *pState,
+              realNeq *pTresN0, realNeq *pTresN1, realNeq *pTresN2,
+              realNeq *pTresLDA0, realNeq *pTresLDA1, realNeq *pTresLDA2,
+              real dt, int nVertex, IntegrationScheme intScheme)
 {
   // n=vertex number
-  int n = blockIdx.x*blockDim.x + threadIdx.x; 
+  int n = blockIdx.x*blockDim.x + threadIdx.x;
 
-  while(n < nTriangle){
+  while (n < nTriangle) {
     AddResidueSingle(n, pTv, pTl, pVarea, pBlend, pShock, pState,
-		     pTresN0, pTresN1, pTresN2,
-		     pTresLDA0, pTresLDA1, pTresLDA2,
-		     dt, nVertex, intScheme);
+                     pTresN0, pTresN1, pTresN2,
+                     pTresLDA0, pTresLDA1, pTresLDA2,
+                     dt, nVertex, intScheme);
 
     n += blockDim.x*gridDim.x;
   }
 }
-  
+
 //######################################################################
 /*! Distribute triangle residuals over their vertices
 
@@ -344,14 +356,14 @@ void Simulation::AddResidue(real dt)
   realNeq *pTresN0 = triangleResidueN->GetPointer(0);
   realNeq *pTresN1 = triangleResidueN->GetPointer(1);
   realNeq *pTresN2 = triangleResidueN->GetPointer(2);
-  
+
   realNeq *pTresLDA0 = triangleResidueLDA->GetPointer(0);
   realNeq *pTresLDA1 = triangleResidueLDA->GetPointer(1);
   realNeq *pTresLDA2 = triangleResidueLDA->GetPointer(2);
 
   realNeq *pBlend = triangleBlendFactor->GetPointer();
   real *pShock = triangleShockSensor->GetPointer();
-  
+
   const int3 *pTv = mesh->TriangleVerticesData();
   const real3 *triL = mesh->TriangleEdgeLengthData();
   const real *vertArea = mesh->VertexAreaData();
@@ -359,19 +371,19 @@ void Simulation::AddResidue(real dt)
   if (cudaFlag == 1) {
     int nThreads = 128;
     int nBlocks  = 128;
-    
+
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devAddResidue, 
-				       (size_t) 0, 0);
-    
+                                       devAddResidue,
+                                       (size_t) 0, 0);
+
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-    // Execute kernel... 
-    devAddResidue<<<nBlocks,nThreads>>>
+    // Execute kernel...
+    devAddResidue<<<nBlocks, nThreads>>>
       (nTriangle, pTv, triL, vertArea, pBlend, pShock, state,
-       pTresN0, pTresN1, pTresN2, pTresLDA0, pTresLDA1, pTresLDA2, 
+       pTresN0, pTresN1, pTresN2, pTresLDA0, pTresLDA1, pTresLDA2,
        dt, nVertex, intScheme);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
@@ -383,21 +395,21 @@ void Simulation::AddResidue(real dt)
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-    for(int n = 0; n < nTriangle; n++) 
+    for (int n = 0; n < nTriangle; n++)
       AddResidueSingle(n, pTv, triL, vertArea, pBlend, pShock, state,
-		       pTresN0, pTresN1, pTresN2,
-		       pTresLDA0, pTresLDA1, pTresLDA2, 
-		       dt, nVertex, intScheme);
+                       pTresN0, pTresN1, pTresN2,
+                       pTresLDA0, pTresLDA1, pTresLDA2,
+                       dt, nVertex, intScheme);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
 #endif
   }
-  
+
 #ifdef TIME_ASTRIX
   gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("AddResidual.prof2", nTriangle, elapsedTime, cudaFlag);
 #endif
 }
 
-}
+}  // namespace astrix

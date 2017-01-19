@@ -11,11 +11,11 @@
 #include "./Connectivity/connectivity.h"
 
 namespace astrix {
-  
+
 //#########################################################################
 /*! Save vertexCoordinates in a vertex file, triangleVertices and triangleEdges in a triangle file, and edgeTriangles in an edge file.
 
-\param nSave Number of save, used to generate file names*/ 
+\param nSave Number of save, used to generate file names*/
 //#########################################################################
 
 void Mesh::Save(int nSave)
@@ -26,7 +26,7 @@ void Mesh::Save(int nSave)
 
   // Copy data to host
   if (cudaFlag == 1) connectivity->CopyToHost();
-  
+
   int3 *pTv = connectivity->triangleVertices->GetHostPointer();
 
   Array<int> *triangleVerticesSeparate = new Array<int>(3, 0, nTriangle);
@@ -39,14 +39,14 @@ void Mesh::Save(int nSave)
     tv2[i] = pTv[i].y;
     tv3[i] = pTv[i].z;
   }
-  
+
   int3 *pTe = connectivity->triangleEdges->GetHostPointer();
 
   Array<int> *triangleEdgesSeparate = new Array<int>(3, 0, nTriangle);
   int *te1 = triangleEdgesSeparate->GetHostPointer(0);
   int *te2 = triangleEdgesSeparate->GetHostPointer(1);
   int *te3 = triangleEdgesSeparate->GetHostPointer(2);
-  
+
   for (int i = 0; i < nTriangle; i++) {
     te1[i] = pTe[i].x;
     te2[i] = pTe[i].y;
@@ -94,7 +94,7 @@ void Mesh::Save(int nSave)
   // Output vertex coordinates
   vout.write(reinterpret_cast<char*>(pVertX), nVertex*sizeof(real));
   vout.write(reinterpret_cast<char*>(pVertY), nVertex*sizeof(real));
-  
+
   vout.close();
 
   // File containing triangles
@@ -111,7 +111,7 @@ void Mesh::Save(int nSave)
   tout.write(reinterpret_cast<char*>(te1), nTriangle*sizeof(int));
   tout.write(reinterpret_cast<char*>(te2), nTriangle*sizeof(int));
   tout.write(reinterpret_cast<char*>(te3), nTriangle*sizeof(int));
-  
+
   tout.close();
 
   // File containing edges
@@ -124,7 +124,7 @@ void Mesh::Save(int nSave)
   // Output vertices, triangles belonging to edge, and boundary flag
   eout.write(reinterpret_cast<char*>(et1), nEdge*sizeof(int));
   eout.write(reinterpret_cast<char*>(et2), nEdge*sizeof(int));
-  
+
   eout.close();
 
   delete triangleVerticesSeparate;
@@ -195,7 +195,7 @@ void Mesh::ReadFromDisk(int nSave)
   }
 
   delete vertexCoordinatesSeparate;
-    
+
   vertexInFile.close();
 
   // Read from triangle file
@@ -217,7 +217,7 @@ void Mesh::ReadFromDisk(int nSave)
   connectivity->triangleEdges->SetSizeHost(nTriangle);
 
   int3 *pTv = connectivity->triangleVertices->GetHostPointer();
-  
+
   Array<int> *triangleVerticesSeparate = new Array<int>(3, 0, nTriangle);
   int *tv1 = triangleVerticesSeparate->GetPointer(0);
   int *tv2 = triangleVerticesSeparate->GetPointer(1);
@@ -252,7 +252,7 @@ void Mesh::ReadFromDisk(int nSave)
     pTe[i].z = te3[i];
   }
 
-  delete triangleEdgesSeparate;  
+  delete triangleEdgesSeparate;
 
   triangleInFile.close();
 
@@ -271,7 +271,7 @@ void Mesh::ReadFromDisk(int nSave)
 
   connectivity->edgeTriangles->SetSizeHost(nEdge);
   int2 *pEt = connectivity->edgeTriangles->GetHostPointer();
-  
+
   Array<int> *edgeTrianglesSeparate = new Array<int>(3, 0, nEdge);
   int *et1 = edgeTrianglesSeparate->GetPointer(0);
   int *et2 = edgeTrianglesSeparate->GetPointer(1);
@@ -285,7 +285,7 @@ void Mesh::ReadFromDisk(int nSave)
   }
 
   delete edgeTrianglesSeparate;
-   
+
   edgeInFile.close();
 
   if (cudaFlag == 1) connectivity->CopyToDevice();
@@ -293,7 +293,7 @@ void Mesh::ReadFromDisk(int nSave)
   CalcNormalEdge();
   CalcVertexArea();
   FindBoundaryVertices();
-  
+
   std::cout << "Done reading mesh from disk" << std::endl;
 }
 

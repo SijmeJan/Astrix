@@ -24,7 +24,7 @@ void Mesh::CreateStructuredMesh()
 {
   real Px = meshParameter->maxx - meshParameter->minx;
   real Py = meshParameter->maxy - meshParameter->miny;
-  
+
   int nx = (int) (sqrt(0.565/meshParameter->baseResolution)*Px) + 4;
   int ny = (int)(nx*Py/Px);
 
@@ -38,12 +38,12 @@ void Mesh::CreateStructuredMesh()
     meshParameter->miny = y0 - 0.5*Py;
     meshParameter->maxy = y0 + 0.5*Py;
   }
-   
+
   std::cout << "Creating structured mesh " << nx << "x" << ny << std::endl;
 
   // This step is not worth porting to GPU, so do it on the host
   if (cudaFlag == 1) connectivity->Transform();
-  
+
   int nVertex = nx*ny;
   int nTriangle = (nx - 1)*(ny - 1)*2;
   int nEdge = 3*(nx - 1)*(ny - 1) + nx + ny - 2;
@@ -56,8 +56,8 @@ void Mesh::CreateStructuredMesh()
   real2 *pVc = connectivity->vertexCoordinates->GetPointer();
   int3 *pTv = connectivity->triangleVertices->GetPointer();
   int3 *pTe = connectivity->triangleEdges->GetPointer();
-  int2 *pEt = connectivity->edgeTriangles->GetPointer(); 
-  
+  int2 *pEt = connectivity->edgeTriangles->GetPointer();
+
   // Fill vertex coordinates
   for (int i = 0; i < nx; i++) {
     for (int j = 0; j < ny; j++) {
@@ -66,14 +66,14 @@ void Mesh::CreateStructuredMesh()
       pVc[n].y = -Py*j/(real) (ny - 1) + meshParameter->maxy;
     }
   }
-  
+
   // Create mesh
   for (int i = 0; i < nx - 1; i++) {
     for (int j = 0; j < ny - 1; j++) {
       int v = j*nx + i;
       int t = 2*(v - j);
       int e = 3*(v - j) + j;
-      
+
       pTv[t].x = v;
       pTv[t].y = v + nx;
       pTv[t].z = v + 1;
@@ -81,7 +81,7 @@ void Mesh::CreateStructuredMesh()
       pTv[t + 1].x = v + 1;
       pTv[t + 1].y = v + nx;
       pTv[t + 1].z = v + 1 + nx;
-      
+
       pTe[t].x = e;
       pTe[t].y = e + 1;
       pTe[t].z = e + 2;
@@ -89,13 +89,13 @@ void Mesh::CreateStructuredMesh()
       pTe[t + 1].x = e + 1;
       pTe[t + 1].y = 3*(v + nx - j - 1) + j + 3; //e(j + 1) + 2
       if (j == ny - 2)
-	pTe[t + 1].y = 3*(j*nx + nx - 2 + 1 - j) + j + i + 1;
+        pTe[t + 1].y = 3*(j*nx + nx - 2 + 1 - j) + j + i + 1;
       pTe[t + 1].z = 3*(v + 1 - j) + j; //e(i + 1)
 
       int e1 = pTe[t].x;
       int e2 = pTe[t].y;
       int e3 = pTe[t].z;
-      
+
       pEt[e1].x = t;
       if (i > 0) pEt[e1].y = t - 1; else pEt[e1].y = -1;
       pEt[e2].x = t;
@@ -105,26 +105,26 @@ void Mesh::CreateStructuredMesh()
 
       e2 = pTe[t + 1].y;
       e3 = pTe[t + 1].z;
-      
+
       if (i == nx - 2) {
-	pEt[e3].x = t + 1;
-	pEt[e3].y = -1;
+        pEt[e3].x = t + 1;
+        pEt[e3].y = -1;
       }
 
       if (j == ny - 2) {
-	pEt[e2].x = t + 1;
-	pEt[e2].y = -1;
+        pEt[e2].x = t + 1;
+        pEt[e2].y = -1;
       }
     }
   }
-  
+
   // Make periodic in x
   if (meshParameter->periodicFlagX == 1) {
     // Shift all vertices to the left
-    for (int i = 0; i < nx; i++) 
-      for (int j = 0; j < ny; j++) 
-	pVc[j*nx + i].x -= Px*0.5/(real) (nx - 1);
-    
+    for (int i = 0; i < nx; i++)
+      for (int j = 0; j < ny; j++)
+        pVc[j*nx + i].x -= Px*0.5/(real) (nx - 1);
+
     nVertex =
       connectivity->vertexCoordinates->RemoveEvery
       (0, nx, connectivity->triangleVertices);
@@ -136,7 +136,7 @@ void Mesh::CreateStructuredMesh()
     pVc = connectivity->vertexCoordinates->GetPointer();
     pTv = connectivity->triangleVertices->GetPointer();
     pTe = connectivity->triangleEdges->GetPointer();
-    pEt = connectivity->edgeTriangles->GetPointer(); 
+    pEt = connectivity->edgeTriangles->GetPointer();
 
     int i = 0;
     for (int j = 0; j < ny - 1; j++) {
@@ -161,7 +161,7 @@ void Mesh::CreateStructuredMesh()
       int e1 = pTe[t].x;
       int e2 = pTe[t].y;
       int e3 = pTe[t].z;
-      
+
       pEt[e1].y = t;
       pEt[e2].x = t;
       pEt[e2].y = t + 1;
@@ -170,17 +170,17 @@ void Mesh::CreateStructuredMesh()
 
       if (j == ny - 2) pEt[nEdge - 1].x = t + 1;
     }
-    
+
     nx--;
-    
+
   }
 
   // Make periodic in y
   if (meshParameter->periodicFlagY == 1) {
-    for (int i = 0; i < nx; i++) 
-      for (int j = 0; j < ny; j++) 
-	pVc[j*nx + i].y -= Py*0.5/(real) (ny - 1);
-    
+    for (int i = 0; i < nx; i++)
+      for (int j = 0; j < ny; j++)
+        pVc[j*nx + i].y -= Py*0.5/(real) (ny - 1);
+
     for (int i = 0; i < nTriangle; i++) {
       if (pTv[i].x >= nVertex) pTv[i].x -= nx;
       if (pTv[i].y >= nVertex) pTv[i].y -= nx;
@@ -190,35 +190,35 @@ void Mesh::CreateStructuredMesh()
       if (pTv[i].y < 0) pTv[i].y += nx;
       if (pTv[i].z < 0) pTv[i].z += nx;
     }
-    
+
     nVertex = nx*(ny - 1);
     connectivity->vertexCoordinates->SetSize(nVertex);
 
     nEdge -= (nx - 1 + meshParameter->periodicFlagX);
     connectivity->edgeTriangles->SetSize(nEdge);
-    
+
     int j = ny - 2;
     for (int i = 0; i < nx - 1 + meshParameter->periodicFlagX; i++) {
       int v = j*nx + i;
       int t = 2*(v + meshParameter->periodicFlagX);
       if (i == nx - 1) t = 2*j*nx;
-      
+
       pTv[t].y = v - (ny - 2)*nx - 3*nVertex;
 
       pTv[t + 1].x = v + 1 + 3*nVertex;
       pTv[t + 1].y = v - (ny - 2)*nx;
       pTv[t + 1].z = v + 1 - (ny - 2)*nx;
       if (i == nx - 1) {
-	pTv[t + 1].x = j*nx;
-	pTv[t + 1].y = nx - 1 - nVertex - 3*nVertex;
-	pTv[t + 1].z = -3*nVertex;
+        pTv[t + 1].x = j*nx;
+        pTv[t + 1].y = nx - 1 - nVertex - 3*nVertex;
+        pTv[t + 1].z = -3*nVertex;
       }
 
       pTe[t + 1].y = 3*i + 2 + 2*meshParameter->periodicFlagX;
       if (i == nx - 1) pTe[t + 1].y = 0;
-      
+
       if (i < nx - 1)
-	pEt[3*i + 2 + 2*meshParameter->periodicFlagX].y = t + 1;
+        pEt[3*i + 2 + 2*meshParameter->periodicFlagX].y = t + 1;
       if (i == nx - 1) pEt[pTe[t + 1].y].y = t + 1;
     }
   }
@@ -226,12 +226,12 @@ void Mesh::CreateStructuredMesh()
   // Transform back to device
   if (cudaFlag == 1) connectivity->Transform();
 
-  // One cycle of delaunay 
+  // One cycle of delaunay
   delaunay->MakeDelaunay(connectivity, 0, predicates,
-  			 meshParameter, 1, 0, 0, 0);
+                         meshParameter, 1, 0, 0, 0);
 
   morton->Order(connectivity, triangleWantRefine, 0);
-  
+
   // Calculate triangle normals and areas
   CalcNormalEdge();
   CalcVertexArea();

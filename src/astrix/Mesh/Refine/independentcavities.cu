@@ -18,7 +18,7 @@ namespace astrix {
 //#########################################################################
 /*! \brief Check whether all triangles in cavity \i are available
 
-Start at the insertion triangle and move in clockwise direction along the edge of the cavity, checking if all triangles are available (i.e. not locked by other insertion point). If all are available, set pUniqueFlag[i] = 1, otherwise pUniqueFlag[i] = 0.  
+Start at the insertion triangle and move in clockwise direction along the edge of the cavity, checking if all triangles are available (i.e. not locked by other insertion point). If all are available, set pUniqueFlag[i] = 1, otherwise pUniqueFlag[i] = 0.
 
 \param i Insertion point to consider
 \param *pVcAdd Coordinates of insertion points
@@ -34,21 +34,21 @@ Start at the insertion triangle and move in clockwise direction along the edge o
 \param Py Periodic domain size y
 \param *pred Pointer to Predicates object
 \param *pParam Pointer to parameter vector associated with Predicates
-\param *pRandom Random integers associated with insertion points 
+\param *pRandom Random integers associated with insertion points
 \param *pUniqueFlag Pointer to array flagging whether point can be inserted in parallel*/
 //#########################################################################
 
 __host__ __device__
 void FindIndependentCavity(int i, real2 *pVcAdd, int *pElementAdd,
-			   int nTriangle, int *pTiC,
-			   //int3 *pTv, int3 *pTe, int2 *pEt, real2 *pVc,
-			   const int3* __restrict__ pTv,
-			   const int3* __restrict__ pTe,
-			   const int2* __restrict__ pEt,
-			   const real2* __restrict__ pVc,
-			   int nVertex, real Px,
-			   real Py, const Predicates *pred, real *pParam,
-			   unsigned int *pRandom, int *pUniqueFlag)
+                           int nTriangle, int *pTiC,
+                           //int3 *pTv, int3 *pTe, int2 *pEt, real2 *pVc,
+                           const int3* __restrict__ pTv,
+                           const int3* __restrict__ pTe,
+                           const int2* __restrict__ pEt,
+                           const real2* __restrict__ pVc,
+                           int nVertex, real Px,
+                           real Py, const Predicates *pred, real *pParam,
+                           unsigned int *pRandom, int *pUniqueFlag)
 {
   real dx = pVcAdd[i].x;
   real dy = pVcAdd[i].y;
@@ -59,7 +59,7 @@ void FindIndependentCavity(int i, real2 *pVcAdd, int *pElementAdd,
   int translateFlag = 0;
 
   int randomInt = (int) pRandom[i];
-  
+
   // Start at insertion triangle
   int tStart = pElementAdd[i];
   if (tStart >= nTriangle) {
@@ -67,7 +67,7 @@ void FindIndependentCavity(int i, real2 *pVcAdd, int *pElementAdd,
     int e = tStart - nTriangle;
     int t1 = pEt[e].x;
     int t2 = pEt[e].y;
-    
+
     tStart = t1;
     if (t2 > t1) tStart = t2;
   }
@@ -77,32 +77,32 @@ void FindIndependentCavity(int i, real2 *pVcAdd, int *pElementAdd,
   // Choose starting edge to have two neigbours
   int e[] = {pTe[t].x, pTe[t].y, pTe[t].z};
   int eStart = -1;
-  for (int n = 0; n < 3; n++) 
+  for (int n = 0; n < 3; n++)
     if (pEt[e[n]].x != -1 && pEt[e[n]].y != -1) eStart = e[n];
-    
+
   int eCrossed = eStart;
-  int finished = 0;  
+  int finished = 0;
   int ret = 1;
-  
+
   while (finished == 0) {
     // We know t is in cavity: if pTiC == -i - 2, we have already encountered
     // t and we can move on; if pTiC == pRandom[i] it is available, otherwise
     // it is needed by a point with higher priority.
     if (pTiC[t] != -i - 2) {
       if (pTiC[t] != randomInt) {
-	ret = 0;
-	// We might as well stop
-	finished = 1;
+        ret = 0;
+        // We might as well stop
+        finished = 1;
       } else {
-	pTiC[t] = -i - 2;
+        pTiC[t] = -i - 2;
       }
     }
 
     if (finished == 0) {
-      
+
     int tNext = -1;
     int eNext = -1;
-    
+
     int e1 = -1, e2 = -1, e3 = -1;
 
     for (int de = 2; de >= 0; de--) {
@@ -117,76 +117,76 @@ void FindIndependentCavity(int i, real2 *pVcAdd, int *pElementAdd,
       if (tNext == t) tNext = tNeighbour.y;
 
       if (tNext != -1) {
-	// Check if vertex n lies in circumcircle of triangle tNext
-	int a = pTv[tNext].x;
-	int b = pTv[tNext].y;
-	int c = pTv[tNext].z;
+        // Check if vertex n lies in circumcircle of triangle tNext
+        int a = pTv[tNext].x;
+        int b = pTv[tNext].y;
+        int c = pTv[tNext].z;
 
-	real ax, bx, cx, ay, by, cy;
-	GetTriangleCoordinates(pVc, a, b, c, nVertex, Px, Py,
-			       ax, bx, cx, ay, by, cy);
+        real ax, bx, cx, ay, by, cy;
+        GetTriangleCoordinates(pVc, a, b, c, nVertex, Px, Py,
+                               ax, bx, cx, ay, by, cy);
 
-	e1 = pTe[tNext].x;
-	e2 = pTe[tNext].y;
-	e3 = pTe[tNext].z;
+        e1 = pTe[tNext].x;
+        e2 = pTe[tNext].y;
+        e3 = pTe[tNext].z;
 
-	// Translate (dx, dy) so that it lies on the same side as tNext
-	int f = a;
-	if (e2 == eNext) f = b;
-	if (e3 == eNext) f = c;
-	
-	int A = pTv[t].x;
-	int B = pTv[t].y;
-	int C = pTv[t].z;
+        // Translate (dx, dy) so that it lies on the same side as tNext
+        int f = a;
+        if (e2 == eNext) f = b;
+        if (e3 == eNext) f = c;
 
-	
-	int F = B;
-	if (e[1] == eNext) F = C;
-	if (e[2] == eNext) F = A;
+        int A = pTv[t].x;
+        int B = pTv[t].y;
+        int C = pTv[t].z;
 
-	real dxNew = dx;
-	real dyNew = dy;
-	
-	// Indicate that cavity lies across periodic boundary
-	if (f != F) translateFlag = 1;
-	TranslateVertexToVertex(f, F, Px, Py, nVertex, dxNew, dyNew);
 
-	real det = pred->incircle(ax, ay, bx, by, cx, cy, dxNew, dyNew, pParam);
+        int F = B;
+        if (e[1] == eNext) F = C;
+        if (e[2] == eNext) F = A;
 
-	// Check if triangle is part of cavity if we translate triangle
-	// in stead of vertex
-	real det2 = det;
-	// Do this only when cavity lies across periodic boundary
-	if (translateFlag == 1) {
-	  real DeltaX = dxOld - dxNew;
-	  real DeltaY = dyOld - dyNew;
+        real dxNew = dx;
+        real dyNew = dy;
 
-	  det2 = pred->incircle(ax + DeltaX, ay + DeltaY,
-				bx + DeltaX, by + DeltaY,
-				cx + DeltaX, cy + DeltaY,
-				dxOld, dyOld, pParam);
-	}
-	
-	// If triangle not part of cavity, do not move into it
-	if (det < (real) 0.0 && det2 < (real) 0.0) {
-	  tNext = -1;
-	} else {
-	  // Move into tNext; use new coordinates
-	  dx = dxNew;
-	  dy = dyNew;
-	}
+        // Indicate that cavity lies across periodic boundary
+        if (f != F) translateFlag = 1;
+        TranslateVertexToVertex(f, F, Px, Py, nVertex, dxNew, dyNew);
+
+        real det = pred->incircle(ax, ay, bx, by, cx, cy, dxNew, dyNew, pParam);
+
+        // Check if triangle is part of cavity if we translate triangle
+        // in stead of vertex
+        real det2 = det;
+        // Do this only when cavity lies across periodic boundary
+        if (translateFlag == 1) {
+          real DeltaX = dxOld - dxNew;
+          real DeltaY = dyOld - dyNew;
+
+          det2 = pred->incircle(ax + DeltaX, ay + DeltaY,
+                                bx + DeltaX, by + DeltaY,
+                                cx + DeltaX, cy + DeltaY,
+                                dxOld, dyOld, pParam);
+        }
+
+        // If triangle not part of cavity, do not move into it
+        if (det < (real) 0.0 && det2 < (real) 0.0) {
+          tNext = -1;
+        } else {
+          // Move into tNext; use new coordinates
+          dx = dxNew;
+          dy = dyNew;
+        }
       }
 
       // Done if trying to move across eStart but failing
       if (eNext == eStart && tNext == -1) {
-	finished = 1;
-	break;
+        finished = 1;
+        break;
       }
 
       // Found a triangle to move into
       if (tNext != -1) break;
     }
-    
+
     eCrossed = eNext;
     t = tNext;
     e[0] = e1;
@@ -221,33 +221,33 @@ Upon return, pUniqueFlag[i] = 1 is point can be inserted independently of all ot
 \param Py Periodic domain size y
 \param *pred Pointer to Predicates object
 \param *pParam Pointer to parameter vector associated with Predicates
-\param *pRandom Random integers associated with insertion points 
+\param *pRandom Random integers associated with insertion points
 \param *pUniqueFlag Pointer to array flagging whether point can be inserted in parallel (output)*/
 //#########################################################################
 
-__global__ void 
+__global__ void
 devFindIndependentCavities(int nRefine, real2 *pVcAdd, int *pElementAdd,
-			   int nTriangle, int *pTiC,
-			   //int3 *pTv, int3 *pTe, int2 *pEt, real2 *pVc,
-			   const int3* __restrict__ pTv,
-			   const int3* __restrict__ pTe,
-			   const int2* __restrict__ pEt,
-			   const real2* __restrict__ pVc,
-			   int nVertex, real Px, real Py,
-			   const Predicates *pred, real *pParam,
-			   unsigned int *pRandom, int *pUniqueFlag)
+                           int nTriangle, int *pTiC,
+                           //int3 *pTv, int3 *pTe, int2 *pEt, real2 *pVc,
+                           const int3* __restrict__ pTv,
+                           const int3* __restrict__ pTe,
+                           const int2* __restrict__ pEt,
+                           const real2* __restrict__ pVc,
+                           int nVertex, real Px, real Py,
+                           const Predicates *pred, real *pParam,
+                           unsigned int *pRandom, int *pUniqueFlag)
 {
   unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nRefine) {
     FindIndependentCavity(i, pVcAdd, pElementAdd, nTriangle,
-			  pTiC, pTv, pTe, pEt, pVc, nVertex, Px, Py,
-			  pred, pParam, pRandom, pUniqueFlag);
+                          pTiC, pTv, pTe, pEt, pVc, nVertex, Px, Py,
+                          pred, pParam, pRandom, pUniqueFlag);
 
     i += gridDim.x*blockDim.x;
   }
 }
-  
+
 //#########################################################################
 /*! \brief Find independent set of cavities
 
@@ -256,21 +256,21 @@ Upon return, pUniqueFlag[i] = 1 is point can be inserted independently of all ot
 \param *connectivity Pointer to basic Mesh data
 \param *predicates Pointer to Predicates object
 \param *meshParameter Pointer to Mesh parameters
-\param *triangleInCavity pTriangleInCavity[n] = pRandomPermutation[i]: triangle n is part of cavity of insertion point i and available.  
-\param *uniqueFlag Upon return, pUniqueFlag[i] = 1 is point can be inserted independently of all others, otherwise pUniqueFlag[i] = 0.  
+\param *triangleInCavity pTriangleInCavity[n] = pRandomPermutation[i]: triangle n is part of cavity of insertion point i and available.
+\param *uniqueFlag Upon return, pUniqueFlag[i] = 1 is point can be inserted independently of all others, otherwise pUniqueFlag[i] = 0.
 */
 //#########################################################################
-  
+
 void Refine::FindIndependentCavities(Connectivity * const connectivity,
-				     const Predicates *predicates,
-				     const MeshParameter *meshParameter,
-				     Array<int> * const triangleInCavity,
-				     Array<int> *uniqueFlag)
+                                     const Predicates *predicates,
+                                     const MeshParameter *meshParameter,
+                                     Array<int> * const triangleInCavity,
+                                     Array<int> *uniqueFlag)
 {
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
-  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&start) );
   gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
@@ -283,7 +283,7 @@ void Refine::FindIndependentCavities(Connectivity * const connectivity,
 
   // Shuffle points to add to maximise parallelisation
   unsigned int *pRandomPermutation = randomUnique->GetPointer();
-  
+
   unsigned int nVertex = connectivity->vertexCoordinates->GetSize();
   real2 *pVc = connectivity->vertexCoordinates->GetPointer();
   int3 *pTv = connectivity->triangleVertices->GetPointer();
@@ -299,13 +299,13 @@ void Refine::FindIndependentCavities(Connectivity * const connectivity,
   // Find set of independent cavities
   if (cudaFlag == 1) {
     int nBlocks = 128;
-    int nThreads = 128; 
+    int nThreads = 128;
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       (const void *) 
-				       devFindIndependentCavities, 
-				       (size_t) 0, 0);
+                                       (const void *)
+                                       devFindIndependentCavities,
+                                       (size_t) 0, 0);
 
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
@@ -317,23 +317,23 @@ void Refine::FindIndependentCavities(Connectivity * const connectivity,
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
-#endif      
-    
+#endif
+
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-    for (int n = 0; n < (int) nRefine; n++) 
+    for (int n = 0; n < (int) nRefine; n++)
       FindIndependentCavity(n, pVcAdd, pElementAdd, nTriangle,
-			    pTiC, pTv, pTe, pEt, pVc, nVertex, Px, Py,
-			    predicates, pParam, pRandomPermutation,
-			    pUniqueFlag);
+                            pTiC, pTv, pTe, pEt, pVc, nVertex, Px, Py,
+                            predicates, pParam, pRandomPermutation,
+                            pUniqueFlag);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
-#endif      
+#endif
   }
 
 #ifdef TIME_ASTRIX

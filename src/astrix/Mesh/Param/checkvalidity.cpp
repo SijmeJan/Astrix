@@ -10,9 +10,9 @@
 #include "./meshparameter.h"
 
 namespace astrix {
-  
+
 //#########################################################################
-/*! Perform basic checks of the content read from the input file is valid. An error is thrown if any problems are detected.*/  
+/*! Perform basic checks of the content read from the input file is valid. An error is thrown if any problems are detected.*/
 //#########################################################################
 
 void MeshParameter::CheckValidity()

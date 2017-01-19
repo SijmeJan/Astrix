@@ -21,17 +21,17 @@ namespace astrix {
   For every vertex we want to know one triangle sharing it and put the result in \a *pVertexTriangle. Here, we consider triangle \a n and set it as the \a vertexTriangle for its vertices using atomic operations.
 
 \param n Index of triangle to consider
-\param *tv1 Pointer to first vertex of triangle 
-\param *tv2 Pointer to second vertex of triangle 
-\param *tv3 Pointer to third vertex of triangle 
+\param *tv1 Pointer to first vertex of triangle
+\param *tv2 Pointer to second vertex of triangle
+\param *tv3 Pointer to third vertex of triangle
 \param nVertex Total number of vertices in Mesh
 \param *pVertexTriangle Pointer to output array*/
 //#########################################################################
 
 __host__ __device__
 void FillVertexTriangleSingle(int n, int3 *pTv,
-			      int nVertex, int *pVertexTriangle)
-{     
+                              int nVertex, int *pVertexTriangle)
+{
   int a = pTv[n].x;
   int b = pTv[n].y;
   int c = pTv[n].z;
@@ -46,24 +46,24 @@ void FillVertexTriangleSingle(int n, int3 *pTv,
   AtomicExch(&(pVertexTriangle[b]), n);
   AtomicExch(&(pVertexTriangle[c]), n);
 }
-    
+
 //#########################################################################
 /*! \brief Kernel setting \a vertexTriangle for all vertices
 
-  For every vertex we want to know one triangle sharing it and put the result in \a *pVertexTriangle. Here, we loop through all triangles and set it as the \a vertexTriangle for its vertices using atomic operations. Then \a pVertexTriangle will contain the triangle that has last written to it. 
+  For every vertex we want to know one triangle sharing it and put the result in \a *pVertexTriangle. Here, we loop through all triangles and set it as the \a vertexTriangle for its vertices using atomic operations. Then \a pVertexTriangle will contain the triangle that has last written to it.
 
 \param nTriangle Total number of triangles in Mesh
-\param *tv1 Pointer to first vertex of triangle 
-\param *tv2 Pointer to second vertex of triangle 
-\param *tv3 Pointer to third vertex of triangle 
+\param *tv1 Pointer to first vertex of triangle
+\param *tv2 Pointer to second vertex of triangle
+\param *tv3 Pointer to third vertex of triangle
 \param nVertex Total number of vertices in Mesh
 \param *pVertexTriangle Pointer to output array*/
 //#########################################################################
 
 __global__
 void devFillVertexTriangle(int nTriangle, int3 *pTv,
-			   int nVertex, int *pVertexTriangle)
-{     
+                           int nVertex, int *pVertexTriangle)
+{
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nTriangle) {
@@ -85,11 +85,11 @@ void Coarsen::FillVertexTriangle(Connectivity *connectivity)
     connectivity->Transform();
     if (cudaFlag == 1) {
       vertexTriangle->TransformToHost();
-      
+
       cudaFlag = 0;
     } else {
       vertexTriangle->TransformToDevice();
-  
+
       cudaFlag = 1;
     }
   }
@@ -98,36 +98,36 @@ void Coarsen::FillVertexTriangle(Connectivity *connectivity)
   int nTriangle = connectivity->triangleVertices->GetSize();
 
   int3 *pTv = connectivity->triangleVertices->GetPointer();
-  
+
   int *pVertexTriangle = vertexTriangle->GetPointer();
 
   if (cudaFlag == 1) {
     int nBlocks = 128;
     int nThreads = 128;
-    
+
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-				       devFillVertexTriangle, 
-				       (size_t) 0, 0);
+                                       devFillVertexTriangle,
+                                       (size_t) 0, 0);
 
     devFillVertexTriangle<<<nBlocks, nThreads>>>
       (nTriangle, pTv, nVertex, pVertexTriangle);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
-    for (int n = 0; n < nTriangle; n++) 
+    for (int n = 0; n < nTriangle; n++)
       FillVertexTriangleSingle(n, pTv, nVertex, pVertexTriangle);
   }
-  
+
   if (transformFlag == 1) {
     connectivity->Transform();
     if (cudaFlag == 1) {
       vertexTriangle->TransformToHost();
-      
+
       cudaFlag = 0;
     } else {
       vertexTriangle->TransformToDevice();
-  
+
       cudaFlag = 1;
     }
   }

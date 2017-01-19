@@ -8,7 +8,7 @@
 #include "../Common/cudaLow.h"
 
 namespace astrix {
-  
+
 //#########################################################################
 // Default constructor: 1-dimensional, no cuda
 //#########################################################################
@@ -49,10 +49,10 @@ Array<T>::Array(unsigned int _nDims, int _cudaFlag)
   // Allocate initial memory
   hostVec = (T *)malloc(nDims*realSize*sizeof(T));
   memAllocatedHost += nDims*realSize*sizeof(T);
-  
+
   if (cudaFlag == 1) {
-    gpuErrchk(cudaMalloc(reinterpret_cast<void**>(&deviceVec), 
-			 nDims*realSize*sizeof(T)));
+    gpuErrchk(cudaMalloc(reinterpret_cast<void**>(&deviceVec),
+                         nDims*realSize*sizeof(T)));
     memAllocatedDevice += nDims*realSize*sizeof(T);
   }
 }
@@ -62,8 +62,8 @@ Array<T>::Array(unsigned int _nDims, int _cudaFlag)
 //#########################################################################
 
 template <class T>
-Array<T>::Array(unsigned int _nDims, 
-		int _cudaFlag, unsigned int _size)
+Array<T>::Array(unsigned int _nDims,
+                int _cudaFlag, unsigned int _size)
 {
   dynArrayStep = 128;
 
@@ -79,8 +79,8 @@ Array<T>::Array(unsigned int _nDims,
   memAllocatedHost += nDims*realSize*sizeof(T);
 
   if (cudaFlag == 1) {
-    gpuErrchk(cudaMalloc(reinterpret_cast<void**>(&deviceVec), 
-			 nDims*realSize*sizeof(T)));
+    gpuErrchk(cudaMalloc(reinterpret_cast<void**>(&deviceVec),
+                         nDims*realSize*sizeof(T)));
     memAllocatedDevice += nDims*realSize*sizeof(T);
   }
 }
@@ -91,7 +91,7 @@ Array<T>::Array(unsigned int _nDims,
 
 template <class T>
 Array<T>::Array(unsigned int _nDims, int _cudaFlag,
-		unsigned int _size, int _dynArrayStep)
+                unsigned int _size, int _dynArrayStep)
 {
   dynArrayStep = _dynArrayStep;
 
@@ -107,8 +107,8 @@ Array<T>::Array(unsigned int _nDims, int _cudaFlag,
   memAllocatedHost += nDims*realSize*sizeof(T);
 
   if (cudaFlag == 1) {
-    gpuErrchk(cudaMalloc(reinterpret_cast<void**>(&deviceVec), 
-			 nDims*realSize*sizeof(T)));
+    gpuErrchk(cudaMalloc(reinterpret_cast<void**>(&deviceVec),
+                         nDims*realSize*sizeof(T)));
     memAllocatedDevice += nDims*realSize*sizeof(T);
   }
 }
@@ -120,7 +120,7 @@ Array<T>::Array(unsigned int _nDims, int _cudaFlag,
 template <class T>
 Array<T>::~Array()
 {
-  // Free host memory 
+  // Free host memory
   free(hostVec);
   memAllocatedHost -= nDims*realSize*sizeof(T);
 
@@ -137,154 +137,154 @@ Array<T>::~Array()
 
 template Array<double>::Array();
 template Array<double>::Array(unsigned int _nDims,
-			      int _cudaFlag);
-template Array<double>::Array(unsigned int _nDims, 
-			      int _cudaFlag,
-			      unsigned int _size);
+                              int _cudaFlag);
+template Array<double>::Array(unsigned int _nDims,
+                              int _cudaFlag,
+                              unsigned int _size);
 template Array<double>::~Array();
 
 //#############################################################################
 
 template Array<double4>::Array();
 template Array<double4>::Array(unsigned int _nDims,
-			      int _cudaFlag);
-template Array<double4>::Array(unsigned int _nDims, 
-			      int _cudaFlag,
-			      unsigned int _size);
+                              int _cudaFlag);
+template Array<double4>::Array(unsigned int _nDims,
+                              int _cudaFlag,
+                              unsigned int _size);
 template Array<double4>::~Array();
 
 //#############################################################################
 
 template Array<double3>::Array();
 template Array<double3>::Array(unsigned int _nDims,
-			      int _cudaFlag);
-template Array<double3>::Array(unsigned int _nDims, 
-			      int _cudaFlag,
-			      unsigned int _size);
+                              int _cudaFlag);
+template Array<double3>::Array(unsigned int _nDims,
+                              int _cudaFlag,
+                              unsigned int _size);
 template Array<double3>::~Array();
 
 //#############################################################################
 
 template Array<double2>::Array();
 template Array<double2>::Array(unsigned int _nDims,
-			      int _cudaFlag);
-template Array<double2>::Array(unsigned int _nDims, 
-			      int _cudaFlag,
-			      unsigned int _size);
-template Array<double2>::Array(unsigned int _nDims, 
-			      int _cudaFlag,
-			      unsigned int _size,
-			      int _dynArrayStep);
+                              int _cudaFlag);
+template Array<double2>::Array(unsigned int _nDims,
+                              int _cudaFlag,
+                              unsigned int _size);
+template Array<double2>::Array(unsigned int _nDims,
+                              int _cudaFlag,
+                              unsigned int _size,
+                              int _dynArrayStep);
 template Array<double2>::~Array();
 
 //#############################################################################
 
 template Array<float>::Array();
 template Array<float>::Array(unsigned int _nDims,
-			     int _cudaFlag);
-template Array<float>::Array(unsigned int _nDims, 
-			     int _cudaFlag,
-			     unsigned int _size);
+                             int _cudaFlag);
+template Array<float>::Array(unsigned int _nDims,
+                             int _cudaFlag,
+                             unsigned int _size);
 template Array<float>::~Array();
 
 //#############################################################################
 
 template Array<float4>::Array();
 template Array<float4>::Array(unsigned int _nDims,
-			      int _cudaFlag);
-template Array<float4>::Array(unsigned int _nDims, 
-			      int _cudaFlag,
-			      unsigned int _size);
+                              int _cudaFlag);
+template Array<float4>::Array(unsigned int _nDims,
+                              int _cudaFlag,
+                              unsigned int _size);
 template Array<float4>::~Array();
 
 //#############################################################################
 
 template Array<float3>::Array();
 template Array<float3>::Array(unsigned int _nDims,
-			      int _cudaFlag);
-template Array<float3>::Array(unsigned int _nDims, 
-			      int _cudaFlag,
-			      unsigned int _size);
+                              int _cudaFlag);
+template Array<float3>::Array(unsigned int _nDims,
+                              int _cudaFlag,
+                              unsigned int _size);
 template Array<float3>::~Array();
 
 //#############################################################################
 
 template Array<float2>::Array();
 template Array<float2>::Array(unsigned int _nDims,
-			      int _cudaFlag);
-template Array<float2>::Array(unsigned int _nDims, 
-			      int _cudaFlag,
-			      unsigned int _size);
-template Array<float2>::Array(unsigned int _nDims, 
-			      int _cudaFlag,
-			      unsigned int _size,
-			      int _dynArrayStep);
+                              int _cudaFlag);
+template Array<float2>::Array(unsigned int _nDims,
+                              int _cudaFlag,
+                              unsigned int _size);
+template Array<float2>::Array(unsigned int _nDims,
+                              int _cudaFlag,
+                              unsigned int _size,
+                              int _dynArrayStep);
 template Array<float2>::~Array();
 
 //#############################################################################
 
 template Array<int>::Array();
 template Array<int>::Array(unsigned int _nDims,
-			   int _cudaFlag);
-template Array<int>::Array(unsigned int _nDims, 
-			   int _cudaFlag,
-			   unsigned int _size);
-template Array<int>::Array(unsigned int _nDims, 
-			   int _cudaFlag,
-			   unsigned int _size,
-			   int _dynArrayStep);
+                           int _cudaFlag);
+template Array<int>::Array(unsigned int _nDims,
+                           int _cudaFlag,
+                           unsigned int _size);
+template Array<int>::Array(unsigned int _nDims,
+                           int _cudaFlag,
+                           unsigned int _size,
+                           int _dynArrayStep);
 template Array<int>::~Array();
 
 //#############################################################################
 
 template Array<int4>::Array();
 template Array<int4>::Array(unsigned int _nDims,
-			    int _cudaFlag);
-template Array<int4>::Array(unsigned int _nDims, 
-			    int _cudaFlag,
-			    unsigned int _size);
-template Array<int4>::Array(unsigned int _nDims, 
-			    int _cudaFlag,
-			    unsigned int _size,
-			    int _dynArrayStep);
+                            int _cudaFlag);
+template Array<int4>::Array(unsigned int _nDims,
+                            int _cudaFlag,
+                            unsigned int _size);
+template Array<int4>::Array(unsigned int _nDims,
+                            int _cudaFlag,
+                            unsigned int _size,
+                            int _dynArrayStep);
 template Array<int4>::~Array();
 
 //#############################################################################
 
 template Array<int3>::Array();
 template Array<int3>::Array(unsigned int _nDims,
-			    int _cudaFlag);
-template Array<int3>::Array(unsigned int _nDims, 
-			    int _cudaFlag,
-			    unsigned int _size);
-template Array<int3>::Array(unsigned int _nDims, 
-			    int _cudaFlag,
-			    unsigned int _size,
-			    int _dynArrayStep);
+                            int _cudaFlag);
+template Array<int3>::Array(unsigned int _nDims,
+                            int _cudaFlag,
+                            unsigned int _size);
+template Array<int3>::Array(unsigned int _nDims,
+                            int _cudaFlag,
+                            unsigned int _size,
+                            int _dynArrayStep);
 template Array<int3>::~Array();
 
 //#############################################################################
 
 template Array<int2>::Array();
 template Array<int2>::Array(unsigned int _nDims,
-			    int _cudaFlag);
-template Array<int2>::Array(unsigned int _nDims, 
-			    int _cudaFlag,
-			    unsigned int _size);
-template Array<int2>::Array(unsigned int _nDims, 
-			    int _cudaFlag,
-			    unsigned int _size,
-			    int _dynArrayStep);
+                            int _cudaFlag);
+template Array<int2>::Array(unsigned int _nDims,
+                            int _cudaFlag,
+                            unsigned int _size);
+template Array<int2>::Array(unsigned int _nDims,
+                            int _cudaFlag,
+                            unsigned int _size,
+                            int _dynArrayStep);
 template Array<int2>::~Array();
 
 //#############################################################################
 
 template Array<unsigned int>::Array();
 template Array<unsigned int>::Array(unsigned int _nDims,
-				    int _cudaFlag);
-template Array<unsigned int>::Array(unsigned int _nDims, 
-				    int _cudaFlag,
-				    unsigned int _size);
+                                    int _cudaFlag);
+template Array<unsigned int>::Array(unsigned int _nDims,
+                                    int _cudaFlag,
+                                    unsigned int _size);
 template Array<unsigned int>::~Array();
 
 //#############################################################################
