@@ -1624,8 +1624,8 @@ void Simulation::CalcResidual()
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 2.0f;
-  cudaEventCreate(&start);
-  cudaEventCreate(&stop);
+  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&stop) );
 #endif
   int transformFlag = 0;
   if (transformFlag == 1) {
@@ -1686,7 +1686,7 @@ void Simulation::CalcResidual()
 				       (size_t) 0, 0);
 
 #ifdef TIME_ASTRIX
-    cudaEventRecord(start, 0);
+    gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     devCalcSpaceRes<<<nBlocks, nThreads>>>
       (nTriangle, pTv, pVz,
@@ -1697,15 +1697,15 @@ void Simulation::CalcResidual()
        specificHeatRatio - 1.0,
        specificHeatRatio - 2.0);
 #ifdef TIME_ASTRIX
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
 #endif
     
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
 #ifdef TIME_ASTRIX
-    cudaEventRecord(start, 0);
+    gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     for (int n = 0; n < nTriangle; n++)
       CalcSpaceResSingle(n, pTv, pVz, 
@@ -1716,13 +1716,13 @@ void Simulation::CalcResidual()
 			 specificHeatRatio - 1.0,
 			 specificHeatRatio - 2.0);
 #ifdef TIME_ASTRIX
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
 #endif
   }
   
 #ifdef TIME_ASTRIX
-  cudaEventElapsedTime(&elapsedTime, start, stop);
+  gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("CalcResidual.prof2", nTriangle, elapsedTime, cudaFlag);
 #endif
 

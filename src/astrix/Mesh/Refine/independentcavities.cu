@@ -11,7 +11,7 @@
 #include "../Predicates/predicates.h"
 #include "../Param/meshparameter.h"
 #include "./../triangleLow.h"
-#include "../../Common/timer.h"
+#include "../../Common/profile.h"
 
 namespace astrix {
 
@@ -267,6 +267,13 @@ void Refine::FindIndependentCavities(Connectivity * const connectivity,
 				     Array<int> * const triangleInCavity,
 				     Array<int> *uniqueFlag)
 {
+#ifdef TIME_ASTRIX
+  cudaEvent_t start, stop;
+  float elapsedTime = 0.0f;
+  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&stop) );
+#endif
+
   // Number of triangles and number of insertion points
   unsigned int nTriangle = connectivity->triangleVertices->GetSize();
   unsigned int nRefine = elementAdd->GetSize();
@@ -300,23 +307,40 @@ void Refine::FindIndependentCavities(Connectivity * const connectivity,
 				       devFindIndependentCavities, 
 				       (size_t) 0, 0);
 
-    Timer *timer = new Timer("IndependentCavities.prof", nRefine, cudaFlag);
+#ifdef TIME_ASTRIX
+    gpuErrchk( cudaEventRecord(start, 0) );
+#endif
     devFindIndependentCavities<<<nBlocks, nThreads>>>
       (nRefine, pVcAdd, pElementAdd, nTriangle, pTiC,
        pTv, pTe, pEt, pVc, nVertex, Px, Py, predicates,
        pParam, pRandomPermutation, pUniqueFlag);
-    delete timer;
+#ifdef TIME_ASTRIX
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
+#endif      
+    
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
-    Timer *timer = new Timer("IndependentCavities.prof", nRefine, cudaFlag);
+#ifdef TIME_ASTRIX
+    gpuErrchk( cudaEventRecord(start, 0) );
+#endif
     for (int n = 0; n < (int) nRefine; n++) 
       FindIndependentCavity(n, pVcAdd, pElementAdd, nTriangle,
 			    pTiC, pTv, pTe, pEt, pVc, nVertex, Px, Py,
 			    predicates, pParam, pRandomPermutation,
 			    pUniqueFlag);
-    delete timer;
+#ifdef TIME_ASTRIX
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
+#endif      
   }
+
+#ifdef TIME_ASTRIX
+  gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
+  WriteProfileFile("IndependentCavities.prof", nRefine, elapsedTime, cudaFlag);
+#endif
+
 }
 
 }

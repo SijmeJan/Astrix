@@ -695,8 +695,8 @@ void Refine::InsertVertices(Connectivity * const connectivity,
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
-  cudaEventCreate(&start);
-  cudaEventCreate(&stop);
+  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
   nvtxEvent *nvtxInsert = new nvtxEvent("Insert", 4);
@@ -768,7 +768,7 @@ void Refine::InsertVertices(Connectivity * const connectivity,
 				       (size_t) 0, 0);
 
 #ifdef TIME_ASTRIX
-    cudaEventRecord(start, 0);
+    gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     devInsertVertices<<<nBlocks, nThreads>>>
       (nRefine, pElementAdd,
@@ -780,15 +780,15 @@ void Refine::InsertVertices(Connectivity * const connectivity,
        meshParameter->periodicFlagX, meshParameter->periodicFlagY, 
        predicates, pParam, pWantRefine);
 #ifdef TIME_ASTRIX
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
 #endif      
     
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
 #ifdef TIME_ASTRIX
-    cudaEventRecord(start, 0);
+    gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     for (int n = 0; n < nRefine; n++) {      
       int t = pElementAdd[n];
@@ -809,13 +809,13 @@ void Refine::InsertVertices(Connectivity * const connectivity,
 		   predicates, pParam, pWantRefine);
     }
 #ifdef TIME_ASTRIX
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
 #endif      
   }
   
 #ifdef TIME_ASTRIX
-  cudaEventElapsedTime(&elapsedTime, start, stop);
+  gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("Insert.prof", nRefine, elapsedTime, cudaFlag);
 #endif
   

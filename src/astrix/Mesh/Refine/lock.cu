@@ -256,8 +256,8 @@ void Refine::LockTriangles(Connectivity * const connectivity,
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
-  cudaEventCreate(&start);
-  cudaEventCreate(&stop);
+  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
   // Number of triangles and number of insertion points
@@ -293,35 +293,35 @@ void Refine::LockTriangles(Connectivity * const connectivity,
 				       (size_t) 0, 0);
 
 #ifdef TIME_ASTRIX
-    cudaEventRecord(start, 0);
+    gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     devLockTriangles<<<nBlocks, nThreads>>>
       (nRefine, pVcAdd, pElementAdd, nTriangle, pTiC,
        pTv, pTe, pEt, pVc, nVertex, Px, Py, predicates,
        pParam, pRandomPermutation);
 #ifdef TIME_ASTRIX
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
 #endif      
     
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
 #ifdef TIME_ASTRIX
-    cudaEventRecord(start, 0);
+    gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     for (int n = 0; n < (int) nRefine; n++) 
       LockTriangle(pVcAdd[n], pElementAdd[n], nTriangle, pTiC,
 		   pTv, pTe, pEt, pVc, nVertex, Px, Py, predicates,
 		   pParam, pRandomPermutation[n]);
 #ifdef TIME_ASTRIX
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
 #endif      
   }
 
 #ifdef TIME_ASTRIX
-  cudaEventElapsedTime(&elapsedTime, start, stop);
+  gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("LockTriangle.prof", nRefine, elapsedTime, cudaFlag);
 #endif
   

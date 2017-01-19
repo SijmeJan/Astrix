@@ -333,8 +333,8 @@ void Simulation::AddResidue(real dt)
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
-  cudaEventCreate(&start);
-  cudaEventCreate(&stop);
+  gpuErrchk( cudaEventCreate(&start) );
+  gpuErrchk( cudaEventCreate(&stop) );
 #endif
   int nTriangle = mesh->GetNTriangle();
   int nVertex = mesh->GetNVertex();
@@ -366,7 +366,7 @@ void Simulation::AddResidue(real dt)
 				       (size_t) 0, 0);
     
 #ifdef TIME_ASTRIX
-    cudaEventRecord(start, 0);
+    gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     // Execute kernel... 
     devAddResidue<<<nBlocks,nThreads>>>
@@ -374,14 +374,14 @@ void Simulation::AddResidue(real dt)
        pTresN0, pTresN1, pTresN2, pTresLDA0, pTresLDA1, pTresLDA2, 
        dt, nVertex, intScheme);
 #ifdef TIME_ASTRIX
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
 #endif
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
 #ifdef TIME_ASTRIX
-    cudaEventRecord(start, 0);
+    gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     for(int n = 0; n < nTriangle; n++) 
       AddResidueSingle(n, pTv, triL, vertArea, pBlend, pShock, state,
@@ -389,13 +389,13 @@ void Simulation::AddResidue(real dt)
 		       pTresLDA0, pTresLDA1, pTresLDA2, 
 		       dt, nVertex, intScheme);
 #ifdef TIME_ASTRIX
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
 #endif
   }
   
 #ifdef TIME_ASTRIX
-  cudaEventElapsedTime(&elapsedTime, start, stop);
+  gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("AddResidual.prof2", nTriangle, elapsedTime, cudaFlag);
 #endif
 }

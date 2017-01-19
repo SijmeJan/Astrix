@@ -1510,8 +1510,8 @@ void Simulation::CalcTotalResNtot(real dt)
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
-  cudaEventCreate(&start);
-  cudaEventCreate(&stop);
+  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
   int transformFlag = 0;
@@ -1569,7 +1569,7 @@ void Simulation::CalcTotalResNtot(real dt)
 				       (size_t) 0, 0);
 
 #ifdef TIME_ASTRIX
-    cudaEventRecord(start, 0);
+    gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     devCalcTotalResNtot<<<nBlocks, nThreads>>>
       (nTriangle, dt, pTv, pVz, pDstate,
@@ -1579,15 +1579,15 @@ void Simulation::CalcTotalResNtot(real dt)
        specificHeatRatio - 1.0, specificHeatRatio - 2.0,
        1.0/specificHeatRatio);
 #ifdef TIME_ASTRIX
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
 #endif
     
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
 #ifdef TIME_ASTRIX
-    cudaEventRecord(start, 0);
+    gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     for (int n = 0; n < nTriangle; n++) 
       CalcTotalResNtotSingle(n, dt, pTv, pVz, pDstate,
@@ -1597,13 +1597,13 @@ void Simulation::CalcTotalResNtot(real dt)
 			     specificHeatRatio - 1.0, specificHeatRatio - 2.0,
 			     1.0/specificHeatRatio);
 #ifdef TIME_ASTRIX
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
 #endif
   }
   
 #ifdef TIME_ASTRIX
-  cudaEventElapsedTime(&elapsedTime, start, stop);
+  gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("CalcTotalResNtot.prof2", nTriangle, elapsedTime, cudaFlag);
 #endif
   

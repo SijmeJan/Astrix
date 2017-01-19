@@ -243,8 +243,8 @@ real Simulation::CalcVertexTimeStep()
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
-  cudaEventCreate(&start);
-  cudaEventCreate(&stop);
+  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
   unsigned int nVertex = mesh->GetNVertex();
@@ -272,33 +272,33 @@ real Simulation::CalcVertexTimeStep()
 
     // Execute kernel... 
 #ifdef TIME_ASTRIX
-    cudaEventRecord(start, 0);
+    gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     devCalcVmax<<<nBlocks,nThreads>>>
       (nTriangle, pTv, pState, pTl, pVts, nVertex,
        specificHeatRatio, specificHeatRatio - 1.0);
 #ifdef TIME_ASTRIX
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
 #endif      
     
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
 #ifdef TIME_ASTRIX
-    cudaEventRecord(start, 0);
+    gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     for (int n = 0; n < nTriangle; n++)
       CalcVmaxSingle(n, pTv, pState, pTl, pVts, nVertex,
 		     specificHeatRatio, specificHeatRatio - 1.0);
 #ifdef TIME_ASTRIX
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
 #endif      
   }
 
 #ifdef TIME_ASTRIX
-  cudaEventElapsedTime(&elapsedTime, start, stop);
+  gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("SignalSpeed.prof2", nTriangle, elapsedTime, cudaFlag);
 #endif
 
@@ -314,31 +314,31 @@ real Simulation::CalcVertexTimeStep()
 
     // Execute kernel... 
 #ifdef TIME_ASTRIX
-    cudaEventRecord(start, 0);
+    gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     devCalcVertexTimeStep<<<nBlocks,nThreads>>>
       (nVertex, pVts, pVarea);
 #ifdef TIME_ASTRIX
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
 #endif      
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
 #ifdef TIME_ASTRIX
-    cudaEventRecord(start, 0);
+    gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     for (unsigned int n = 0; n < nVertex; n++)
       CalcVertexTimeStepSingle(n, pVts, pVarea);
 #ifdef TIME_ASTRIX
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
 #endif      
   }
 
 #ifdef TIME_ASTRIX
-  cudaEventElapsedTime(&elapsedTime, start, stop);
+  gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("CalcTimeStep.prof2", nVertex, elapsedTime, cudaFlag);
 #endif
 

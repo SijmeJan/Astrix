@@ -6,6 +6,7 @@
 #include "./Common/definitions.h"
 #include "./Simulation/simulation.h"
 #include "./Device/device.h"
+#include "./Common/timer.h"
 
 //###########################################################################
 // main
@@ -24,6 +25,10 @@ int main(int argc, char *argv[])
   int restartNumber = 0;                 // Save number to restart from
   double maxWallClockHours = 1.0e10;     // Maximum wallclock hours to run
   int extraFlag = 0;
+
+  //astrix::Timer *timer = new astrix::Timer("main.prof", 100000, cudaFlag);
+  //delete timer;
+  //return 0;
   
   // Walk through all command line arguments
   for (int i = 1; i < argc; ++i) {

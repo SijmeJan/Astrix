@@ -173,8 +173,8 @@ void Delaunay::CheckEdgesFlop(Connectivity * const connectivity,
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime;
-  cudaEventCreate(&start);
-  cudaEventCreate(&stop);
+  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
   real2 *pVc = connectivity->vertexCoordinates->GetPointer();
@@ -200,22 +200,22 @@ void Delaunay::CheckEdgesFlop(Connectivity * const connectivity,
 					 (size_t) 0, 0);
       
 #ifdef TIME_ASTRIX
-      cudaEventRecord(start, 0);
+      gpuErrchk( cudaEventRecord(start, 0) );
 #endif
       
       devCheckEdgeFlop<<<nBlocks, nThreads>>>
 	(nEdge, pVc, pTv, pTe, pEt, pEnd, predicates, pParam, nVertex, Px, Py);
       
 #ifdef TIME_ASTRIX
-      cudaEventRecord(stop, 0);
-      cudaEventSynchronize(stop);
+      gpuErrchk( cudaEventRecord(stop, 0) );
+      gpuErrchk( cudaEventSynchronize(stop) );
 #endif
       
       gpuErrchk( cudaPeekAtLastError() );
       gpuErrchk( cudaDeviceSynchronize() );
     } else {
 #ifdef TIME_ASTRIX
-      cudaEventRecord(start, 0);
+      gpuErrchk( cudaEventRecord(start, 0) );
 #endif
       
       for (int i = 0; i < nEdge; i++) 
@@ -223,8 +223,8 @@ void Delaunay::CheckEdgesFlop(Connectivity * const connectivity,
 		      pParam, nVertex, Px, Py);
       
 #ifdef TIME_ASTRIX
-      cudaEventRecord(stop, 0);
-      cudaEventSynchronize(stop);
+      gpuErrchk( cudaEventRecord(stop, 0) );
+      gpuErrchk( cudaEventSynchronize(stop) );
 #endif
     }
   } else {
@@ -241,7 +241,7 @@ void Delaunay::CheckEdgesFlop(Connectivity * const connectivity,
 					 (size_t) 0, 0);
       
 #ifdef TIME_ASTRIX
-      cudaEventRecord(start, 0);
+      gpuErrchk( cudaEventRecord(start, 0) );
 #endif
       
       devCheckEdgeFlopLimit<<<nBlocks, nThreads>>>
@@ -249,15 +249,15 @@ void Delaunay::CheckEdgesFlop(Connectivity * const connectivity,
 	 predicates, pParam, nVertex, Px, Py);
       
 #ifdef TIME_ASTRIX
-      cudaEventRecord(stop, 0);
-      cudaEventSynchronize(stop);
+      gpuErrchk( cudaEventRecord(stop, 0) );
+      gpuErrchk( cudaEventSynchronize(stop) );
 #endif
       
       gpuErrchk( cudaPeekAtLastError() );
       gpuErrchk( cudaDeviceSynchronize() );
     } else {
 #ifdef TIME_ASTRIX
-      cudaEventRecord(start, 0);
+      gpuErrchk( cudaEventRecord(start, 0) );
 #endif
 
       for (int i = 0; i < nEdgeCheck; i++) 
@@ -265,15 +265,15 @@ void Delaunay::CheckEdgesFlop(Connectivity * const connectivity,
 		      pParam, nVertex, Px, Py);
       
 #ifdef TIME_ASTRIX
-      cudaEventRecord(stop, 0);
-      cudaEventSynchronize(stop);
+      gpuErrchk( cudaEventRecord(stop, 0) );
+      gpuErrchk( cudaEventSynchronize(stop) );
 #endif
     }
   }
   
   /*  
 #ifdef TIME_ASTRIX
-  cudaEventElapsedTime(&elapsedTime, start, stop);
+  gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   std::cout << "Kernel: devCheckEdgeDelaunay, # of elements: "
 	    << nEdge << ", elapsed time: " << elapsedTime << std::endl;
 #endif

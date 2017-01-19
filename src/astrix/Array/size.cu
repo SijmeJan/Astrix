@@ -93,9 +93,9 @@ void Array<T>::SetSizeDevice(unsigned int _size)
 {
   //cudaEvent_t start, stop;
   //float elapsedTime;
-  //cudaEventCreate(&start);
-  //cudaEventCreate(&stop);
-  //cudaEventRecord(start, 0);
+  //gpuErrchk( cudaEventCreate(&start) ) ;
+  //gpuErrchk( cudaEventCreate(&stop) );
+  //gpuErrchk( cudaEventRecord(start, 0) );
 
   unsigned int sizeNew = _size;
     
@@ -133,9 +133,9 @@ void Array<T>::SetSizeDevice(unsigned int _size)
   realSize = realSizeNew;
   size = sizeNew;
 
-  //cudaEventRecord(stop, 0);
-  //cudaEventSynchronize(stop);
-  //cudaEventElapsedTime(&elapsedTime, start, stop);
+  //gpuErrchk( cudaEventRecord(stop, 0) );
+  //gpuErrchk( cudaEventSynchronize(stop) );
+  //gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   //elapsedSize += elapsedTime;
 }
 

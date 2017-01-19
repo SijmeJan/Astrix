@@ -2,8 +2,8 @@
 /*! \file improve.cpp
 \brief Function to improve quality of Mesh by adding vertices*/
 #include <iostream>
-#include <cuda_runtime_api.h>
 #include <fstream>
+#include <cuda_runtime_api.h>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -39,12 +39,6 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
 			   Array<int> * const triangleWantRefine)
 {
   nvtxEvent *nvtxRefine = new nvtxEvent("Refine", 1);
-
-  cudaEvent_t start, stop;
-  float elapsedTime;
-  cudaEventCreate(&start);
-  cudaEventCreate(&stop);
-  cudaEventRecord(start, 0);
 
   int nVertexOld = connectivity->vertexCoordinates->GetSize();
   int nEdge = connectivity->edgeTriangles->GetSize();
@@ -200,10 +194,6 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
   // Final Morton ordering
   if (debugLevel >= 10 || nAddedSinceMorton > 0)
     morton->Order(connectivity, triangleWantRefine, vertexState);
-  
-  cudaEventRecord(stop, 0);
-  cudaEventSynchronize(stop);
-  cudaEventElapsedTime(&elapsedTime, start, stop);
   
   if (verboseLevel > 1)
     std::cout << std::endl

@@ -221,8 +221,8 @@ int Refine::TestTrianglesQuality(Connectivity * const connectivity,
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
-  cudaEventCreate(&start);
-  cudaEventCreate(&stop);
+  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
   nvtxEvent *nvtxQuality = new nvtxEvent("TestQuality", 0);
@@ -289,14 +289,14 @@ int Refine::TestTrianglesQuality(Connectivity * const connectivity,
 					 (size_t) 0, 0);
       
 #ifdef TIME_ASTRIX
-      cudaEventRecord(start, 0);
+      gpuErrchk( cudaEventRecord(start, 0) );
 #endif
       devTestQuality<<<nBlocks, nThreads>>>
 	(nTriangle, pTv, pVc, pBadTriangles,
 	 dMax, nVertex, Px, Py, qualityBound);
 #ifdef TIME_ASTRIX
-      cudaEventRecord(stop, 0);
-      cudaEventSynchronize(stop);
+      gpuErrchk( cudaEventRecord(stop, 0) );
+      gpuErrchk( cudaEventSynchronize(stop) );
 #endif      
       gpuErrchk( cudaPeekAtLastError() );
       gpuErrchk( cudaDeviceSynchronize() );
@@ -304,20 +304,20 @@ int Refine::TestTrianglesQuality(Connectivity * const connectivity,
       delete nvtxTemp;
     } else {
 #ifdef TIME_ASTRIX
-      cudaEventRecord(start, 0);
+      gpuErrchk( cudaEventRecord(start, 0) );
 #endif
       for (int i = 0; i < nTriangle; i++) 
 	TestQualitySingle(i, pTv, pVc, pBadTriangles, dMax,
 			  nVertex, Px, Py, qualityBound);
 #ifdef TIME_ASTRIX
-      cudaEventRecord(stop, 0);
-      cudaEventSynchronize(stop);
+      gpuErrchk( cudaEventRecord(stop, 0) );
+      gpuErrchk( cudaEventSynchronize(stop) );
 #endif
     }
   }
   
 #ifdef TIME_ASTRIX
-  cudaEventElapsedTime(&elapsedTime, start, stop);
+  gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("TestQuality.prof", nTriangle, elapsedTime, cudaFlag);
 #endif
 

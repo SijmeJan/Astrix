@@ -110,8 +110,8 @@ void Refine::FindCircum(Connectivity * const connectivity,
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
-  cudaEventCreate(&start);
-  cudaEventCreate(&stop);
+  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
   nvtxEvent *nvtxCircum = new nvtxEvent("Circum", 0);
@@ -139,31 +139,31 @@ void Refine::FindCircum(Connectivity * const connectivity,
 				       (size_t) 0, 0);
 
 #ifdef TIME_ASTRIX
-    cudaEventRecord(start, 0);
+    gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     devCircum<<<nBlocks, nThreads>>>
       (nRefine, pTv, pVc, pVcAdd, pBt, nVertex, Px, Py);
 #ifdef TIME_ASTRIX
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
 #endif      
     
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
 #ifdef TIME_ASTRIX
-    cudaEventRecord(start, 0);
+    gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     for (int i = 0; i < nRefine; i++) 
       CircumSingle(i, pTv, pVc, pVcAdd, pBt, nVertex, Px, Py);
 #ifdef TIME_ASTRIX
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
 #endif      
   }
 
 #ifdef TIME_ASTRIX
-  cudaEventElapsedTime(&elapsedTime, start, stop);
+  gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("Circum.prof", nRefine, elapsedTime, cudaFlag);
 #endif
 

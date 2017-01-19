@@ -157,8 +157,8 @@ void Delaunay::EdgeRepair(Connectivity * const connectivity,
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
-  cudaEventCreate(&start);
-  cudaEventCreate(&stop);
+  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
   int3 *pTe = connectivity->triangleEdges->GetPointer();
@@ -229,30 +229,30 @@ void Delaunay::EdgeRepair(Connectivity * const connectivity,
 					 (size_t) 0, 0);
 
 #ifdef TIME_ASTRIX
-      cudaEventRecord(start, 0);
+      gpuErrchk( cudaEventRecord(start, 0) );
 #endif
       devEdgeRepair<<<nBlocks, nThreads>>>
 	(nEdge, pTsub, pTe, pEt);
 #ifdef TIME_ASTRIX
-      cudaEventRecord(stop, 0);
-      cudaEventSynchronize(stop);
+      gpuErrchk( cudaEventRecord(stop, 0) );
+      gpuErrchk( cudaEventSynchronize(stop) );
 #endif
       gpuErrchk(cudaPeekAtLastError());
       gpuErrchk(cudaDeviceSynchronize());
     } else {
 #ifdef TIME_ASTRIX
-      cudaEventRecord(start, 0);
+      gpuErrchk( cudaEventRecord(start, 0) );
 #endif
       for (int i = 0; i < nEdge; i++) 
 	SingleEdgeRepair(i, pTsub, pTe, pEt, 1);
 #ifdef TIME_ASTRIX
-      cudaEventRecord(stop, 0);
-      cudaEventSynchronize(stop);
+      gpuErrchk( cudaEventRecord(stop, 0) );
+      gpuErrchk( cudaEventSynchronize(stop) );
 #endif
     }
 
 #ifdef TIME_ASTRIX
-  cudaEventElapsedTime(&elapsedTime, start, stop);
+  gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("EdgeRepair.prof", nEdge, elapsedTime, cudaFlag);
 #endif
 
@@ -270,30 +270,30 @@ void Delaunay::EdgeRepair(Connectivity * const connectivity,
 					 (size_t) 0, 0);
 
 #ifdef TIME_ASTRIX
-      cudaEventRecord(start, 0);
+      gpuErrchk( cudaEventRecord(start, 0) );
 #endif
       devEdgeRepairLimit<<<nBlocks, nThreads>>>
 	(nEdgeCheck, pEnC, pTsub, pTe, pEt);
 #ifdef TIME_ASTRIX
-      cudaEventRecord(stop, 0);
-      cudaEventSynchronize(stop);
+      gpuErrchk( cudaEventRecord(stop, 0) );
+      gpuErrchk( cudaEventSynchronize(stop) );
 #endif
       gpuErrchk(cudaPeekAtLastError());
       gpuErrchk(cudaDeviceSynchronize());
     } else {
 #ifdef TIME_ASTRIX
-      cudaEventRecord(start, 0);
+      gpuErrchk( cudaEventRecord(start, 0) );
 #endif
       for (int i = 0; i < nEdgeCheck; i++) 
 	SingleEdgeRepair(pEnC[i], pTsub, pTe, pEt, 0);
 #ifdef TIME_ASTRIX
-      cudaEventRecord(stop, 0);
-      cudaEventSynchronize(stop);
+      gpuErrchk( cudaEventRecord(stop, 0) );
+      gpuErrchk( cudaEventSynchronize(stop) );
 #endif
     }
     
 #ifdef TIME_ASTRIX
-    cudaEventElapsedTime(&elapsedTime, start, stop);
+    gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
     WriteProfileFile("EdgeRepair.prof", nEdgeCheck, elapsedTime, cudaFlag);
 #endif
   }

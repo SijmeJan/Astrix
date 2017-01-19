@@ -234,8 +234,8 @@ void Refine::FlagEdgesForChecking(Connectivity * const connectivity,
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
-  cudaEventCreate(&start);
-  cudaEventCreate(&stop);
+  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
   // Number of triangles and number of insertion points
@@ -268,35 +268,35 @@ void Refine::FlagEdgesForChecking(Connectivity * const connectivity,
 				       (size_t) 0, 0);
 
 #ifdef TIME_ASTRIX
-    cudaEventRecord(start, 0);
+    gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     devFlagEdgesForChecking<<<nBlocks, nThreads>>>
       (nRefine, pVcAdd, pElementAdd, nTriangle,
        pTv, pTe, pEt, pVc, nVertex, Px, Py, predicates,
        pParam, pEnC);
 #ifdef TIME_ASTRIX
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
 #endif      
     
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
 #ifdef TIME_ASTRIX
-    cudaEventRecord(start, 0);
+    gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     for (int n = 0; n < (int) nRefine; n++) 
       FlagEdgeForChecking(n, pVcAdd, pElementAdd, nTriangle,
 			  pTv, pTe, pEt, pVc, nVertex, Px, Py,
 			  predicates, pParam, pEnC);
 #ifdef TIME_ASTRIX
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
 #endif      
    }
 
 #ifdef TIME_ASTRIX
-  cudaEventElapsedTime(&elapsedTime, start, stop);
+  gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("FlagEdge.prof", nRefine, elapsedTime, cudaFlag);
 #endif
 

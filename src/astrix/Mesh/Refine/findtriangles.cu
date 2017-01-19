@@ -255,8 +255,8 @@ void Refine::FindTriangles(Connectivity * const connectivity,
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
   float elapsedTime = 0.0f;
-  cudaEventCreate(&start);
-  cudaEventCreate(&stop);
+  gpuErrchk( cudaEventCreate(&start) ) ;
+  gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
   nvtxEvent *nvtxFind = new nvtxEvent("FindTriangles", 1);
@@ -290,7 +290,7 @@ void Refine::FindTriangles(Connectivity * const connectivity,
     				       (size_t) 0, 0);
 
 #ifdef TIME_ASTRIX
-    cudaEventRecord(start, 0);
+    gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     devFindTriangles<<<nBlocks, nThreads>>>
       (nRefine, nTriangle, pBadTriangles,
@@ -299,15 +299,15 @@ void Refine::FindTriangles(Connectivity * const connectivity,
        predicates, pParam,
        nVertex, Px, Py);
 #ifdef TIME_ASTRIX
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
 #endif      
     
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());      
   } else {
 #ifdef TIME_ASTRIX
-    cudaEventRecord(start, 0);
+    gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     for (int i = 0; i < nRefine; i++) {
       // Coordinates of point to be inserted
@@ -341,14 +341,14 @@ void Refine::FindTriangles(Connectivity * const connectivity,
       }
     }
 #ifdef TIME_ASTRIX
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
+    gpuErrchk( cudaEventRecord(stop, 0) );
+    gpuErrchk( cudaEventSynchronize(stop) );
 #endif      
 
   }
 
 #ifdef TIME_ASTRIX
-  cudaEventElapsedTime(&elapsedTime, start, stop);
+  gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("FindTriangle.prof", nRefine, elapsedTime, cudaFlag);
 #endif
 
