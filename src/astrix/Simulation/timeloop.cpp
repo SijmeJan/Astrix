@@ -256,13 +256,6 @@ void Simulation::DoTimeStep()
   if (problemDef == PROBLEM_NOH)
     SetNohBoundaries();
 
-  /*
-  if (problemDef == PROBLEM_RIEMANN && mesh->structuredFlag == 1) {
-    std::cout << "Asymmetry: ";
-    CheckSymmetry();
-  }
-  */
-
   // Set Wold = W
   vertexStateOld->SetEqual(vertexState);
 

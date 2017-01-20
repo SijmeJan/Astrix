@@ -44,11 +44,11 @@ class Simulation
 
   //! Flag whether to use CUDA
   int cudaFlag;
-
   //! How much to output to screen
   int verboseLevel;
   //! Level of debugging
   int debugLevel;
+  //! Extra user flag
   int extraFlag;
 
   //! Mesh on which to do simulation
@@ -140,10 +140,11 @@ class Simulation
 
   //! Calculate gravitational potential
   void CalcPotential();
+  //! Calculate source term contribution to residual
   void CalcSource(Array<realNeq> *state);
-
   //! For every vertex, calculate the maximum allowed timestep.
   real CalcVertexTimeStep();
+
   //! Set reflecting boundary conditions
   void ReflectingBoundaries(real dt);
   //! Set boundary conditions using extrapolation
@@ -178,6 +179,10 @@ class Simulation
   void FlagUnphysical(Array<int> *vertexUnphysicalFlag);
   //! Replace LDA with N wherever unphysical state
   void ReplaceLDA(Array<int> *vertexUnphysicalFlag, int RKStep);
+  //! Calculate shock sensor for BX scheme
+  void CalcShockSensor();
+  //! Find minimum and maximum velocity in domain
+  void FindMinMaxVelocity(real& minVel, real& maxVel);
 
   //! Refine mesh
   void Refine();
@@ -189,15 +194,8 @@ class Simulation
   //! In state vector, replace pressure with total energy
   void ReplacePressureWithEnergy();
 
+  //! Calculate total mass in domain
   real TotalMass();
-
-  void CalcShockSensor();
-  void CheckSymmetry();
-
-  void FindMinMaxVelocity(real& minVel, real& maxVel);
-
-  void CalcTotalSpaceResidual();
-  void UpdateFirst(real dt);
 };
 
 }  // namespace astrix

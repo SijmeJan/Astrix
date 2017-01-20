@@ -1,5 +1,3 @@
-merge blend/addresidual?
-testencroach using cavities?
 new parallel flip selection test?
 adjust makefile register use / double prec ?
 check documentation
