@@ -40,7 +40,6 @@ void Simulation::UpdateState(real dt, int RKStep)
       vertexStateOld->TransformToDevice();
       triangleResidueN->TransformToDevice();
       triangleResidueLDA->TransformToDevice();
-      triangleBlendFactor->TransformToDevice();
       triangleShockSensor->TransformToDevice();
 
       cudaFlag = 1;
@@ -49,7 +48,6 @@ void Simulation::UpdateState(real dt, int RKStep)
       vertexStateOld->TransformToHost();
       triangleResidueN->TransformToHost();
       triangleResidueLDA->TransformToHost();
-      triangleBlendFactor->TransformToHost();
       triangleShockSensor->TransformToHost();
 
       cudaFlag = 0;
@@ -61,9 +59,7 @@ void Simulation::UpdateState(real dt, int RKStep)
   // Flag whether state at vertex is unphysical
   Array<int> *vertexUnphysicalFlag = new Array<int>(1, cudaFlag, nVertex);
 
-  // Calculate blend parameter if necessary
-  if (intScheme == SCHEME_B) CalcBlend();
-
+  // Calculateshock sensor if necessary
   if (intScheme == SCHEME_BX) CalcShockSensor();
 
   int nCycle = 0;
@@ -142,7 +138,6 @@ void Simulation::UpdateState(real dt, int RKStep)
       vertexStateOld->TransformToDevice();
       triangleResidueN->TransformToDevice();
       triangleResidueLDA->TransformToDevice();
-      triangleBlendFactor->TransformToDevice();
       triangleShockSensor->TransformToDevice();
 
       cudaFlag = 1;
@@ -151,7 +146,6 @@ void Simulation::UpdateState(real dt, int RKStep)
       vertexStateOld->TransformToHost();
       triangleResidueN->TransformToHost();
       triangleResidueLDA->TransformToHost();
-      triangleBlendFactor->TransformToHost();
       triangleShockSensor->TransformToHost();
 
       cudaFlag = 0;

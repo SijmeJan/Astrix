@@ -87,7 +87,6 @@ Simulation::Simulation(int _verboseLevel,
   triangleResidueN  = new Array<realNeq>(nSpaceDim + 1, cudaFlag);
   triangleResidueLDA = new Array<realNeq>(nSpaceDim + 1, cudaFlag);
   triangleResidueTotal = new Array<realNeq>(1, cudaFlag);
-  triangleBlendFactor = new Array<realNeq>(1, cudaFlag);
   triangleShockSensor = new Array<real>(1, cudaFlag);
   triangleResidueSource  = new Array<realNeq>(1, cudaFlag);
 
@@ -108,7 +107,6 @@ Simulation::Simulation(int _verboseLevel,
     delete triangleResidueN;
     delete triangleResidueLDA;
     delete triangleResidueTotal;
-    delete triangleBlendFactor;
     delete triangleShockSensor;
     delete triangleResidueSource;
 
@@ -133,7 +131,6 @@ Simulation::~Simulation()
   delete triangleResidueN;
   delete triangleResidueLDA;
   delete triangleResidueTotal;
-  delete triangleBlendFactor;
   delete triangleShockSensor;
   delete triangleResidueSource;
 
@@ -161,8 +158,6 @@ void Simulation::Init(int restartNumber)
   triangleResidueN->SetSize(nTriangle);
   triangleResidueLDA->SetSize(nTriangle);
   triangleResidueTotal->SetSize(nTriangle);
-  if (intScheme == SCHEME_B)
-    triangleBlendFactor->SetSize(nTriangle);
   if (intScheme == SCHEME_BX)
     triangleShockSensor->SetSize(nTriangle);
   triangleResidueSource->SetSize(nTriangle);

@@ -113,8 +113,6 @@ class Simulation
   Array <realNeq> *triangleResidueLDA;
   //! Total residual
   Array <realNeq> *triangleResidueTotal;
-  //! Blend factor
-  Array <realNeq> *triangleBlendFactor;
   //! Shock sensor
   Array<real> *triangleShockSensor;
   //! Source contribution to residual
@@ -176,8 +174,6 @@ class Simulation
   void UpdateState(real dt, int RKStep);
   //! Add residue to state at vertices
   void AddResidue(real dt);
-  //! Calculate blend factor LDA/N
-  void CalcBlend();
   //! Find unphysical state and put in vertexUnphysicalFlag
   void FlagUnphysical(Array<int> *vertexUnphysicalFlag);
   //! Replace LDA with N wherever unphysical state

@@ -35,7 +35,7 @@ namespace astrix {
 \param *pTres Pointer to triangle total residue
 \param *pBlend Pointer to blend parameter (output)*/
 //######################################################################
-
+/*
 __host__ __device__
 void CalcBlendSingle(int n, const real3* __restrict__ pTl,
                      real4 *pTresN0, real4 *pTresN1, real4 *pTresN2,
@@ -101,18 +101,6 @@ void CalcBlendSingle(int n, const real3* __restrict__ pTl,
   pBlend[n].y = blend1;
   pBlend[n].z = blend2;
   pBlend[n].w = blend3;
-
-  /*
-  // Calculate blend parameter
-  pBlend[n].x = fabs(tTot0)/
-    (fabs(tN00)*tl1 + fabs(tN10)*tl2 + fabs(tN20)*tl3 + small);
-  pBlend[n].y = fabs(tTot1)/
-    (fabs(tN01)*tl1 + fabs(tN11)*tl2 + fabs(tN21)*tl3 + small);
-  pBlend[n].z = fabs(tTot2)/
-    (fabs(tN02)*tl1 + fabs(tN12)*tl2 + fabs(tN22)*tl3 + small);
-  pBlend[n].w = fabs(tTot3)/
-    (fabs(tN03)*tl1 + fabs(tN13)*tl2 + fabs(tN23)*tl3 + small);
-  */
 }
 
 __host__ __device__
@@ -139,7 +127,7 @@ void CalcBlendSingle(int n, const real3* __restrict__ pTl,
   pBlend[n] = fabs(tTot)/
     (fabs(tN0)*tl1 + fabs(tN1)*tl2 + fabs(tN2)*tl3 + small);
 }
-
+*/
 //######################################################################
 /*! \brief Kernel calculating blend parameter for all triangles
 
@@ -152,7 +140,7 @@ void CalcBlendSingle(int n, const real3* __restrict__ pTl,
 \param *pBlend Pointer to blend parameter (output)*/
 
 //######################################################################
-
+/*
 __global__ void
 devCalcBlendFactor(int nTriangle, const real3* __restrict__ pTl,
                    realNeq *pTresN0, realNeq *pTresN1, realNeq *pTresN2,
@@ -168,13 +156,13 @@ devCalcBlendFactor(int nTriangle, const real3* __restrict__ pTl,
     n += blockDim.x*gridDim.x;
   }
 }
-
+*/
 //######################################################################
 /*! Calculate blend parameter for all triangles. When using the B scheme,
 we need to blend the N and LDA residuals. This function calculates the
 blend parameter \a triangleBlendFactor*/
 //######################################################################
-
+/*
 void Simulation::CalcBlend()
 {
 #ifdef TIME_ASTRIX
@@ -240,5 +228,5 @@ void Simulation::CalcBlend()
   WriteProfileFile("Blend.prof2", nTriangle, elapsedTime, cudaFlag);
 #endif
 }
-
+*/
 }  // namespace astrix

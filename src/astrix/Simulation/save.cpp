@@ -244,8 +244,6 @@ int Simulation::Restore(int nSave)
   triangleResidueN->SetSize(nTriangle);
   triangleResidueLDA->SetSize(nTriangle);
   triangleResidueTotal->SetSize(nTriangle);
-  if (intScheme == SCHEME_B || intScheme == SCHEME_BX)
-    triangleBlendFactor->SetSize(nTriangle);
 
   CalcPotential();
 

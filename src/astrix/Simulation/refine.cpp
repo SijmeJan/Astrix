@@ -88,8 +88,6 @@ void Simulation::Refine()
     triangleResidueN->SetSize(nTriangle);
     triangleResidueLDA->SetSize(nTriangle);
     triangleResidueTotal->SetSize(nTriangle);
-    if (intScheme == SCHEME_B)
-      triangleBlendFactor->SetSize(nTriangle);
     if (intScheme == SCHEME_BX)
       triangleShockSensor->SetSize(nTriangle);
 
@@ -134,8 +132,6 @@ void Simulation::Coarsen(int maxCycle)
   triangleResidueN->SetSize(nTriangle);
   triangleResidueLDA->SetSize(nTriangle);
   triangleResidueTotal->SetSize(nTriangle);
-  if (intScheme == SCHEME_B)
-    triangleBlendFactor->SetSize(nTriangle);
   if (intScheme == SCHEME_BX)
     triangleShockSensor->SetSize(nTriangle);
 }
