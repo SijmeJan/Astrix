@@ -32,16 +32,12 @@ namespace astrix {
   Every triangle contributes one third of its area to the area of the Voronoi cell associated with its vertices. Atomically add this contribution to \a vertexArea
 
 \param n Index of triangle to consider
-\param *tv1 Pointer to first vertex of triangle
-\param *tv2 Pointer to second vertex of triangle
-\param *tv3 Pointer to third vertex of triangle
+\param *pTv Pointer triangle vertices
 \param *pVertexArea Pointer to output array containing vertex areas
 \param nVertex Total number of vertices in Mesh
-\param *pVertX Pointer to x-coordinates of vertices
-\param *pVertY Pointer to y-coordinates of vertices
+\param *pVc Pointer to vertex coordinates
 \param Px Periodic domain size x
 \param Py Periodic domain size y
-\param *triL Pointer to array containing triangle edge lengths
 \param nTriangle Total number of triangles*/
 //##############################################################################
 
@@ -83,15 +79,11 @@ void VertexAreaSingle(int n, int3 *pTv,
 
 \param nVertex Total number of vertices in Mesh
 \param nTriangle Total number of triangles
-\param *tv1 Pointer to first vertex of triangle
-\param *tv2 Pointer to second vertex of triangle
-\param *tv3 Pointer to third vertex of triangle
+\param *pTv Pointer triangle vertices
 \param *pVertexArea Pointer to output array containing vertex areas
-\param *pVertX Pointer to x-coordinates of vertices
-\param *pVertY Pointer to y-coordinates of vertices
+\param *pVc Pointer to vertex coordinates
 \param Px Periodic domain size x
-\param Py Periodic domain size y
-\param *triL Pointer to array containing triangle edge lengths*/
+\param Py Periodic domain size y*/
 //######################################################################
 
 __global__ void
@@ -111,7 +103,8 @@ devCalcVertexArea(int nVertex, int nTriangle,
 }
 
 //#########################################################################
-/*! Every triangle contributes one third of its area to the area of the Voronoi cell associated with its vertices. Atomically add this contribution to \a vertexArea*/
+/*! Every triangle contributes one third of its area to the area of the Voronoi
+cell associated with its vertices. Atomically add this contribution to \a vertexArea*/
 //#########################################################################
 
 void Mesh::CalcVertexArea()
@@ -151,4 +144,4 @@ void Mesh::CalcVertexArea()
   }
 }
 
-}
+}  // namespace astrix

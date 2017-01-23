@@ -190,4 +190,4 @@ template void Array<double2>::GetSingleValue(double2 *value,
                                             int position,
                                             unsigned int N);
 
-}
+}  // namespace astrix

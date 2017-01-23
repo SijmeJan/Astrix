@@ -141,4 +141,4 @@ void Refine::SplitSegment(Connectivity * const connectivity,
   delete nvtxSplitSegment;
 }
 
-}
+}  // namespace astrix

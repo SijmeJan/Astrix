@@ -80,4 +80,4 @@ void Array<T>::Invert()
 template void Array<int>::Invert();
 template void Array<unsigned int>::Invert();
 
-}
+}  // namespace astrix

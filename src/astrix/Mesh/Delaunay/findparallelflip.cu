@@ -124,7 +124,7 @@ void FillAffectedTriangles(Array<int> * const triangleAffected,
   int *pTaff = triangleAffected->GetPointer();
   int *pTaffEdge = triangleAffectedEdge->GetPointer();
 
- if (cudaFlag == 1) {
+  if (cudaFlag == 1) {
     int nBlocks = 128;
     int nThreads = 128;
 
@@ -255,4 +255,4 @@ int Delaunay::FindParallelFlipSet(Connectivity * const connectivity,
   return nFlipParallel;
 }
 
-}
+}  // namespace astrix

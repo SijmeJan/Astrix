@@ -109,4 +109,4 @@ void Mesh::FillWantRefine(Array<realNeq> *vertexState, real specificHeatRatio)
   }
 }
 
-}
+}  // namespace astrix

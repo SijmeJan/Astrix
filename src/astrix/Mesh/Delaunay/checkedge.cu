@@ -102,7 +102,6 @@ int CheckEdge(int i,
     if (detNew > (real) 0.0) ret = i;
   }
 
-  //pEnd[i] = ret;
   return ret;
 }
 
@@ -333,7 +332,6 @@ void Delaunay::CheckEdges(Connectivity * const connectivity,
   gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("CheckEdge.prof", nEdgeCheck, elapsedTime, cudaFlag);
 #endif
-
 }
 
-}
+}  // namespace astrix

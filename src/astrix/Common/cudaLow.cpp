@@ -12,11 +12,10 @@ Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 
 You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
+#include <cuda_runtime_api.h>
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
-
-#include <cuda_runtime_api.h>
 
 #include "./cudaLow.h"
 
@@ -28,13 +27,13 @@ namespace astrix {
 
 void gpuAssert(cudaError_t code, char *file, int line)
 {
-   if (code != cudaSuccess) {
-     // Print error
-     fprintf(stderr,"GPUassert: %s %s %d\n",
-             cudaGetErrorString(code), file, line);
-     // Exit
-     exit(code);
-   }
+  if (code != cudaSuccess) {
+    // Print error
+    fprintf(stderr, "GPUassert: %s %s %d\n",
+            cudaGetErrorString(code), file, line);
+    // Exit
+    exit(code);
+  }
 }
 
-}
+}  // namespace astrix

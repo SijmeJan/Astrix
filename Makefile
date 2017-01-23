@@ -1,7 +1,7 @@
 .PHONY: doc clean
 
 ################################################################################
-# Build everything 
+# Build everything
 ################################################################################
 all: astrix visAstrix doc
 
@@ -18,16 +18,17 @@ visAstrix:
 	cd src/visAstrix; $(MAKE)
 
 ################################################################################
-# Doxygen documentation 
+# Doxygen documentation
 ################################################################################
 doc:
-	cd src/astrix; doxygen Doxyfile
-	cd doc/latex; $(MAKE)
+	cd src/astrix; doxygen ../../doc/doxygen/Doxyfile
+	cd doc/doxygen/latex; $(MAKE)
 
 ################################################################################
-# Clean up everything 
+# Clean up everything
 ################################################################################
 clean:
 	cd src/astrix; $(MAKE) clean
 	cd src/visAstrix; $(MAKE) clean
-	rm -f -r doc/*
+	rm -f -r doc/doxygen/latex
+	rm -f -r doc/doxygen/html

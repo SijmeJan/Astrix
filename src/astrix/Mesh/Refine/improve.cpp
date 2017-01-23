@@ -13,9 +13,9 @@ Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 
 You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
+#include <cuda_runtime_api.h>
 #include <iostream>
 #include <fstream>
-#include <cuda_runtime_api.h>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -152,13 +152,25 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
         if (verboseLevel > 1) {
           if (cudaFlag == 0) {
             std::cout << ((real)(Array<real>::memAllocatedHost) +
+                          (real)(Array<real2>::memAllocatedHost) +
+                          (real)(Array<real3>::memAllocatedHost) +
+                          (real)(Array<real4>::memAllocatedHost) +
                           (real)(Array<int>::memAllocatedHost) +
+                          (real)(Array<int2>::memAllocatedHost) +
+                          (real)(Array<int3>::memAllocatedHost) +
+                          (real)(Array<int4>::memAllocatedHost) +
                           (real)(Array<unsigned int>::memAllocatedHost))/
               (real) (1073741824) << " Gb"
                       << std::endl;
           } else {
             std::cout << ((real)(Array<real>::memAllocatedDevice) +
+                          (real)(Array<real2>::memAllocatedDevice) +
+                          (real)(Array<real3>::memAllocatedDevice) +
+                          (real)(Array<real4>::memAllocatedDevice) +
                           (real)(Array<int>::memAllocatedDevice) +
+                          (real)(Array<int2>::memAllocatedDevice) +
+                          (real)(Array<int3>::memAllocatedDevice) +
+                          (real)(Array<int4>::memAllocatedDevice) +
                           (real)(Array<unsigned int>::memAllocatedDevice))/
               (real) (1073741824) << " Gb"
                       << std::endl;
@@ -195,12 +207,10 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
           morton->Order(connectivity, triangleWantRefine, vertexState);
           nAddedSinceMorton = 0;
         }
-
       }
     }
 
     ncycle++;
-    //if (ncycle > 1) finished = 1;
   }
 
   // Final Morton ordering
@@ -217,4 +227,4 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
   return connectivity->vertexCoordinates->GetSize() - nVertexOld;
 }
 
-}
+}  // namespace astrix

@@ -14,16 +14,16 @@ Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 
+#include <cuda_runtime_api.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
 #include <cmath>
-#include <cuda_runtime_api.h>
 
 #include "../Common/definitions.h"
 #include "../Array/array.h"
-#include "Predicates/predicates.h"
+#include "./Predicates/predicates.h"
 #include "./Morton/morton.h"
 #include "./Delaunay/delaunay.h"
 #include "./Refine/refine.h"
@@ -70,14 +70,6 @@ Mesh::Mesh(int meshVerboseLevel, int meshDebugLevel, int meshCudaFlag,
   triangleEdgeLength = new Array<real3>(1, cudaFlag);
   triangleErrorEstimate = new Array<real>(1, cudaFlag);
 
-  randomVector = new Array<unsigned int>(1, cudaFlag);
-  if (cudaFlag == 1)
-    randomVector->TransformToHost();
-  randomVector->SetSize(10000000);
-  randomVector->SetToRandom();
-  if (cudaFlag == 1)
-    randomVector->TransformToDevice();
-
   try {
     Init(fileName, restartNumber, extraFlag);
   }
@@ -92,8 +84,6 @@ Mesh::Mesh(int meshVerboseLevel, int meshDebugLevel, int meshCudaFlag,
     delete triangleEdgeNormals;
     delete triangleEdgeLength;
     delete triangleErrorEstimate;
-
-    delete randomVector;
 
     delete predicates;
     delete morton;
@@ -120,8 +110,6 @@ Mesh::~Mesh()
   delete triangleEdgeNormals;
   delete triangleEdgeLength;
   delete triangleErrorEstimate;
-
-  delete randomVector;
 
   delete predicates;
   delete morton;
@@ -232,15 +220,26 @@ void Mesh::Init(const char *fileName, int restartNumber, int extraFlag)
     std::cout << "Done creating mesh." << std::endl;
     std::cout << "Memory allocated on host: "
               << ((real)(Array<real>::memAllocatedHost) +
+                  (real)(Array<real2>::memAllocatedHost) +
+                  (real)(Array<real3>::memAllocatedHost) +
+                  (real)(Array<real4>::memAllocatedHost) +
                   (real)(Array<int>::memAllocatedHost) +
+                  (real)(Array<int2>::memAllocatedHost) +
+                  (real)(Array<int3>::memAllocatedHost) +
+                  (real)(Array<int4>::memAllocatedHost) +
                   (real)(Array<unsigned int>::memAllocatedHost))/
       (real) (1073741824) << " Gb, on device: "
               << ((real)(Array<real>::memAllocatedDevice) +
+                  (real)(Array<real2>::memAllocatedDevice) +
+                  (real)(Array<real3>::memAllocatedDevice) +
+                  (real)(Array<real4>::memAllocatedDevice) +
                   (real)(Array<int>::memAllocatedDevice) +
+                  (real)(Array<int2>::memAllocatedDevice) +
+                  (real)(Array<int3>::memAllocatedDevice) +
+                  (real)(Array<int4>::memAllocatedDevice) +
                   (real)(Array<unsigned int>::memAllocatedDevice))/
       (real) (1073741824) << " Gb" << std::endl;
   }
-
 }
 
 //#########################################################################
@@ -332,10 +331,6 @@ void Mesh::Transform()
     triangleEdgeLength->TransformToHost();
     triangleErrorEstimate->TransformToHost();
 
-    //randomVector->TransformToHost();
-
-    //vertexRemove->TransformToHost();
-    //vertexTriangle->TransformToHost();
     cudaFlag = 0;
   } else {
     vertexBoundaryFlag->TransformToDevice();
@@ -345,10 +340,6 @@ void Mesh::Transform()
     triangleEdgeLength->TransformToDevice();
     triangleErrorEstimate->TransformToDevice();
 
-    //randomVector->TransformToDevice();
-
-    //vertexRemove->TransformToDevice();
-    //vertexTriangle->TransformToDevice();
     cudaFlag = 1;
   }
 }
@@ -383,4 +374,4 @@ real Mesh::GetMaxY()
   return meshParameter->maxy;
 }
 
-}
+}  // namespace astrix

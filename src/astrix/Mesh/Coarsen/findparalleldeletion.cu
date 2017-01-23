@@ -410,8 +410,7 @@ void FillAffectedTriangles(Array<int> *triangleAffected,
 //#############################################################################
 
 void Coarsen::FindParallelDeletionSet(Connectivity *connectivity,
-                                      int maxTriPerVert,
-                                      Array<unsigned int> *randomVector)
+                                      int maxTriPerVert)
 {
   unsigned int nRemove = vertexRemove->GetSize();
   int nVertex = connectivity->vertexCoordinates->GetSize();

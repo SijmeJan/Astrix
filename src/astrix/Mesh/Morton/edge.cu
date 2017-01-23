@@ -127,4 +127,4 @@ void Morton::OrderEdge(Connectivity * const connectivity)
   connectivity->triangleEdges->InverseReindex(pInverseIndex, nEdge, true);
 }
 
-}
+}  // namespace astrix

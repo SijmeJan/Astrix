@@ -1,5 +1,5 @@
 // -*-c++-*-
-/*! \file delaunay_flipedge.cu
+/*! \file flipedge.cu
 \brief Functions for flipping edges to make trianglation Delaunay
 
 \section LICENSE
@@ -239,7 +239,6 @@ void Delaunay::FlipEdge(Connectivity * const connectivity,
   gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("FlipEdge.prof", nNonDel, elapsedTime, cudaFlag);
 #endif
-
 }
 
-}
+}  // namespace astrix

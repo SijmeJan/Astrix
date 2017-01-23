@@ -14,8 +14,8 @@ Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#include <iostream>
 #include <cuda_runtime_api.h>
+#include <iostream>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
@@ -24,7 +24,11 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 namespace astrix {
 
 //#########################################################################
-/*! Constructor for Connectivity class. Memory is allocated in large chunks to minimise any further calls to cudaMalloc when improving the Mesh.*/
+/*! Constructor for Connectivity class. Memory is allocated in large chunks to
+minimise any further calls to cudaMalloc when improving the Mesh.
+
+\param _cudaFlag Flag whether Arrays reside on host (0) or device (1)
+*/
 //#########################################################################
 
 Connectivity::Connectivity(int _cudaFlag)
@@ -39,6 +43,7 @@ Connectivity::Connectivity(int _cudaFlag)
 }
 
 //#########################################################################
+// Destructor, releases memory
 //#########################################################################
 
 Connectivity::~Connectivity()
@@ -51,7 +56,8 @@ Connectivity::~Connectivity()
 }
 
 //#########################################################################
-/*! Move whole class to device or host, depending on current value of \a cudaFlag*/
+/*! Move whole class to device or host, depending on current value of \a
+cudaFlag*/
 //#########################################################################
 
 void Connectivity::Transform()
@@ -72,6 +78,8 @@ void Connectivity::Transform()
 }
 
 //#########################################################################
+/*! Copy all data currently residing on device to host. Unlike during a
+transform, \a cudaFlag is not changed*/
 //#########################################################################
 
 void Connectivity::CopyToHost()
@@ -83,6 +91,8 @@ void Connectivity::CopyToHost()
 }
 
 //#########################################################################
+/*! Copy all data currently residing on the host to the device. Unlike during a
+transform, \a cudaFlag is not changed*/
 //#########################################################################
 
 void Connectivity::CopyToDevice()
@@ -93,4 +103,4 @@ void Connectivity::CopyToDevice()
   edgeTriangles->CopyToDevice();
 }
 
-}
+}  // namespace astrix

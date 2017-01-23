@@ -40,8 +40,7 @@ class Coarsen
                      Array<int> *triangleWantRefine,
                      const MeshParameter *meshParameter,
                      Delaunay *delaunay,
-                     int maxCycle,
-                     Array<unsigned int> *randomVector);
+                     int maxCycle);
 
  private:
   //! Flag whether to use device or host
@@ -58,6 +57,7 @@ class Coarsen
   //Array <unsigned int> *randomVector;
   //! Area associated with vertex (Voronoi cell)
   Array<real> *vertexArea;
+  Array<unsigned int> *randomVector;
 
   //! Check if removing vertices leads to encroached segment
   void CheckEncroach(Connectivity *connectivity,
@@ -117,8 +117,7 @@ class Coarsen
                             Array<int> *triangleWantRefine);
   //! Find set of points that can be removed in parallel
   void FindParallelDeletionSet(Connectivity *connectivity,
-                               int maxTriPerVert,
-                               Array<unsigned int> *randomVector);
+                               int maxTriPerVert);
   void CalcVertexArea(Connectivity *connectivity,
                       const MeshParameter *meshParameter);
 

@@ -51,4 +51,4 @@ void Array<T>::SetToRandom()
 
 template void Array<unsigned int>::SetToRandom();
 
-}
+}  // namespace astrix

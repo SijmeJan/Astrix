@@ -48,4 +48,4 @@ void Array<T>::Shuffle()
 template void Array<int>::Shuffle();
 template void Array<unsigned int>::Shuffle();
 
-}
+}  // namespace astrix

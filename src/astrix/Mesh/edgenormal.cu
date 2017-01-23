@@ -1,5 +1,5 @@
 // -*-c++-*-
-/*! \file normalarea.cu
+/*! \file edgenormal.cu
 \brief Functions for ccalculating triangle normals and triangle and vertex areas
 
 \section LICENSE
@@ -31,13 +31,11 @@ namespace astrix {
 
 \param n Index of triangle to consider
 \param nTriangle Total number of triangles in Mesh
-\param *tv1 Pointer to first vertex of triangle
-\param *tv2 Pointer to second vertex of triangle
-\param *tv3 Pointer to third vertex of triangle
-\param *pVertX Pointer to x-coordinates of vertices
-\param *pVertY Pointer to y-coordinates of vertices
-\param *triNx Pointer to x-components of triangle normals (output)
-\param *triNy Pointer to y-components of triangle normals (output)
+\param *pTv Pointer to triangle vertices
+\param *pVc Pointer to vertex coordinates
+\param *pTn1 Pointer to triangle normals first edge (output)
+\param *pTn2 Pointer to triangle normals second edge (output)
+\param *pTn3 Pointer to triangle normals third edge (output)
 \param *triL Pointer to array of triangle edge lengths (output)
 \param nVertex Total number of vertices in Mesh
 \param Px Periodic domain size x
@@ -45,12 +43,9 @@ namespace astrix {
 //######################################################################
 
 __host__ __device__
-void CalcNormalEdgeSingle(int n, int nTriangle, int3 *pTv,
-                          real2 *pVc,
-                          //real *triNx, real *triNy,
+void CalcNormalEdgeSingle(int n, int nTriangle, int3 *pTv, real2 *pVc,
                           real2 *pTn1, real2 *pTn2, real2 *pTn3,
-                          real3 *triL, int nVertex,
-                          real Px, real Py)
+                          real3 *triL, int nVertex, real Px, real Py)
 {
   const real zero  = (real) 0.0;
   const real half  = (real) 0.5;
@@ -84,8 +79,6 @@ void CalcNormalEdgeSingle(int n, int nTriangle, int3 *pTv,
   // Scale to length unity
   real inverselength = pow(nx*nx + ny*ny, -half);
 
-  //triNx[0*nTriangle+n] = nx*inverselength;
-  //triNy[0*nTriangle+n] = ny*inverselength;
   pTn1[n].x = nx*inverselength;
   pTn1[n].y = ny*inverselength;
 
@@ -135,10 +128,6 @@ void CalcNormalEdgeSingle(int n, int nTriangle, int3 *pTv,
   pTn3[n].x = nx*inverselength;
   pTn3[n].y = ny*inverselength;
 
-  // l[n][i] = length of face of triangle n opposite to vertex i
-  //triL[0*nTriangle+n] = sqrt(Sq(bx - cx) + Sq(by - cy));
-  //triL[1*nTriangle+n] = sqrt(Sq(ax - cx) + Sq(ay - cy));
-  //triL[2*nTriangle+n] = sqrt(Sq(bx - ax) + Sq(by - ay));
   triL[n].x = sqrt(Sq(bx - cx) + Sq(by - cy));
   triL[n].y = sqrt(Sq(ax - cx) + Sq(ay - cy));
   triL[n].z = sqrt(Sq(bx - ax) + Sq(by - ay));
@@ -148,13 +137,11 @@ void CalcNormalEdgeSingle(int n, int nTriangle, int3 *pTv,
 /*! \brief Kernel calculating normals and edge lengths for all triangles
 
 \param nTriangle Total number of triangles in Mesh
-\param *tv1 Pointer to first vertex of triangle
-\param *tv2 Pointer to second vertex of triangle
-\param *tv3 Pointer to third vertex of triangle
-\param *pVertX Pointer to x-coordinates of vertices
-\param *pVertY Pointer to y-coordinates of vertices
-\param *triNx Pointer to x-components of triangle normals (output)
-\param *triNy Pointer to y-components of triangle normals (output)
+\param *pTv Pointer to triangle vertices
+\param *pVc Pointer to vertex coordinates
+\param *pTn1 Pointer to triangle normals first edge (output)
+\param *pTn2 Pointer to triangle normals second edge (output)
+\param *pTn3 Pointer to triangle normals third edge (output)
 \param *triL Pointer to array of triangle edge lengths (output)
 \param nVertex Total number of vertices in Mesh
 \param Px Periodic domain size x
@@ -163,7 +150,6 @@ void CalcNormalEdgeSingle(int n, int nTriangle, int3 *pTv,
 
 __global__ void
 devCalcNormalEdge(int nTriangle, int3 *pTv, real2 *pVc,
-                  //real *triNx, real *triNy,
                   real2 *pTn1, real2 *pTn2, real2 *pTn3,
                   real3 *triL, int nVertex,
                   real Px, real Py)
@@ -172,19 +158,17 @@ devCalcNormalEdge(int nTriangle, int3 *pTv, real2 *pVc,
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nTriangle) {
-    CalcNormalEdgeSingle(n, nTriangle, pTv,
-                         pVc,
-                         //triNx, triNy,
+    CalcNormalEdgeSingle(n, nTriangle, pTv, pVc,
                          pTn1, pTn2, pTn3,
-                         triL,
-                         nVertex, Px, Py);
+                         triL, nVertex, Px, Py);
 
     n += blockDim.x*gridDim.x;
   }
 }
 
 //######################################################################
-/*! Calculate inward-pointing normals (length unity) and edge lengths for all triangles in Mesh*/
+/*! Calculate inward-pointing normals (length unity) and edge lengths for all
+triangles in Mesh*/
 //######################################################################
 
 void Mesh::CalcNormalEdge()
@@ -228,4 +212,4 @@ void Mesh::CalcNormalEdge()
   }
 }
 
-}
+}  // namespace astrix

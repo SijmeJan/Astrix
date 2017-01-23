@@ -16,7 +16,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef ASTRIX_PROFILE_H
 #define ASTRIX_PROFILE_H
 
-namespace astrix{
+namespace astrix {
 
 //! Write kernel profiling info to file
 /*! Write simple statistics to text file
@@ -26,6 +26,6 @@ namespace astrix{
 */
 void WriteProfileFile(const char *fileName, int X, float T, int cudaFlag);
 
-}
+}  // namespace astrix
 
 #endif

@@ -61,10 +61,11 @@ void Array<T>::SetToSeries()
     gpuErrchk( cudaDeviceSynchronize() );
   }
 
-  if (cudaFlag == 0)
+  if (cudaFlag == 0) {
     for (unsigned int n = 0; n < nDims; n++)
       for (unsigned int i = 0; i < size; i++)
         hostVec[i + n*realSize] = i;
+  }
 }
 
 //##########################################################
@@ -91,10 +92,11 @@ void Array<T>::SetToSeries(unsigned int startIndex,
     gpuErrchk( cudaDeviceSynchronize() );
   }
 
-  if (cudaFlag == 0)
+  if (cudaFlag == 0) {
     for (unsigned int n = 0; n < nDims; n++)
       for (unsigned int i = startIndex; i < endIndex; i++)
         hostVec[i + n*realSize] = i;
+  }
 }
 
 //###################################################
@@ -103,12 +105,12 @@ void Array<T>::SetToSeries(unsigned int startIndex,
 
 template void Array<int>::SetToSeries();
 template void Array<int>::SetToSeries(unsigned int startIndex,
-                                            unsigned int endIndex);
+                                      unsigned int endIndex);
 
 //###################################################
 
 template void Array<unsigned int>::SetToSeries();
 template void Array<unsigned int>::SetToSeries(unsigned int startIndex,
-                                                     unsigned int endIndex);
+                                               unsigned int endIndex);
 
-}
+}  // namespace astrix

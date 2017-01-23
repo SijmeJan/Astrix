@@ -62,10 +62,11 @@ void Array<T>::SetToValue(T value)
     gpuErrchk( cudaDeviceSynchronize() );
   }
 
-  if (cudaFlag == 0)
+  if (cudaFlag == 0) {
     for (unsigned int n = 0; n < nDims; n++)
       for (unsigned int i = 0; i < size; i++)
         hostVec[i + n*realSize] = value;
+  }
 }
 
 //##########################################################
@@ -92,10 +93,11 @@ void Array<T>::SetToValue(T value, unsigned int startIndex,
     gpuErrchk( cudaDeviceSynchronize() );
   }
 
-  if (cudaFlag == 0)
+  if (cudaFlag == 0) {
     for (unsigned int n = 0; n < nDims; n++)
       for (unsigned int i = startIndex; i < endIndex; i++)
         hostVec[i + n*realSize] = value;
+  }
 }
 
 //###################################################
@@ -127,4 +129,4 @@ template void Array<unsigned int>::SetToValue(unsigned int value);
 template void Array<unsigned int>::SetToValue(unsigned int value,
                                               unsigned int startIndex,
                                               unsigned int endIndex);
-}
+}  // namespace astrix

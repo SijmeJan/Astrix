@@ -32,20 +32,19 @@ namespace astrix {
 
 If point (x,y) is found to encroach on any segment in \a t, adjust \a x and \a y to lie at the centre of the segment and return 1; else return -1.
 
-\param t Triangle to consider
-\param x x-coordinate of point, may be changed
-\param y y-coordinate of point, may be changed
-\param *et1 pointer to triangle 1 neighbouring edge.
-\param *et2 pointer to triangle 2 neighbouring edge.
-\param *tv1 Pointer to first vertex of triangle
-\param *tv2 Pointer to second vertex of triangle
-\param *tv3 Pointer to third vertex of triangle
-\param *te1 pointer to edge 1 part of triangle.
-\param *te2 pointer to edge 2 part of triangle.
-\param *te3 pointer to edge 3 part of triangle.
-\param *pVertX pointer x-coordinates of existing vertices.
-\param *pVertY pointer y-coordinates of existing vertices.
+\param x x-coordinate of point to consider
+\param y y-coordinate of point to consider
+\param e1IsSegment flag whether first edge of triangle is segment
+\param e2IsSegment flag whether second edge of triangle is segment
+\param e3IsSegment flag whether third edge of triangle is segment
+\param a First vertex of triangle
+\param b Second vertex of triangle
+\param c Third vertex of triangle
+\param e1 First edge of triangle
+\param e2 Second edge of triangle
+\param e3 Third edge of triangle
 \param nVertex Total number of vertices in Mesh
+\param *pVc pointer to vertex coordinates
 \param Px Periodic domain size x
 \param Py Periodic domain size y*/
 //##############################################################################
@@ -101,23 +100,16 @@ int CheckEncroachTriangle(real& x, real& y,
 This function tests if point to add \a i leads to an encroached segment. We take a triangle close to \a i (either the triangle containing \a i or, if \a i is to be placed on edge \a e, one of the neighbouring triangles of \a e) and consider all of its vertices v. We check all triangles sharing v to see if any edges will turn into encroached segments when inserting \a i. If this is the case, move \a i so that it lies on the segment in question.
 
  \param i index of point to be inserted.
- \param *pEdgeAdd pointer to array of edges to place vertices on.
- \param *pTriangleAdd pointer to array of triangles to place vertices in.
- \param *refineX pointer to array of x-coordinates of points to be inserted.
- \param *refineY pointer to array of y-coordinates of points to be inserted.
- \param *et1 pointer to triangle 1 neighbouring edge.
- \param *et2 pointer to triangle 2 neighbouring edge.
- \param *tv1 Pointer to first vertex of triangle
- \param *tv2 Pointer to second vertex of triangle
- \param *tv3 Pointer to third vertex of triangle
- \param *te1 pointer to edge 1 part of triangle.
- \param *te2 pointer to edge 2 part of triangle.
- \param *te3 pointer to edge 3 part of triangle.
- \param *pVertX pointer x-coordinates of existing vertices.
- \param *pVertY pointer y-coordinates of existing vertices.
+ \param *pElementAdd pointer to array of triangles or edges to place vertices on.
+ \param *pVcAdd pointer to coordinates of points to be inserted.
+ \param *pTv pointer to triangle vertices
+ \param *pTe pointer to triangle edges
+ \param *pEt pointer to edge triangles.
+ \param *pVc pointer vertex coordinates.
  \param nVertex Total number of vertices in Mesh
  \param Px Periodic domain size x
- \param Py Periodic domain size y*/
+ \param Py Periodic domain size y
+ \param nTriangle Total number of triangles in Mesh*/
 //######################################################################
 
 __host__ __device__
@@ -398,23 +390,16 @@ void TestEncroachSingle(int i, int *pElementAdd, real2 *pVcAdd,
 This function tests if point to add \a i leads to an encroached segment. We take a triangle close to \a i (either the triangle containing \a i or, if \a i is to be placed on edge \a e, one of the neighbouring triangles of \a e) and consider all of its vertices v. We check all triangles sharing v to see if any edges will turn into encriached segments when inserting \a i. If this is the case, move \a i so that it lies on the segment in question.
 
  \param nRefine number of points to be inserted.
- \param *pEdgeAdd pointer to array of edges to place vertices on.
- \param *pTriangleAdd pointer to array of triangles to place vertices in.
- \param *refineX pointer to array of x-coordinates of points to be inserted.
- \param *refineY pointer to array of y-coordinates of points to be inserted.
- \param *et1 pointer to triangle 1 neighbouring edge.
- \param *et2 pointer to triangle 2 neighbouring edge.
- \param *tv1 Pointer to first vertex of triangle
- \param *tv2 Pointer to second vertex of triangle
- \param *tv3 Pointer to third vertex of triangle
- \param *te1 pointer to edge 1 part of triangle.
- \param *te2 pointer to edge 2 part of triangle.
- \param *te3 pointer to edge 3 part of triangle.
- \param *pVertX pointer x-coordinates of existing vertices.
- \param *pVertY pointer y-coordinates of existing vertices.
+ \param *pElementAdd pointer to array of triangles or edges to place vertices on.
+ \param *pVcAdd pointer to coordinates of points to be inserted.
+ \param *pTv pointer to triangle vertices
+ \param *pTe pointer to triangle edges
+ \param *pEt pointer to edge triangles.
+ \param *pVc pointer vertex coordinates.
  \param nVertex Total number of vertices in Mesh
  \param Px Periodic domain size x
- \param Py Periodic domain size y*/
+ \param Py Periodic domain size y
+ \param nTriangle Total number of triangles in Mesh*/
 //######################################################################
 
 __global__ void
@@ -437,7 +422,11 @@ devTestEncroach(int nRefine, int *pElementAdd, real2 *pVcAdd,
 }
 
 //##############################################################################
-/*! This function tests if any vertices to be inserted lead to an encroached segment. For every point \a i to be inserted, we take a triangle close to \a i (either the triangle containing \a i or, if \a i is to be placed on edge \a e, one of the neighbouring triangles of \a e) and consider all of its vertices v. We check all triangles sharing v to see if any edges will turn into encriached segments when inserting \a i. If this is the case, move \a i so that it lies on the segment in question. */
+/*! This function tests if any vertices to be inserted lead to an encroached segment. For every point \a i to be inserted, we take a triangle close to \a i (either the triangle containing \a i or, if \a i is to be placed on edge \a e, one of the neighbouring triangles of \a e) and consider all of its vertices v. We check all triangles sharing v to see if any edges will turn into encriached segments when inserting \a i. If this is the case, move \a i so that it lies on the segment in question.
+
+ \param *connectivity pointer to basic mesh data
+ \param *meshParameter pointer to class holding parameters of the Mesh
+ \param nRefine total number of points to consider*/
 //##############################################################################
 
 void Refine::TestEncroach(Connectivity * const connectivity,
@@ -510,4 +499,4 @@ void Refine::TestEncroach(Connectivity * const connectivity,
   delete nvtxEncroach;
 }
 
-}
+}  // namespace astrix

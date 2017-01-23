@@ -68,10 +68,11 @@ void Array<T>::SetToDiff(Array<T> *A, Array<T> *B)
   }
 
 
-  if (cudaFlag == 0)
+  if (cudaFlag == 0) {
     for (unsigned int n = 0; n < nDims; n++)
       for (unsigned int i = 0; i < size; i++)
         hostVec[i + n*realSize] = pA[i + n*rSA] - pB[i + n*rSB];
+  }
 }
 
 //###################################################
@@ -87,4 +88,4 @@ template void Array<float4>::SetToDiff(Array<float4> *A,
 template void Array<double4>::SetToDiff(Array<double4> *A,
                                        Array<double4> *B);
 
-}
+}  // namespace astrix

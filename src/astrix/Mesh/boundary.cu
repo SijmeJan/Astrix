@@ -711,11 +711,6 @@ void Mesh::ConstructBoundaries()
   }
 
   // Find minimum/maximum x and y
-  //real minxOld = meshParameter->minx;
-  //real maxxOld = meshParameter->maxx;
-  //real minyOld = meshParameter->miny;
-  //real maxyOld = meshParameter->maxy;
-
   real minxBoundary = vertexBoundaryCoordinates->MinimumComb<real>(0);
   real minyBoundary = vertexBoundaryCoordinates->MinimumComb<real>(1);
   real maxxBoundary = vertexBoundaryCoordinates->MaximumComb<real>(0);
@@ -992,17 +987,12 @@ void Mesh::ConstructBoundaries()
                                        triangleFlagScan);
 
   edgeRemoveFlag->Invert();
-  int neKeep =edgeRemoveFlag->ExclusiveScan(edgeFlagScan, nEdge);
+  int neKeep = edgeRemoveFlag->ExclusiveScan(edgeFlagScan, nEdge);
   connectivity->edgeTriangles->Compact(neKeep, edgeRemoveFlag, edgeFlagScan);
 
   nVertex = nvKeep;
   nTriangle = ntKeep;
   nEdge = neKeep;
-
-  //meshParameter->minx = minxOld;
-  //meshParameter->maxx = maxxOld;
-  //meshParameter->miny = minyOld;
-  //meshParameter->maxy = maxyOld;
 
   //-----------------------------------------------------------------
   // Extra work for periodic domains: connect left of domain to the
@@ -1433,7 +1423,6 @@ void Mesh::ConstructBoundaries()
 
     nTriangle += 2;
     nEdge += 1;
-
   }
 
   delete vertexRemoveFlag;
@@ -1475,79 +1464,6 @@ void Mesh::ConstructBoundaries()
     delete vertexExtra;
     delete vertexExtraOrder;
   }
-
-  /*
-  int nExtraTotal = 0;
-  Array<real2> *vertexExtra = new Array<real2>(1, cudaFlag);
-  Array<int> *vertexExtraOrder = new Array<int>(1, cudaFlag);
-
-  real rMax = 0.25;
-  int nRadExtra = (int) (rMax/sqrt(meshParameter->baseResolution));
-
-  for (int j = 1; j <= nRadExtra; j++) {
-    real r = rMax*(real) j/(real) nRadExtra;
-    int nExtra = (int) (2.0*M_PI*r/sqrt(meshParameter->baseResolution));
-
-    vertexExtra->SetSize(nExtraTotal + nExtra);
-    vertexExtraOrder->SetSize(nExtraTotal + nExtra);
-
-    for (int i = 0; i < nExtra; i++) {
-      real phi = 2.0*M_PI*(real) i/(real) nExtra;
-
-      real2 temp;
-      temp.x = r*cos(phi);
-      temp.y = r*sin(phi);
-      vertexExtra->SetSingleValue(temp, i + nExtraTotal);
-    }
-
-    nExtraTotal += nExtra;
-  }
-
-  nAdded = refine->AddVertices(connectivity,
-                               meshParameter,
-                               predicates,
-                               delaunay,
-                               vertexExtra,
-                               vertexExtraOrder);
-
-  std::cout << "Added " << nAdded << " extra vertices" << std::endl;
-  delete vertexExtra;
-  delete vertexExtraOrder;
-  */
-
-  /*
-  real xmin = 0.25;
-  real xmax = 1.75;
-  real ymin = 0.25;
-  real ymax = 0.75;
-  int nxExtra = (int) ((xmax - xmin)/sqrt(meshParameter->baseResolution));
-  int nyExtra = (int) ((ymax - ymin)/sqrt(meshParameter->baseResolution));
-  Array<real2> *vertexExtra = new Array<real2>(1, cudaFlag, nxExtra*nyExtra);
-  Array<int> *vertexExtraOrder = new Array<int>(1, cudaFlag, nxExtra*nyExtra);
-
-  int index = 0;
-  for (int i = 0; i < nxExtra; i++) {
-    for (int j = 0; j < nyExtra; j++) {
-      real2 temp;
-      temp.x = xmin + (real)i*(xmax - xmin)/(real) (nxExtra - 1);
-      temp.y = ymin + (real)j*(ymax - ymin)/(real) (nyExtra - 1);
-
-      vertexExtra->SetSingleValue(temp, index);
-      index++;
-    }
-  }
-
-  nAdded = refine->AddVertices(connectivity,
-                               meshParameter,
-                               predicates,
-                               delaunay,
-                               vertexExtra,
-                               vertexExtraOrder);
-
-  std::cout << "Added " << nAdded << " extra vertices" << std::endl;
-  delete vertexExtra;
-  delete vertexExtraOrder;
-  */
 }
 
-}
+}  // namespace astrix

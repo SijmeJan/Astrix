@@ -16,8 +16,8 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef ASTRIX_MESH_H
 #define ASTRIX_MESH_H
 
-#include <string>
 #include <cuda_runtime_api.h>
+#include <string>
 
 namespace astrix {
 
@@ -33,7 +33,8 @@ class Connectivity;
 class MeshParameter;
 
 //! Class containing functions acting on the whole mesh
-/*! A Mesh object can be thought of representing the Delaunay mesh on which the computations are performed.*/
+/*! A Mesh object can be thought of representing the Delaunay mesh on which the
+computations are performed.*/
 class Mesh
 {
  public:
@@ -106,12 +107,20 @@ class Mesh
   void Transform();
 
  private:
-  // General Mesh Arrays
-
   //! Basic Mesh structure
   Connectivity *connectivity;
-
+  //! Class holding parameters for the mesh
   MeshParameter *meshParameter;
+  //! Delaunay object to transform mesh into Delaunay mesh
+  Delaunay *delaunay;
+  //! Morton object to improve data locality
+  Morton *morton;
+  //! Object for refining mesh
+  Refine *refine;
+  //! Object for coarsening mesh
+  Coarsen *coarsen;
+  //! Use exact geometric predicates
+  Predicates *predicates;
 
   //! Flag whether vertex is part of boundary
   Array <int> *vertexBoundaryFlag;
@@ -127,8 +136,6 @@ class Mesh
   //! Estimate of discretization error
   Array <real> *triangleErrorEstimate;
 
-  Array<unsigned int> *randomVector;
-
   // Runtime flags
 
   //! Flag whether running on CUDA device
@@ -137,20 +144,6 @@ class Mesh
   int verboseLevel;
   //! Level of extra checks on mesh
   int debugLevel;
-
-  // Derived Mesh properties
-
-  //! Number of vertices
-  //int nVertex;
-  //! Number of triangles
-  //int nTriangle;
-  //! Number of edges
-  //int nEdge;
-
-  //! Use exact geometric predicates
-  Predicates *predicates;
-  //! GPU properties
-  cudaDeviceProp deviceProp;
 
   //! Set up the mesh
   void Init(const char *fileName, int restartNumber, int extraFlag);
@@ -190,16 +183,8 @@ class Mesh
   void CheckLegalTriangle();
   //! Check if any edge is larger than \a maxEdgeLength
   void CheckEdgeLength(real maxEdgeLength);
-
-  //! Delaunay object to transform mesh into Delaunay mesh
-  Delaunay *delaunay;
-
-  //! Morton object to improve data locality
-  Morton *morton;
-
-  Refine *refine;
-  Coarsen *coarsen;
 };
 
-}
-#endif
+}  // namespace astrix
+
+#endif  // ASTRIX_MESH_H

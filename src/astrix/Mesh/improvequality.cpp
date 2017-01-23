@@ -1,5 +1,5 @@
 // -*-c++-*-
-/*! \file refine.cpp
+/*! \file improvequality.cpp
 \brief Function to refine Mesh
 
 \section LICENSE
@@ -13,9 +13,9 @@ Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 
 You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
-#include <iostream>
 #include <cuda_runtime_api.h>
 #include <cuda_profiler_api.h>
+#include <iostream>
 #include <fstream>
 #include <cmath>
 
@@ -53,7 +53,6 @@ int Mesh::ImproveQuality(Array<realNeq> *vertexState,
   if (vertexState != 0) {
     triangleWantRefine->SetSize(nTriangle);
     FillWantRefine(vertexState, specificHeatRatio);
-    //dmax = dMaxBase/((real)(maxRefineFactor*maxRefineFactor));
 
     nAdded = refine->ImproveQuality(connectivity,
                                     meshParameter,
@@ -76,7 +75,6 @@ int Mesh::ImproveQuality(Array<realNeq> *vertexState,
       Save(1000);
       throw;
     }
-
   }
 
   nVertex = connectivity->vertexCoordinates->GetSize();
@@ -99,28 +97,26 @@ int Mesh::ImproveQuality(Array<realNeq> *vertexState,
   real minEdgeLength = Px;
 
   for (int i = 0; i < nTriangle; i++) {
+    int a = pTv[i].x;
+    int b = pTv[i].y;
+    int c = pTv[i].z;
 
-      int a = pTv[i].x;
-      int b = pTv[i].y;
-      int c = pTv[i].z;
+    real ax, bx, cx, ay, by, cy;
+    GetTriangleCoordinates(pVc, a, b, c,
+                           nVertex, Px, Py,
+                           ax, bx, cx, ay, by, cy);
 
-      real ax, bx, cx, ay, by, cy;
-      GetTriangleCoordinates(pVc, a, b, c,
-                             nVertex, Px, Py,
-                             ax, bx, cx, ay, by, cy);
+    // Three edges
+    real l1 = sqrt((ax - bx)*(ax - bx) + (ay - by)*(ay - by));
+    real l2 = sqrt((ax - cx)*(ax - cx) + (ay - cy)*(ay - cy));
+    real l3 = sqrt((cx - bx)*(cx - bx) + (cy - by)*(cy - by));
 
-      // Three edges
-      real l1 = sqrt((ax - bx)*(ax - bx) + (ay - by)*(ay - by));
-      real l2 = sqrt((ax - cx)*(ax - cx) + (ay - cy)*(ay - cy));
-      real l3 = sqrt((cx - bx)*(cx - bx) + (cy - by)*(cy - by));
+    real lmin = std::min(l1, std::min(l2, l3));
 
-      real lmin = std::min(l1, std::min(l2, l3));
-
-      minEdgeLength = std::min(minEdgeLength, lmin);
+    minEdgeLength = std::min(minEdgeLength, lmin);
   }
 
   std::cout << "L/lmin = " << Px/minEdgeLength << std::endl;
-
 
   if (nAdded > 0) {
     // Calculate triangle normals and areas
@@ -132,4 +128,4 @@ int Mesh::ImproveQuality(Array<realNeq> *vertexState,
   return nAdded;
 }
 
-}
+}  // namespace astrix

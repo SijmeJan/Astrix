@@ -45,8 +45,6 @@ int Array<T>::RemoveValue(T value)
     newSize = iter - hostVec;
   }
 
-  //SetSize(newSize);
-
   return newSize;
 }
 
@@ -72,8 +70,6 @@ int Array<T>::RemoveValue(T value, int maxIndex)
     newSize = iter - hostVec;
   }
 
-  //SetSize(newSize);
-
   return newSize;
 }
 
@@ -90,9 +86,10 @@ devCompact(int N, T *destArray, T *srcArray,
   int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < N) {
-    if (keepFlag[i] == 1)
+    if (keepFlag[i] == 1) {
       for (unsigned int n = 0; n < nDims; n++)
         destArray[keepFlagScan[i] + n*realSize] = srcArray[i + n*realSize];
+    }
     i += gridDim.x*blockDim.x;
   }
 }
@@ -203,4 +200,4 @@ template void Array<double4>::Compact(int nKeep,
 template int Array<int>::RemoveValue(int value);
 template int Array<int>::RemoveValue(int value, int maxIndex);
 
-}
+}  // namespace astrix

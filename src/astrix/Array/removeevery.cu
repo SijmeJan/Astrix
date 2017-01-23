@@ -63,9 +63,10 @@ int Array<T>::RemoveEvery(int start, int step)
     gpuErrchk( cudaDeviceSynchronize() );
   }
 
-  if (cudaFlag == 0)
-      for (unsigned int i = start; i < size; i += step)
-        pKeepFlag[i] = 0;
+  if (cudaFlag == 0) {
+    for (unsigned int i = start; i < size; i += step)
+      pKeepFlag[i] = 0;
+  }
 
   int newSize = keepFlag->ExclusiveScan(keepFlagScan);
   Compact(newSize, keepFlag, keepFlagScan);
@@ -106,9 +107,10 @@ int Array<T>::RemoveEvery(int start, int step, Array<S> *A)
     gpuErrchk( cudaDeviceSynchronize() );
   }
 
-  if (cudaFlag == 0)
-      for (unsigned int i = start; i < size; i += step)
-        pKeepFlag[i] = 0;
+  if (cudaFlag == 0) {
+    for (unsigned int i = start; i < size; i += step)
+      pKeepFlag[i] = 0;
+  }
 
   int newSize = keepFlag->ExclusiveScan(keepFlagScan);
   Compact(newSize, keepFlag, keepFlagScan);
@@ -152,4 +154,4 @@ template int Array<int2>::RemoveEvery(int start, int step, Array<int3> *A);
 template int Array<float2>::RemoveEvery(int start, int step, Array<int3> *A);
 template int Array<double2>::RemoveEvery(int start, int step, Array<int3> *A);
 
-}
+}  // namespace astrix

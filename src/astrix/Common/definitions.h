@@ -13,8 +13,8 @@ Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef DEFINITIONS_H
-#define DEFINITIONS_H
+#ifndef ASTRIX_DEFINITIONS_H
+#define ASTRIX_DEFINITIONS_H
 
 #define USE_DOUBLE -1
 #define N_EQUATION 4
@@ -24,7 +24,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 */
 namespace astrix {
   //! Use single or double precision
-#if USE_DOUBLE==1
+#if USE_DOUBLE == 1
   typedef double real;
   typedef double4 real4;
   typedef double3 real3;
@@ -48,13 +48,13 @@ namespace astrix {
 
   //! Problem definitions
   /*! Enumeration of predefined test problems*/
-  enum ProblemDefinition {PROBLEM_UNDEFINED, /*!< Undefined, will lead to error*/
+  enum ProblemDefinition {PROBLEM_UNDEFINED, /*!< Undefined, leads to error*/
                           PROBLEM_LINEAR, /*!< Linear wave*/
                           PROBLEM_VORTEX, /*!< Vortex advection*/
                           PROBLEM_SOD,    /*!< Sod shock tube*/
                           PROBLEM_BLAST,  /*!< Interacting blast waves*/
                           PROBLEM_KH,     /*!< Kelvin-Helmholz instability*/
-                          //PROBLEM_RT,     /*!< Rayleigh-Taylor instability*/
+                          // PROBLEM_RT,     /*!< Rayleigh-Taylor instability*/
                           PROBLEM_RIEMANN,/*!< 2D Riemann problem*/
                           PROBLEM_YEE,    /*!< Yee vortex*/
                           PROBLEM_NOH
@@ -68,6 +68,6 @@ namespace astrix {
                           SCHEME_B,          /*!< Blended N-LDA scheme*/
                           SCHEME_BX          /*!< Blended X scheme*/
   };
-}
+}  // namespace astrix
 
 #endif

@@ -13,8 +13,10 @@ Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef ATOMIC_H
-#define ATOMIC_H
+#ifndef ASTRIX_ATOMIC_H
+#define ASTRIX_ATOMIC_H
+
+#include <algorithm>
 
 //######################################################################
 //! Atomic add for double
@@ -118,6 +120,6 @@ T AtomicExch(T *x, T y)
 #endif
 }
 
-}
+}  // namespace astrix
 
-#endif
+#endif  // ASTRIX_ATOMIC_H

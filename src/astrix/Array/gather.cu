@@ -185,7 +185,6 @@ template <class S>
 void Array<T>::ScatterSeries(Array<S> *map, unsigned int maxIndex)
 {
   S *pMap = map->GetPointer(0);
-  //unsigned int maxIndex = map->GetSize();
   unsigned int mapDim = map->GetDimension();
   unsigned int mapRS = map->GetRealSize();
 
@@ -237,4 +236,4 @@ template void Array<unsigned int>::ScatterSeries(Array<unsigned int> *map,
 
 //##########################################################################
 
-}
+}  // namespace astrix

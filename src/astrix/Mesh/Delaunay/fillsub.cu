@@ -138,7 +138,6 @@ void Delaunay::FillTriangleSubstitute(Connectivity * const connectivity,
   gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("FillSub.prof", nNonDel, elapsedTime, cudaFlag);
 #endif
-
 }
 
-}
+}  // namespace astrix

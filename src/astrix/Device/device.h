@@ -30,7 +30,7 @@ class Device
   /*! Construct Device object. Count number of CUDA-capable devices and display capabilities on screen. By default, device 0 is used.
     \param _cudaFlag Flag whether to run on CUDA device. If set to zero, still count CUDA devices but do not use them to for computation.*/
 
-  Device(int _cudaFlag);
+  explicit Device(int _cudaFlag);
   //! Destructor
   /*! Free Device object. If using CUDA, reset device for clean exit.*/
   ~Device();
@@ -48,6 +48,6 @@ class Device
   int deviceCount;
 };
 
-}
+}  // namespace astrix
 
-#endif
+#endif  // ASTRIX_DEVICE_H

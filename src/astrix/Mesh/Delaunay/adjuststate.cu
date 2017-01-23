@@ -1,5 +1,5 @@
 // -*-c++-*-
-/*! \file delaunay_adjuststate.cu
+/*! \file adjuststate.cu
 \brief Functions for adjusting state when flipping edges to conserve mass and momentum
 
 \section LICENSE
@@ -73,7 +73,6 @@ void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
   real dx = Fx;
   real dy = Fy;
 
-  //int e1 = pTe[t1].x;
   int e2 = pTe[t1].y;
   int e3 = pTe[t1].z;
 
@@ -105,7 +104,6 @@ void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
   real by = Ay;
   real cx = Bx;
   real cy = By;
-  //e1 = pTe[t2].x;
   e2 = pTe[t2].y;
   e3 = pTe[t2].z;
   if (edge == e2) {
@@ -301,4 +299,4 @@ void Delaunay::AdjustState(Connectivity * const connectivity,
   }
 }
 
-}
+}  // namespace astrix

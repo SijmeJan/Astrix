@@ -30,8 +30,7 @@ namespace astrix {
 We know that if \a vertexBoundaryFlag < 0, the vertex lies on a boundary. Now we use \a vertexCoordinates together with \a minx, \a maxx, \a miny and \a maxy to determine whether is is the left/right/top/bottom boundary.
 
 \param i Index of vertex to consider
-\param *pVertX Pointer to x-coordinates of vertices
-\param *pVertY Pointer to y-coordinates of vertices
+\param *pVc Pointer to vertex coordinates
 \param minx Left x boundary
 \param maxx Right x boundary
 \param miny Left y boundary
@@ -59,8 +58,7 @@ void FillBoundaryFlagSingle(int i, real2 *pVc,
 We know that if \a vertexBoundaryFlag < 0, the vertex lies on a boundary. Now we use \a vertexCoordinates together with \a minx, \a maxx, \a miny and \a maxy to determine whether is is the left/right/top/bottom boundary.
 
 \param nVertex Total number of vertices in Mesh
-\param *pVertX Pointer to x-coordinates of vertices
-\param *pVertY Pointer to y-coordinates of vertices
+\param *pVc Pointer to vertex coordinates
 \param minx Left x boundary
 \param maxx Right x boundary
 \param miny Left y boundary
@@ -90,15 +88,10 @@ devFillBoundaryFlag(int nVertex, real2 *pVc,
 Consider triangle \a n. If any of its edges has only one triangle neighbour, it is a boundary, and we flag the vertices on that edge by setting \a vertexBoundaryFlag to -1
 
 \param n Triangle to consider
-\param *tv1 Pointer to first vertex of triangle
-\param *tv2 Pointer to second vertex of triangle
-\param *tv3 Pointer to third vertex of triangle
+\param *pTv Pointer to triangle vertices
 \param nVertex Total number of vertices in Mesh
-\param *et1 Pointer to first triangle neighbouring edge
-\param *et2 Pointer to second triangle neighbouring edge
-\param *te1 Pointer to first edge of triangle
-\param *te2 Pointer to second edge of triangle
-\param *te3 Pointer to third edge of triangle
+\param *pEt Pointer to edge triangles
+\param *pTe Pointer to triangle edges
 \param *pVertexBoundaryFlag Pointer to array of boundary flags: set to -1 if vertex on boundary*/
 //######################################################################
 
@@ -148,15 +141,10 @@ void FindBoundariesSingle(int n, int3 *pTv, int nVertex,
 Consider triangle \a n. If any of its edges has only one triangle neighbour, it is a boundary, and we flag the vertices on that edge by setting \a vertexBoundaryFlag to -1
 
 \param nTriangle Total number of triangles in Mesh
-\param *tv1 Pointer to first vertex of triangle
-\param *tv2 Pointer to second vertex of triangle
-\param *tv3 Pointer to third vertex of triangle
+\param *pTv Pointer to triangle vertices
 \param nVertex Total number of vertices in Mesh
-\param *et1 Pointer to first triangle neighbouring edge
-\param *et2 Pointer to second triangle neighbouring edge
-\param *te1 Pointer to first edge of triangle
-\param *te2 Pointer to second edge of triangle
-\param *te3 Pointer to third edge of triangle
+\param *pEt Pointer to edge triangles
+\param *pTe Pointer to triangle edges
 \param *pVertexBoundaryFlag Pointer to array of boundary flags: set to -1 if vertex on boundary*/
 //######################################################################
 
@@ -176,7 +164,8 @@ devFindBoundaries(int nTriangle, int3 *pTv, int nVertex,
 }
 
 //######################################################################
-/*! Find vertices at boundaries; useful for setting boundary conditions. On return, \a vertexBoundaryFlag is -1 if vertex not on boundary, otherwise 0 and then +1 if on left boundary, +2 if on right boundary, +4 if on bottom boundary, +8 if on top bpoundary; i.e. 10 indicates a vertex both on top and right boundary*/
+/*! Find vertices at boundaries; useful for setting boundary conditions. On
+return, \a vertexBoundaryFlag is -1 if vertex not on boundary, otherwise 0 and then +1 if on left boundary, +2 if on right boundary, +4 if on bottom boundary, +8 if on top bpoundary; i.e. 10 indicates a vertex both on top and right boundary*/
 //######################################################################
 
 void Mesh::FindBoundaryVertices()
@@ -241,4 +230,4 @@ void Mesh::FindBoundaryVertices()
   }
 }
 
-}
+}  // namespace astrix

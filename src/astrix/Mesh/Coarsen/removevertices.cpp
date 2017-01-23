@@ -43,8 +43,7 @@ int Coarsen::RemoveVertices(Connectivity *connectivity,
                             Array<int> *triangleWantRefine,
                             const MeshParameter *meshParameter,
                             Delaunay *delaunay,
-                            int maxCycle,
-                            Array<unsigned int> *randomVector)
+                            int maxCycle)
 {
   nvtxEvent *nvtxCoarsen = new nvtxEvent("Coarsen", 0);
 
@@ -119,7 +118,7 @@ int Coarsen::RemoveVertices(Connectivity *connectivity,
           std::cout << ", vertices to be removed: " << nRemove << ", ";
 
         // Find list of vertices that can be removed in parallel
-        FindParallelDeletionSet(connectivity, maxTriPerVert, randomVector);
+        FindParallelDeletionSet(connectivity, maxTriPerVert);
         nRemove = vertexRemove->GetSize();
 
         if (verboseLevel > 1)

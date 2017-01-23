@@ -41,16 +41,10 @@ namespace astrix {
 \param y y-coordinate of vertex to insert
 \param indexInEdgeArray Index to start adding edges in \a edgeTriangles
 \param indexInTriangleArray Index to start adding triangles in \a triangleVertices and \a triangleEdges
-\param *pVertX Pointer to x-coordinates of vertices
-\param *pVertY Pointer to y-coordinates of vertices
-\param *tv1 Pointer to first vertex of triangle
-\param *tv2 Pointer to second vertex of triangle
-\param *tv3 Pointer to third vertex of triangle
-\param *te1 Pointer to first edge of triangle
-\param *te2 Pointer to second edge of triangle
-\param *te3 Pointer to third edge of triangle
-\param *et1 Pointer to first triangle neighbouring edge
-\param *et2 Pointer to second triangle neighbouring edge
+\param *pVc Pointer to vertex coordinates
+\param *pTv Pointer to triangle vertices
+\param *pTe Pointer to triangle edges
+\param *pEt Pointer to edge triangles
 \param minx Left x boundary
 \param maxx Right x boundary
 \param miny Left y boundary
@@ -83,7 +77,7 @@ void InsertVertex(int n, int t, int e, int nVertex, int nEdge,
     std::cout << std::endl
               << "Error in InsertVertex: no triangle or edge found"
               << std::endl;
-    int qq; std::cin >>qq;
+    int qq; std::cin >> qq;
   }
 #endif
 
@@ -166,32 +160,6 @@ void InsertVertex(int n, int t, int e, int nVertex, int nEdge,
     pTe[indexInTriangleArray + 1].z = indexInEdgeArray + 1;
     pTe[t].y = indexInEdgeArray + 1;
     pTe[t].z = indexInEdgeArray;
-
-    /*
-#ifndef __CUDA_ARCH__
-    int T[] = {t, indexInTriangleArray, indexInTriangleArray + 1};
-
-    for (int l = 0; l < 3; l++) {
-      int tt = T[l];
-      int A = pTv[tt].x;
-      int B = pTv[tt].y;
-      int C = pTv[tt].z;
-
-      real Ax, Bx, Cx, Ay, By, Cy;
-      GetTriangleCoordinates(pVc, A, B, C, nVertex + nvAdd,
-                             maxx - minx, maxy - miny,
-                             Ax, Bx, Cx, Ay, By, Cy);
-
-      real area = 0.5*((Ax - Cx)*(By - Cy) - (Ay - Cy)*(Bx - Cx));
-
-      if (area < 0.0) {
-        std::cout << "Created triangle with negative area! " << std::endl;
-        int qq; std::cin >> qq;
-      }
-    }
-#endif
-    */
-
   } else {
     // Insert vertex on edge e
     int t1 = pEt[e].x;
@@ -486,51 +454,6 @@ void InsertVertex(int n, int t, int e, int nVertex, int nEdge,
 
       pVc[i].x = x;
       pVc[i].y = y;
-
-      /*
-#ifndef __CUDA_ARCH__
-      int T[] = {t1, t2, indexInTriangleArray, indexInTriangleArray + 1};
-
-      for (int l = 0; l < 4; l++) {
-        int tt = T[l];
-        int AA = pTv[tt].x;
-        int BB = pTv[tt].y;
-        int CC = pTv[tt].z;
-
-        real Ax, Bx, Cx, Ay, By, Cy;
-        GetTriangleCoordinates(pVc, AA, BB, CC, nVertex + nvAdd,
-                               maxx - minx, maxy - miny,
-                               Ax, Bx, Cx, Ay, By, Cy);
-
-        real area = 0.5*((Ax - Cx)*(By - Cy) - (Ay - Cy)*(Bx - Cx));
-
-        if (area < 0.0) {
-          std::cout << std::endl
-                    << "Created triangle with negative area!"
-                    << std::endl
-                    << "Inserting vertex at x = " << x << " y = " << y
-                    << " on edge " << e << std::endl
-                    << "between triangles t1 = " << t1
-                    << " with vertices "
-                    << pTv[t1].x << " " << pTv[t1].y << " " << pTv[t1].z
-                    << std::endl
-                    << "and t2 = " << t2
-                    << " with vertices "
-                    << pTv[t2].x << " " << pTv[t2].y << " " << pTv[t2].z
-                    << std::endl
-                    << "Translated t1 has vertices: "
-                    << tv11 << " " << tv21 << " " << tv31 << std::endl
-                    << "Translated t2 has vertices: "
-                    << tv12 << " " << tv22 << " " << tv32
-                    << std::endl
-                    << "Vertex: " << i + translateVertex << std::endl
-                    << B << " " << C << " " << E << " " << F << std::endl
-                    << A1 << " " << A2 << std::endl;
-          int qq; std::cin >> qq;
-        }
-      }
-#endif
-      */
     } else {
       if (periodicFlagX) {
         if (x <= minx) {
@@ -617,9 +540,6 @@ void InsertVertex(int n, int t, int e, int nVertex, int nEdge,
       pTe[t].x = e;
       pTe[t].y = e1;
       pTe[t].z = indexInEdgeArray + 1;
-
-
-
     }
   }
 }
@@ -628,24 +548,16 @@ void InsertVertex(int n, int t, int e, int nVertex, int nEdge,
 /*! \brief Insert vertex \a n into Mesh
 
 \param nRefine Total number of vertices to insert
-\param *pTriangleAdd Pointer to array of triangle to insert vertex into (-1 if inserting on edge)
-\param *pEdgeAdd Pointer to array of edges onto which to insert vertex (-1 if inserting in triangle)
+\param *pElementAdd Pointer to array of triangles and edges to insert vertex into
 \param nVertex Total number of vertices in Mesh
 \param nEdge Total number of edges in Mesh
 \param nTriangle Total number of triangles in Mesh
-\param *refineX Pointer to array of x-coordinates of vertex to insert
-\param *refineY Pointer to array of y-coordinates of vertex to insert
+\param *pVcAdd Pointer to vertex coordinates to add
 \param *pOnSegmentFlagScan Pointer to array of scanned flags of whether to insert on segment. We need to know this because the number of newly created triangles depends on how many points we insert on segments.
-\param *pVertX Pointer to x-coordinates of vertices
-\param *pVertY Pointer to y-coordinates of vertices
-\param *tv1 Pointer to first vertex of triangle
-\param *tv2 Pointer to second vertex of triangle
-\param *tv3 Pointer to third vertex of triangle
-\param *te1 Pointer to first edge of triangle
-\param *te2 Pointer to second edge of triangle
-\param *te3 Pointer to third edge of triangle
-\param *et1 Pointer to first triangle neighbouring edge
-\param *et2 Pointer to second triangle neighbouring edge
+\param *pVc Pointer to vertex coordinates
+\param *pTv Pointer to triangle vertices
+\param *pTe Pointer to triangle edges
+\param *pEt Pointer to edge triangles
 \param minx Left x boundary
 \param maxx Right x boundary
 \param miny Left y boundary
@@ -837,4 +749,4 @@ void Refine::InsertVertices(Connectivity * const connectivity,
   delete nvtxInsert;
 }
 
-}
+}  // namespace astrix

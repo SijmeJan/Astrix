@@ -132,4 +132,4 @@ Predicates::~Predicates()
   delete param;
 }
 
-}
+}  // namespace astrix

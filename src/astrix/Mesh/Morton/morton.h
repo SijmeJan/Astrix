@@ -22,12 +22,13 @@ template <class T> class Array;
 class Connectivity;
 
 //! Class containing functions for Morton ordering
-/*! A Morton object can be used to reorder vertices, triangles and edges to improve data locality.*/
+/*! A Morton object can be used to reorder vertices, triangles and edges to
+improve data locality.*/
 class Morton
 {
  public:
   //! Constructor
-  Morton(int _cudaFlag);
+  explicit Morton(int _cudaFlag);
   //! Destructor; releases memory.
   ~Morton();
 
@@ -71,6 +72,6 @@ class Morton
   void OrderEdge(Connectivity * const connectivity);
 };
 
-}
+}  // namespace astrix
 
-#endif
+#endif  // ASTRIX_MORTON_H

@@ -252,4 +252,4 @@ template void Array<double>::LinComb(double a1, Array<double> *A1,
                                      double a2, Array<double> *A2,
                                      double a3, Array<double> *A3);
 
-}
+}  // namespace astrix

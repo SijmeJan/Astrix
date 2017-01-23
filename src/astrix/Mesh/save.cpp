@@ -13,9 +13,9 @@ Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 
 You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
+#include <cuda_runtime_api.h>
 #include <iostream>
 #include <fstream>
-#include <cuda_runtime_api.h>
 
 #include "../Common/definitions.h"
 #include "../Array/array.h"
@@ -41,6 +41,7 @@ void Mesh::Save(int nSave)
 
   int3 *pTv = connectivity->triangleVertices->GetHostPointer();
 
+  // Separate into separate arrays for writing
   Array<int> *triangleVerticesSeparate = new Array<int>(3, 0, nTriangle);
   int *tv1 = triangleVerticesSeparate->GetPointer(0);
   int *tv2 = triangleVerticesSeparate->GetPointer(1);
@@ -54,6 +55,7 @@ void Mesh::Save(int nSave)
 
   int3 *pTe = connectivity->triangleEdges->GetHostPointer();
 
+  // Separate into separate arrays for writing
   Array<int> *triangleEdgesSeparate = new Array<int>(3, 0, nTriangle);
   int *te1 = triangleEdgesSeparate->GetHostPointer(0);
   int *te2 = triangleEdgesSeparate->GetHostPointer(1);
@@ -67,6 +69,7 @@ void Mesh::Save(int nSave)
 
   int2 *pEt = connectivity->edgeTriangles->GetHostPointer();
 
+  // Separate into separate arrays for writing
   Array<int> *edgeTrianglesSeparate = new Array<int>(2, 0, nEdge);
   int *et1 = edgeTrianglesSeparate->GetHostPointer(0);
   int *et2 = edgeTrianglesSeparate->GetHostPointer(1);
@@ -77,6 +80,8 @@ void Mesh::Save(int nSave)
   }
 
   real2 *pVc = connectivity->vertexCoordinates->GetHostPointer();
+
+  // Separate into separate arrays for writing
   Array<real> *vertexCoordinatesSeparate = new Array<real>(2, 0, nVertex);
   real *pVertX = vertexCoordinatesSeparate->GetHostPointer(0);
   real *pVertY = vertexCoordinatesSeparate->GetHostPointer(1);
@@ -309,4 +314,4 @@ void Mesh::ReadFromDisk(int nSave)
   std::cout << "Done reading mesh from disk" << std::endl;
 }
 
-}
+}  // namespace astrix

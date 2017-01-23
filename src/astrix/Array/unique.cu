@@ -67,7 +67,6 @@ void Array<T>::ScatterUnique(Array<int> *A, Array<int> *B,
       if (pA[i - 1] == pA[i] && pA[i] != ignoreValue)
         hostVec[pB[i]] = value;
   }
-
 }
 
 //###################################################
@@ -79,4 +78,4 @@ template void Array<float2>::ScatterUnique(Array<int> *A, Array<int> *B,
                                            int maxIndex, int ignoreValue,
                                            float2 value);
 
-}
+}  // namespace astrix

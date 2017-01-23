@@ -33,9 +33,10 @@ void Array<T>::SetEqual(const Array *B)
                          nDims*realSize*sizeof(T),
                          cudaMemcpyDeviceToDevice));
 
-  if (cudaFlag == 0)
+  if (cudaFlag == 0) {
     for (unsigned int i = 0; i < nDims; i++)
       memcpy(GetHostPointer(i), B->GetHostPointer(i), size*sizeof(T));
+  }
 }
 
 //##########################################################
@@ -86,10 +87,14 @@ void Array<T>::SetEqualComb(const Array<S> *B, unsigned int N, unsigned int M)
   }
 
   if (cudaFlag == 0) {
-    if (M == 0)
-      for (unsigned int i = 0; i < size; i++) hostVec[i + N*realSize] = pB[i].x;
-    if (M == 1)
-      for (unsigned int i = 0; i < size; i++) hostVec[i + N*realSize] = pB[i].y;
+    if (M == 0) {
+      for (unsigned int i = 0; i < size; i++)
+        hostVec[i + N*realSize] = pB[i].x;
+    }
+    if (M == 1) {
+      for (unsigned int i = 0; i < size; i++)
+        hostVec[i + N*realSize] = pB[i].y;
+    }
   }
 }
 
@@ -116,18 +121,19 @@ void Array<T>::SetEqual(const Array<T> *B, unsigned int N, unsigned int M)
 template <class T>
 void Array<T>::SetEqual(const Array *B, int startPosition)
 {
-  if (cudaFlag == 1)
+  if (cudaFlag == 1) {
     for (unsigned int n = 0; n < nDims; n++)
       gpuErrchk(cudaMemcpy(&(deviceVec[n*realSize + startPosition]),
                            B->GetDevicePointer(n),
                            B->GetSize()*sizeof(T),
                            cudaMemcpyDeviceToDevice));
-
-  if (cudaFlag == 0)
+  }
+  if (cudaFlag == 0) {
     for (unsigned int n = 0; n < nDims; n++)
       memcpy(&(hostVec[n*realSize + startPosition]),
              B->GetHostPointer(n),
              B->GetSize()*sizeof(T));
+  }
 }
 
 //###################################################
@@ -189,4 +195,4 @@ template void Array<double>::SetEqualComb(const Array<double2> *B,
 template void Array<double2>::SetEqual(const Array *B);
 template void Array<double4>::SetEqual(const Array *B);
 
-}
+}  // namespace astrix

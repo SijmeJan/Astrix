@@ -69,4 +69,4 @@ void WriteProfileFile(const char *fileName, int nElement,
   outfile.close();
 }
 
-}
+}  // namespace astrix

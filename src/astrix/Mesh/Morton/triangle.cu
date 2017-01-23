@@ -143,4 +143,4 @@ void Morton::OrderTriangle(Connectivity * const connectivity,
   connectivity->edgeTriangles->InverseReindex(pInverseIndex, nTriangle, true);
 }
 
-}
+}  // namespace astrix

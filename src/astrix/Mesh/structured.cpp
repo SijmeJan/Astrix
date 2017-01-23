@@ -14,9 +14,9 @@ Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <cuda_runtime_api.h>
 #include <iostream>
 #include <cmath>
-#include <cuda_runtime_api.h>
 
 #include "../Common/definitions.h"
 #include "../Array/array.h"
@@ -29,7 +29,8 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 namespace astrix {
 
 //#########################################################################
-/*! Create a structured mesh of triangles. This is very cheap and has to be done only once (at initialisation) so for now we do it on the host, copying the mesh structure to the CUDA device if necessary. */
+/*! Create a structured mesh of triangles. This is very cheap and has to be
+done only once (at initialisation) so for now we do it on the host, copying the mesh structure to the CUDA device if necessary. */
 //#########################################################################
 
 void Mesh::CreateStructuredMesh()
@@ -99,21 +100,27 @@ void Mesh::CreateStructuredMesh()
       pTe[t].z = e + 2;
 
       pTe[t + 1].x = e + 1;
-      pTe[t + 1].y = 3*(v + nx - j - 1) + j + 3; //e(j + 1) + 2
+      pTe[t + 1].y = 3*(v + nx - j - 1) + j + 3;
       if (j == ny - 2)
         pTe[t + 1].y = 3*(j*nx + nx - 2 + 1 - j) + j + i + 1;
-      pTe[t + 1].z = 3*(v + 1 - j) + j; //e(i + 1)
+      pTe[t + 1].z = 3*(v + 1 - j) + j;
 
       int e1 = pTe[t].x;
       int e2 = pTe[t].y;
       int e3 = pTe[t].z;
 
       pEt[e1].x = t;
-      if (i > 0) pEt[e1].y = t - 1; else pEt[e1].y = -1;
+      if (i > 0)
+        pEt[e1].y = t - 1;
+      else
+        pEt[e1].y = -1;
       pEt[e2].x = t;
       pEt[e2].y = t + 1;
       pEt[e3].x = t;
-      if (j > 0) pEt[e3].y = 2*(v - nx - j + 1) + 1; else pEt[e3].y = -1;
+      if (j > 0)
+        pEt[e3].y = 2*(v - nx - j + 1) + 1;
+      else
+        pEt[e3].y = -1;
 
       e2 = pTe[t + 1].y;
       e3 = pTe[t + 1].z;
@@ -178,13 +185,15 @@ void Mesh::CreateStructuredMesh()
       pEt[e2].x = t;
       pEt[e2].y = t + 1;
       pEt[e3].x = t;
-      if (j > 0) pEt[e3].y = 2*((j-1)*nx - j + 1) + 1; else pEt[e3].y = -1;
+      if (j > 0)
+        pEt[e3].y = 2*((j-1)*nx - j + 1) + 1;
+      else
+        pEt[e3].y = -1;
 
       if (j == ny - 2) pEt[nEdge - 1].x = t + 1;
     }
 
     nx--;
-
   }
 
   // Make periodic in y
@@ -250,4 +259,4 @@ void Mesh::CreateStructuredMesh()
   FindBoundaryVertices();
 }
 
-}
+}  // namespace astrix

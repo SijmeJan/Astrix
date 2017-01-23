@@ -35,6 +35,6 @@ __host__ __device__ inline int Sign(const T a) {
   return a >= (T) 0 ? 1 : -1;
 }
 
-}
+}  // namespace astrix
 
 #endif

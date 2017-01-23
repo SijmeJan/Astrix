@@ -30,23 +30,19 @@ namespace astrix {
 
 For a single triangle, calculate triangle-based operator (for the internal energy equation) and its contribution to the vertex-based operator.
 
- * @param i triangle to be dealt with.
- * @param nVertex number of vertices in the current mesh.
- * @param nTriangle number of triangles in the current mesh.
- * @param *tv1 pointer to array of first vertices belonging to triangles, i.e. \a tv1[i] is vertex 1 of triangle \a i.
- * @param *tv2 pointer to array of second vertices belonging to triangles, i.e. \a tv2[i] is vertex 2 of triangle \a i.
- * @param *tv3 pointer to array of third vertices belonging to triangles, i.e. \a tv3[i] is vertex 3 of triangle \a i.
- * @param G specific heat ratio
- * @param *triL pointer to triangle edge lengths.
- * @param *triNx pointer to triangle normals (x component).
- * @param *triNy pointer to triangle normals (y component).
- * @param *pVertexArea pointer to cell volume (Voronoi area)
- * @param *dens pointer to density at vertices
- * @param *momx pointer to x-momentum at vertices
- * @param *momy pointer to y-momentum at vertices
- * @param *ener pointer to total energy density at vertices
- * @param *pVertexOperator pointer to vertex-based operator (output).
- * @param *pTriangleOperator pointer to triangle-based operator (output).*/
+ \param i triangle to be dealt with.
+ \param nVertex number of vertices in the current mesh.
+ \param nTriangle number of triangles in the current mesh.
+ \param *pTv Pointer to triangle vertices
+ \param G specific heat ratio
+ \param *triL pointer to triangle edge lengths.
+ \param *pTn1 Pointer to triangle normals first edge
+ \param *pTn2 Pointer to triangle normals second edge
+ \param *pTn3 Pointer to triangle normals third edge
+ \param *pVertexArea pointer to cell volume (Voronoi area)
+ \param *state Pointer to state vector
+ \param *pVertexOperator pointer to vertex-based operator (output).
+ \param *pTriangleOperator pointer to triangle-based operator (output).*/
 //######################################################################
 
 __host__ __device__
@@ -155,10 +151,7 @@ void CalcOperatorEnergySingle(int i, int nVertex, int nTriangle,
                               real *pTriangleOperator)
 {
   const real sixth = (real) (1.0/6.0);
-  //const real tenth = (real) 0.1;
-  //const real third = (real) (1.0/3.0);
   const real half  = (real) 0.5;
-  //const real one   = (real) 1.0;
 
   int a = pTv[i].x;
   int b = pTv[i].y;
@@ -179,9 +172,6 @@ void CalcOperatorEnergySingle(int i, int nVertex, int nTriangle,
   real nx1 = pTn1[i].x;
   real nx2 = pTn2[i].x;
   real nx3 = pTn3[i].x;
-  //real ny1 = pTn1[i].y;
-  //real ny2 = pTn2[i].y;
-  //real ny3 = pTn3[i].y;
 
   // State at vertex a
   real d1 = state[a];
@@ -194,7 +184,6 @@ void CalcOperatorEnergySingle(int i, int nVertex, int nTriangle,
   real gradUx = d1*nx1*tl1 + d2*nx2*tl2 + d3*nx3*tl3;
 
   // Cell-averaged state
-  //real dc = third*(d1 + d2 + d3);
 
   real s = half*(tl1 + tl2 + tl3);
   // Triangle area
@@ -219,14 +208,12 @@ void CalcOperatorEnergySingle(int i, int nVertex, int nTriangle,
 /*! \brief For a single triangle, calculate the estimated local truncation error.
 
 For a single triangle, calculate the estimated local truncation error based on the difference between the triangle-based operator and the vertex-based operator.
- * @param i triangle to be dealt with.
- * @param nVertex number of vertices in the current mesh.
- * @param *tv1 pointer to array of first vertices belonging to triangles, i.e. \a tv1[i] is vertex 1 of triangle \a i.
- * @param *tv2 pointer to array of second vertices belonging to triangles, i.e. \a tv2[i] is vertex 2 of triangle \a i.
- * @param *tv3 pointer to array of third vertices belonging to triangles, i.e. \a tv3[i] is vertex 3 of triangle \a i.
- * @param *pVertexOperator pointer to vertex-based operator.
- * @param *pTriangleOperator pointer to triangle-based operator.
- * @param *pErrorEstimate array with estimated local truncation error (output).*/
+ \param i triangle to be dealt with.
+ \param nVertex number of vertices in the current mesh.
+ \param *pTv Pointer to triangle vertices
+ \param *pVertexOperator pointer to vertex-based operator.
+ \param *pTriangleOperator pointer to triangle-based operator.
+ \param *pErrorEstimate array with estimated local truncation error (output).*/
 //##############################################################################
 
 __host__ __device__
@@ -259,32 +246,25 @@ void CalcErrorEstimateSingle(int i, int nVertex, int3 *pTv,
 
 Kernel calculating triangle-based and vertex-based operators for the internal energy equation.
 
- * @param nVertex number of vertices in the current mesh.
- * @param nTriangle number of triangles in the current mesh.
- * @param *tv1 pointer to array of first vertices belonging to triangles, i.e. \a tv1[i] is vertex 1 of triangle \a i.
- * @param *tv2 pointer to array of second vertices belonging to triangles, i.e. \a tv2[i] is vertex 2 of triangle \a i.
- * @param *tv3 pointer to array of third vertices belonging to triangles, i.e. \a tv3[i] is vertex 3 of triangle \a i.
- * @param G specific heat ratio
- * @param *triL pointer to triangle edge lengths.
- * @param *triNx pointer to triangle normals (x component).
- * @param *triNy pointer to triangle normals (y component).
- * @param *pVertexArea pointer to cell volume (Voronoi area)
- * @param *dens pointer to density at vertices
- * @param *momx pointer to x-momentum at vertices
- * @param *momy pointer to y-momentum at vertices
- * @param *ener pointer to total energy density at vertices
- * @param *pVertexOperator pointer to vertex-based operator (output).
- * @param *pTriangleOperator pointer to triangle-based operator (output).*/
+ \param nVertex number of vertices in the current mesh.
+ \param nTriangle number of triangles in the current mesh.
+ \param *pTv Pointer to triangle vertices
+ \param G specific heat ratio
+ \param *triL pointer to triangle edge lengths.
+ \param *pTn1 Pointer to triangle normals first edge
+ \param *pTn2 Pointer to triangle normals second edge
+ \param *pTn3 Pointer to triangle normals third edge
+ \param *pVertexArea pointer to cell volume (Voronoi area)
+ \param *state Pointer to state vector
+ \param *pVertexOperator pointer to vertex-based operator (output).
+ \param *pTriangleOperator pointer to triangle-based operator (output).*/
 // #########################################################################
 
 __global__ void
 devCalcOperatorEnergy(int nVertex, int nTriangle,
                       int3 *pTv, real G, real3 *triL,
-                      //real *triNx, real *triNy,
                       real2 *pTn1, real2 *pTn2, real2 *pTn3,
                       real *pVertexArea, realNeq *state,
-                      //real *dens, real *momx,
-                      //real *momy, real *ener,
                       real *pVertexOperator,
                       real *pTriangleOperator)
 {
@@ -292,10 +272,8 @@ devCalcOperatorEnergy(int nVertex, int nTriangle,
 
   while (i < nTriangle) {
     CalcOperatorEnergySingle(i, nVertex, nTriangle, pTv, G, triL,
-                             //triNx, triNy,
                              pTn1, pTn2, pTn3,
                              pVertexArea, state,
-                             //dens, momx, momy, ener,
                              pVertexOperator, pTriangleOperator);
 
     i += gridDim.x*blockDim.x;
@@ -309,9 +287,7 @@ Kernel calculating estimated local truncation error from triangle-based and vert
 
  \param nTriangle number of triangles in the current mesh.
  \param nVertex number of vertices in the current mesh.
- \param *tv1 pointer to array of first vertices belonging to triangles, i.e. \a tv1[i] is vertex 1 of triangle \a i.
- \param *tv2 pointer to array of second vertices belonging to triangles, i.e. \a tv2[i] is vertex 2 of triangle \a i.
- \param *tv3 pointer to array of third vertices belonging to triangles, i.e. \a tv3[i] is vertex 3 of triangle \a i.
+ \param *pTv Pointer to triangle vertices
  \param *pVertexOperator pointer to vertex-based operator.
  \param *pTriangleOperator pointer to triangle-based operator.
  \param *pErrorEstimate array with estimated local truncation error (output).*/
@@ -356,7 +332,6 @@ void Mesh::CalcErrorEstimate(Array<realNeq> *vertexState, real G)
   real2 *pTn2 = triangleEdgeNormals->GetPointer(1);
   real2 *pTn3 = triangleEdgeNormals->GetPointer(2);
 
-
   // Edge lengths
   real3 *triL = triangleEdgeLength->GetPointer();
 
@@ -394,10 +369,8 @@ void Mesh::CalcErrorEstimate(Array<realNeq> *vertexState, real G)
 
     devCalcOperatorEnergy<<<nBlocks, nThreads>>>
       (nVertex, nTriangle, pTv, G, triL,
-       //triNx, triNy,
        pTn1, pTn2, pTn3,
        pVertexArea, state,
-       //dens, momx, momy, ener,
        pVertexOperator, pTriangleOperator);
 
     gpuErrchk( cudaPeekAtLastError() );
@@ -405,10 +378,8 @@ void Mesh::CalcErrorEstimate(Array<realNeq> *vertexState, real G)
   } else {
     for (int i = 0; i < nTriangle; i++)
       CalcOperatorEnergySingle(i, nVertex, nTriangle, pTv, G, triL,
-                               //triNx, triNy,
                                pTn1, pTn2, pTn3,
                                pVertexArea, state,
-                               //dens, momx, momy, ener,
                                pVertexOperator, pTriangleOperator);
   }
 
@@ -440,5 +411,4 @@ void Mesh::CalcErrorEstimate(Array<realNeq> *vertexState, real G)
   delete triangleOperator;
 }
 
-
-}
+}  // namespace astrix

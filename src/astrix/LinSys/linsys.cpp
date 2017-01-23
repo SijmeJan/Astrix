@@ -14,13 +14,14 @@ Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 
-#include <iostream>
 #include <cuda_runtime_api.h>
+#include <iostream>
 
 #include "../Common/definitions.h"
 #include "../Array/array.h"
 #include "../Mesh/mesh.h"
 #include "../Device/device.h"
+#include "./linsys.h"
 
 namespace astrix {
 
@@ -55,4 +56,4 @@ LinSys::~LinSys()
 {
 }
 
-}
+}  // namespace astrix

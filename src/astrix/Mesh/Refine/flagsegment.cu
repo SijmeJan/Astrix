@@ -27,10 +27,10 @@ namespace astrix {
 /*! \brief Flag whether vertex \i will be placed on segment
 
 \param i Index of point to be added
-\param *pEdgeAdd Pointer to array containing edges onto which to place points
-\param *et1 Pointer to first triangle neighbouring edge
-\param *et2 Pointer to second triangle neighbouring edge
-\param *pOnSegmentFlag Pointer to output array, will be 1 if \i will be placed on segment, 0 otherwise*/
+\param *pElementAdd Pointer to array containing triangles and edges onto which to place points
+\param *pEt Pointer edge triangles
+\param *pOnSegmentFlag Pointer to output array, will be 1 if \i will be placed on segment, 0 otherwise
+\param nTriangle Total number of triangles in Mesh*/
 //######################################################################
 
 __host__ __device__
@@ -48,10 +48,10 @@ void FlagOnSegmentSingle(int i, int *pElementAdd, int2 *pEt,
 /*! \brief Kernel flagging whether vertices will be placed on segment
 
 \param nRefine Number of points to be added
-\param *pEdgeAdd Pointer to array containing edges onto which to place points
-\param *et1 Pointer to first triangle neighbouring edge
-\param *et2 Pointer to second triangle neighbouring edge
-\param *pOnSegmentFlag Pointer to output array, will be 1 if \i will be placed on segment, 0 otherwise*/
+\param *pElementAdd Pointer to array containing triangles and edges onto which to place points
+\param *pEt Pointer edge triangles
+\param *pOnSegmentFlag Pointer to output array, will be 1 if \i will be placed on segment, 0 otherwise
+\param nTriangle Total number of triangles in Mesh*/
 //######################################################################
 
 __global__ void
@@ -70,6 +70,7 @@ devFlagOnSegment(int nRefine, int *pElementAdd, int2 *pEt,
 //######################################################################
 /*! Find which of the points to be added will be placed on segments. This is not difficult using the \a edgeAdd Array, which contains the indices of edges to place points on. All we have to do is find out which of these edges are in fact segments. Returns total number of points to be placed on segments.
 
+\param *connectivity Pointer to basic Mesh data
 \param *onSegmentFlagScan Pointer to output array: a scanned version of the Array containing flags*/
 //######################################################################
 
@@ -114,4 +115,4 @@ int Refine::FlagSegment(Connectivity * const connectivity,
   return nOnSegment;
 }
 
-}
+}  // namespace astrix

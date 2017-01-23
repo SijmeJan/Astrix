@@ -103,12 +103,6 @@ void Array<T>::SetSizeHost(unsigned int _size)
 template <class T>
 void Array<T>::SetSizeDevice(unsigned int _size)
 {
-  //cudaEvent_t start, stop;
-  //float elapsedTime;
-  //gpuErrchk( cudaEventCreate(&start) );
-  //gpuErrchk( cudaEventCreate(&stop) );
-  //gpuErrchk( cudaEventRecord(start, 0) );
-
   unsigned int sizeNew = _size;
 
   // New physical size
@@ -119,12 +113,10 @@ void Array<T>::SetSizeDevice(unsigned int _size)
   if (realSize < realSizeNew ||
       2*realSizeNew < realSize ||
       (nDims > 1 && realSize != realSizeNew)) {
-
     // Manual realloc on device
     T *temp;
     gpuErrchk(cudaMalloc(reinterpret_cast<void**>(&temp),
                          nDims*realSizeNew*sizeof(T)));
-
 
     unsigned int nToCopy = size;
     if (sizeNew < size) nToCopy = sizeNew;
@@ -144,11 +136,6 @@ void Array<T>::SetSizeDevice(unsigned int _size)
 
   realSize = realSizeNew;
   size = sizeNew;
-
-  //gpuErrchk( cudaEventRecord(stop, 0) );
-  //gpuErrchk( cudaEventSynchronize(stop) );
-  //gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
-  //elapsedSize += elapsedTime;
 }
 
 //###################################################
@@ -217,4 +204,4 @@ template void Array<double3>::SetSize(unsigned int _size);
 template void Array<double4>::SetSize(unsigned int _size);
 template unsigned int Array<double4>::GetRealSize() const;
 
-}
+}  // namespace astrix

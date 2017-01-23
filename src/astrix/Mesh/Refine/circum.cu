@@ -182,4 +182,4 @@ void Refine::FindCircum(Connectivity * const connectivity,
   delete nvtxCircum;
 }
 
-}
+}  // namespace astrix

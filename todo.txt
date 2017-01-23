@@ -1,6 +1,7 @@
 new parallel flip selection test?
 adjust makefile register use / double prec ?
-check documentation
+move doxygen to doc/
+readthedocs rts
 check all test problems
 
 source term integration

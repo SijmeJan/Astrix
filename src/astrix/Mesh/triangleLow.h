@@ -39,36 +39,6 @@ void TranslateVertexToVertex(const int b, const int f,
   if (b - f == 2*N || b - f == -1*N || b - f == -4*N) x -= dx;
   if (b - f == 4*N || b - f == 3*N || b - f == 2*N) y += dy;
   if (b - f == -2*N || b - f == -3*N || b - f == -4*N) y -= dy;
-  /*
-  if (b - f == 4*N) {
-    x += dx;
-    y += dy;
-  }
-  if (b - f == 3*N) {
-    y += dy;
-  }
-  if (b - f == 2*N) {
-    x -= dx;
-    y += dy;
-  }
-  if (b - f == 1*N) {
-    x += dx;
-  }
-  if (b - f == -1*N) {
-    x -= dx;
-  }
-  if (b - f == -2*N) {
-    x += dx;
-    y -= dy;
-  }
-  if (b - f == -3*N) {
-    y -= dy;
-  }
-  if (b - f == -4*N) {
-    x -= dx;
-    y -= dy;
-  }
-  */
 }
 
 //##############################################################################
@@ -311,6 +281,6 @@ void GetTriangleCoordinatesSingle(const real2* __restrict__ pVc,
   ay = pVc[a].y + dya;
 }
 
-}
+}  // namespace astrix
 
-#endif
+#endif  // ASTRIX_TRIANGLE_LOW_H

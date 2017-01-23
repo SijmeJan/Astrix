@@ -14,9 +14,9 @@ Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <iostream>
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
+#include <iostream>
 
 #include "./array.h"
 #include "../Common/cudaLow.h"
@@ -34,8 +34,6 @@ T Array<T>::ExclusiveScan(Array<T> *result)
 
   T *pResult = result->GetPointer();
   T total = 0;
-
-  //std::cout << size << " " << deviceVec << " " << pResult[0] << std::endl;
 
   if (cudaFlag == 1) {
     thrust::device_ptr<T> dev_ptr(deviceVec);
@@ -95,14 +93,14 @@ T Array<T>::ExclusiveScan(Array<T> *result, unsigned int N)
 
 template int Array<int>::ExclusiveScan(Array<int> *result);
 template int Array<int>::ExclusiveScan(Array<int> *result,
-                                             unsigned int N);
+                                       unsigned int N);
 
 //###################################################
 
 template unsigned int
 Array<unsigned int>::ExclusiveScan(Array<unsigned int> *result,
-                                         unsigned int N);
+                                   unsigned int N);
 template unsigned int
 Array<unsigned int>::ExclusiveScan(Array<unsigned int> *result);
 
-}
+}  // namespace astrix

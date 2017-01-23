@@ -305,13 +305,12 @@ void Refine::FlagEdgesForChecking(Connectivity * const connectivity,
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
 #endif
-   }
+  }
 
 #ifdef TIME_ASTRIX
   gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("FlagEdge.prof", nRefine, elapsedTime, cudaFlag);
 #endif
-
 }
 
-}
+}  // namespace astrix

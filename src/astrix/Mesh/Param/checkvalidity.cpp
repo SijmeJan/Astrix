@@ -13,10 +13,10 @@ Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 
+#include <cuda_runtime_api.h>
 #include <iostream>
 #include <stdexcept>
 #include <cmath>
-#include <cuda_runtime_api.h>
 
 #include "../../Common/definitions.h"
 #include "./meshparameter.h"
@@ -24,7 +24,8 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 namespace astrix {
 
 //#########################################################################
-/*! Perform basic checks of the content read from the input file is valid. An error is thrown if any problems are detected.*/
+/*! Perform basic checks of the content read from the input file is valid.
+An error is thrown if any problems are detected.*/
 //#########################################################################
 
 void MeshParameter::CheckValidity()
@@ -103,4 +104,4 @@ void MeshParameter::CheckValidity()
   }
 }
 
-}
+}  // namespace astrix

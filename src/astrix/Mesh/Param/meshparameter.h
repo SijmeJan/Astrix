@@ -18,7 +18,8 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 namespace astrix {
 
 //! Class containing parameters for the Mesh
-/*! Various parameters governing the resolution and quality of the Mesh are read from an input file and stored in this class*/
+/*! Various parameters governing the resolution and quality of the Mesh are
+read from an input file and stored in this class*/
 class MeshParameter
 {
  public:
@@ -69,11 +70,10 @@ class MeshParameter
   void ReadFromFile(const char *fileName);
 
  private:
-
   //! Check if contents are valid
   void CheckValidity();
 };
 
-}
+}  // namespace astrix
 
-#endif
+#endif  // ASTRIX_MESH_PARAM_H

@@ -13,8 +13,8 @@ Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef ASTRIXARRAY_H
-#define ASTRIXARRAY_H
+#ifndef ASTRIX_ARRAY_H
+#define ASTRIX_ARRAY_H
 
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
@@ -22,7 +22,8 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 namespace astrix {
 
 //! Basic vector-like class used in Astrix
-/*! An Array object can be thought of as a vector that can either live on the host or on the device.*/
+/*! An Array object can be thought of as a vector that can either live on the
+host or on the device.*/
 template <class T> class Array
 {
  public:
@@ -56,10 +57,9 @@ template <class T> class Array
   ~Array();
 
   //! Total amount of memory (bytes) allocated on host in all Array's
-  static unsigned long int memAllocatedHost;
+  static int64_t memAllocatedHost;
   //! Total amount of memory (bytes) allocated on device in all Array's
-  static unsigned long int memAllocatedDevice;
-  static float elapsedSize;
+  static int64_t memAllocatedDevice;
 
   //! Transform from host vector to device vector
   void TransformToDevice();
@@ -219,19 +219,24 @@ template <class T> class Array
   T* GetDevicePointer(unsigned int _dim) const
   { return &(deviceVec[_dim*realSize]); }
   //! Return pointer to either host or device memory, depending on cudaFlag
-  T* GetPointer() const
-  { if (cudaFlag == 0) return hostVec; else return deviceVec; }
+  T* GetPointer() const {
+    if (cudaFlag == 0) {
+      return hostVec;
+    } else {
+      return deviceVec;
+    }
+  }
   //! Return pointer to either host or device memory for dimension \a _dim
   T* GetPointer(unsigned int _dim) const {
-    if (cudaFlag == 0) return &(hostVec[_dim*realSize]);
-    else return &(deviceVec[_dim*realSize]);
+    if (cudaFlag == 0) {
+      return &(hostVec[_dim*realSize]);
+    } else {
+      return &(deviceVec[_dim*realSize]);
+    }
   }
 
   int dynArrayStep;
  private:
-  //! Step by which to increase array size
-  //const static int dynArrayStep = 256;
-
   //! Size of array
   unsigned int size;
   //! Physical size of array (larger than \a size because of \a dynArrayStep)
@@ -248,11 +253,9 @@ template <class T> class Array
 };
 
 template <typename T>
-unsigned long int Array<T>::memAllocatedHost = 0;
+int64_t Array<T>::memAllocatedHost = 0;
 template <typename T>
-unsigned long int Array<T>::memAllocatedDevice = 0;
-template <typename T>
-float Array<T>::elapsedSize = 0.0;
+int64_t Array<T>::memAllocatedDevice = 0;
 
-}
+}  // namespace astrix
 #endif

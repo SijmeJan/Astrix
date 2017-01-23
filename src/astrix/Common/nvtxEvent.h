@@ -22,7 +22,10 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 namespace astrix {
 
 //! Class handling NVTX events for use with the NVIDIA profiler
-/*! The NVIDIA Visual Profiler allows for user-defined colors to appear in the time line to easily identify functions that take up most of the time. Creating an nvtxEvent object starts such a colored time line, while destroying it ends the time line.*/
+/*! The NVIDIA Visual Profiler allows for user-defined colors to appear in the
+time line to easily identify functions that take up most of the time. Creating
+ an nvtxEvent object starts such a colored time line, while destroying it ends
+the time line.*/
 class nvtxEvent
 {
  public:
@@ -44,6 +47,6 @@ class nvtxEvent
   static uint32_t colors[num_colors];
 };
 
-}
+}  // namespace astrix
 
 #endif

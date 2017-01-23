@@ -283,13 +283,10 @@ void Delaunay::CheckEdgesFlop(Connectivity * const connectivity,
     }
   }
 
-  /*
 #ifdef TIME_ASTRIX
   gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
-  std::cout << "Kernel: devCheckEdgeDelaunay, # of elements: "
-            << nEdge << ", elapsed time: " << elapsedTime << std::endl;
+  WriteProfileFile("CheckFlop.prof", nEdgeCheck, elapsedTime, cudaFlag);
 #endif
-  */
 }
 
-}
+}  // namespace astrix

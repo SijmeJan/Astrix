@@ -17,11 +17,12 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 #define ASTRIX_CUDA_LOW_H
 
 //! Macro handling device errors through gpuAssert
-/*! Every CUDA function should be called using this macro, so that upon error the program exists indicating where the error occurred.*/
+/*! Every CUDA function should be called using this macro, so that upon error
+ the program exists indicating where the error occurred.*/
 #define gpuErrchk(ans) { \
     gpuAssert((ans), const_cast<char *>(__FILE__), __LINE__); }
 
-namespace astrix{
+namespace astrix {
 
 //! Handle device errors
 /*! Handle device errors by simply printing error and exiting. Called by macro gpuErrchk.
@@ -31,6 +32,6 @@ namespace astrix{
 */
 void gpuAssert(cudaError_t code, char *file, int line);
 
-}
+}  // namespace astrix
 
 #endif

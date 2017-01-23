@@ -167,4 +167,4 @@ template int Array<int>::SelectWhereDifferent(Array<int> *A,
 template int Array<int>::SelectWhereDifferent(Array<int> *A,
                                               Array<float2> *B);
 
-}
+}  // namespace astrix

@@ -664,4 +664,4 @@ template void Array<float4>::Reindex(unsigned int *reindex);
 template void Array<double2>::Reindex(unsigned int *reindex);
 template void Array<double4>::Reindex(unsigned int *reindex);
 
-}
+}  // namespace astrix

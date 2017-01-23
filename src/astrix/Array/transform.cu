@@ -200,4 +200,4 @@ template void Array<unsigned int>::CopyToHost();
 template void Array<unsigned int>::TransformToHost();
 template void Array<unsigned int>::TransformToDevice();
 
-}
+}  // namespace astrix

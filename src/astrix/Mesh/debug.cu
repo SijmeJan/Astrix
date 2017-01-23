@@ -37,8 +37,6 @@ real Mesh::MaxEdgeLengthTriangle(int i)
   real2 *pVc = connectivity->vertexCoordinates->GetHostPointer();
   int3 *pTv = connectivity->triangleVertices->GetHostPointer();
 
-  //real *pParam = predicates->GetParamPointer(cudaFlag);
-
   real Px = meshParameter->maxx - meshParameter->minx;
   real Py = meshParameter->maxy - meshParameter->miny;
 
@@ -96,8 +94,6 @@ void Mesh::CheckEdgeLength(real maxEdgeLength)
 
   int nTriangle = connectivity->triangleVertices->GetSize();
   int nVertex = connectivity->vertexCoordinates->GetSize();
-
-  //real *pParam = predicates->GetParamPointer(0);
 
   real Px = meshParameter->maxx - meshParameter->minx;
   real Py = meshParameter->maxy - meshParameter->miny;
@@ -197,8 +193,6 @@ void Mesh::OutputStat()
   real2 *pVc = connectivity->vertexCoordinates->GetHostPointer();
   int3 *pTv = connectivity->triangleVertices->GetHostPointer();
 
-  //real *pParam = predicates->GetParamPointer(0);
-
   real Px = meshParameter->maxx - meshParameter->minx;
   real Py = meshParameter->maxy - meshParameter->miny;
 
@@ -247,7 +241,8 @@ void Mesh::OutputStat()
 }
 
 //#########################################################################
-/*! Slow but sure way to detect any encroached segments. Used for debugging purposes; runs only on host*/
+/*! Slow but sure way to detect any encroached segments. Used for debugging
+purposes; runs only on host*/
 //#########################################################################
 
 void Mesh::CheckEncroachSlow()
@@ -368,4 +363,4 @@ void Mesh::CheckEncroachSlow()
   }
 }
 
-}
+}  // namespace astrix

@@ -26,7 +26,7 @@ class Connectivity
 {
  public:
   //! Constructor
-  Connectivity(int _cudaFlag);
+  explicit Connectivity(int _cudaFlag);
   //! Destructor; releases memory.
   ~Connectivity();
 
@@ -50,6 +50,6 @@ class Connectivity
   int cudaFlag;
 };
 
-}
+}  // namespace astrix
 
-#endif
+#endif  // ASTRIX_CONNECTIVITY_H

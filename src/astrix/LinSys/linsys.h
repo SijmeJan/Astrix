@@ -48,5 +48,6 @@ class LinSys
   void MultiplyByMatrix(Array<real> *vIn, Array<real> *vOut);
 };
 
-}
+}  // namespace astrix
+
 #endif  // ASTRIX_LINSYS_H

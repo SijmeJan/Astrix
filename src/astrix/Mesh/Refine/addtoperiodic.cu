@@ -111,4 +111,4 @@ void Refine::AddToPeriodic(Connectivity * const connectivity,
   }
 }
 
-}
+}  // namespace astrix

@@ -14,11 +14,11 @@ Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <iostream>
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include <thrust/sort.h>
 #include <thrust/iterator/zip_iterator.h>
+#include <iostream>
 
 #include "./array.h"
 #include "../Common/cudaLow.h"
@@ -109,7 +109,6 @@ void Array<T>::SortByKey(Array<S> *indexArray, unsigned int N)
   if (cudaFlag == 0) {
     thrust::sort_by_key(hostVec, &(hostVec[N]), index);
   }
-
 }
 
 //###################################################
@@ -164,4 +163,4 @@ template void Array<unsigned int>::SortByKey(Array<unsigned int> *indexArray,
 
 template void Array<unsigned int>::SortByKey(Array<int> *indexArray);
 
-}
+}  // namespace astrix

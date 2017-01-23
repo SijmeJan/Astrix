@@ -33,7 +33,7 @@ namespace astrix {
 __host__ __device__
 unsigned int BitInterleave(unsigned short x, unsigned short y)
 {
-  unsigned int z = 0; // z gets the resulting 32-bit Morton Number.
+  unsigned int z = 0;  // z gets the resulting 32-bit Morton Number.
 
   for (unsigned int i = 0; i < sizeof(x) * 8; i++)
     z |= (x & 1 << i) << i | (y & 1 << i) << (i + 1);
@@ -104,4 +104,4 @@ void Morton::CalcValues(Connectivity * const connectivity)
   }
 }
 
-}
+}  // namespace astrix

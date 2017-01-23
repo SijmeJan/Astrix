@@ -53,7 +53,6 @@ Start at the insertion triangle and move in clockwise direction along the edge o
 __host__ __device__
 void FindIndependentCavity(int i, real2 *pVcAdd, int *pElementAdd,
                            int nTriangle, int *pTiC,
-                           //int3 *pTv, int3 *pTe, int2 *pEt, real2 *pVc,
                            const int3* __restrict__ pTv,
                            const int3* __restrict__ pTe,
                            const int2* __restrict__ pEt,
@@ -240,7 +239,6 @@ Upon return, pUniqueFlag[i] = 1 is point can be inserted independently of all ot
 __global__ void
 devFindIndependentCavities(int nRefine, real2 *pVcAdd, int *pElementAdd,
                            int nTriangle, int *pTiC,
-                           //int3 *pTv, int3 *pTe, int2 *pEt, real2 *pVc,
                            const int3* __restrict__ pTv,
                            const int3* __restrict__ pTe,
                            const int2* __restrict__ pEt,
@@ -269,8 +267,7 @@ Upon return, pUniqueFlag[i] = 1 is point can be inserted independently of all ot
 \param *predicates Pointer to Predicates object
 \param *meshParameter Pointer to Mesh parameters
 \param *triangleInCavity pTriangleInCavity[n] = pRandomPermutation[i]: triangle n is part of cavity of insertion point i and available.
-\param *uniqueFlag Upon return, pUniqueFlag[i] = 1 is point can be inserted independently of all others, otherwise pUniqueFlag[i] = 0.
-*/
+\param *uniqueFlag Upon return, pUniqueFlag[i] = 1 is point can be inserted independently of all others, otherwise pUniqueFlag[i] = 0.*/
 //#########################################################################
 
 void Refine::FindIndependentCavities(Connectivity * const connectivity,
@@ -352,7 +349,6 @@ void Refine::FindIndependentCavities(Connectivity * const connectivity,
   gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("IndependentCavities.prof", nRefine, elapsedTime, cudaFlag);
 #endif
-
 }
 
-}
+}  // namespace astrix

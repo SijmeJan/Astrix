@@ -39,23 +39,17 @@ Walk through the mesh, starting at \a tStart, trying to find a triangle containi
 \param x X-coordinate of point to find triangle for
 \param y Y-coordinate of point to find triangle for
 \param nTriangle Total number of triangles in Mesh
-\param edgeIndex If point lies exactly on edge, the index of the edge will be stored here
-\param *pVertX Pointer to x-coordinates of vertices
-\param *pVertY Pointer to y-coordinates of vertices
-\param *tv1 Pointer to first vertex of triangle
-\param *tv2 Pointer to second vertex of triangle
-\param *tv3 Pointer to third vertex of triangle
-\param *te1 Pointer to first edge of triangle
-\param *te2 Pointer to second edge of triangle
-\param *te3 Pointer to third edge of triangle
-\param *et1 Pointer to first triangle neighbouring edge
-\param *et2 Pointer to second triangle neighbouring edge
+\param *pVc Pointer vertex coordinates
+\param *pTv Pointer to triangle vertices
+\param *pTe Pointer to triangle edges
+\param *pEt Pointer to edge triangles
 \param *pred Pointer to initialised Predicates object
 \param *pParam Pointer to initialised Predicates parameter vector
 \param nVertex Total number of vertices in Mesh
 \param Px Periodic domain size x
 \param Py Periodic domain size y
-\param printFlag Flag whether to print triangle walk on screen (for debugging purposes)*/
+\param printFlag Flag whether to print triangle walk on screen (for debugging purposes)
+\param nSteps Keep track of how many triangles we visit*/
 //#########################################################################
 
 __host__ __device__
@@ -79,7 +73,7 @@ int FindTriangle(int tStart, real& x, real& y, int nTriangle,
   int finished = 0;
   int crossTimes = 0;
   // Vertices belonging to edge we are moving across
-  int edgeV2 = -1;// = pTv[t].y;
+  int edgeV2 = -1;
   int edgeCrossed = -1;
   int edgeIndex = -1;
   nSteps = 0;
@@ -90,8 +84,6 @@ int FindTriangle(int tStart, real& x, real& y, int nTriangle,
     int a = pTv[t].x;
     int b = pTv[t].y;
     int c = pTv[t].z;
-
-    //if (nSteps == 0) edgeV2 = b;
 
     real ax, bx, cx, ay, by, cy;
     GetTriangleCoordinates(pVc, a, b, c,
@@ -115,10 +107,6 @@ int FindTriangle(int tStart, real& x, real& y, int nTriangle,
 
 
     real dx = x, dy = y;
-
-    //real A1 = pred->orient2d(dx, dy, ax, ay, bx, by, pParam);
-    //real A2 = pred->orient2d(dx, dy, bx, by, cx, cy, pParam);
-    //real A3 = pred->orient2d(dx, dy, cx, cy, ax, ay, pParam);
 
     real detleft = (dx - bx) * (ay - by);
     real detright = (dy - by) * (ax - bx);
@@ -153,7 +141,10 @@ int FindTriangle(int tStart, real& x, real& y, int nTriangle,
     }
 
     // Keep track how many times we go back to triangle we came from
-    if (tNext == tPrev) crossTimes++; else crossTimes = 0;
+    if (tNext == tPrev)
+      crossTimes++;
+    else
+      crossTimes = 0;
 
     // Not moving to new triangle: A1, A2, A3 >= 0
     if (tNext == t) {
@@ -183,8 +174,12 @@ int FindTriangle(int tStart, real& x, real& y, int nTriangle,
   }
 
   // Triangle found
-  if (finished == 1)
-    if (edgeIndex == -1) ret = t; else ret = edgeIndex + nTriangle;
+  if (finished == 1) {
+    if (edgeIndex == -1)
+      ret = t;
+    else
+      ret = edgeIndex + nTriangle;
+  }
 
   return ret;
 }
@@ -197,20 +192,12 @@ Walk through the mesh trying to find triangles containing points specified in \a
 \param nRefine Total number of points to find triangles for
 \param nTriangle Total number of triangles in Mesh
 \param *refineIndex Pointer to triangles spawning the points to be inserted. These triangles will serve as starting locations for the walk through the Mesh
-\param *pTriangleAdd Pointer to output array containing triangles found, or -1 if no triangle could be found
-\param *pEdgeAdd Pointer to output array containing edges found, or -1 if no edge could be found
-\param refineX X-coordinates of points to find triangles for
-\param refineY Y-coordinates of points to find triangles for
-\param *pVertX Pointer to x-coordinates of vertices
-\param *pVertY Pointer to y-coordinates of vertices
-\param *tv1 Pointer to first vertex of triangle
-\param *tv2 Pointer to second vertex of triangle
-\param *tv3 Pointer to third vertex of triangle
-\param *te1 Pointer to first edge of triangle
-\param *te2 Pointer to second edge of triangle
-\param *te3 Pointer to third edge of triangle
-\param *et1 Pointer to first triangle neighbouring edge
-\param *et2 Pointer to second triangle neighbouring edge
+\param *pElementAdd Pointer to output array containing triangles and edges found
+\param *pVcAdd Pointer to coordinates of points to search for
+\param *pVc Pointer vertex coordinates
+\param *pTv Pointer to triangle vertices
+\param *pTe Pointer to triangle edges
+\param *pEt Pointer to edge triangles
 \param *pred Pointer to initialised Predicates object
 \param *pParam Pointer to initialised Predicates parameter vector
 \param nVertex Total number of vertices in Mesh
@@ -349,14 +336,12 @@ void Refine::FindTriangles(Connectivity * const connectivity,
                   << "Vertex location: " << x << " " << y << std::endl
                   << "Starting triangle: " << pBadTriangles[i] << std::endl;
         throw std::runtime_error("");
-        //int qq; std::cin >> qq;
       }
     }
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
 #endif
-
   }
 
 #ifdef TIME_ASTRIX
@@ -367,4 +352,4 @@ void Refine::FindTriangles(Connectivity * const connectivity,
   delete nvtxFind;
 }
 
-}
+}  // namespace astrix

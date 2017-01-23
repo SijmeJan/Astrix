@@ -13,8 +13,8 @@ Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef PREDICATES_H
-#define PREDICATES_H
+#ifndef ASTRIX_PREDICATES_H
+#define ASTRIX_PREDICATES_H
 
 namespace astrix {
 
@@ -30,7 +30,7 @@ class Predicates
   //! Constructor
   /*! Construct Predicates object and compute parameter vector on host and device.
     \param *device Pointer to Device object.*/
-  Predicates(Device *device);
+  explicit Predicates(Device *device);
   //! Destructor
   ~Predicates();
 
@@ -431,7 +431,7 @@ class Predicates
                              real& x2, real& x1, real& x0, real& _i) const
   {
     Two_Diff(a0, b , _i, x0);
-    Two_Sum( a1, _i, x2, x1);
+    Two_Sum(a1, _i, x2, x1);
   }
 
   __host__ __device__
@@ -442,7 +442,6 @@ class Predicates
     Two_One_Diff(a1, a0, b0, _j, _0, x0, _i);
     Two_One_Diff(_j, _0, b1, x3, x2, x1, _i);
   }
-
 };
 
 //######################################################################
@@ -502,12 +501,7 @@ inline real Predicates::orient2dadapt(real ax, real ay,
   real s1, t1;
   real s0, t0;
 
-  // real bvirt;
-  //real avirt, bround, around;
-  // real c;
-  // real abig;
   real ahi, alo, bhi, blo;
-  //real err1, err2, err3;
   real _i, _j;
   real _0;
 
@@ -571,7 +565,6 @@ inline real Predicates::orient2dadapt(real ax, real ay,
 //
 //######################################################################
 
-//__host__ __device__
 inline real Predicates::incircle(real ax, real ay,
                                  real bx, real by,
                                  real cx, real cy,
@@ -622,7 +615,6 @@ inline real Predicates::incircle(real ax, real ay,
 //
 //######################################################################
 
-//__host__ __device__
 inline real Predicates::incircleadapt(real ax, real ay,
                                       real bx, real by,
                                       real cx, real cy,
@@ -672,7 +664,9 @@ inline real Predicates::incircleadapt(real ax, real ay,
   real cxtaa[8], cxtbb[8], cytaa[8], cytbb[8];
   int cxtaalen, cxtbblen, cytaalen, cytbblen;
   real axtbc[8], aytbc[8], bxtca[8], bytca[8], cxtab[8], cytab[8];
-  int axtbclen=0, aytbclen=0, bxtcalen=0, bytcalen=0, cxtablen=0, cytablen=0;
+  int axtbclen = 0, aytbclen = 0,
+    bxtcalen = 0, bytcalen = 0,
+    cxtablen = 0, cytablen = 0;
   real axtbct[16], aytbct[16], bxtcat[16], bytcat[16], cxtabt[16], cytabt[16];
   int axtbctlen, aytbctlen, bxtcatlen, bytcatlen, cxtabtlen, cytabtlen;
   real axtbctt[8], aytbctt[8], bxtcatt[8];
@@ -682,7 +676,7 @@ inline real Predicates::incircleadapt(real ax, real ay,
   int abtlen, bctlen, catlen;
   real abtt[4], bctt[4], catt[4];
   int abttlen, bcttlen, cattlen;
-   real abtt3, bctt3, catt3;
+  real abtt3, bctt3, catt3;
   real negate;
 
   real ahi, alo, bhi, blo;
@@ -1234,6 +1228,6 @@ inline real Predicates::incircleadapt(real ax, real ay,
   return finnow[finlength - 1];
 }
 
-}
+}  // namespace astrix
 
-#endif
+#endif  // ASTRIX_PREDICATES_H

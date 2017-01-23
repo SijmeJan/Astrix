@@ -348,4 +348,4 @@ int Refine::TestTrianglesQuality(Connectivity * const connectivity,
   return nBad;
 }
 
-}
+}  // namespace astrix

@@ -40,6 +40,7 @@ class Simulation
   void Run(int restartNumber, real maxWallClockHours);
 
  private:
+  //! GPU device available
   Device *device;
 
   //! Flag whether to use CUDA
@@ -127,7 +128,9 @@ class Simulation
   void Save(int nSave);
   //! Restore state from disc
   int Restore(int nSave);
+  //! Fine grain save
   void FineGrainSave(int nSave);
+  //! Calculate Kelvin-Helmholtz diagnostics
   void KHDiagnostics(real& M, real& Ekin);
   //! Add eigenvector perturbation
   void KHAddEigenVector();

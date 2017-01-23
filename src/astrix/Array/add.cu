@@ -78,4 +78,4 @@ template void Array<unsigned int>::AddValue(unsigned int value,
                                             unsigned int startIndex,
                                             unsigned int endIndex);
 
-}
+}  // namespace astrix

@@ -13,9 +13,8 @@ Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#include <iostream>
 #include <cuda_runtime_api.h>
+#include <iostream>
 
 #include "../Common/definitions.h"
 #include "../Array/array.h"
@@ -24,7 +23,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace astrix {
 
-  void LinSys::BiCGStab(Array<real> *x, Array<real> *b, int l)
+void LinSys::BiCGStab(Array<real> *x, Array<real> *b, int l)
 {
   // r = b - A*x
   MultiplyByMatrix(x, v);
@@ -40,7 +39,7 @@ namespace astrix {
   u->SetToValue(0.0);
 
   for (int k = 0; k <= maxIter; k += l) {
-    Array<real> *uhat = new Array<real>(1,
+    // Array<real> *uhat = new Array<real>(1,
     real rho1 = r->InnerProduct(rhat);
     real beta = alpha*rho1/rho0;
 
@@ -98,8 +97,7 @@ namespace astrix {
     // ri+2 = r - omega1*s - omega2*t
     // If accurate enough quit
     // u = u - omega1*v - omega2*w
-
+  }
 }
 
-
-}
+}  // namespace astrix

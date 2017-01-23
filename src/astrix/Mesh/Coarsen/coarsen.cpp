@@ -42,8 +42,6 @@ Coarsen::Coarsen(int _cudaFlag, int _debugLevel, int _verboseLevel)
   vertexTriangle = new Array<int>(1, cudaFlag);
   vertexArea = new Array<real>(1, cudaFlag);
 
-  /*
-  // Create vector of random values
   randomVector = new Array<unsigned int>(1, cudaFlag);
   if (cudaFlag == 1)
     randomVector->TransformToHost();
@@ -51,7 +49,6 @@ Coarsen::Coarsen(int _cudaFlag, int _debugLevel, int _verboseLevel)
   randomVector->SetToRandom();
   if (cudaFlag == 1)
     randomVector->TransformToDevice();
-  */
 }
 
 //#########################################################################
@@ -64,7 +61,7 @@ Coarsen::~Coarsen()
   delete vertexTriangle;
   delete vertexArea;
 
-  //delete randomVector;
+  delete randomVector;
 }
 
 }

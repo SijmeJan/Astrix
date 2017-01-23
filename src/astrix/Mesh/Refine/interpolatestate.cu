@@ -228,4 +228,4 @@ void Refine::InterpolateState(Connectivity * const connectivity,
   }
 }
 
-}
+}  // namespace astrix
