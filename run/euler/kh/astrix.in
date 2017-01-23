@@ -19,7 +19,7 @@ specificHeatRatio	1.4	# Ratio of specific heats
 # Mesh parameters
 ###############################################################################
 
-equivalentPointsX	128	# Base resolution
+equivalentPointsX	64	# Base resolution
 minX 		  	0.0	# Left x boundary
 maxX		  	1.0	# Right x boundary
 minY		  	0.0	# Bottom y boundary

@@ -475,7 +475,6 @@ void Simulation::SetInitial(real time)
                        specificHeatRatio, time, Px);
   }
 
-  /*
   try {
     // Add KH eigenvector
     if (problemDef == PROBLEM_KH)
@@ -486,7 +485,6 @@ void Simulation::SetInitial(real time)
     std::cout << "Running simulation without adding KH eigenvector!"
               << std::endl;
   }
-  */
 }
 
 }  // namespace astrix

@@ -7,7 +7,7 @@ problemDefinition	VORTEX	# Test problem definition
 maxSimulationTime 	0.2	# Maximum simulation time
 saveIntervalTimeFine  	0.01	# Fine save interval
 saveIntervalTime  	0.01	# Save interval
-integrationScheme 	N	# Integration scheme (N, LDA or B)
+integrationScheme 	LDA	# Integration scheme (N, LDA or B)
 integrationOrder  	1	# Integration order (1 or 2)
 massMatrix		1	# Mass matrix formulation (1, 2, 3 or 4)
 selectiveLumpFlag	0	# Flag whether to use selective lumping
@@ -19,7 +19,7 @@ specificHeatRatio	1.4	# Ratio of specific heats
 # Mesh parameters
 ###############################################################################
 
-equivalentPointsX	128	# Base resolution
+equivalentPointsX	64	# Base resolution
 minX 		  	-0.5	# Left x boundary
 maxX		  	0.5	# Right x boundary
 minY		  	-0.5	# Bottom y boundary

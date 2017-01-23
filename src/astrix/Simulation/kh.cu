@@ -103,7 +103,18 @@ void Simulation::KHAddEigenVector()
   const real2 *pVc = mesh->VertexCoordinatesData();
 
   // Read in KH eigenvector
+  std::ifstream KH("eigvec.txt");
+  if (!KH.is_open()) {
+    std::cout << "Error opening file " << "eigvec.txt" << std::endl;
+    throw std::runtime_error("");
+  }
+
   int nKH = 128 + 2;
+  KH >> nKH;
+  nKH += 2;
+  real kxKH = 1.0;
+  KH >> kxKH;
+
   Array<real> *yKH = new Array<real>(1, 0, nKH);
   Array<real> *densReal = new Array<real>(1, 0, nKH);
   Array<real> *densImag = new Array<real>(1, 0, nKH);
@@ -119,14 +130,6 @@ void Simulation::KHAddEigenVector()
   real *puI  = velxImag->GetPointer();
   real *pvR  = velyReal->GetPointer();
   real *pvI  = velyImag->GetPointer();
-
-  real kxKH = 1.0;
-
-  std::ifstream KH("eigvec.txt");
-  if (!KH.is_open()) {
-    std::cout << "Error opening file " << "eigvec.txt" << std::endl;
-    throw std::runtime_error("");
-  }
 
   for (int j = 1; j < nKH - 1; j++)
     KH >> pyKH[j] >> pdR[j] >> pdI[j] >> puR[j] >> puI[j] >> pvR[j] >> pvI[j];

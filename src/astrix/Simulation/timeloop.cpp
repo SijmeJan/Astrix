@@ -248,6 +248,7 @@ void Simulation::DoTimeStep()
       problemDef == PROBLEM_SOD)
     ExtrapolateBoundaries();
   */
+
   // Boundary conditions for 2D Riemann
   if (problemDef == PROBLEM_RIEMANN)
     SetRiemannBoundaries();
@@ -264,13 +265,6 @@ void Simulation::DoTimeStep()
 
   // Calculate (space) residuals at triangles
   CalcResidual();
-
-  /*
-  int nVertex = mesh->GetNVertex();
-  real *state = triangleResidueTotal->GetHostPointer();
-  for (int i = 0; i < mesh->GetNTriangle(); i++)
-    if (state[i] < 0.0) std::cout << "Hallo" << std::endl;
-  */
 
   // Update state at vertices
   try {
