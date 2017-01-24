@@ -2,19 +2,19 @@
 #
 # Makefile project only supported on Mac OS X and Linux Platforms
 #
-# Requires that either nvcc can be found in the PATH or else that 
+# Requires that either nvcc can be found in the PATH or else that
 # CUDA_INSTALL_PATH contains the CUDA installation directory (e.g.
 # /usr/local/cuda). By default, compile for all possible target architectures
 # (slow). Use for example CUDA_COMPUTE=30 to compile for a 3.0 compute
 # capability only. Use CUDA_PROFILE=1 to compile for profiling, and
-# CUDA_DEBUG=1 to compile for debugging. 
+# CUDA_DEBUG=1 to compile for debugging.
 #
 ################################################################################
 
 # Guess CUDA install path from nvcc location
 CUDA_INSTALL_PATH ?= $(shell which nvcc | sed "s/\/bin\/nvcc//")
 
-# If not specified, compile for all supported compute capabilities 
+# If not specified, compile for all supported compute capabilities
 CUDA_COMPUTE ?= 0
 
 # By default, no profiling flags
@@ -25,6 +25,9 @@ CUDA_TIMING ?= 0
 
 # By default, no debug flags
 CUDA_DEBUG ?= 0
+
+# By default, use single precision
+ASTRIX_DOUBLE ?= -1
 
 # Directory to put binaries in
 BINDIR = ../../bin
@@ -54,7 +57,7 @@ DEP = $(patsubst %.cu,%.d,$(patsubst %.cpp,%.d,$(SRC)))
 # Compiler and linker flags
 ################################################################################
 
-# NVCC compiler 
+# NVCC compiler
 NVCC:= $(CUDA_INSTALL_PATH)/bin/nvcc
 
 # Detect 32-bit or 64-bit OS platform
@@ -87,8 +90,11 @@ ifeq ($(CUDA_TIMING),1)
 endif
 # Add debug info if debugging
 ifeq ($(CUDA_DEBUG),1)
-	NVCCFLAGS += -g -G 
+	NVCCFLAGS += -g -G
 endif
+
+# Double precision support
+NVCCFLAGS += -DUSE_DOUBLE=$(ASTRIX_DOUBLE)
 
 # Compiler flags
 ALL_CCFLAGS :=
