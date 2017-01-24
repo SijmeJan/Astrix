@@ -198,11 +198,23 @@ void Simulation::Init(int restartNumber)
     std::cout << "Done creating simulation." << std::endl;
     std::cout << "Memory allocated on host: "
               << ((real)(Array<real>::memAllocatedHost) +
+                  (real)(Array<real2>::memAllocatedHost) +
+                  (real)(Array<real3>::memAllocatedHost) +
+                  (real)(Array<real4>::memAllocatedHost) +
                   (real)(Array<int>::memAllocatedHost) +
+                  (real)(Array<int2>::memAllocatedHost) +
+                  (real)(Array<int3>::memAllocatedHost) +
+                  (real)(Array<int4>::memAllocatedHost) +
                   (real)(Array<unsigned int>::memAllocatedHost))/
       (real) (1073741824) << " Gb, on device: "
               << ((real)(Array<real>::memAllocatedDevice) +
+                  (real)(Array<real2>::memAllocatedDevice) +
+                  (real)(Array<real3>::memAllocatedDevice) +
+                  (real)(Array<real4>::memAllocatedDevice) +
                   (real)(Array<int>::memAllocatedDevice) +
+                  (real)(Array<int2>::memAllocatedDevice) +
+                  (real)(Array<int3>::memAllocatedDevice) +
+                  (real)(Array<int4>::memAllocatedDevice) +
                   (real)(Array<unsigned int>::memAllocatedDevice))/
       (real) (1073741824) << " Gb" << std::endl;
   }
