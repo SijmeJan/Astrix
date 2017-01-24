@@ -16,9 +16,6 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef ASTRIX_DEFINITIONS_H
 #define ASTRIX_DEFINITIONS_H
 
-//#define USE_DOUBLE -1
-#define N_EQUATION 4
-
 /*! \namespace astrix
 \brief Namespace encapsulating all of Astrix
 */

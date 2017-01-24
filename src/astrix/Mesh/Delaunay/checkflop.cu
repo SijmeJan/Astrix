@@ -23,6 +23,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../../Common/cudaLow.h"
 #include "../Connectivity/connectivity.h"
 #include "../Param/meshparameter.h"
+#include "../../Common/profile.h"
 
 namespace astrix {
 

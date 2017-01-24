@@ -17,17 +17,20 @@ CUDA_INSTALL_PATH ?= $(shell which nvcc | sed "s/\/bin\/nvcc//")
 # If not specified, compile for all supported compute capabilities
 CUDA_COMPUTE ?= 0
 
-# By default, no profiling flags
+# By default, no profiling flags (requires rebuild if changed)
 CUDA_PROFILE ?= 0
 
-# By default, do not time
+# By default, do not time (requires rebuild if changed)
 CUDA_TIMING ?= 0
 
-# By default, no debug flags
+# By default, no debug flags (requires rebuild if changed)
 CUDA_DEBUG ?= 0
 
-# By default, use single precision
+# By default, use single precision (requires rebuild if changed)
 ASTRIX_DOUBLE ?= -1
+
+# By default, solve Euler rather than scalar (requires rebuild if changed to 1)
+ASTRIX_NEQ ?= 4
 
 # Directory to put binaries in
 BINDIR = ../../bin
@@ -95,6 +98,9 @@ endif
 
 # Double precision support
 NVCCFLAGS += -DUSE_DOUBLE=$(ASTRIX_DOUBLE)
+
+# Number of equations to solve
+NVCCFLAGS += -DN_EQUATION=$(ASTRIX_NEQ)
 
 # Compiler flags
 ALL_CCFLAGS :=
