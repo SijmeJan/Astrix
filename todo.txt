@@ -1,7 +1,6 @@
 new parallel flip selection test?
 adjust makefile register use / double prec ?
-move doxygen to doc/
-readthedocs rts
+readthedocs sphinx
 check all test problems
 
 source term integration
