@@ -167,9 +167,9 @@ void Mesh::ReadFromDisk(int nSave)
 
   if (nSave == -1) {
     std::ifstream inFile;
-    inFile.open("lastsave.txt");
+    inFile.open("lastsave.dat");
     if (!inFile) {
-      std::cout << "Could not open lastsave.txt!" << std::endl;
+      std::cout << "Could not open lastsave.dat!" << std::endl;
       throw std::runtime_error("");
     }
     inFile >> nSave;

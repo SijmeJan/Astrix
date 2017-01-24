@@ -165,13 +165,13 @@ void Simulation::Save()
   delete ener;
 
   // Output save number so that we can restore latest save if wanted
-  outFile.open("lastsave.txt");
+  outFile.open("lastsave.dat");
   outFile << nSave << std::endl;
   outFile.close();
 
   // Check if everything OK
   if (!outFile) {
-    std::cout << "Error writing lastsave.txt" << std::endl;
+    std::cout << "Error writing lastsave.dat" << std::endl;
     throw std::runtime_error("");
   }
 
@@ -192,9 +192,9 @@ void Simulation::Restore(int nRestore)
   int sizeOfData = sizeof(real);
 
   if (nRestore == -1) {
-    inFile.open("lastsave.txt");
+    inFile.open("lastsave.dat");
     if (!inFile) {
-      std::cout << "Could not open lastsave.txt!"
+      std::cout << "Could not open lastsave.dat!"
                 << std::endl;
       throw std::runtime_error("");
     }
