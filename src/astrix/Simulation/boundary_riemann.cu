@@ -114,7 +114,8 @@ void SetBoundaryRiemannVertex(int n, real *pState,
                               const real2 *pVc, const int *pVbf,
                               real simulationTime, real iG1)
 {
-  // Dummy function: Riemann boundaries are specific to Euler
+  // Non-reflecting in the case of Burgers Riemann
+  if (pVbf[n] != 0) pState[n] = 1.0e-10;
 }
 
 //######################################################################

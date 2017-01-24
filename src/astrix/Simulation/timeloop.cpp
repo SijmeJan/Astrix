@@ -31,39 +31,31 @@ namespace astrix {
 //#########################################################################
 /*! Run simulation, possibly restarting from saved state, for a maximum
 amount of wall clock hours.
-  \param restartNumber Previous saved state to start from. If <= 0, start
-new simulation.
   \param maxWallClockHours Maximum amount of wall clock hours to run for.*/
 //#########################################################################
 
-void Simulation::Run(int restartNumber, real maxWallClockHours)
+void Simulation::Run(real maxWallClockHours)
 {
   int warning = 0;
   time_t startTime = time(NULL);
   double elapsedTimeHours = difftime(time(NULL), startTime)/3600.0;
 
-  // Number of saves so far
-  int nSave = 0, nSaveFine = 0;
-  // Restore state if necessary
-  if (restartNumber > 0) {
-    try {
-      nSave = Restore(restartNumber);
-    }
-    catch (...) {
-      std::cout << "Error restoring state" << std::endl;
-      throw;
+  try {
+    // Save state at t=0
+    if (nSave == 0) {
+      Save();
+      FineGrainSave();
+      nSave++;
+      nSaveFine++;
     }
   }
-
-  // Save state at t=0
-  if (nSave == 0) {
-    Save(nSave);
-    FineGrainSave(nSave);
-    nSave++;
+  catch (...) {
+    std::cout << "Error saving " << nSave << std::endl;
+    throw;
   }
 
   if (verboseLevel > 0)
-    std::cout << "Starting time loop..." << std::endl;
+    std::cout << "Starting time loop... " << nSave << std::endl;
 
   while (warning == 0 &&
          simulationTime < maxSimulationTime &&
@@ -74,134 +66,46 @@ void Simulation::Run(int restartNumber, real maxWallClockHours)
     }
     catch (...) {
       std::cout << "Error after DoTimeStep()" << std::endl;
-      Save(999);
+      nSave = 999;
+      Save();
 
       throw;
     }
 
-    // Save every saveFineInterval
-    if (simulationTime > (real) nSaveFine*saveIntervalTimeFine) {
-      FineGrainSave(nSave);
-      nSaveFine++;
-    }
+    try {
+      // Save every saveFineInterval
+      if (simulationTime > (real) nSaveFine*saveIntervalTimeFine) {
+        FineGrainSave();
+        nSaveFine++;
+      }
 
-    // Save every saveInterval
-    if (simulationTime > (real) nSave*saveIntervalTime) {
-      Save(nSave);
-      nSave++;
+      // Save every saveInterval
+      if (simulationTime > (real) nSave*saveIntervalTime) {
+        Save();
+        nSave++;
+      }
+    }
+    catch (...) {
+      std::cout << "Save failed!" << std::endl;
+      throw;
     }
 
     elapsedTimeHours = difftime(time(NULL), startTime)/3600.0;
   }
 
-  // Save if end of simulation reached
-  if (warning == 0 &&
-      elapsedTimeHours < maxWallClockHours) {
-    Save(nSave);
-    nSave++;
+  try {
+    // Save if end of simulation reached
+    if (warning == 0 &&
+        elapsedTimeHours < maxWallClockHours) {
+      Save();
+      nSave++;
+    }
+  }
+  catch (...) {
+    std::cout << "Save failed!" << std::endl;
+    throw;
   }
 
-  if (problemDef == PROBLEM_VORTEX ||
-      problemDef == PROBLEM_YEE ||
-      problemDef == PROBLEM_LINEAR ||
-      problemDef == PROBLEM_NOH) {
-    int nVertex = mesh->GetNVertex();
-
-    vertexStateOld->SetEqual(vertexState);
-    SetInitial(simulationTime);
-
-    // Now vertexState contains exact state, vertexOld final state
-    if (cudaFlag == 1) {
-      mesh->Transform();
-      vertexState->CopyToHost();
-      vertexStateOld->CopyToHost();
-    }
-
-    realNeq *state = vertexState->GetHostPointer();
-    realNeq *stateOld = vertexStateOld->GetHostPointer();
-
-    const real *vertArea = mesh->VertexAreaData();
-
-    real L1dens = 0.0;
-    real L2dens = 0.0;
-    real Lmaxdens = 0.0;
-    real totalArea = 0.0;
-    for (int n = 0; n < nVertex; n++) {
-#if N_EQUATION == 1
-      real relDiff = (state[n] - stateOld[n])/stateOld[n];
-#endif
-
-#if N_EQUATION == 4
-      real relDiff = (state[n].x - stateOld[n].x)/stateOld[n].x;
-      if (problemDef == PROBLEM_VORTEX) {
-        real G = specificHeatRatio;
-
-        real dens = state[n].x;
-        real momx = state[n].y;
-        real momy = state[n].z;
-        real ener = state[n].w;
-
-        real p = (G - 1.0)*(ener - 0.5*(momx*momx + momy*momy)/dens);
-
-        dens = stateOld[n].x;
-        momx = stateOld[n].y;
-        momy = stateOld[n].z;
-        ener = stateOld[n].w;
-
-        real pOld = (G - 1.0)*(ener - 0.5*(momx*momx + momy*momy)/dens);
-
-        relDiff = (pOld - p)/p;
-      }
-#endif
-
-      L1dens += fabs(relDiff)*vertArea[n];
-      L2dens += relDiff*relDiff*vertArea[n];
-      if (fabs(relDiff) > Lmaxdens)
-        Lmaxdens = fabs(relDiff);
-      totalArea += vertArea[n];
-    }
-
-    L1dens = L1dens/totalArea;
-    L2dens = sqrt(L2dens/totalArea);
-
-    std::cout << "L1 error in density: " << L1dens << " " << std::endl;
-    std::cout << "L2 error in density: " << L2dens << " " << std::endl;
-    std::cout << "Lmax error in density: " << Lmaxdens << " " << std::endl;
-    std::cout << "Mesh size paramenter: " << sqrt(totalArea/(real)nVertex)
-              << std::endl;
-
-    std::ofstream uitvoer;
-    if (extraFlag == 0 || extraFlag == 32)
-      uitvoer.open("resolution.txt");
-    else
-      uitvoer.open("resolution.txt", std::ios::app);
-    uitvoer << extraFlag << " "
-            << std::scientific << std::setprecision(2)
-            << sqrt(totalArea/(real)nVertex) << " "
-            << L1dens << " "
-            << L2dens << " "
-            << Lmaxdens << std::endl;
-    uitvoer.close();
-
-    if (cudaFlag == 1)
-      mesh->Transform();
-
-    for (int i = 0; i < nVertex; i++) {
-#if N_EQUATION == 1
-      real relDiff = (state[i] - stateOld[i])/stateOld[i];
-      state[i] = fabs(relDiff);
-#endif
-#if N_EQUATION == 4
-      real relDiff = (state[i].x - stateOld[i].x)/stateOld[i].x;
-      state[i].x = fabs(relDiff);
-#endif
-
-      vertexState->SetEqual(vertexStateOld);
-    }
-
-    Save(nSave);
-    nSave++;
-  }
 }
 
 //#########################################################################

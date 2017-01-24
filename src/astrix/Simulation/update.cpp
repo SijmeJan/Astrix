@@ -73,6 +73,7 @@ void Simulation::UpdateState(real dt, int RKStep)
       std::cout << "Unphysical state after " << maxCycle
                 << " cycles, exiting" << std::endl;
 
+#if N_EQUATION == 4
       if (cudaFlag == 0) {
         int *pVu = vertexUnphysicalFlag->GetHostPointer();
         const real2 *pVc = mesh->VertexCoordinatesData();
@@ -95,6 +96,7 @@ void Simulation::UpdateState(real dt, int RKStep)
           }
         }
       }
+#endif
 
       throw std::runtime_error("");
     }

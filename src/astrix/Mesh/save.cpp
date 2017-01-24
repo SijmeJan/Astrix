@@ -165,6 +165,17 @@ void Mesh::ReadFromDisk(int nSave)
   std::cout << "Reading mesh from disk..." << std::endl;
   char fname[13];
 
+  if (nSave == -1) {
+    std::ifstream inFile;
+    inFile.open("lastsave.txt");
+    if (!inFile) {
+      std::cout << "Could not open lastsave.txt!" << std::endl;
+      throw std::runtime_error("");
+    }
+    inFile >> nSave;
+    inFile.close();
+  }
+
   // Open vertex file
   snprintf(fname, sizeof(fname), "vert%4.4d.dat", nSave);
   std::ifstream vertexInFile(fname, std::ios::binary);

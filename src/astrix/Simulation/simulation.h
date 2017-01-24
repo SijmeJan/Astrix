@@ -15,7 +15,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #ifndef ASTRIX_SIMULATION_H
 #define ASTRIX_SIMULATION_H
 
-#define BURGERS -1
+#define BURGERS 1
 
 namespace astrix {
 
@@ -37,7 +37,7 @@ class Simulation
   ~Simulation();
 
   //! Run simulation
-  void Run(int restartNumber, real maxWallClockHours);
+  void Run(real maxWallClockHours);
 
  private:
   //! GPU device available
@@ -96,6 +96,10 @@ class Simulation
   real saveIntervalTime;
   //! Time between 0D saves
   real saveIntervalTimeFine;
+  //! Number of saves so far
+  int nSave;
+  //! Number of fine grain saves so far
+  int nSaveFine;
 
   //! State vector at vertex
   Array <realNeq> *vertexState;
@@ -125,12 +129,14 @@ class Simulation
   void ReadInputFile(const char *fileName);
 
   //! Save current state
-  void Save(int nSave);
+  void Save();
   //! Restore state from disc
-  int Restore(int nSave);
+  void Restore(int nRestore);
   //! Fine grain save
-  void FineGrainSave(int nSave);
-  //! Calculate Kelvin-Helmholtz diagnostics
+  void FineGrainSave();
+  //! Make fine grain save file consistent when restoring
+  void RestoreFine();
+ //! Calculate Kelvin-Helmholtz diagnostics
   void KHDiagnostics(real& M, real& Ekin);
   //! Add eigenvector perturbation
   void KHAddEigenVector();

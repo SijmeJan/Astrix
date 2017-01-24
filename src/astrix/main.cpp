@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
 
   try {
     // Run simulation
-    simulation->Run(restartNumber, maxWallClockHours);
+    simulation->Run(maxWallClockHours);
   }
   catch (...) {
     std::cout << "Exiting with error!" << std::endl;

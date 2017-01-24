@@ -18,6 +18,8 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <iomanip>
 #include <fstream>
 #include <cmath>
+#include <sstream>
+#include <string>
 
 #include "../Common/definitions.h"
 #include "../Array/array.h"
@@ -31,12 +33,10 @@ namespace astrix {
 /*! Write the current state to disk, generating output files dens###.dat
   (density), momx###.dat (x-momentum), momy###.dat (y-momentum) and
   ener###.dat (total energy). Hashes indicate a 3-digit number constructed
-  from nSave.
-
-  \param nSave Output number, used to generate file names. */
+  from nSave.*/
 //#########################################################################
 
-void Simulation::Save(int nSave)
+void Simulation::Save()
 {
   nvtxEvent *nvtxSave = new nvtxEvent("Save", 3);
 
@@ -62,72 +62,10 @@ void Simulation::Save(int nSave)
 
 #if N_EQUATION == 1
   real *state = vertexState->GetHostPointer();
-  const real2 *pVc = mesh->VertexCoordinatesData();
-
-  if (problemDef == PROBLEM_VORTEX) {
-    for (int n = 0; n < nVertex; n++) {
-      pDens[n] = state[n];
-
-#if BURGERS == 1
-      real u0 = 1.0;
-      real u1 = 0.0;
-      real u2 = 0.0;
-      real amp = 0.001;
-      for (int i = 0; i < 2; i++) {
-        for (int j = 0; j < 2; j++) {
-          // Start center location
-          real xStart = -1.0 + (real)i;
-          real yStart = -1.0 + (real)j;
-
-          // Current centre location
-          real cx = xStart + simulationTime;
-          real cy = yStart + simulationTime;
-
-          real x = pVc[n].x - cx;
-          real y = pVc[n].y - cy;
-          real r = sqrt(x*x + y*y);
-
-          if (r < 0.25) {
-            u1 += amp*cos(2.0*M_PI*r)*cos(2.0*M_PI*r);
-            u2 += amp*amp*4.0*M_PI*simulationTime*(x + y)*cos(2.0*M_PI*r)*
-              cos(2.0*M_PI*r)*cos(2.0*M_PI*r)*sin(2.0*M_PI*r)/(r + 1.0e-10);
-          }
-        }
-      }
-
-      pMomx[n] = fabs(state[n] - u0 - u1)*state[n];
-      pMomy[n] = fabs(state[n] - u0 - u1 - u2)*state[n];
-      pEner[n] = state[n];
-#else
-      real Px = mesh->GetPx();
-
-      real u0 = 1.0;
-      real u1 = 0.0;
-
-      for (int i = -1; i < 2; i++) {
-        // Start center location
-        real xStart = 0.5 + (real)i*Px;
-        real yStart = 0.5;
-
-        // Current centre location
-        real cx = xStart + simulationTime;
-        real cy = yStart;
-
-        real x = pVc[n].x - cx;
-        real y = pVc[n].y - cy;
-        real r = sqrt(x*x + y*y);
-
-        if (r <= (real) 0.25)
-          u1 += cos(2.0*M_PI*r)*cos(2.0*M_PI*r);
-      }
-
-      pMomx[n] = fabs(state[n] - u0 - u1)*state[n];
-      pMomy[n] = state[n];
-      pEner[n] = state[n];
+  for (int n = 0; n < nVertex; n++)
+    pDens[n] = state[n];
 #endif
-    }
-  }
-#endif
+
 #if N_EQUATION == 4
   real4 *state = vertexState->GetHostPointer();
   for (int n = 0; n < nVertex; n++) {
@@ -150,6 +88,12 @@ void Simulation::Save(int nSave)
   outFile.write(reinterpret_cast<char*>(pDens), nVertex*sizeof(real));
   outFile.close();
 
+  // Check if everything OK
+  if (!outFile) {
+    std::cout << "Error writing " << fname << std::endl;
+    throw std::runtime_error("");
+  }
+
   // Write x-momentum binary
   snprintf(fname, sizeof(fname), "momx%4.4d.dat", nSave);
   outFile.open(fname, std::ios::binary);
@@ -158,6 +102,12 @@ void Simulation::Save(int nSave)
   outFile.write(reinterpret_cast<char*>(&nTimeStep), sizeof(int));
   outFile.write(reinterpret_cast<char*>(pMomx), nVertex*sizeof(real));
   outFile.close();
+
+  // Check if everything OK
+  if (!outFile) {
+    std::cout << "Error writing " << fname << std::endl;
+    throw std::runtime_error("");
+  }
 
   // Write y-momentum binary
   snprintf(fname, sizeof(fname), "momy%4.4d.dat", nSave);
@@ -168,6 +118,12 @@ void Simulation::Save(int nSave)
   outFile.write(reinterpret_cast<char*>(pMomy), nVertex*sizeof(real));
   outFile.close();
 
+  // Check if everything OK
+  if (!outFile) {
+    std::cout << "Error writing " << fname << std::endl;
+    throw std::runtime_error("");
+  }
+
   // Write energy binary
   snprintf(fname, sizeof(fname), "ener%4.4d.dat", nSave);
   outFile.open(fname, std::ios::binary);
@@ -176,6 +132,12 @@ void Simulation::Save(int nSave)
   outFile.write(reinterpret_cast<char*>(&nTimeStep), sizeof(int));
   outFile.write(reinterpret_cast<char*>(pEner), nVertex*sizeof(real));
   outFile.close();
+
+  // Check if everything OK
+  if (!outFile) {
+    std::cout << "Error writing " << fname << std::endl;
+    throw std::runtime_error("");
+  }
 
   // Write blend factor
   int nTriangle = mesh->GetNTriangle();
@@ -191,6 +153,12 @@ void Simulation::Save(int nSave)
   outFile.write(reinterpret_cast<char*>(pBlnd), nTriangle*sizeof(real));
   outFile.close();
 
+  // Check if everything OK
+  if (!outFile) {
+    std::cout << "Error writing " << fname << std::endl;
+    throw std::runtime_error("");
+  }
+
   delete dens;
   delete momx;
   delete momy;
@@ -201,6 +169,12 @@ void Simulation::Save(int nSave)
   outFile << nSave << std::endl;
   outFile.close();
 
+  // Check if everything OK
+  if (!outFile) {
+    std::cout << "Error writing lastsave.txt" << std::endl;
+    throw std::runtime_error("");
+  }
+
   std::cout << " Done" << std::endl;
 
   delete nvtxSave;
@@ -208,29 +182,29 @@ void Simulation::Save(int nSave)
 
 //#########################################################################
 /*! Restore state from previous save.
-  \param nSave Save number to restore.*/
+  \param nRestore Save number to restore.*/
 //#########################################################################
 
-int Simulation::Restore(int nSave)
+void Simulation::Restore(int nRestore)
 {
   std::ifstream inFile;
   char fname[13];
   int sizeOfData = sizeof(real);
 
-  if (nSave == -1) {
+  if (nRestore == -1) {
     inFile.open("lastsave.txt");
     if (!inFile) {
-      std::cout << "Could not open lastsave.txt, starting new simulation"
+      std::cout << "Could not open lastsave.txt!"
                 << std::endl;
-      return 0;
+      throw std::runtime_error("");
     }
     inFile >> nSave;
     inFile.close();
+  } else {
+    nSave = nRestore;
   }
 
   std::cout << "Restoring save #" << nSave << std::endl;
-
-  mesh->ReadFromDisk(nSave);
 
   int nVertex = mesh->GetNVertex();
   int nTriangle = mesh->GetNTriangle();
@@ -272,6 +246,11 @@ int Simulation::Restore(int nSave)
   inFile.read(reinterpret_cast<char*>(&nTimeStep), sizeof(int));
   inFile.read(reinterpret_cast<char*>(pDens), nVertex*sizeof(real));
   inFile.close();
+  if (!inFile) {
+    std::cout << "Error reading from " << fname  << ", aborting restart"
+              << std::endl;
+    throw std::runtime_error("");
+  }
 
   // Read x momentum binary
   snprintf(fname, sizeof(fname), "momx%4.4d.dat", nSave);
@@ -286,6 +265,11 @@ int Simulation::Restore(int nSave)
   inFile.read(reinterpret_cast<char*>(&nTimeStep), sizeof(int));
   inFile.read(reinterpret_cast<char*>(pMomx), nVertex*sizeof(real));
   inFile.close();
+  if (!inFile) {
+    std::cout << "Error reading from " << fname  << ", aborting restart"
+              << std::endl;
+    throw std::runtime_error("");
+  }
 
   // Read y momentum binary
   snprintf(fname, sizeof(fname), "momy%4.4d.dat", nSave);
@@ -300,6 +284,11 @@ int Simulation::Restore(int nSave)
   inFile.read(reinterpret_cast<char*>(&nTimeStep), sizeof(int));
   inFile.read(reinterpret_cast<char*>(pMomy), nVertex*sizeof(real));
   inFile.close();
+  if (!inFile) {
+    std::cout << "Error reading from " << fname  << ", aborting restart"
+              << std::endl;
+    throw std::runtime_error("");
+  }
 
   // Read energy binary
   snprintf(fname, sizeof(fname), "ener%4.4d.dat", nSave);
@@ -314,6 +303,11 @@ int Simulation::Restore(int nSave)
   inFile.read(reinterpret_cast<char*>(&nTimeStep), sizeof(int));
   inFile.read(reinterpret_cast<char*>(pEner), nVertex*sizeof(real));
   inFile.close();
+  if (!inFile) {
+    std::cout << "Error reading from " << fname  << ", aborting restart"
+              << std::endl;
+    throw std::runtime_error("");
+  }
 
 #if N_EQUATION == 1
   real *state = vertexState->GetHostPointer();
@@ -333,18 +327,25 @@ int Simulation::Restore(int nSave)
   // Copy data to device
   if (cudaFlag == 1) vertexState->CopyToDevice();
 
-  std::cout << "Done restoring" << std::endl;
+  // Update simulation.dat
+  try {
+    RestoreFine();
+  }
+  catch (...) {
+    std::cout << "RestoreFine failed!" << std::endl;
+    throw;
+  }
 
-  return nSave + 1;
+  std::cout << "Done restoring " << std::endl;
+
+  nSave++;
 }
 
 //#########################################################################
-/*! Do a fine grain save, i.e. write output files for certain global quantities but do not do a full data dump.
-
-  \param nSave Output number, used to determine whether to create new file. */
+/*! Do a fine grain save, i.e. write output files for certain global quantities but do not do a full data dump.*/
 //#########################################################################
 
-void Simulation::FineGrainSave(int nSave)
+void Simulation::FineGrainSave()
 {
   std::ofstream outFile;
   int nVertex = mesh->GetNVertex();
@@ -359,6 +360,10 @@ void Simulation::FineGrainSave(int nSave)
           << nVertex << " "
           << TotalMass() << std::endl;
   outFile.close();
+  if (!outFile) {
+    std::cout << "Error writing simulation.dat!" << std::endl;
+    throw std::runtime_error("");
+  }
 
   if (problemDef == PROBLEM_KH) {
     real M = 0.0, E = 0.0;
@@ -373,7 +378,86 @@ void Simulation::FineGrainSave(int nSave)
             << M << " "
             << E << std::endl;
     outFile.close();
+    if (!outFile) {
+      std::cout << "Error writing kh.dat!" << std::endl;
+      throw std::runtime_error("");
+    }
   }
+}
+
+//#########################################################################
+/*! When restoring a previous dump, we must ensure that we start writing simulation.dat in the correct place. Upon return, the file simulation.dat has been stripped of any excess lines, and nSaveFine is set to the correct number.*/
+//#########################################################################
+
+void Simulation::RestoreFine()
+{
+  // Copy simulation.dat into temp.dat
+  std::ifstream src("simulation.dat", std::ios::binary);
+  if (!src) {
+    std::cout << "Could not open simulation.dat, aborting restart"
+              << std::endl;
+    throw std::runtime_error("");
+  }
+  std::ofstream dst("temp.dat", std::ios::binary);
+  if (!dst) {
+    std::cout << "Could not open temporary file for writing, aborting restart"
+              << std::endl;
+    throw std::runtime_error("");
+  }
+
+  dst << src.rdbuf();
+
+  src.close();
+  dst.close();
+  if (!dst || !src) {
+    std::cout << "Error copying simulation.dat into temp.dat!" << std::endl;
+    throw std::runtime_error("");
+  }
+
+  // Read from temp.dat and write into simulation.dat
+  std::ifstream inFile("temp.dat");
+  if (!inFile) {
+    std::cout << "Could not open temporary file for reading, aborting restart"
+              << std::endl;
+    throw std::runtime_error("");
+  }
+  std::ofstream outFile("simulation.dat");
+  if (!outFile) {
+    std::cout << "Could not open simulation.dat, aborting restart"
+              << std::endl;
+    throw std::runtime_error("");
+  }
+
+  std::string line;
+  while (std::getline(inFile, line)) {
+    std::istringstream iss(line);
+
+    // Get time of fine grain save
+    real saveTime;
+    if (!(iss >> saveTime)) {
+      std::cout << "Error reading temporary file, aborting restart" << std::endl;
+      throw std::runtime_error("");
+    }
+
+    // Write into simulation.dat as long as smaller than current sim time
+    if (saveTime <= simulationTime) {
+      outFile << line << std::endl;
+      nSaveFine++;
+    } else {
+      break;
+    }
+  }
+
+  inFile.close();
+  outFile.close();
+  if (!inFile || !outFile) {
+    std::cout << "Error updating simulation.dat, aborting restart!"
+              << std::endl;
+    throw std::runtime_error("");
+  }
+
+  // Delete temporary file
+  std::remove("temp.dat");
 }
 
 }  // namespace astrix

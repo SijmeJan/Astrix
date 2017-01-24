@@ -1,3 +1,6 @@
+restoring, finegrainsave
+memory use simulation
+
 new parallel flip selection test?
 adjust makefile register use / double prec ?
 readthedocs sphinx

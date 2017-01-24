@@ -31,7 +31,7 @@ __host__ __device__
 void CalcSourceSingle(int n, const int3 *pTv, const real2 *pVc,
                       const real2 *pTn1, const real2 *pTn2, const real2 *pTn3,
                       const real3 *pTl, const real *pVp,
-                      const realNeq *pState, realNeq *pSource)
+                      const real4 *pState, real4 *pSource)
 {
   /*
   // Vertices belonging to triangle: 3 coalesced reads
@@ -70,6 +70,18 @@ void CalcSourceSingle(int n, const int3 *pTv, const real2 *pVc,
   pSource[n].y = 0.0;
   pSource[n].z = 0.0;
   pSource[n].w = 0.0;
+}
+
+//######################################################################
+//######################################################################
+
+__host__ __device__
+void CalcSourceSingle(int n, const int3 *pTv, const real2 *pVc,
+                      const real2 *pTn1, const real2 *pTn2, const real2 *pTn3,
+                      const real3 *pTl, const real *pVp,
+                      const real *pState, real *pSource)
+{
+  pSource[n] = 0.0;
 }
 
 //######################################################################

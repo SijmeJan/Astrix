@@ -71,11 +71,22 @@ void AddEigenVectorSingle(unsigned int i, const real2 *pVc, real4 *pState,
   pState[i].w = 0.5*(Sq(pState[i].y) + Sq(pState[i].z))/pState[i].x + pr/G1;
 }
 
+__host__ __device__
+void AddEigenVectorSingle(unsigned int i, const real2 *pVc, real *pState,
+                          real *dR, real*dI,
+                          real *uR, real *uI,
+                          real *vR, real *vI,
+                          real dyKH, real kxKH, real *yKH,
+                          real miny, real maxy, real G, real G1)
+{
+  // Dummy function; no eigenvector to add if solving scalar equation
+}
+
 //######################################################################
 //######################################################################
 
 __global__ void
-devAddEigenVector(unsigned int nVertex, const real2 *pVc, real4 *pState,
+devAddEigenVector(unsigned int nVertex, const real2 *pVc, realNeq *pState,
                   real *dR, real*dI, real *uR, real *uI, real *vR, real *vI,
                   real dyKH, real kxKH, real *yKH,
                   real miny, real maxy, real G, real G1)

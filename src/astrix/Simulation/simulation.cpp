@@ -76,6 +76,8 @@ Simulation::Simulation(int _verboseLevel,
   nSpaceDim = 2;
 
   nTimeStep = 0;
+  nSave = 0;
+  nSaveFine = 0;
 
   // Define arrays
   vertexState           = new Array<realNeq>(1, cudaFlag);
@@ -335,8 +337,7 @@ void Simulation::ReadInputFile(const char *fileName)
     std::cout << "Invalid value for problemDefinition" << std::endl;
     throw std::runtime_error("");
   }
-  if (problemDef == PROBLEM_LINEAR ||
-      problemDef == PROBLEM_SOD ||
+  if (problemDef == PROBLEM_SOD ||
       problemDef == PROBLEM_BLAST ||
       problemDef == PROBLEM_KH ||
       // problemDef == PROBLEM_RT ||
