@@ -15,7 +15,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #ifndef ASTRIX_SIMULATION_H
 #define ASTRIX_SIMULATION_H
 
-#define BURGERS 1
+#define BURGERS -1
 
 namespace astrix {
 
