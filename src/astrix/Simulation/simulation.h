@@ -33,7 +33,7 @@ class Simulation
   Simulation(int _verboseLevel, int _debugLevel,
              char *fileName, Device *_device, int restartNumber,
              int extraFlag);
-  //! Destructor, releases all dynamically allocated
+  //! Destructor, releases all dynamically allocated memory
   ~Simulation();
 
   //! Run simulation

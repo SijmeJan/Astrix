@@ -22,13 +22,19 @@ visAstrix:
 ################################################################################
 doc:
 	cd src/astrix; doxygen ../../doc/doxygen/Doxyfile
-	cd doc/doxygen/latex; $(MAKE)
+	cd doc; make html
 
 ################################################################################
 # Clean up everything
 ################################################################################
-clean:
+allclean:
 	cd src/astrix; $(MAKE) clean
 	cd src/visAstrix; $(MAKE) clean
-	rm -f -r doc/doxygen/latex
-	rm -f -r doc/doxygen/html
+	rm -f -r doc/doxygen/xml
+	cd doc; make clean
+
+################################################################################
+# Clean up Astrix
+################################################################################
+clean:
+	cd src/astrix; $(MAKE) clean

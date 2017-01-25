@@ -111,7 +111,6 @@ void Mesh::CalcVertexArea()
 {
   int nTriangle = connectivity->triangleVertices->GetSize();
   int nVertex = connectivity->vertexCoordinates->GetSize();
-  int nEdge = connectivity->edgeTriangles->GetSize();
 
   real2 *pVc = connectivity->vertexCoordinates->GetPointer();
   int3 *pTv = connectivity->triangleVertices->GetPointer();

@@ -34,7 +34,8 @@ namespace astrix {
   \param _debugLevel Level of extra checks for correct mesh.
   \param *fileName Input file name
   \param *device Device to be used for computation.
-  \param restartNumber Number of saved file to restore from*/
+  \param restartNumber Number of saved file to restore from
+  \param extraFlag Extra user flag*/
 //#########################################################################
 
 Simulation::Simulation(int _verboseLevel,

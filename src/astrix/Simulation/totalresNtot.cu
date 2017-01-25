@@ -1555,7 +1555,6 @@ void Simulation::CalcTotalResNtot(real dt)
 
   realNeq *pDstate = vertexStateDiff->GetPointer();
 
-  real *pVpot = vertexPotential->GetPointer();
   realNeq *pVz = vertexParameterVector->GetPointer();
 
   realNeq *pTresN0 = triangleResidueN->GetPointer(0);
