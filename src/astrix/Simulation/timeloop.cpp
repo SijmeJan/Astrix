@@ -180,7 +180,7 @@ void Simulation::DoTimeStep()
   }
 
   // Reflecting boundaries
-  if (  // problemDef == PROBLEM_RT ||
+  if (problemDef == PROBLEM_CYL ||
       problemDef == PROBLEM_SOD ||
       problemDef == PROBLEM_BLAST ||
       problemDef == PROBLEM_RIEMANN)
@@ -243,7 +243,7 @@ void Simulation::DoTimeStep()
     }
 
     // Reflecting boundaries
-    if (  // problemDef == PROBLEM_RT ||
+    if (problemDef == PROBLEM_CYL ||
         problemDef == PROBLEM_SOD ||
         problemDef == PROBLEM_BLAST ||
         problemDef == PROBLEM_RIEMANN)

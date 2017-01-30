@@ -26,6 +26,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../Mesh/mesh.h"
 #include "./simulation.h"
 #include "../Common/nvtxEvent.h"
+#include "./VTK/vtk.h"
 
 namespace astrix {
 
@@ -39,6 +40,21 @@ namespace astrix {
 void Simulation::Save()
 {
   nvtxEvent *nvtxSave = new nvtxEvent("Save", 3);
+
+  // Write VTK output
+  ReplaceEnergyWithPressure();
+  char VTKname[15];
+  snprintf(VTKname, sizeof(VTKname), "astrix%4.4d.vtk", nSave);
+  VTK *vtk = new VTK();
+  vtk->Write(VTKname,
+             mesh->GetNVertex(),
+             mesh->GetNTriangle(),
+             mesh->TriangleVerticesData(),
+             mesh->VertexCoordinatesData(),
+             mesh->GetPx(), mesh->GetPy(),
+             vertexState->GetPointer());
+  delete vtk;
+  ReplacePressureWithEnergy();
 
   std::cout << "Save #" << nSave << "...";
 

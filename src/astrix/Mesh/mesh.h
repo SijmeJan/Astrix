@@ -161,6 +161,11 @@ class Mesh
 
   //! Construct mesh boundaries
   void ConstructBoundaries();
+  //! Make initial mesh periodic
+  void MakePeriodic();
+  //! Remove redundant triangles from initial mesh
+  void RemoveRedundant(Array<int> *vertexOrder, int nVertexOuterBoundary);
+
   //! Create structured mesh
   void CreateStructuredMesh();
 

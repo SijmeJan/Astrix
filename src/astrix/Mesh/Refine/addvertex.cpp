@@ -48,6 +48,9 @@ int Refine::AddVertices(Connectivity * const connectivity,
 
   // Going to add all boundary vertices
   int nRefine = vertexBoundaryCoordinates->GetSize();
+  if (verboseLevel > 1)
+    std::cout << "Going to add " << nRefine << " vertices" << std::endl;
+
   int nAdded = 0;
 
   Array<int> *vertexOrderInsert = new Array<int>(1, cudaFlag);
@@ -101,7 +104,8 @@ int Refine::AddVertices(Connectivity * const connectivity,
     delaunay->MakeDelaunay(connectivity, 0, predicates,
                            meshParameter, 0, 0, 0, 0);
 
-    if (verboseLevel > 1) std::cout << std::endl;
+    if (verboseLevel > 1)
+      std::cout << ", added so far: " << nAdded << std::endl;
   }
 
   delete vertexOrderInsert;

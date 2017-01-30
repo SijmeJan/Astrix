@@ -18,13 +18,13 @@ CUDA_INSTALL_PATH ?= $(shell which nvcc | sed "s/\/bin\/nvcc//")
 CUDA_COMPUTE ?= 0
 
 # By default, no profiling flags (requires rebuild if changed)
-CUDA_PROFILE ?= 0
+ASTRIX_PROFILE ?= 0
 
 # By default, do not time (requires rebuild if changed)
-CUDA_TIMING ?= 0
+ASTRIX_TIMING ?= 0
 
 # By default, no debug flags (requires rebuild if changed)
-CUDA_DEBUG ?= 0
+ASTRIX_DEBUG ?= 0
 
 # By default, use single precision (requires rebuild if changed)
 ASTRIX_DOUBLE ?= -1
@@ -45,7 +45,7 @@ SHELL = /bin/sh
 ################################################################################
 
 # List of modules (must be directories in src/astrix)
-MODULES := Mesh/Predicates Mesh/Coarsen Mesh/Param Mesh/Connectivity Mesh/Refine Mesh/Delaunay Mesh/Morton Mesh Array Simulation Common Device
+MODULES := Mesh/Predicates Mesh/Coarsen Mesh/Param Mesh/Connectivity Mesh/Refine Mesh/Delaunay Mesh/Morton Mesh Array Simulation Common Device Simulation/VTK
 
 # Create list of source files in module directories: list all .cpp and .cu files
 SRC :=  $(wildcard *.cu) $(wildcard *.cpp) $(foreach sdir,$(MODULES),$(wildcard $(sdir)/*.cu)) $(foreach sdir,$(MODULES),$(wildcard $(sdir)/*.cpp))
@@ -85,14 +85,14 @@ NVCCLDFLAGS :=
 LDFLAGS     := -lnvToolsExt -rpath $(LIB_PATH)
 
 # Add lineinfo and register use info if profiling
-ifeq ($(CUDA_PROFILE),1)
+ifeq ($(ASTRIX_PROFILE),1)
 	NVCCFLAGS += -lineinfo --ptxas-options=-v
 endif
-ifeq ($(CUDA_TIMING),1)
+ifeq ($(ASTRIX_TIMING),1)
 	NVCCFLAGS += -DTIME_ASTRIX
 endif
 # Add debug info if debugging
-ifeq ($(CUDA_DEBUG),1)
+ifeq ($(ASTRIX_DEBUG),1)
 	NVCCFLAGS += -g -G
 endif
 

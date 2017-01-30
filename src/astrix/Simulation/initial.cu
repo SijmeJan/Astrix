@@ -150,20 +150,12 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     ener = half*(Sq(momx) + Sq(momy))/dens + pres/(G - one);
   }
 
-  /*
-  if (problemDef == PROBLEM_RT) {
-    real vel_amp = 0.01;
-    real p = 2.5f - 0.1f*vertY;
-
-    dens =  1.0;
-    if (vertY > 0.0) dens = 2.0;
-    momx = (real) 1.0e-15;
-    momy = dens*vel_amp*0.25f*
-      (one + cosf(4.0f*(real)(M_PI)*vertX))*
-      (one + cosf((one + onethird)*(real)(M_PI)*vertY)) + (real) 1.1e-15;
-    ener = half*(Sq(momx) + Sq(momy))/dens + p/(G - one);
+  if (problemDef == PROBLEM_CYL) {
+    dens = 1.0;
+    momx = 2.0;
+    momy = 1.0e-10;
+    ener = half*(Sq(momx) + Sq(momy))/dens + 2.5f/(G - one);
   }
-  */
 
   if (problemDef == PROBLEM_KH) {
     real a = 4.0f;

@@ -1,10 +1,7 @@
-restoring, finegrainsave
-memory use simulation
-
+document redundant, periodic, vtk
 new parallel flip selection test?
 adjust makefile register use / double prec ?
 readthedocs sphinx
-check all test problems
 
 source term integration
 test RT
