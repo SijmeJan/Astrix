@@ -42,19 +42,15 @@ void Simulation::Save()
   nvtxEvent *nvtxSave = new nvtxEvent("Save", 3);
 
   // Write VTK output
-  ReplaceEnergyWithPressure();
-  char VTKname[15];
-  snprintf(VTKname, sizeof(VTKname), "astrix%4.4d.vtk", nSave);
-  VTK *vtk = new VTK();
-  vtk->Write(VTKname,
-             mesh->GetNVertex(),
-             mesh->GetNTriangle(),
-             mesh->TriangleVerticesData(),
-             mesh->VertexCoordinatesData(),
-             mesh->GetPx(), mesh->GetPy(),
-             vertexState->GetPointer());
-  delete vtk;
-  ReplacePressureWithEnergy();
+  if (writeVTK == 1) {
+    ReplaceEnergyWithPressure();
+    char VTKname[15];
+    snprintf(VTKname, sizeof(VTKname), "astrix%4.4d.vtk", nSave);
+    VTK *vtk = new VTK();
+    vtk->Write(VTKname, mesh, vertexState->GetPointer());
+    delete vtk;
+    ReplacePressureWithEnergy();
+  }
 
   std::cout << "Save #" << nSave << "...";
 

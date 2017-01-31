@@ -237,6 +237,7 @@ void Simulation::ReadInputFile(const char *fileName)
   maxSimulationTime = -1.0;
   saveIntervalTime = -1.0;
   saveIntervalTimeFine = -1.0;
+  writeVTK = -1;
   integrationOrder = -1;
   massMatrix = -1;
   selectiveLumpFlag = -1;
@@ -292,6 +293,12 @@ void Simulation::ReadInputFile(const char *fileName)
       if (!secondWord.empty() &&
           secondWord.find_first_not_of("0123456789-.e") == std::string::npos)
         saveIntervalTimeFine = atof(secondWord.c_str());
+    }
+    // Flag whether do output VTK files
+    if (firstWord == "writeVTK") {
+      if (!secondWord.empty() &&
+          secondWord.find_first_not_of("01") == std::string::npos)
+        writeVTK = atof(secondWord.c_str());
     }
 
     // Integration scheme

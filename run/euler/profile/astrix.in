@@ -1,36 +1,37 @@
-problemDefinition	KH	# Test problem definition
+problemDefinition       KH      # Test problem definition
 
 ###############################################################################
 # Simulation parameters
 ###############################################################################
 
-maxSimulationTime 	1.0e-10	# Maximum simulation time
-saveIntervalTimeFine  	0.1	# Fine save interval
-saveIntervalTime  	0.1	# Save interval
-integrationScheme 	B	# Integration scheme (N, LDA or B)
-integrationOrder  	2	# Integration order (1 or 2)
-massMatrix		1	# Mass matrix formulation (1, 2, 3 or 4)
-selectiveLumpFlag	0	# Flag whether to use selective lumping
-CFLnumber		1.0	# Courant number
-preferMinMaxBlend	0	# Set blend to min (-1) or max (1)
-specificHeatRatio	1.4	# Ratio of specific heats
+maxSimulationTime       1.0e-10 # Maximum simulation time
+saveIntervalTimeFine    0.1     # Fine save interval
+saveIntervalTime        0.1     # Save interval
+writeVTK                0       # Flag whether to write VTK output (0 or 1)
+integrationScheme       B       # Integration scheme (N, LDA or B)
+integrationOrder        2       # Integration order (1 or 2)
+massMatrix              1       # Mass matrix formulation (1, 2, 3 or 4)
+selectiveLumpFlag       0       # Flag whether to use selective lumping
+CFLnumber               1.0     # Courant number
+preferMinMaxBlend       0       # Set blend to min (-1) or max (1)
+specificHeatRatio       1.4     # Ratio of specific heats
 
 ###############################################################################
 # Mesh parameters
 ###############################################################################
 
-equivalentPointsX	1024	# Base resolution
-minX 		  	0.0	# Left x boundary
-maxX		  	1.0	# Right x boundary
-minY		  	0.0	# Bottom y boundary
-maxY		  	1.0	# Top y boundary
-periodicFlagX	  	1	# Flag to create periodic domain in x
-periodicFlagY	  	1	# Flag to create periodic domain in y
-adaptiveMeshFlag  	0	# Flag to use adaptive mesh
-maxRefineFactor	  	1	# Factor above base resolution to refine
-nStepSkipRefine		1	# Time steps without refining
-nStepSkipCoarsen	1	# Time steps without derefining
-minError		0.01	# Coarsen if error below 
-maxError		0.02	# Refine if error above
-qualityBound	  	1.0	# Quality bound on triangles
-structuredFlag		0	# Flag whether to use structured mesh
+equivalentPointsX       1024    # Base resolution
+minX                    0.0     # Left x boundary
+maxX                    1.0     # Right x boundary
+minY                    0.0     # Bottom y boundary
+maxY                    1.0     # Top y boundary
+periodicFlagX           1       # Flag to create periodic domain in x
+periodicFlagY           1       # Flag to create periodic domain in y
+adaptiveMeshFlag        0       # Flag to use adaptive mesh
+maxRefineFactor         1       # Factor above base resolution to refine
+nStepSkipRefine         1       # Time steps without refining
+nStepSkipCoarsen        1       # Time steps without derefining
+minError                0.01    # Coarsen if error below
+maxError                0.02    # Refine if error above
+qualityBound            1.0     # Quality bound on triangles
+structuredFlag          0       # Flag whether to use structured mesh

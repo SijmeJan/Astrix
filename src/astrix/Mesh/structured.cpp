@@ -198,10 +198,12 @@ void Mesh::CreateStructuredMesh()
 
   // Make periodic in y
   if (meshParameter->periodicFlagY == 1) {
+    // Shift points downward by half a cell size
     for (int i = 0; i < nx; i++)
       for (int j = 0; j < ny; j++)
         pVc[j*nx + i].y -= Py*0.5/(real) (ny - 1);
 
+    // Adjust periodic vertices for removing of one row
     for (int i = 0; i < nTriangle; i++) {
       if (pTv[i].x >= nVertex) pTv[i].x -= nx;
       if (pTv[i].y >= nVertex) pTv[i].y -= nx;
@@ -212,16 +214,20 @@ void Mesh::CreateStructuredMesh()
       if (pTv[i].z < 0) pTv[i].z += nx;
     }
 
+    // Remove one row of vertices
     nVertex = nx*(ny - 1);
     connectivity->vertexCoordinates->SetSize(nVertex);
 
+    // Removing corresponding edges
     nEdge -= (nx - 1 + meshParameter->periodicFlagX);
     connectivity->edgeTriangles->SetSize(nEdge);
 
     int j = ny - 2;
     for (int i = 0; i < nx - 1 + meshParameter->periodicFlagX; i++) {
       int v = j*nx + i;
-      int t = 2*(v + meshParameter->periodicFlagX);
+      int t = 2*(nx - 1 + meshParameter->periodicFlagX)*j + 2*i +
+        2*meshParameter->periodicFlagX;
+
       if (i == nx - 1) t = 2*j*nx;
 
       pTv[t].y = v - (ny - 2)*nx - 3*nVertex;
@@ -229,6 +235,8 @@ void Mesh::CreateStructuredMesh()
       pTv[t + 1].x = v + 1 + 3*nVertex;
       pTv[t + 1].y = v - (ny - 2)*nx;
       pTv[t + 1].z = v + 1 - (ny - 2)*nx;
+
+
       if (i == nx - 1) {
         pTv[t + 1].x = j*nx;
         pTv[t + 1].y = nx - 1 - nVertex - 3*nVertex;
@@ -242,16 +250,19 @@ void Mesh::CreateStructuredMesh()
         pEt[3*i + 2 + 2*meshParameter->periodicFlagX].y = t + 1;
       if (i == nx - 1) pEt[pTe[t + 1].y].y = t + 1;
     }
+
   }
 
   // Transform back to device
   if (cudaFlag == 1) connectivity->Transform();
 
+  /*
   // One cycle of delaunay
   delaunay->MakeDelaunay(connectivity, 0, predicates,
                          meshParameter, 1, 0, 0, 0);
 
   morton->Order(connectivity, triangleWantRefine, 0);
+  */
 
   // Calculate triangle normals and areas
   CalcNormalEdge();

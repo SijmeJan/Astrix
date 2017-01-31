@@ -100,6 +100,8 @@ class Simulation
   int nSave;
   //! Number of fine grain saves so far
   int nSaveFine;
+  //! Flag whether do output VTK files
+  int writeVTK;
 
   //! State vector at vertex
   Array <realNeq> *vertexState;
