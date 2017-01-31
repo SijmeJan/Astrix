@@ -157,7 +157,7 @@ void VTK::Write(const char *fileName, Mesh *mesh, realNeq *state)
   sortConn[0] = 0;
 
   // Set an indexing array...
-  int *index = new int[3*nTriangle];
+  int *index = new int[sortConn[nPoints-1] + 1];
   for (int i = 0; i < nPoints; i++)
     index[sortConn[i]] = i;
 
@@ -172,14 +172,14 @@ void VTK::Write(const char *fileName, Mesh *mesh, realNeq *state)
                           nVars, varDim, centering,
                           varNames, vars);
 
-  delete conn;
-  delete newConn;
+  delete[] conn;
+  delete[] newConn;
 
-  delete pts;
-  delete var1;
+  delete[] pts;
+  delete[] var1;
 #if N_EQUATION == 4
-  delete var2;
-  delete var3;
+  delete[] var2;
+  delete[] var3;
 #endif
 }
 
