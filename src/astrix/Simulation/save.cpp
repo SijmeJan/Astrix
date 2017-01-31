@@ -74,8 +74,12 @@ void Simulation::Save()
 
 #if N_EQUATION == 1
   real *state = vertexState->GetHostPointer();
-  for (int n = 0; n < nVertex; n++)
+  for (int n = 0; n < nVertex; n++) {
     pDens[n] = state[n];
+    pMomx[n] = 0.0;
+    pMomy[n] = 0.0;
+    pEner[n] = 0.0;
+  }
 #endif
 
 #if N_EQUATION == 4
@@ -143,26 +147,6 @@ void Simulation::Save()
   outFile.write(reinterpret_cast<char*>(&simulationTime), sizeof(real));
   outFile.write(reinterpret_cast<char*>(&nTimeStep), sizeof(int));
   outFile.write(reinterpret_cast<char*>(pEner), nVertex*sizeof(real));
-  outFile.close();
-
-  // Check if everything OK
-  if (!outFile) {
-    std::cout << "Error writing " << fname << std::endl;
-    throw std::runtime_error("");
-  }
-
-  // Write blend factor
-  int nTriangle = mesh->GetNTriangle();
-  CalcShockSensor();
-  if (cudaFlag == 1)
-    triangleShockSensor->CopyToHost();
-  real *pBlnd = triangleShockSensor->GetHostPointer();
-  snprintf(fname, sizeof(fname), "blnd%4.4d.dat", nSave);
-  outFile.open(fname, std::ios::binary);
-  outFile.write(reinterpret_cast<char*>(&sizeOfData), sizeof(int));
-  outFile.write(reinterpret_cast<char*>(&simulationTime), sizeof(real));
-  outFile.write(reinterpret_cast<char*>(&nTimeStep), sizeof(int));
-  outFile.write(reinterpret_cast<char*>(pBlnd), nTriangle*sizeof(real));
   outFile.close();
 
   // Check if everything OK

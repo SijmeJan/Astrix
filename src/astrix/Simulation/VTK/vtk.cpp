@@ -172,6 +172,7 @@ void VTK::Write(const char *fileName, Mesh *mesh, realNeq *state)
                           nVars, varDim, centering,
                           varNames, vars);
 
+  delete[] index;
   delete[] conn;
   delete[] newConn;
 
