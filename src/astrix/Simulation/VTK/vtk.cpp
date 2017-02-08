@@ -13,6 +13,7 @@ Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 
 You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
+
 #include <cuda_runtime_api.h>
 #include <iostream>
 #include <algorithm>
@@ -25,6 +26,10 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 
 namespace astrix {
 
+//#########################################################################
+/*! The constructor will determine if endian-swapping is necessary (VTK requires data to be written in bigendian form). Note that throughout we assume we are outputting 4 byte quantities (int's or float's). Upon return, \a swapEndian equals 1 when endian-swapping is necessary, 0 otherwise.*/
+//#########################################################################
+
 VTK::VTK()
 {
   // Check if we need to swap endians
@@ -35,9 +40,22 @@ VTK::VTK()
     swapEndian = 1;
 }
 
+//#########################################################################
+// Destructor; does nothing
+//#########################################################################
+
 VTK::~VTK()
 {
 }
+
+//#########################################################################
+/*! Write VTK output in file specified in \a fileName.
+
+\param *fileName Name of output file
+\param *mesh Pointer to Mesh object to output
+\param *state Pointer to state vector. This is assumed to be density, velocities and pressure.
+*/
+//#########################################################################
 
 void VTK::Write(const char *fileName, Mesh *mesh, realNeq *state)
 {
@@ -166,11 +184,11 @@ void VTK::Write(const char *fileName, Mesh *mesh, realNeq *state)
   for (int i = 0; i < 3*nTriangle; i++)
     newConn[i] = index[conn[i]];
 
-  // Write the mesh
-  write_unstructured_mesh(fileName, nPoints,
-                          pts, nTriangle, newConn,
-                          nVars, varDim, centering,
-                          varNames, vars);
+  // Write to file
+  writeData(fileName, nPoints,
+            pts, nTriangle, newConn,
+            nVars, varDim, centering,
+            varNames, vars);
 
   delete[] index;
   delete[] conn;
@@ -184,23 +202,19 @@ void VTK::Write(const char *fileName, Mesh *mesh, realNeq *state)
 #endif
 }
 
-/* ****************************************************************************
- *  Function: force_big_endian
- *
- *  Purpose:
- *      Determines if the machine is little-endian.  If so, then, for binary
- *      data, it will force the data to be big-endian.
- *
- *  Note:       This assumes that all inputs are 4 bytes long.
- *
- *  Programmer: Hank Childs
- *  Creation:   September 3, 2004
- *
- * ************************************************************************* */
+//#########################################################################
+/*! Write single four-byte quantity (int or float) to output file, forcing it to be big endian.
 
-void VTK::ForceBigEndian(unsigned char *bytes)
+\param val Value to output
+*/
+//#########################################################################
+
+template <class T>
+void VTK::writeSingle(T val)
 {
+  // Force output to be big endian
   if (swapEndian == 1) {
+    unsigned char *bytes = (unsigned char *) &val;
     unsigned char tmp = bytes[0];
     bytes[0] = bytes[3];
     bytes[3] = tmp;
@@ -208,210 +222,196 @@ void VTK::ForceBigEndian(unsigned char *bytes)
     bytes[1] = bytes[2];
     bytes[2] = tmp;
   }
-}
 
-template <class T>
-void VTK::writeSingle(T val)
-{
-  ForceBigEndian((unsigned char *) &val);
   outFile.write(reinterpret_cast<char*>(&val), sizeof(T));
 }
 
-/* ****************************************************************************
- *  Function: write_variables
- *
- *  Purpose:
- *      Writes the variables to the file.  This can be a bit tricky.  The
- *      cell data must be written first, followed by the point data.  When
- *      writing the [point|cell] data, one variable must be declared the
- *      primary scalar and another the primary vector (provided scalars
- *      or vectors exist).  The rest of the arrays are added through the
- *      "field data" mechanism.  Field data should support groups of arrays
- *      with different numbers of components (ie a scalar and a vector), but
- *      there is a failure with the VTK reader.  So the scalars are all written
- *      one group of field data and then the vectors as another.  If you don't
- *      write it this way, the vectors do not show up.
- *
- *  Programmer: Hank Childs
- *  Creation:   September 3, 2004
- *
- * ************************************************************************* */
+//#########################################################################
+/*! Write state vector to VTK file.
 
-void VTK::write_variables(int nVars, int *varDim, int *centering,
-                          const char * const * varName, float **vars,
-                          int nPoints, int nCells)
+\param nVars Number of variables to output
+\param *varDim Pointer to array of size \a nVars containing the dimension of the variables (must be either 1 or 3)
+\param *centering Pointer to array of size \a nVars containing 0 if the variable is cell centred and 1 if it is node centred
+\param *varName Pointer to array of size \a nVars containing the names of the variables to write
+\param **vars List of \a nVars pointers to the variable data
+\param nPoints Total number of points
+\param nCells Total number of cells*/
+//#########################################################################
+
+void VTK::writeState(int nVars, int *varDim, int *centering,
+                     const char * const * varName, float **vars,
+                     int nPoints, int nCells)
 {
-  int first_scalar = 0, first_vector = 0;
-  int num_scalars = 0, num_vectors = 0;
+  int firstScalar = 0, firstVector = 0;
+  int nScalars = 0, nVectors = 0;
 
   outFile << "CELL_DATA " << nCells << "\n";
 
-  /* The field data is where the non-primary scalars and vectors are
-   * stored.  They must all be grouped together at the end of the point
-   * data.  So write out the primary scalars and vectors first.
-   */
+  // First write primary scalars and vectors
   for (int i = 0; i < nVars; i++) {
     if (centering[i] == 0) {
-      int should_write = 0;
+      int writeFlag = 0;
 
       if (varDim[i] == 1) {
-        if (first_scalar == 0) {
-          should_write = 1;
+        if (firstScalar == 0) {
+          writeFlag = 1;
           outFile << "SCALARS " << varName[i] << " float\n";
           outFile << "LOOKUP_TABLE default\n";
-          first_scalar = 1;
+          firstScalar = 1;
         } else {
-          num_scalars++;
+          nScalars++;
         }
       }
       if (varDim[i] == 3) {
-        if (first_vector == 0) {
-          should_write = 1;
+        if (firstVector == 0) {
+          writeFlag = 1;
           outFile << "VECTORS " << varName[i] << " float\n";
-          first_vector = 1;
+          firstVector = 1;
         } else {
-          num_vectors++;
+          nVectors++;
         }
       }
 
-      if (should_write) {
+      if (writeFlag == 1) {
         for (int j = 0; j < nCells*varDim[i]; j++)
           writeSingle(vars[i][j]);
       }
     }
   }
 
-  first_scalar = 0;
-  if (num_scalars > 0) {
+  // Add rest of scalars
+  firstScalar = 0;
+  if (nScalars > 0) {
     for (int i = 0; i < nVars; i++) {
-      int should_write = 0;
+      int writeFlag = 0;
       if (centering[i] == 0) {
         if (varDim[i] == 1) {
-          if (first_scalar == 0) {
-            first_scalar = 1;
+          if (firstScalar == 0) {
+            firstScalar = 1;
           } else {
-            should_write = 1;
+            writeFlag = 1;
             outFile << varName[i] <<  " 1 " << nCells << " float\n";
           }
         }
       }
 
-      if (should_write) {
+      if (writeFlag == 1) {
         for (int j = 0; j < nCells*varDim[i]; j++)
           writeSingle(vars[i][j]);
       }
     }
   }
 
-  first_vector = 0;
-  if (num_vectors > 0) {
-    outFile << "FIELD FieldData " << num_vectors << "\n";
+  // Add rest of vectors
+  firstVector = 0;
+  if (nVectors > 0) {
+    outFile << "FIELD FieldData " << nVectors << "\n";
 
     for (int i = 0; i < nVars; i++) {
-      int should_write = 0;
+      int writeFlag = 0;
       if (centering[i] == 0) {
         if (varDim[i] == 3) {
-          if (first_vector == 0) {
-            first_vector = 1;
+          if (firstVector == 0) {
+            firstVector = 1;
           } else {
-            should_write = 1;
+            writeFlag = 1;
             outFile << varName[i] <<  " 3 " << nCells << " float\n";
           }
         }
       }
 
-      if (should_write) {
+      if (writeFlag == 1) {
         for (int j = 0; j < nCells*varDim[i]; j++)
           writeSingle(vars[i][j]);
       }
     }
   }
 
+  // Now write node-centred variables
   outFile << "POINT_DATA " << nPoints << "\n";
 
-  first_scalar = 0;
-  first_vector = 0;
-  num_scalars = 0;
-  num_vectors = 0;
-  /* The field data is where the non-primary scalars and vectors are
-   * stored.  They must all be grouped together at the end of the point
-   * data.  So write out the primary scalars and vectors first.
-   */
+  firstScalar = 0;
+  firstVector = 0;
+  nScalars = 0;
+  nVectors = 0;
+
+  // First write primary scalars and vectors
   for (int i = 0; i < nVars; i++) {
     if (centering[i] != 0) {
-      int should_write = 0;
+      int writeFlag = 0;
 
       if (varDim[i] == 1) {
-        if (first_scalar == 0) {
-          should_write = 1;
+        if (firstScalar == 0) {
+          writeFlag = 1;
           outFile << "SCALARS " << varName[i] << " float\n";
           outFile << "LOOKUP_TABLE default\n";
 
-          first_scalar = 1;
+          firstScalar = 1;
         } else {
-          num_scalars++;
+          nScalars++;
         }
       }
       if (varDim[i] == 3) {
-        if (first_vector == 0) {
-          should_write = 1;
+        if (firstVector == 0) {
+          writeFlag = 1;
           outFile << "VECTORS " << varName[i] << " float\n";
 
-          first_vector = 1;
+          firstVector = 1;
         } else {
-          num_vectors++;
+          nVectors++;
         }
       }
 
-      if (should_write) {
+      if (writeFlag == 1) {
         for (int j = 0; j < nPoints*varDim[i]; j++)
           writeSingle(vars[i][j]);
       }
     }
   }
 
-  first_scalar = 0;
-  if (num_scalars > 0) {
-    outFile << "FIELD FieldData " << num_scalars << "\n";
+  // Write rest of scalars and vectors
+  firstScalar = 0;
+  if (nScalars > 0) {
+    outFile << "FIELD FieldData " << nScalars << "\n";
 
     for (int i = 0; i < nVars; i++) {
-      int should_write = 0;
+      int writeFlag = 0;
       if (centering[i] != 0) {
         if (varDim[i] == 1) {
-          if (first_scalar == 0) {
-            first_scalar = 1;
+          if (firstScalar == 0) {
+            firstScalar = 1;
           } else {
-            should_write = 1;
+            writeFlag = 1;
             outFile << varName[i] <<  " 1 " << nPoints << " float\n";
           }
         }
       }
 
-      if (should_write) {
+      if (writeFlag == 1) {
         for (int j = 0; j < nPoints*varDim[i]; j++)
           writeSingle(vars[i][j]);
       }
     }
   }
 
-  first_vector = 0;
-  if (num_vectors > 0) {
-    outFile << "FIELD FieldData " << num_vectors << "\n";
+  firstVector = 0;
+  if (nVectors > 0) {
+    outFile << "FIELD FieldData " << nVectors << "\n";
 
     for (int i = 0; i < nVars; i++) {
-      int should_write = 0;
+      int writeFlag = 0;
       if (centering[i] != 0) {
         if (varDim[i] == 3) {
-          if (first_vector == 0) {
-            first_vector = 1;
+          if (firstVector == 0) {
+            firstVector = 1;
           } else {
-            should_write = 1;
+            writeFlag = 1;
             outFile << varName[i] << " 3 " << nPoints << " float\n";
           }
         }
       }
 
-      if (should_write) {
+      if (writeFlag == 1) {
         for (int j = 0; j < nPoints*varDim[i]; j++)
           writeSingle(vars[i][j]);
       }
@@ -419,44 +419,26 @@ void VTK::write_variables(int nVars, int *varDim, int *centering,
   }
 }
 
-/* ****************************************************************************
-//  Function: write_unstructured_mesh
-//
-//  Purpose:
-//      Writes out a unstructured mesh.
-//
-//
-//  Arguments:
-//      filename   The name of the file to write.  If the extension ".vtk" is
-//                 not present, it will be added.
-//      useBinary  '0' to write ASCII, !0 to write binary
-//      nPoints       The number of points in the mesh.
-//      pts        The spatial locations of the points.  This array should
-//                 be size 3*nPoints.  The points should be encoded as:
-//                 <x1, y1, z1, x2, y2, z2, ..., xn, yn, zn>
-//      nCells     The number of cells.
-//      celltypes  The type of each cell.
-//      conn       The connectivity array.
-//      nVars      The number of variables.
-//      varDim     The dimension of each variable.  The size of varDim should
-//                 be nVars.  If var i is a scalar, then varDim[i] = 1.
-//                 If var i is a vector, then varDim[i] = 3.
-//      centering  The centering of each variable.  The size of centering
-//                 should be nVars.  If centering[i] == 0, then the variable
-//                 is cell-based.  If centering[i] != 0, then the variable
-//                 is point-based.
-//      vars       An array of variables.  The size of vars should be nVars.
-//                 The size of vars[i] should be nPoints*varDim[i].
-//
-//  Programmer: Hank Childs
-//  Creation:   September 2, 2004
-//
-// ***************************************************************************/
+//#########################################################################
+/*! All preparations done, actually write the VTK file.
 
-void VTK::write_unstructured_mesh(const char *fileName, int nPoints, float *pts,
-                                  int nCells, int *conn,
-                                  int nVars, int *varDim, int *centering,
-                                  const char * const *varNames, float **vars)
+\param *fileName Name of the file to write
+\param nPoints Number of points to write
+\param *pts Pointer to point coordinates, encoded as [x1, y1, z1, x2, ...]
+\param nCells Number of cells (triangles)
+\param *conn Connectivity array
+\param nVars Number of state variables to write
+\param *varDim Array of length \a nVars, specifying the dimension of each variable. Can be either 1 (scalar) or 3 (vector)
+\param *centering Array of length \a nVars, specifying whether the variable is triangle-based (0) or point-based (1)
+\param *varNames Array of length \a nVars containing the names of the variables
+\param **vars Array of length \a nVars containing pointers to the data to write. Note that the size of vars[i] should be \a nPoints*\a varDim[i]
+*/
+//#########################################################################
+
+void VTK::writeData(const char *fileName, int nPoints, float *pts,
+                    int nCells, int *conn,
+                    int nVars, int *varDim, int *centering,
+                    const char * const *varNames, float **vars)
 {
   // Open output file
   outFile.open(fileName);
@@ -468,12 +450,14 @@ void VTK::write_unstructured_mesh(const char *fileName, int nPoints, float *pts,
   outFile << "DATASET UNSTRUCTURED_GRID\n";
   outFile << "POINTS " << nPoints << " float\n";
 
+  // Write vertex coordinates
   for (int i = 0; i < 3*nPoints; i++)
     writeSingle(pts[i]);
 
-  int conn_size = 4*nCells;
-  outFile << "CELLS " << nCells << " " << conn_size << "\n";
+  int connSize = 4*nCells;
+  outFile << "CELLS " << nCells << " " << connSize << "\n";
 
+  // Write connectivity
   for (int i = 0; i < nCells; i++) {
     writeSingle(3);  // Only using triangles
     for (int j = 0; j < 3; j++)
@@ -485,7 +469,8 @@ void VTK::write_unstructured_mesh(const char *fileName, int nPoints, float *pts,
   for (int i = 0; i < nCells; i++)
     writeSingle(5);
 
-  write_variables(nVars, varDim, centering, varNames, vars, nPoints, nCells);
+  // Write state variables
+  writeState(nVars, varDim, centering, varNames, vars, nPoints, nCells);
 
   // Close file
   outFile.close();

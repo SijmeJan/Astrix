@@ -502,12 +502,16 @@ void Mesh::ConstructBoundaries()
     Array<int> *vertexExtraOrder = new Array<int>(1, cudaFlag, 2);
 
     real2 temp;
-    temp.y = 1.0/sqrt(2.0);
+    temp.y = (meshParameter->maxy - meshParameter->miny)/sqrt(2.0) +
+      meshParameter->miny;
     temp.x = meshParameter->minx;
+
     vertexExtra->SetSingleValue(temp, 0);
 
-    temp.x = 1.0/M_PI;
+    temp.x = (meshParameter->maxx - meshParameter->minx)/M_PI +
+      meshParameter->minx;
     temp.y = meshParameter->maxy;
+
     vertexExtra->SetSingleValue(temp, 1);
 
     nAdded = refine->AddVertices(connectivity,

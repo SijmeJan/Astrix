@@ -121,11 +121,11 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   if (problemDef == PROBLEM_YEE) {
     real x = vertX;
     real y = vertY;
-    real vx = 1.0;
+    real vx = 0.0;
     real vy = 0.0;
 
-    dens = 1.0;
-    real pres = 1.0;
+    // Temperature
+    real temp = 1.0;
 
     for (int i = -1; i < 2; i++) {
       real xc = five + time + i*Px;
@@ -135,15 +135,14 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
 
       real r = sqrt(Sq(x - xc)+Sq(y - yc)) + (real) 1.0e-10;
 
-      real T = one - (G - one)*Sq(beta)*exp(one - r*r)/(8.0f*G*M_PI*M_PI);
+      temp -= (G - one)*Sq(beta)*exp(one - r*r)/(8.0f*G*M_PI*M_PI);
 
       vx -= half*(y - yc)*beta*exp(half - half*r*r)/M_PI;
       vy += half*(x - xc)*beta*exp(half - half*r*r)/M_PI;
-
-      real ddens = std::pow(T, (real)(one/(G - one))) - 1.0;
-      dens += ddens;
-      pres += ddens*T;
     }
+
+    dens = std::pow(temp, (real)(one/(G - one)));
+    real pres = dens*temp;
 
     momx = (real)1.0e-10 + dens*vx;
     momy = (real)2.0e-10 + dens*vy;

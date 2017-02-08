@@ -31,7 +31,6 @@ int nStart = 0;
 
 // State at vertices
 float *vertDens, *vertVelx, *vertVely, *vertPres;
-float *triBlend;
 
 float minx = 0.0, maxx = 1.0, miny = 0.0, maxy = 1.0;
 
@@ -39,7 +38,6 @@ float mindens=1.0e10, maxdens=-1.0e10;
 float minvelx=1.0e10, maxvelx=-1.0e10;
 float minvely=1.0e10, maxvely=-1.0e10;
 float minpres=1.0e10, maxpres=-1.0e10;
-float minblend=1.0e10, maxblend=-1.0e10;
 
 int display_grid = 0;
 int display_triangle_numbers = 0;
@@ -63,8 +61,8 @@ int main(int argc, char *argv[])
   // Parse command line arguments
   for (i = 1; i < argc; ++i) {
     // Check if saving movie
-    if (strcmp(argv[i],"--movie")==0 || 
-	strcmp(argv[i],"-m")==0){
+    if (strcmp(argv[i],"--movie")==0 ||
+        strcmp(argv[i],"-m")==0){
       printf("Saving movie frames\n");
       system("rm -f -r movie_frames");
       system("mkdir movie_frames");
@@ -72,11 +70,11 @@ int main(int argc, char *argv[])
       nSwitches++;
     }
     // Check if not starting at t=0
-    if (strcmp(argv[i],"--number")==0 || 
-	strcmp(argv[i],"-n")==0){
+    if (strcmp(argv[i],"--number")==0 ||
+        strcmp(argv[i],"-n")==0){
       if(i == argc - 1){
-	printf("Number missing after -n\n");
-	return 1;
+        printf("Number missing after -n\n");
+        return 1;
       }
       printf("Starting from n = %s\n", argv[i+1]);
       nSave = atoi(argv[i+1]);
@@ -87,7 +85,7 @@ int main(int argc, char *argv[])
   }
   // Check for correct number of arguments
   if (argc != 2 + nSwitches) {
-    printf("Usage: %s [-m] [-n] startNumber filename\n", argv[0]); 
+    printf("Usage: %s [-m] [-n] startNumber filename\n", argv[0]);
     return 1;
   }
 
@@ -96,7 +94,7 @@ int main(int argc, char *argv[])
 
   char line[80];
 
-  FILE *fr = fopen (fileName, "rt");  
+  FILE *fr = fopen (fileName, "rt");
   if (fr == NULL) {
     printf("Error opening file %s\n", fileName);
     return 1;
@@ -109,19 +107,19 @@ int main(int argc, char *argv[])
     while((line[j] == ' ' || line[j] == '\t') && j < 80) j++;
 
     char *token = strtok(line, " ");
-    if (strstr (token, "minX") != NULL) 
+    if (strstr (token, "minX") != NULL)
       minx = atof(strtok(&(line[j]), " "));
-    if (strstr (token, "maxX") != NULL) 
+    if (strstr (token, "maxX") != NULL)
       maxx = atof(strtok(&(line[j]), " "));
-    if (strstr (token, "minY") != NULL) 
+    if (strstr (token, "minY") != NULL)
       miny = atof(strtok(&(line[j]), " "));
-    if (strstr (token, "maxY") != NULL) 
+    if (strstr (token, "maxY") != NULL)
       maxy = atof(strtok(&(line[j]), " "));
   }
-  fclose(fr); 
+  fclose(fr);
 
   if(ReadFiles(1)) return 1;
-  
+
   glutInit(&argc, argv);
 
   glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
@@ -142,7 +140,7 @@ int main(int argc, char *argv[])
   glut_maxx = maxx + f*(maxx - minx);
   glut_miny = miny - f*(maxy - miny);
   glut_maxy = maxy + f*(maxy - miny);
-  
+
   glut_current_minx = glut_minx;
   glut_current_maxx = glut_maxx;
   glut_current_miny = glut_miny;
@@ -164,12 +162,12 @@ int main(int argc, char *argv[])
 
   if (winSizeX < 32) winSizeX = 32;
   if (winSizeY < 32) winSizeY = 32;
-  
+
   printf("Window size: %d %d\n", winSizeX, winSizeY);
 
   glutInitWindowSize(winSizeX,winSizeY);
   glutInitWindowPosition(500,100);
-  
+
   win = glutCreateWindow("Astrix");
 
   char winTitle[20];
@@ -181,13 +179,13 @@ int main(int argc, char *argv[])
   glutIdleFunc(dispAstrix);
   glutReshapeFunc(resizeAstrix);
 
-  // define the color we use to clearscreen 
+  // define the color we use to clearscreen
   glClearColor(0.0,0.0,0.0,0.0);
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glOrtho(glut_minx, glut_maxx,
-	  glut_miny, glut_maxy, -1.0, 1.0);  
+          glut_miny, glut_maxy, -1.0, 1.0);
 
   // Set data alignment (for taking screenshots)
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -195,5 +193,5 @@ int main(int argc, char *argv[])
   // enter the main loop
   glutMainLoop();
 
-  return 0;    
+  return 0;
 }

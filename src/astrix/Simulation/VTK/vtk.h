@@ -15,9 +15,6 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #ifndef ASTRIX_VTK_H
 #define ASTRIX_VTK_H
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include <fstream>
 
 namespace astrix {
@@ -25,6 +22,8 @@ namespace astrix {
 class Mesh;
 
 //! VTK: object to write legacy VTK output
+/*! Write current mesh and state into legacy VTK file. All output has to be 4 bytes (i.e. either int or float). Points will be added to periodic meshes to handle the boundaries properly.*/
+
 class VTK
 {
  public:
@@ -33,23 +32,27 @@ class VTK
   //! Destructor for VTK object
   ~VTK();
 
+  //! Write mesh and state into legacy VTK file
   void Write(const char *fileName, Mesh *mesh, realNeq *state);
  private:
+  //! Output stream
   std::ofstream outFile;
 
+  //! Flag whether endian swapping is necessary (VTK needs bigendian)
   int swapEndian;
 
-  void write_unstructured_mesh(const char *fileName, int nPoints, float *pts,
-                               int nCells, int *conn,
-                               int nVars, int *varDim, int *centering,
-                               const char * const *varNames, float **vars);
+  //! Write data into VTK file
+  void writeData(const char *fileName, int nPoints, float *pts,
+                 int nCells, int *conn,
+                 int nVars, int *varDim, int *centering,
+                 const char * const *varNames, float **vars);
 
-  void write_variables(int nVars, int *varDim, int *centering,
-                       const char * const * varName, float **vars,
-                       int nPoints, int nCells);
+  //! Write state into VTK file
+  void writeState(int nVars, int *varDim, int *centering,
+                  const char * const * varName, float **vars,
+                  int nPoints, int nCells);
 
-  void ForceBigEndian(unsigned char *bytes);
-
+  //! Write single 4-byte quantity into VTK file
   template <class T>
     void writeSingle(T val);
 };

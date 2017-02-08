@@ -114,7 +114,7 @@ void CalcShockSensorSingle(int i, int nVertex,
   // 1/triangle area
   real iA = rsqrtf(s*(s - tl1)*(s - tl2)*(s - tl3));
   // Shock sensor
-  real sc = -half*iDv*iA;
+  real sc = -iDv*iA;
 
   // Triangle inward pointing normals
   real nx1 = pTn1[i].x*tl1;

@@ -1,4 +1,4 @@
-document redundant, periodic, vtk
+python read script
 new parallel flip selection test?
 adjust makefile register use / double prec ?
 readthedocs sphinx

@@ -19,7 +19,6 @@ extern int ndim;
 
 // State at vertices
 extern float *vertDens, *vertVelx, *vertVely, *vertPres;
-extern float *triBlend;
 
 extern float maxx, minx, maxy, miny;
 
@@ -27,7 +26,6 @@ extern float mindens, maxdens;
 extern float minvelx, maxvelx;
 extern float minvely, maxvely;
 extern float minpres, maxpres;
-extern float minblend, maxblend;
 
 //###########################################################################
 // main
@@ -47,7 +45,7 @@ int ReadFiles(int startFlag)
   // Number of dimensions
   fread(&ndim, sizeof(int), 1, fp);
   printf("Number of dimensions: %d\n", ndim);
-  
+
   // Size of floating point numbers (float or double)
   int sizeOfData;
   fread((char*) &sizeOfData, sizeof(int), 1, fp);
@@ -56,37 +54,37 @@ int ReadFiles(int startFlag)
     printf("Unrecognised data size (must be float or double)\n");
     return 1;
   }
-  
+
   // Number of vertices
   fread((char*) &n_vertex, sizeof(int), 1, fp);
   printf("Number of vertices: %d\n", n_vertex);
-  
+
   if (startFlag != 1) {
     free(vertX);
     free(vertY);
   }
   vertX = malloc(n_vertex*sizeof(float));
   vertY = malloc(n_vertex*sizeof(float));
-  
+
   if(sizeOfData == sizeof(double)){
     double *tempX = malloc(n_vertex*sizeof(double));
     double *tempY = malloc(n_vertex*sizeof(double));
-    
+
     fread((char*) tempX, sizeof(double), n_vertex, fp);
     fread((char*) tempY, sizeof(double), n_vertex, fp);
-    
+
     for(i=0;i<n_vertex;i++){
       vertX[i] = (float) tempX[i];
       vertY[i] = (float) tempY[i];
     }
-    
+
     free(tempX);
-    free(tempY);    
+    free(tempY);
   }else{
     fread((char*) vertX, sizeof(float), n_vertex, fp);
     fread((char*) vertY, sizeof(float), n_vertex, fp);
   }
-  
+
   fclose(fp);
 
   snprintf(fname, sizeof(fname), "tria%4.4d.dat", nSave);
@@ -105,7 +103,7 @@ int ReadFiles(int startFlag)
   fread((char*) triVert, sizeof(int), (ndim+1)*n_triangle, fp);
   fread((char*) triEdge, sizeof(int), (ndim+1)*n_triangle, fp);
   fclose(fp);
-    
+
   printf("Mesh data read\n");
 
   if (startFlag != 1) {
@@ -119,12 +117,12 @@ int ReadFiles(int startFlag)
   vertVelx = malloc(n_vertex*sizeof(float));
   vertVely = malloc(n_vertex*sizeof(float));
   vertPres = malloc(n_vertex*sizeof(float));
-  
+
   // Read density binary
   sprintf(fname, "dens%4.4d.dat", nSave);
   fp = fopen(fname, "rb");
 
-  // No file found, return    
+  // No file found, return
   if (!fp) {
     //if (startFlag == 1) {
       for (i=0; i < n_vertex; i++) vertDens[i] = 0.0;
@@ -137,7 +135,7 @@ int ReadFiles(int startFlag)
 
   float simulationTime = 0.0;
   int nTimeStep = 0;
-  
+
   // Size of floating point numbers (float or double)
   fread((char*) &sizeOfData, sizeof(int), 1, fp);
 
@@ -173,7 +171,7 @@ int ReadFiles(int startFlag)
   sprintf(fname, "momx%4.4d.dat", nSave);
   fp = fopen(fname, "rb");
 
-  // No file found, return    
+  // No file found, return
   if (!fp) {
     if (startFlag == 1) {
       for (i=0; i < n_vertex; i++) vertVelx[i] = 0.0;
@@ -194,7 +192,7 @@ int ReadFiles(int startFlag)
     double tempTime;
     fread((char*) &tempTime, sizeOfData, 1, fp);
     simulationTime = (float) tempTime;
-    
+
     fread((char*) &nTimeStep, sizeof(int), 1, fp);
 
     double *temp = malloc(n_vertex*sizeof(double));
@@ -216,7 +214,7 @@ int ReadFiles(int startFlag)
   sprintf(fname, "momy%4.4d.dat", nSave);
   fp = fopen(fname, "rb");
 
-  // No file found, return    
+  // No file found, return
   if (!fp) {
     if (startFlag == 1) {
       for (i=0; i < n_vertex; i++) vertVely[i] = 0.0;
@@ -237,7 +235,7 @@ int ReadFiles(int startFlag)
     double tempTime;
     fread((char*) &tempTime, sizeOfData, 1, fp);
     simulationTime = (float) tempTime;
-    
+
     fread((char*) &nTimeStep, sizeof(int), 1, fp);
 
     double *temp = malloc(n_vertex*sizeof(double));
@@ -259,7 +257,7 @@ int ReadFiles(int startFlag)
   sprintf(fname, "ener%4.4d.dat", nSave);
   fp = fopen(fname, "rb");
 
-  // No file found, return    
+  // No file found, return
   if (!fp) {
     if (startFlag == 1) {
       for (i=0; i < n_vertex; i++) vertPres[i] = 0.0;
@@ -280,7 +278,7 @@ int ReadFiles(int startFlag)
     double tempTime;
     fread((char*) &tempTime, sizeOfData, 1, fp);
     simulationTime = (float) tempTime;
-    
+
     fread((char*) &nTimeStep, sizeof(int), 1, fp);
 
     double *temp = malloc(n_vertex*sizeof(double));
@@ -301,67 +299,13 @@ int ReadFiles(int startFlag)
   for (i = 0; i < n_vertex; i++) {
     vertPres[i] =
       0.4*(vertPres[i] -
-	   0.5f*(vertVelx[i]*vertVelx[i] +
-		 vertVely[i]*vertVely[i])/vertDens[i]);
+           0.5f*(vertVelx[i]*vertVelx[i] +
+                 vertVely[i]*vertVely[i])/vertDens[i]);
 
     vertVelx[i] = vertVelx[i]/vertDens[i];
     vertVely[i] = vertVely[i]/vertDens[i];
   }
 
-  triBlend = malloc(n_triangle*sizeof(float));
-  for (i=0; i < n_triangle; i++) triBlend[i] = 0.0;
-  
-  // Read blend binary
-  sprintf(fname, "blnd%4.4d.dat", nSave);
-  fp = fopen(fname, "rb");
-
-  if (fp) {
-    /*
-  // No file found, return    
-  if (!fp) {
-    if (startFlag == 1) {
-      for (i=0; i < n_triangle; i++) triBlend[i] = 0.0;
-      return 0;
-    } else {
-      return 1;
-    }
-  }
-    */
-  // Size of floating point numbers (float or double)
-  fread((char*) &sizeOfData, sizeof(int), 1, fp);
-  if(sizeOfData != sizeof(float) && sizeOfData != sizeof(double)){
-    printf("Unrecognised data size (must be float or double)\n");
-    return 1;
-  }
-
-  triBlend = malloc(n_triangle*sizeof(float));
-
-  if(sizeOfData == sizeof(double)){
-    double tempTime;
-    fread((char*) &tempTime, sizeOfData, 1, fp);
-    simulationTime = (float) tempTime;
-    
-    fread((char*) &nTimeStep, sizeof(int), 1, fp);
-
-    double *temp = malloc(n_triangle*sizeof(double));
-    fread((char*) temp, sizeof(double), n_triangle, fp);
-
-    for(i=0;i<n_triangle;i++)
-      triBlend[i] = (float) temp[i];
-
-    free(temp);
-  }else{
-    fread((char*) &simulationTime, sizeOfData, 1, fp);
-    fread((char*) &nTimeStep, sizeof(int), 1, fp);
-    fread((char*) triBlend, sizeof(float), n_triangle, fp);
-  }
-
-  //for (i = 0;i < n_triangle; i++)
-  //  triBlend[i] = log10(triBlend[i]);
-
-  fclose(fp);
-  }
-  
   if (nSave == nStart) {
     printf("VertXY: %f %f\n", vertX[0], vertY[0]);
 
@@ -373,8 +317,6 @@ int ReadFiles(int startFlag)
     maxvely = -1.0e10;
     minpres = 1.0e10;
     maxpres = -1.0e10;
-    minblend = 1.0e10;
-    maxblend = -1.0e10;
 
     for (i = 0; i < n_vertex; i++) {
       float d = vertDens[i];
@@ -390,14 +332,6 @@ int ReadFiles(int startFlag)
       if(d < minpres) minpres=d;
       if(d > maxpres) maxpres=d;
     }
-    for (i = 0; i < n_triangle; i++) {
-      float d = triBlend[i];
-      if (d < minblend) minblend = d;
-      if (d > maxblend) maxblend = d;
-
-      //printf("blend: %d %e\n", i, d);
-    }
-    printf("MinMaxBlend: %e %e\n", minblend, maxblend);
     //printf("MinMaxPres: %e %e\n", minpres, maxpres);
     //printf("MinMaxVelX: %e %e\n", minvelx, maxvelx);
     //printf("MinMaxVelY: %e %e\n", minvely, maxvely);
@@ -405,8 +339,6 @@ int ReadFiles(int startFlag)
    }
 
   nSave++;
-  
+
   return 0;
 }
-
- 

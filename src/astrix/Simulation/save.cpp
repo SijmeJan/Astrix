@@ -353,7 +353,6 @@ void Simulation::FineGrainSave()
 
   outFile << std::setprecision(10)
           << simulationTime << " "
-          << nVertex << " "
           << TotalMass() << std::endl;
   outFile.close();
   if (!outFile) {
