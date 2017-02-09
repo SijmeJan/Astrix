@@ -271,7 +271,6 @@ void Simulation::ReadInputFile(const char *fileName)
       if (secondWord == "SOD") problemDef = PROBLEM_SOD;
       if (secondWord == "BLAST") problemDef = PROBLEM_BLAST;
       if (secondWord == "VORTEX") problemDef = PROBLEM_VORTEX;
-      if (secondWord == "YEE") problemDef = PROBLEM_YEE;
       if (secondWord == "NOH") problemDef = PROBLEM_NOH;
     }
 
@@ -360,7 +359,6 @@ void Simulation::ReadInputFile(const char *fileName)
   if (problemDef == PROBLEM_SOD ||
       problemDef == PROBLEM_BLAST ||
       problemDef == PROBLEM_KH ||
-      problemDef == PROBLEM_YEE ||
       problemDef == PROBLEM_NOH ||
       problemDef == PROBLEM_CYL) {
 #if N_EQUATION != 4

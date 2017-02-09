@@ -60,7 +60,6 @@ void MeshParameter::ReadFromFile(const char *fileName)
       if (secondWord == "SOD") problemDef = PROBLEM_SOD;
       if (secondWord == "BLAST") problemDef = PROBLEM_BLAST;
       if (secondWord == "VORTEX") problemDef = PROBLEM_VORTEX;
-      if (secondWord == "YEE") problemDef = PROBLEM_YEE;
       if (secondWord == "NOH") problemDef = PROBLEM_NOH;
     }
 

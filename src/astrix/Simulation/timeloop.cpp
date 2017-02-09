@@ -148,7 +148,6 @@ void Simulation::DoTimeStep()
 
   /*
   if (problemDef == PROBLEM_VORTEX ||
-      problemDef == PROBLEM_YEE ||
       problemDef == PROBLEM_SOD)
     ExtrapolateBoundaries();
   */
@@ -187,13 +186,12 @@ void Simulation::DoTimeStep()
     ReflectingBoundaries(dt);
 
   // Nonreflecting boundaries
-  if (problemDef == PROBLEM_YEE || problemDef == PROBLEM_VORTEX)
+  if (problemDef == PROBLEM_VORTEX)
     SetNonReflectingBoundaries();
 
   if (integrationOrder == 2) {
     /*
     if (problemDef == PROBLEM_VORTEX ||
-        problemDef == PROBLEM_YEE ||
         problemDef == PROBLEM_SOD)
       ExtrapolateBoundaries();
     */
@@ -250,7 +248,7 @@ void Simulation::DoTimeStep()
       ReflectingBoundaries(dt);
 
     // Nonreflecting boundaries
-    if (problemDef == PROBLEM_YEE || problemDef == PROBLEM_VORTEX)
+    if (problemDef == PROBLEM_VORTEX)
       SetNonReflectingBoundaries();
   }
 

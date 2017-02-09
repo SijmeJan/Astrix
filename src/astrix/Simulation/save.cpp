@@ -344,7 +344,6 @@ void Simulation::Restore(int nRestore)
 void Simulation::FineGrainSave()
 {
   std::ofstream outFile;
-  int nVertex = mesh->GetNVertex();
 
   if (nSave == 0)
     outFile.open("simulation.dat");

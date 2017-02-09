@@ -84,41 +84,6 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   }
 
   if (problemDef == PROBLEM_VORTEX) {
-    real vadv = zero;
-
-    dens = 1.4;
-    real vx = 1.0e-10 + vadv;
-    real vy = zero;
-    real pres = 100.0;
-
-    for (int i = -1; i < 2; i++) {
-      real xc = vadv*time + Px*i;
-      real yc = zero;
-
-      real x = vertX;
-      real y = vertY;
-      real r = sqrt(Sq(x - xc)+Sq(y - yc));
-      real d = 4.0*M_PI*r;
-
-      real w = 15.0*(cos(d) + one);
-      if (r >= 0.25) w = 0;
-      vx -= y*w;
-      vy += x*w;
-
-      real C = -15.0*15.0*dens*(0.75*M_PI*M_PI - 2.0 + 0.125)/(16.0*M_PI*M_PI);
-      real dp =
-        (2.0*cos(d) + 2.0*d*sin(d) + 0.125*cos(2.0*d) + 0.25*d*sin(2.0*d) +
-         0.75*d*d)*15.0*15.0*dens/(16.0*M_PI*M_PI) + C;
-      if (r >= 0.25) dp = 0.0;
-      pres += dp;
-    }
-
-    momx = dens*vx;
-    momy = dens*vy;
-    ener = half*(Sq(momx) + Sq(momy))/dens + pres/(G - one);
-  }
-
-  if (problemDef == PROBLEM_YEE) {
     real x = vertX;
     real y = vertY;
     real vx = 0.0;

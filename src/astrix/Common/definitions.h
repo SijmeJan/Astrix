@@ -46,15 +46,14 @@ namespace astrix {
   //! Problem definitions
   /*! Enumeration of predefined test problems*/
   enum ProblemDefinition {PROBLEM_UNDEFINED, /*!< Undefined, leads to error*/
-                          PROBLEM_LINEAR, /*!< Linear wave*/
-                          PROBLEM_VORTEX, /*!< Vortex advection*/
-                          PROBLEM_SOD,    /*!< Sod shock tube*/
-                          PROBLEM_BLAST,  /*!< Interacting blast waves*/
-                          PROBLEM_KH,     /*!< Kelvin-Helmholz instability*/
-                          PROBLEM_CYL,    /*!< Flow around cylinder*/
-                          PROBLEM_RIEMANN,/*!< 2D Riemann problem*/
-                          PROBLEM_YEE,    /*!< Yee vortex*/
-                          PROBLEM_NOH
+                          PROBLEM_LINEAR,    /*!< Linear wave*/
+                          PROBLEM_SOD,       /*!< Sod shock tube*/
+                          PROBLEM_BLAST,     /*!< Interacting blast waves*/
+                          PROBLEM_KH,        /*!< Kelvin-Helmholz instability*/
+                          PROBLEM_CYL,       /*!< Flow around cylinder*/
+                          PROBLEM_RIEMANN,   /*!< 2D Riemann problem*/
+                          PROBLEM_VORTEX,    /*!< Isentropic vortex*/
+                          PROBLEM_NOH        /*!< Noh test problem*/
   };
 
   //! Integration schemes
@@ -62,8 +61,8 @@ namespace astrix {
   enum IntegrationScheme {SCHEME_UNDEFINED, /*!< Undefined, will lead to error*/
                           SCHEME_N,         /*!< N scheme, diffusive 1st order*/
                           SCHEME_LDA,       /*!< LDA scheme, 2nd order*/
-                          SCHEME_B,          /*!< Blended N-LDA scheme*/
-                          SCHEME_BX          /*!< Blended X scheme*/
+                          SCHEME_B,         /*!< Blended N-LDA scheme*/
+                          SCHEME_BX         /*!< Blended X scheme*/
   };
 }  // namespace astrix
 
