@@ -18,6 +18,7 @@ import os
 import shlex
 import subprocess
 import glob
+import sphinxcontrib.programoutput
 
 # Doxygen trigger
 read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
