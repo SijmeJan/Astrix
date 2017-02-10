@@ -1,4 +1,2 @@
 breathe==4.0.0
-python==3.2
-pip==9.0.1
 sphinxcontrib.programoutput
