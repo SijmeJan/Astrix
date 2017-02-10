@@ -5,6 +5,7 @@ Command line options
 -------------------------------
 
 Issuing ``astrix`` gives::
+
     Usage: astrix [-d] [-v verboseLevel] [-D debugLevel] [-r restartNumber] filename
     -d                       : run on GPU device
     -v verboseLevel  : amount of output to stdout (0 - 2)
