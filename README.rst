@@ -29,7 +29,8 @@ VTK files, which can be viewed for example with the free tool `Visit
 Documentation
 -------------------------------
 
-Full documentation is provided
+Full documentation is provided at:
+
 http://astrix.readthedocs.io
 
 
