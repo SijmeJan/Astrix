@@ -1,6 +1,8 @@
 Astrix
 ========================
 
+|build-status| |docs|
+
 Astrix (AStrophysical fluid dynamics on TRIangular eXtreme grids) is a package for numerical fluid dynamics on an unstructured, triangular grid. It uses a multidimensional upwind residual distribution scheme with explicit Runge Kutta time integration. The current version does two spatial dimensions only. Astrix is designed to run on NVidia GPUs.
 
 
@@ -21,4 +23,11 @@ and run Astrix::
   ../../../bin/astrix astrix.in
 
 Output is generated (apart from raw data files) in the form of legacy
-VTK files, which can be viewed with `Visit <https://wci.llnl.gov/simulation/computer-codes/visit>`_
+VTK files, which can be viewed for example with the free tool `Visit
+<https://wci.llnl.gov/simulation/computer-codes/visit>`_
+
+Documentation
+-------------------------------
+
+Full documentation is provided
+http://astrix.readthedocs.io
