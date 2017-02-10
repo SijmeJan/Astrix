@@ -130,7 +130,7 @@ LIBRARIES := -L$(LIB_PATH)
 CUDA_ARCH := compute_30
 
 # By default, generate code for all architectures
-CUDA_SM_ARCH := sm_30,sm_32,sm_35,sm_50,sm_52,sm_53
+CUDA_SM_ARCH := compute_30,sm_30,sm_32,sm_35
 
 # If CUDA_COMPUTE is set, specialize appropriately
 ifeq ($(CUDA_COMPUTE),30)
