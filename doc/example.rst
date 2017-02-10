@@ -4,7 +4,13 @@ Running Astrix
 Command line options
 -------------------------------
 
-.. program-output:: ../bin/astrix
+Issuing ``astrix`` gives::
+    Usage: astrix [-d] [-v verboseLevel] [-D debugLevel] [-r restartNumber] filename
+    -d                       : run on GPU device
+    -v verboseLevel  : amount of output to stdout (0 - 2)
+    -D debugLevel    : amount of extra checks for debugging
+    -r restartNumber : try to restart from previous dump
+    filename              : input file name
 
 Test problems
 -------------------------------

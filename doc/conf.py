@@ -44,7 +44,6 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
     'breathe',
-    'sphinxcontrib.programoutput',
     ]
 
 breathe_projects = { "Astrix": "./doxygen/xml" }
