@@ -40,8 +40,7 @@ class Mesh
  public:
   //! Constructor
   Mesh(int meshVerboseLevel, int meshDebugLevel, int meshCudaFlag,
-       const char *fileName, Device *device, int restartNumber,
-       int extraFlag);
+       const char *fileName, Device *device, int restartNumber);
   //! Destructor; releases memory.
   ~Mesh();
 
@@ -146,7 +145,7 @@ class Mesh
   int debugLevel;
 
   //! Set up the mesh
-  void Init(const char *fileName, int restartNumber, int extraFlag);
+  void Init(const char *fileName, int restartNumber);
   //! Output mesh statistics to stdout
   void OutputStat();
 

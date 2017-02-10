@@ -35,19 +35,15 @@ namespace astrix {
   \param _debugLevel Level of extra checks for correct mesh.
   \param *fileName Input file name
   \param *device Device to be used for computation.
-  \param restartNumber Number of saved file to restore from
-  \param extraFlag Extra user flag*/
+  \param restartNumber Number of saved file to restore from*/
 //#########################################################################
 
 Simulation::Simulation(int _verboseLevel,
                        int _debugLevel,
                        char *fileName,
                        Device *_device,
-                       int restartNumber,
-                       int _extraFlag)
+                       int restartNumber)
 {
-  extraFlag = _extraFlag;
-
   std::cout << "Setting up Astrix simulation using parameter file \'"
             << fileName << "\'" << std::endl;
 
@@ -60,17 +56,6 @@ Simulation::Simulation(int _verboseLevel,
     throw;
   }
 
-  /*
-  try {
-    // Read input file
-    ReadInputFile(fileName);
-  }
-  catch (...) {
-    std::cout << "Reading " << fileName << " failed!" << std::endl;
-    throw;
-  }
-  */
-
   // How much to output to screen
   verboseLevel = _verboseLevel;
   debugLevel = _debugLevel;
@@ -81,15 +66,14 @@ Simulation::Simulation(int _verboseLevel,
   try {
     // Create mesh object
     mesh = new Mesh(verboseLevel, debugLevel, cudaFlag,
-                    fileName, device, restartNumber, extraFlag);
+                    fileName, device, restartNumber);
   }
   catch (...) {
     std::cout << "Mesh creation failed" << std::endl;
     throw;
   }
 
-  // Only run in 2D for now
-  nSpaceDim = 2;
+  int nSpaceDim = simulationParameter->nSpaceDim;
 
   nTimeStep = 0;
   nSave = 0;

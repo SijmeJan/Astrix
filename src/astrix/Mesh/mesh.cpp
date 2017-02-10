@@ -46,8 +46,7 @@ namespace astrix {
 //#########################################################################
 
 Mesh::Mesh(int meshVerboseLevel, int meshDebugLevel, int meshCudaFlag,
-           const char *fileName, Device *device, int restartNumber,
-           int extraFlag)
+           const char *fileName, Device *device, int restartNumber)
 {
   verboseLevel = meshVerboseLevel;
   debugLevel = meshDebugLevel;
@@ -71,7 +70,7 @@ Mesh::Mesh(int meshVerboseLevel, int meshDebugLevel, int meshCudaFlag,
   triangleErrorEstimate = new Array<real>(1, cudaFlag);
 
   try {
-    Init(fileName, restartNumber, extraFlag);
+    Init(fileName, restartNumber);
   }
   catch (...) {
     std::cout << "Error initializing mesh" << std::endl;
@@ -127,7 +126,7 @@ Mesh::~Mesh()
 \param restartNumber Number of save file to restore from*/
 //#########################################################################
 
-void Mesh::Init(const char *fileName, int restartNumber, int extraFlag)
+void Mesh::Init(const char *fileName, int restartNumber)
 {
   //-------------------------------------------------------------------
   // Read mesh input file
@@ -139,15 +138,6 @@ void Mesh::Init(const char *fileName, int restartNumber, int extraFlag)
   catch (...) {
     std::cout << "Error reading data into MeshParameter" << std::endl;
     throw;
-  }
-
-  if (extraFlag > 0) {
-    real nx = (real) (extraFlag - 1);
-
-    // Convert nx into base resolution requirement
-    meshParameter->baseResolution =
-      0.565*((meshParameter->maxx - meshParameter->minx)/nx)*
-      ((meshParameter->maxx - meshParameter->minx)/nx);
   }
 
   //--------------------------------------------------------------------

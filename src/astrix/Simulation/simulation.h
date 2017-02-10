@@ -32,8 +32,7 @@ class Simulation
  public:
   //! Constructor for Simulation object.
   Simulation(int _verboseLevel, int _debugLevel,
-             char *fileName, Device *_device, int restartNumber,
-             int extraFlag);
+             char *fileName, Device *_device, int restartNumber);
   //! Destructor, releases all dynamically allocated memory
   ~Simulation();
 
@@ -52,47 +51,12 @@ class Simulation
   int verboseLevel;
   //! Level of debugging
   int debugLevel;
-  //! Extra user flag
-  int extraFlag;
 
   //! Mesh on which to do simulation
   Mesh *mesh;
 
   //! Number of time steps taken
   int nTimeStep;
-
-  //! Number of space dimensions (fixed to 2)
-  int nSpaceDim;
-
-  /*
-  //! Problem specification (see Common/definitions.h)
-  ProblemDefinition problemDef;
-
-  //! Integration scheme (see Common/definitions.h)
-  IntegrationScheme intScheme;
-  //! Order of accuracy in time (1 or 2)
-  int integrationOrder;
-  //! Mass matrix formulation to use (1, 2, 3 or 4)
-  int massMatrix;
-  //! Flag whether to use selective lumping
-  int selectiveLumpFlag;
-  //! Courant number
-  real CFLnumber;
-  //! Preference for using minimum/maximum value of blend parameter
-  int preferMinMaxBlend;
-
-  //! Ratio of specific heats
-  real specificHeatRatio;
-
-  //! Maximum simulation time
-  real maxSimulationTime;
-  //! Time between 2D saves
-  real saveIntervalTime;
-  //! Time between 0D saves
-  real saveIntervalTimeFine;
-  //! Flag whether do output VTK files
-  int writeVTK;
-  */
 
   //! Time variable.
   real simulationTime;
@@ -125,8 +89,6 @@ class Simulation
 
   //! Set up the simulation
   void Init(int restartNumber);
-  //! Read input file
-  //void ReadInputFile(const char *fileName);
 
   //! Save current state
   void Save();

@@ -17,6 +17,8 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <cstring>
 #include <cstdlib>
 #include <iostream>
+#include <cstddef>         // std::size_t
+#include <string>         // std::string
 
 #include "./Common/definitions.h"
 #include "./Simulation/simulation.h"
@@ -28,27 +30,16 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 
 int main(int argc, char *argv[])
 {
-  std::cout << "Welcome to Astrix!" << std::endl;
-
   // Parse command line arguments
-  int checkDeviceFlag = 0;               // Exit after check for devices
   int verboseLevel = 0;                  // How much screen output
   int debugLevel = 0;                    // Level of debugging
   int nSwitches = 0;                     // Number of command line switches
   int cudaFlag = 0;                      // Flag whether to use CUDA device
   int restartNumber = 0;                 // Save number to restart from
   double maxWallClockHours = 1.0e10;     // Maximum wallclock hours to run
-  int extraFlag = 0;
 
   // Walk through all command line arguments
   for (int i = 1; i < argc; ++i) {
-    // Set flag for just checking for device
-    if (strcmp(argv[i], "--checkdevice") == 0 ||
-        strcmp(argv[i], "-c") == 0) {
-      std::cout << "Will quit after checking for CUDA devices" << std::endl;
-      checkDeviceFlag = 1;
-      nSwitches++;
-    }
     // Set flag for executing on device
     if (strcmp(argv[i], "--device") == 0 ||
         strcmp(argv[i], "-d") == 0) {
@@ -85,14 +76,36 @@ int main(int argc, char *argv[])
                 << " hours" << std::endl;
       nSwitches += 2;
     }
-    // Extra flag
-    if (strcmp(argv[i], "--extraflag") == 0 ||
-        strcmp(argv[i], "-e") == 0) {
-      extraFlag = atoi(argv[i+1]);
-      std::cout << "Extra flag: " << extraFlag << std::endl;
-      nSwitches += 2;
-    }
   }
+
+  // Check for correct number of arguments
+  if (argc != 2 + nSwitches) {
+    // Strip possible directory from command
+    std::string cmand = argv[0];
+    std::size_t found = cmand.find_last_of("/");
+
+    // Print usage
+    std::cout << "Usage: " << cmand.substr(found + 1)
+              << " [-d]"
+              << " [-v verboseLevel]"
+              << " [-D debugLevel]"
+              << " [-r restartNumber]"
+              << " filename"
+              << std::endl;
+    std::cout << "-d               : run on GPU device" << std::endl;
+    std::cout << "-v verboseLevel  : amount of output to stdout (0 - 2)"
+              << std::endl;
+    std::cout << "-D debugLevel    : amount of extra checks for debugging"
+              << std::endl;
+    std::cout << "-r restartNumber : try to restart from previous dump"
+              << std::endl;
+    std::cout << "filename         : input file name" << std::endl;
+
+    return 1;
+  }
+
+  std::cout << "Welcome to Astrix!" << std::endl;
+
 
   // Initialise CUDA device
   astrix::Device *device;
@@ -104,28 +117,6 @@ int main(int argc, char *argv[])
     return 0;
   }
 
-  // Exit if just checking device
-  if (checkDeviceFlag == 1) {
-    std::cout << "Devices checked, exiting..." << std::endl;
-    delete device;
-    return 0;
-  }
-
-  // Check for correct number of arguments
-  if (argc != 2 + nSwitches) {
-    std::cout << "Usage: " << argv[0]
-              << " [-c]"
-              << " [-d]"
-              << " [-v verboseLevel]"
-              << " [-D debugLevel]"
-              << " [-r restartNumber]"
-              << " [-e extraFlag]"
-              << " filename"
-              << std::endl;
-    delete device;
-    return 1;
-  }
-
   // Last argument should be input file name
   char *fileName = argv[argc-1];
 
@@ -134,8 +125,7 @@ int main(int argc, char *argv[])
   try {
     simulation =
       new astrix::Simulation(verboseLevel, debugLevel,
-                             fileName, device, restartNumber,
-                             extraFlag);
+                             fileName, device, restartNumber);
   }
   catch (...) {
     std::cout << "Could not create Simulation object, exiting..." << std::endl;
