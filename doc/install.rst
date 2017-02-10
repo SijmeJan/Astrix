@@ -50,7 +50,11 @@ By default, Astrix will perform floating point computations in single precision.
 
   make astrix ASTRIX_DOUBLE=1
 
-Note that switching between double and single precision requires a complete rebuild: therefore first remove a previous build by entering::
+By default, Astrix solves the two-dimensional Euler equations (4 equations: density, 2D velocity and energy). Mainly for debugging purposes, solving a single scalar equation is supported as well::
+
+  make astrix ASTRIX_NEQ=1
+
+Note that both switching between double and single precision and switching between the number of equations solved requires a complete rebuild: therefore first remove a previous build by entering::
 
   make clean
 

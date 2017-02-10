@@ -27,3 +27,5 @@ A few test problems for the Euler equations are supplied in the ``Astrix/run/eul
 * ``riemann/`` : Two-dimensional Riemann problem.
 * ``sod/`` : A one-dimensional shock tube.
 * ``vortex/`` : Isentropic vortex test.
+
+In addition, some scalar equation tests can be found in ``Astrix/run/scalar``.

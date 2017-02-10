@@ -1,5 +1,3 @@
-SimulationParameter
-readthedocs sphinx
 new parallel flip selection test?
 adjust makefile register use / double prec ?
 
