@@ -21,6 +21,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "./simulation.h"
 #include "../Common/cudaLow.h"
 #include "../Common/inlineMath.h"
+#include "./Param/simulationparameter.h"
 
 namespace astrix {
 
@@ -409,6 +410,8 @@ void Simulation::SetInitial(real time)
   const real2 *pVc = mesh->VertexCoordinatesData();
 
   real Px = mesh->GetPx();
+  real G = simulationParameter->specificHeatRatio;
+  ProblemDefinition p = simulationParameter->problemDef;
 
   if (cudaFlag == 1) {
     int nBlocks = 128;
@@ -420,20 +423,18 @@ void Simulation::SetInitial(real time)
                                        (size_t) 0, 0);
 
     devSetInitial<<<nBlocks, nThreads>>>
-      (nVertex, pVc, problemDef, pVertexPotential, state,
-       specificHeatRatio, time, Px);
+      (nVertex, pVc, p, pVertexPotential, state, G, time, Px);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int n = 0; n < nVertex; n++)
-      SetInitialSingle(n, pVc, problemDef, pVertexPotential, state,
-                       specificHeatRatio, time, Px);
+      SetInitialSingle(n, pVc, p, pVertexPotential, state, G, time, Px);
   }
 
   try {
     // Add KH eigenvector
-    if (problemDef == PROBLEM_KH)
+    if (p == PROBLEM_KH)
       KHAddEigenVector();
   }
   catch (...) {

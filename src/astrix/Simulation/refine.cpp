@@ -21,6 +21,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../Array/array.h"
 #include "../Mesh/mesh.h"
 #include "./simulation.h"
+#include "./Param/simulationparameter.h"
 
 namespace astrix {
 
@@ -32,10 +33,12 @@ until no more refinement is needed*/
 void Simulation::Refine()
 {
   int ret = 0;
+
+  // Ratio of specific heats
+  real G = simulationParameter->specificHeatRatio;
+
   try {
-    ret = mesh->ImproveQuality(vertexState,
-                               specificHeatRatio,
-                               nTimeStep);
+    ret = mesh->ImproveQuality(vertexState, G, nTimeStep);
   }
   catch (...) {
     std::cout << "Error refining mesh" << std::endl;
@@ -56,9 +59,7 @@ void Simulation::Refine()
 
     while (ret > 0) {
       try {
-        ret = mesh->ImproveQuality(vertexState,
-                                   specificHeatRatio,
-                                   nTimeStep);
+        ret = mesh->ImproveQuality(vertexState, G, nTimeStep);
       }
       catch (...) {
         std::cout << "Error refining mesh" << std::endl;
@@ -88,7 +89,7 @@ void Simulation::Refine()
     triangleResidueN->SetSize(nTriangle);
     triangleResidueLDA->SetSize(nTriangle);
     triangleResidueTotal->SetSize(nTriangle);
-    if (intScheme == SCHEME_BX)
+    if (simulationParameter->intScheme == SCHEME_BX)
       triangleShockSensor->SetSize(nTriangle);
 
     CalcPotential();
@@ -104,8 +105,11 @@ void Simulation::Coarsen(int maxCycle)
 {
   int nCycle = 0;
   int finishedFlag = 0;
+  // Ratio of specific heats
+  real G = simulationParameter->specificHeatRatio;
+
   while (finishedFlag == 0) {
-    if (mesh->RemoveVertices(vertexState, specificHeatRatio, nTimeStep) == 0)
+    if (mesh->RemoveVertices(vertexState, G, nTimeStep) == 0)
       finishedFlag = 1;
     nCycle++;
     if (nCycle >= maxCycle && maxCycle >= 0)
@@ -132,7 +136,7 @@ void Simulation::Coarsen(int maxCycle)
   triangleResidueN->SetSize(nTriangle);
   triangleResidueLDA->SetSize(nTriangle);
   triangleResidueTotal->SetSize(nTriangle);
-  if (intScheme == SCHEME_BX)
+  if (simulationParameter->intScheme == SCHEME_BX)
     triangleShockSensor->SetSize(nTriangle);
 }
 

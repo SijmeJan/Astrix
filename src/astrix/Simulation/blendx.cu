@@ -19,6 +19,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../Mesh/mesh.h"
 #include "./simulation.h"
 #include "../Common/cudaLow.h"
+#include "./Param/simulationparameter.h"
 
 namespace astrix {
 
@@ -256,6 +257,8 @@ void Simulation::CalcShockSensor()
   triangleShockSensor->SetSize(nTriangle);
   real *pShockSensor = triangleShockSensor->GetPointer();
 
+  real G = simulationParameter->specificHeatRatio;
+
   // Calculate operators: vertex-based and triangle-based
   if (cudaFlag == 1) {
     int nBlocks = 128;
@@ -268,8 +271,7 @@ void Simulation::CalcShockSensor()
 
     devCalcShockSensor<<<nBlocks, nThreads>>>
       (nVertex, nTriangle, pTv, pTl, pTn1, pTn2, pTn3,
-       1.0/(maxVel - minVel), pState, pShockSensor,
-       specificHeatRatio, specificHeatRatio - 1.0);
+       1.0/(maxVel - minVel), pState, pShockSensor, G, G - 1.0);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -277,7 +279,7 @@ void Simulation::CalcShockSensor()
     for (int i = 0; i < nTriangle; i++)
       CalcShockSensorSingle(i, nVertex, pTv, pTl, pTn1, pTn2, pTn3,
                             1.0/(maxVel - minVel), pState, pShockSensor,
-                            specificHeatRatio, specificHeatRatio - 1.0);
+                            G, G - 1.0);
   }
 }
 

@@ -25,6 +25,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../Mesh/mesh.h"
 #include "../Device/device.h"
 #include "./simulation.h"
+#include "./Param/simulationparameter.h"
 
 namespace astrix {
 
@@ -47,6 +48,19 @@ Simulation::Simulation(int _verboseLevel,
 {
   extraFlag = _extraFlag;
 
+  std::cout << "Setting up Astrix simulation using parameter file \'"
+            << fileName << "\'" << std::endl;
+
+  simulationParameter = new SimulationParameter;
+  try {
+    simulationParameter->ReadFromFile(fileName);
+  }
+  catch (...) {
+    std::cout << "Reading " << fileName << " failed!" << std::endl;
+    throw;
+  }
+
+  /*
   try {
     // Read input file
     ReadInputFile(fileName);
@@ -55,6 +69,7 @@ Simulation::Simulation(int _verboseLevel,
     std::cout << "Reading " << fileName << " failed!" << std::endl;
     throw;
   }
+  */
 
   // How much to output to screen
   verboseLevel = _verboseLevel;
@@ -161,7 +176,7 @@ void Simulation::Init(int restartNumber)
   triangleResidueN->SetSize(nTriangle);
   triangleResidueLDA->SetSize(nTriangle);
   triangleResidueTotal->SetSize(nTriangle);
-  if (intScheme == SCHEME_BX)
+  if (simulationParameter->intScheme == SCHEME_BX)
     triangleShockSensor->SetSize(nTriangle);
   triangleResidueSource->SetSize(nTriangle);
 
@@ -226,7 +241,7 @@ void Simulation::Init(int restartNumber)
 
   \param fileName Name of input file*/
 // #########################################################################
-
+/*
 void Simulation::ReadInputFile(const char *fileName)
 {
   std::cout << "Setting up Astrix simulation using parameter file \'"
@@ -420,5 +435,6 @@ void Simulation::ReadInputFile(const char *fileName)
   // Close simulation parameter file
   inFile.close();
 }
+*/
 
 }  // namespace astrix

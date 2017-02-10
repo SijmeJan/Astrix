@@ -19,6 +19,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../Array/array.h"
 #include "../Mesh/mesh.h"
 #include "./simulation.h"
+#include "./Param/simulationparameter.h"
 
 namespace astrix {
 
@@ -60,7 +61,7 @@ void Simulation::UpdateState(real dt, int RKStep)
   Array<int> *vertexUnphysicalFlag = new Array<int>(1, cudaFlag, nVertex);
 
   // Calculateshock sensor if necessary
-  if (intScheme == SCHEME_BX) CalcShockSensor();
+  if (simulationParameter->intScheme == SCHEME_BX) CalcShockSensor();
 
   int nCycle = 0;
   int maxCycle = mesh->GetNTriangle();
@@ -87,7 +88,7 @@ void Simulation::UpdateState(real dt, int RKStep)
             real momx = pVs[i].y;
             real momy = pVs[i].z;
             real ener = pVs[i].w;
-            real pres = (specificHeatRatio - 1.0)*
+            real pres = (simulationParameter->specificHeatRatio - 1.0)*
               (ener - 0.5*(momx*momx + momy*momy)/dens);
 
             std::cout << pVs[i].x << " " << pVs[i].y << " "
@@ -111,7 +112,7 @@ void Simulation::UpdateState(real dt, int RKStep)
     failFlag = vertexUnphysicalFlag->Maximum();
 
     if (failFlag > 0) {
-      if (intScheme == SCHEME_N) {
+      if (simulationParameter->intScheme == SCHEME_N) {
         nCycle = maxCycle;
       } else {
         if (verboseLevel > 1) {

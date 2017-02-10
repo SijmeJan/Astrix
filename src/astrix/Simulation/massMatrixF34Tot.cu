@@ -21,6 +21,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "./simulation.h"
 #include "../Common/cudaLow.h"
 #include "../Common/inlineMath.h"
+#include "./Param/simulationparameter.h"
 
 namespace astrix {
 
@@ -963,6 +964,7 @@ void Simulation::MassMatrixF34Tot(real dt, int massMatrix)
 
   realNeq *pVz = vertexParameterVector->GetPointer();
   realNeq *pDstate = vertexStateDiff->GetPointer();
+  real G = simulationParameter->specificHeatRatio;
 
   realNeq *pTresTot = triangleResidueTotal->GetPointer();
 
@@ -984,9 +986,7 @@ void Simulation::MassMatrixF34Tot(real dt, int massMatrix)
     devMassMatrixF34Tot<<<nBlocks, nThreads>>>
       (nTriangle, dt, massMatrix, pTv, pVz, pDstate,
        pTresTot, pTn1, pTn2, pTn3, pTl, nVertex,
-       specificHeatRatio,
-       specificHeatRatio - 1.0,
-       specificHeatRatio - 2.0);
+       G, G - 1.0, G - 2.0);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -995,8 +995,7 @@ void Simulation::MassMatrixF34Tot(real dt, int massMatrix)
     for (int n = 0; n < nTriangle; n++)
       MassMatrixF34TotSingle(n, dt, massMatrix, pTv, pVz, pDstate,
                              pTresTot, pTn1, pTn2, pTn3, pTl, nVertex,
-                             specificHeatRatio, specificHeatRatio - 1.0,
-                             specificHeatRatio - 2.0);
+                             G, G - 1.0, G - 2.0);
   }
 }
 

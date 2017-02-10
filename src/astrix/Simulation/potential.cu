@@ -20,6 +20,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../Mesh/mesh.h"
 #include "./simulation.h"
 #include "../Common/cudaLow.h"
+#include "./Param/simulationparameter.h"
 
 namespace astrix {
 
@@ -77,6 +78,7 @@ void Simulation::CalcPotential()
   int nVertex = mesh->GetNVertex();
   real *vertPot = vertexPotential->GetPointer();
   const real2 *pVc = mesh->VertexCoordinatesData();
+  ProblemDefinition p = simulationParameter->problemDef;
 
   if (cudaFlag == 1) {
     int nBlocks = 128;
@@ -88,13 +90,13 @@ void Simulation::CalcPotential()
                                        (size_t) 0, 0);
 
     devCalcPotential<<<nBlocks, nThreads>>>
-      (nVertex, problemDef, pVc, vertPot);
+      (nVertex, p, pVc, vertPot);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int i = 0; i < nVertex; i++)
-      CalcPotentialSingle(i, problemDef, pVc, vertPot);
+      CalcPotentialSingle(i, p, pVc, vertPot);
   }
 }
 

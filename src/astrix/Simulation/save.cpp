@@ -27,6 +27,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "./simulation.h"
 #include "../Common/nvtxEvent.h"
 #include "./VTK/vtk.h"
+#include "./Param/simulationparameter.h"
 
 namespace astrix {
 
@@ -42,7 +43,7 @@ void Simulation::Save()
   nvtxEvent *nvtxSave = new nvtxEvent("Save", 3);
 
   // Write VTK output
-  if (writeVTK == 1) {
+  if (simulationParameter->writeVTK == 1) {
     ReplaceEnergyWithPressure();
     char VTKname[15];
     snprintf(VTKname, sizeof(VTKname), "astrix%4.4d.vtk", nSave);
@@ -359,7 +360,7 @@ void Simulation::FineGrainSave()
     throw std::runtime_error("");
   }
 
-  if (problemDef == PROBLEM_KH) {
+  if (simulationParameter->problemDef == PROBLEM_KH) {
     real M = 0.0, E = 0.0;
     KHDiagnostics(M, E);
 

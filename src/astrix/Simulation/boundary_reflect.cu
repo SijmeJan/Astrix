@@ -19,6 +19,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../Mesh/mesh.h"
 #include "../Common/cudaLow.h"
 #include "../Common/inlineMath.h"
+#include "./Param/simulationparameter.h"
 
 namespace astrix {
 
@@ -446,6 +447,8 @@ void Simulation::ReflectingBoundaries(real dt)
   int nTriangle = mesh->GetNTriangle();
   int nVertex = mesh->GetNVertex();
 
+  real G = simulationParameter->specificHeatRatio;
+
   if (cudaFlag == 1) {
     int nBlocks = 128;
     int nThreads = 128;
@@ -457,7 +460,7 @@ void Simulation::ReflectingBoundaries(real dt)
 
     devSetReflecting<<<nBlocks, nThreads>>>
       (dt, pState, pTv, pTe, pEt, pVarea, pTl,
-       pTn1, pTn2, pTn3, nTriangle, nVertex, specificHeatRatio - 1.0);
+       pTn1, pTn2, pTn3, nTriangle, nVertex, G - 1.0);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -466,7 +469,7 @@ void Simulation::ReflectingBoundaries(real dt)
       SetReflectingSingle(n, dt, pState,
                           pTv, pTe, pEt, pVarea, pTl,
                           pTn1, pTn2, pTn3,
-                          nVertex, specificHeatRatio - 1.0);
+                          nVertex, G - 1.0);
   }
 }
 

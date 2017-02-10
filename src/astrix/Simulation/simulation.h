@@ -22,6 +22,7 @@ namespace astrix {
 class Mesh;
 template <class T> class Array;
 class Device;
+class SimulationParameter;
 
 //! Simulation: class containing simulation
 /*! This is the basic class needed to run an Astrix simulation.  */
@@ -42,6 +43,8 @@ class Simulation
  private:
   //! GPU device available
   Device *device;
+  //! Class holding parameters for the simulation
+  SimulationParameter *simulationParameter;
 
   //! Flag whether to use CUDA
   int cudaFlag;
@@ -58,18 +61,14 @@ class Simulation
   //! Number of time steps taken
   int nTimeStep;
 
+  //! Number of space dimensions (fixed to 2)
+  int nSpaceDim;
+
+  /*
   //! Problem specification (see Common/definitions.h)
-  /*! Read from input file: LIN: Linear wave,
-      RT: Rayleigh-Taylor,
-      KH: Kelvin-Helmholz,
-      RIEMANN: 2D Riemann problem,
-      SOD: Sod shock tube,
-      VORTEX: Vortex advection,
-      Converted to int using definitions in definitions.h.*/
   ProblemDefinition problemDef;
 
   //! Integration scheme (see Common/definitions.h)
-  /*! Read from input file: N: N scheme, LDA: LDA scheme, B: blended scheme.*/
   IntegrationScheme intScheme;
   //! Order of accuracy in time (1 or 2)
   int integrationOrder;
@@ -82,26 +81,25 @@ class Simulation
   //! Preference for using minimum/maximum value of blend parameter
   int preferMinMaxBlend;
 
-  //! Number of space dimensions (fixed to 2)
-  int nSpaceDim;
-
   //! Ratio of specific heats
   real specificHeatRatio;
 
-  //! Time variable.
-  real simulationTime;
   //! Maximum simulation time
   real maxSimulationTime;
   //! Time between 2D saves
   real saveIntervalTime;
   //! Time between 0D saves
   real saveIntervalTimeFine;
+  //! Flag whether do output VTK files
+  int writeVTK;
+  */
+
+  //! Time variable.
+  real simulationTime;
   //! Number of saves so far
   int nSave;
   //! Number of fine grain saves so far
   int nSaveFine;
-  //! Flag whether do output VTK files
-  int writeVTK;
 
   //! State vector at vertex
   Array <realNeq> *vertexState;
@@ -128,7 +126,7 @@ class Simulation
   //! Set up the simulation
   void Init(int restartNumber);
   //! Read input file
-  void ReadInputFile(const char *fileName);
+  //void ReadInputFile(const char *fileName);
 
   //! Save current state
   void Save();

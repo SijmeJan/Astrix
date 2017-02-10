@@ -21,6 +21,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "./simulation.h"
 #include "../Common/cudaLow.h"
 #include "../Common/inlineMath.h"
+#include "./Param/simulationparameter.h"
 
 namespace astrix {
 
@@ -103,6 +104,9 @@ void Simulation::FlagUnphysical(Array<int> *vertexUnphysicalFlag)
   // State vector at vertices
   realNeq *state = vertexState->GetPointer();
 
+  // Ratio of specific heats
+  real G = simulationParameter->specificHeatRatio;
+
   // Pointer to output
   int *pVertexUnphysicalFlag = vertexUnphysicalFlag->GetPointer();
 
@@ -117,13 +121,12 @@ void Simulation::FlagUnphysical(Array<int> *vertexUnphysicalFlag)
 
     // Execute kernel...
     devFlagUnphysical<<<nBlocks, nThreads>>>
-      (nVertex, state, pVertexUnphysicalFlag, specificHeatRatio - 1.0);
+      (nVertex, state, pVertexUnphysicalFlag, G - 1.0);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int v = 0; v < nVertex; v++)
-      FlagUnphysicalVertex(v, state, pVertexUnphysicalFlag,
-                           specificHeatRatio - 1.0);
+      FlagUnphysicalVertex(v, state, pVertexUnphysicalFlag, G - 1.0);
   }
 }
 

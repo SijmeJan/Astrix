@@ -24,6 +24,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../Common/inlineMath.h"
 #include "./upwind.h"
 #include "../Common/profile.h"
+#include "./Param/simulationparameter.h"
 
 namespace astrix {
 
@@ -1670,6 +1671,7 @@ void Simulation::CalcResidual()
 
   realNeq *pResSource = triangleResidueSource->GetPointer();
   realNeq *pVz = vertexParameterVector->GetPointer();
+  real G = simulationParameter->specificHeatRatio;
 
   realNeq *pTresN0 = triangleResidueN->GetPointer(0);
   realNeq *pTresN1 = triangleResidueN->GetPointer(1);
@@ -1706,9 +1708,7 @@ void Simulation::CalcResidual()
        pTn1, pTn2, pTn3, pTl, pResSource,
        pTresN0, pTresN1, pTresN2,
        pTresLDA0, pTresLDA1, pTresLDA2,
-       pTresTot, nVertex, specificHeatRatio,
-       specificHeatRatio - 1.0,
-       specificHeatRatio - 2.0);
+       pTresTot, nVertex, G, G - 1.0, G - 2.0);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -1725,9 +1725,7 @@ void Simulation::CalcResidual()
                          pTn1, pTn2, pTn3, pTl, pResSource,
                          pTresN0, pTresN1, pTresN2,
                          pTresLDA0, pTresLDA1, pTresLDA2,
-                         pTresTot, nVertex, specificHeatRatio,
-                         specificHeatRatio - 1.0,
-                         specificHeatRatio - 2.0);
+                         pTresTot, nVertex, G, G - 1.0, G - 2.0);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );

@@ -22,6 +22,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "./simulation.h"
 #include "../Common/cudaLow.h"
 #include "../Common/inlineMath.h"
+#include "./Param/simulationparameter.h"
 
 namespace astrix {
 
@@ -110,6 +111,7 @@ void Simulation::KHAddEigenVector()
   unsigned int nVertex = mesh->GetNVertex();
 
   realNeq *pState = vertexState->GetPointer();
+  real G = simulationParameter->specificHeatRatio;
 
   const real2 *pVc = mesh->VertexCoordinatesData();
 
@@ -177,8 +179,7 @@ void Simulation::KHAddEigenVector()
 
     devAddEigenVector<<<nBlocks, nThreads>>>
       (nVertex, pVc, pState, pdR, pdI, puR, puI, pvR, pvI,
-       pyKH[1] - pyKH[0], kxKH, pyKH, miny, maxy,
-       specificHeatRatio, specificHeatRatio - 1.0);
+       pyKH[1] - pyKH[0], kxKH, pyKH, miny, maxy, G, G - 1.0);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -186,7 +187,7 @@ void Simulation::KHAddEigenVector()
     for (unsigned int n = 0; n < nVertex; n++)
       AddEigenVectorSingle(n, pVc, pState, pdR, pdI, puR, puI, pvR, pvI,
                            pyKH[1] - pyKH[0], kxKH, pyKH, miny, maxy,
-                           specificHeatRatio, specificHeatRatio - 1.0);
+                           G, G - 1.0);
   }
 
   delete yKH;

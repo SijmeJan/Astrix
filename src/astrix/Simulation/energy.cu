@@ -21,6 +21,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "./simulation.h"
 #include "../Common/cudaLow.h"
 #include "../Common/inlineMath.h"
+#include "./Param/simulationparameter.h"
 
 namespace astrix {
 
@@ -123,6 +124,7 @@ void Simulation::ReplaceEnergyWithPressure()
   int nVertex = mesh->GetNVertex();
 
   realNeq *pState = vertexState->GetPointer();
+  real G = simulationParameter->specificHeatRatio;
 
   if (cudaFlag == 1) {
     int nBlocks = 128;
@@ -135,12 +137,12 @@ void Simulation::ReplaceEnergyWithPressure()
        (size_t) 0, 0);
 
     devReplaceEnergyWithPressure<<<nBlocks, nThreads>>>
-      (nVertex, pState, specificHeatRatio - 1.0);
+      (nVertex, pState, G - 1.0);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int i = 0; i < nVertex; i++)
-      ReplaceEnergyWithPressureSingle(i, pState, specificHeatRatio - 1.0);
+      ReplaceEnergyWithPressureSingle(i, pState, G - 1.0);
   }
 }
 
@@ -156,6 +158,7 @@ void Simulation::ReplacePressureWithEnergy()
   int nVertex = mesh->GetNVertex();
 
   realNeq *pState = vertexState->GetPointer();
+  real G = simulationParameter->specificHeatRatio;
 
   if (cudaFlag == 1) {
     int nBlocks = 128;
@@ -168,12 +171,12 @@ void Simulation::ReplacePressureWithEnergy()
        (size_t) 0, 0);
 
     devReplacePressureWithEnergy<<<nBlocks, nThreads>>>
-      (nVertex, pState, 1.0/(specificHeatRatio - 1.0));
+      (nVertex, pState, 1.0/(G - 1.0));
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int i = 0; i < nVertex; i++)
-      ReplacePressureWithEnergySingle(i, pState, 1.0/(specificHeatRatio - 1.0));
+      ReplacePressureWithEnergySingle(i, pState, 1.0/(G - 1.0));
   }
 }
 

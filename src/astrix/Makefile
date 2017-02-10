@@ -45,7 +45,7 @@ SHELL = /bin/sh
 ################################################################################
 
 # List of modules (must be directories in src/astrix)
-MODULES := Mesh/Predicates Mesh/Coarsen Mesh/Param Mesh/Connectivity Mesh/Refine Mesh/Delaunay Mesh/Morton Mesh Array Simulation Common Device Simulation/VTK
+MODULES := Mesh/Predicates Mesh/Coarsen Mesh/Param Mesh/Connectivity Mesh/Refine Mesh/Delaunay Mesh/Morton Mesh Array Simulation Common Device Simulation/VTK Simulation/Param
 
 # Create list of source files in module directories: list all .cpp and .cu files
 SRC :=  $(wildcard *.cu) $(wildcard *.cpp) $(foreach sdir,$(MODULES),$(wildcard $(sdir)/*.cu)) $(foreach sdir,$(MODULES),$(wildcard $(sdir)/*.cpp))

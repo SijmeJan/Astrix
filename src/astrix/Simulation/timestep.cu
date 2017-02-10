@@ -21,6 +21,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../Common/atomic.h"
 #include "../Common/cudaLow.h"
 #include "../Common/profile.h"
+#include "./Param/simulationparameter.h"
 
 namespace astrix {
 
@@ -262,6 +263,7 @@ real Simulation::CalcVertexTimeStep()
   int nTriangle = mesh->GetNTriangle();
 
   realNeq *pState = vertexState->GetPointer();
+  real G = simulationParameter->specificHeatRatio;
 
   const int3 *pTv = mesh->TriangleVerticesData();
   const real3 *pTl = mesh->TriangleEdgeLengthData();
@@ -286,8 +288,7 @@ real Simulation::CalcVertexTimeStep()
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     devCalcVmax<<<nBlocks, nThreads>>>
-      (nTriangle, pTv, pState, pTl, pVts, nVertex,
-       specificHeatRatio, specificHeatRatio - 1.0);
+      (nTriangle, pTv, pState, pTl, pVts, nVertex, G, G - 1.0);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -300,8 +301,7 @@ real Simulation::CalcVertexTimeStep()
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     for (int n = 0; n < nTriangle; n++)
-      CalcVmaxSingle(n, pTv, pState, pTl, pVts, nVertex,
-                     specificHeatRatio, specificHeatRatio - 1.0);
+      CalcVmaxSingle(n, pTv, pState, pTl, pVts, nVertex, G, G - 1.0);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -354,11 +354,11 @@ real Simulation::CalcVertexTimeStep()
 #endif
 
   // Find the minimum
-  real dt = CFLnumber*vertexTimestep->Minimum();
+  real dt = simulationParameter->CFLnumber*vertexTimestep->Minimum();
 
   // End exactly on maxSimulationTime
-  if (simulationTime + dt > maxSimulationTime)
-    dt = maxSimulationTime - simulationTime;
+  if (simulationTime + dt > simulationParameter->maxSimulationTime)
+    dt = simulationParameter->maxSimulationTime - simulationTime;
 
   delete vertexTimestep;
 

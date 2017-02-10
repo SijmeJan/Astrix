@@ -19,6 +19,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "./simulation.h"
 #include "../Common/cudaLow.h"
 #include "../Common/profile.h"
+#include "./Param/simulationparameter.h"
 
 namespace astrix {
 
@@ -105,6 +106,7 @@ void Simulation::CalculateParameterVector(int useOldFlag)
   int nVertex = mesh->GetNVertex();
 
   realNeq *pState = vertexState->GetPointer();
+  real G = simulationParameter->specificHeatRatio;
 
   // Use old state
   if (useOldFlag == 1)
@@ -126,7 +128,7 @@ void Simulation::CalculateParameterVector(int useOldFlag)
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     devCalcParamVec<<<nBlocks, nThreads>>>
-      (nVertex, pState, pVz, specificHeatRatio - 1.0);
+      (nVertex, pState, pVz, G - 1.0);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -138,7 +140,7 @@ void Simulation::CalculateParameterVector(int useOldFlag)
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     for (int n = 0; n < nVertex; n++)
-      CalcParamVecSingle(n, pState, pVz, specificHeatRatio - 1.0);
+      CalcParamVecSingle(n, pState, pVz, G - 1.0);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );

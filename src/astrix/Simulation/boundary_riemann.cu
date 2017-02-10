@@ -20,6 +20,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../Mesh/mesh.h"
 #include "../Common/cudaLow.h"
 #include "../Common/inlineMath.h"
+#include "./Param/simulationparameter.h"
 
 namespace astrix {
 
@@ -164,6 +165,7 @@ void Simulation::SetRiemannBoundaries()
   const int *pVbf = mesh->VertexBoundaryFlagData();
 
   realNeq *pState = vertexState->GetPointer();
+  real G = simulationParameter->specificHeatRatio;
 
   if (cudaFlag == 1) {
     int nThreads = 128;
@@ -177,7 +179,7 @@ void Simulation::SetRiemannBoundaries()
     // Execute kernel...
     devSetRiemannBoundaries<<<nBlocks, nThreads>>>
       (nVertex, pState, pVc, pVbf,
-       simulationTime, 1.0/(specificHeatRatio - 1.0));
+       simulationTime, 1.0/(G - 1.0));
 
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
@@ -185,7 +187,7 @@ void Simulation::SetRiemannBoundaries()
     for (int n = 0; n < nVertex; n++)
       SetBoundaryRiemannVertex(n, pState, pVc, pVbf,
                                simulationTime,
-                               1.0/(specificHeatRatio - 1.0));
+                               1.0/(G - 1.0));
   }
 }
 

@@ -25,6 +25,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../Mesh/mesh.h"
 #include "./simulation.h"
 #include "../Common/nvtxEvent.h"
+#include "./Param/simulationparameter.h"
 
 namespace astrix {
 
@@ -58,7 +59,7 @@ void Simulation::Run(real maxWallClockHours)
     std::cout << "Starting time loop... " << nSave << std::endl;
 
   while (warning == 0 &&
-         simulationTime < maxSimulationTime &&
+         simulationTime < simulationParameter->maxSimulationTime &&
          elapsedTimeHours < maxWallClockHours) {
     try {
       // Do one time step
@@ -74,13 +75,15 @@ void Simulation::Run(real maxWallClockHours)
 
     try {
       // Save every saveFineInterval
-      if (simulationTime > (real) nSaveFine*saveIntervalTimeFine) {
+      if (simulationTime >
+          (real) nSaveFine*simulationParameter->saveIntervalTimeFine) {
         FineGrainSave();
         nSaveFine++;
       }
 
       // Save every saveInterval
-      if (simulationTime > (real) nSave*saveIntervalTime) {
+      if (simulationTime >
+          (real) nSave*simulationParameter->saveIntervalTime) {
         Save();
         nSave++;
       }
@@ -115,6 +118,8 @@ void Simulation::Run(real maxWallClockHours)
 
 void Simulation::DoTimeStep()
 {
+  ProblemDefinition problemDef = simulationParameter->problemDef;
+
   // Number of time steps taken
   nTimeStep++;
 
@@ -189,7 +194,7 @@ void Simulation::DoTimeStep()
   if (problemDef == PROBLEM_VORTEX)
     SetNonReflectingBoundaries();
 
-  if (integrationOrder == 2) {
+  if (simulationParameter->integrationOrder == 2) {
     /*
     if (problemDef == PROBLEM_VORTEX ||
         problemDef == PROBLEM_SOD)
@@ -215,6 +220,9 @@ void Simulation::DoTimeStep()
 
     // Calculate parameter vector Z at nodes from old state
     CalculateParameterVector(1);
+
+    int massMatrix = simulationParameter->massMatrix;
+    int selectiveLumpFlag = simulationParameter->selectiveLumpFlag;
 
     if (massMatrix == 3 || massMatrix == 4)
       MassMatrixF34Tot(dt, massMatrix);
