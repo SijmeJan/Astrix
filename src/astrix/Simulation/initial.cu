@@ -367,6 +367,12 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
         y > (real) -0.35 && y < (real) 0.15) dens += 1.0;
   }
 
+  if (problemDef == PROBLEM_SOURCE) {
+    //real x = vertX;
+
+    dens = 1.0;// + exp(-1000.0*x*x);
+  }
+
   state[n] = dens;
 }
 

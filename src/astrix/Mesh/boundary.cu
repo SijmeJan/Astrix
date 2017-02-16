@@ -79,7 +79,8 @@ void SetVertexOuterBoundarySingle(int n, ProblemDefinition problemDef,
 #endif
   }
 
-  if (problemDef == PROBLEM_SOD || problemDef == PROBLEM_BLAST) {
+  if (problemDef == PROBLEM_SOD || problemDef == PROBLEM_BLAST ||
+      problemDef == PROBLEM_SOURCE) {
     if (periodicFlagY == 1) {
       if (n == 0) {
         pVc[n].x = maxx;
@@ -303,7 +304,8 @@ void Mesh::ConstructBoundaries()
       meshParameter->problemDef == PROBLEM_KH ||
       meshParameter->problemDef == PROBLEM_LINEAR ||
       meshParameter->problemDef == PROBLEM_VORTEX ||
-      meshParameter->problemDef == PROBLEM_NOH) {
+      meshParameter->problemDef == PROBLEM_NOH ||
+      meshParameter->problemDef == PROBLEM_SOURCE) {
     nVertexOuterBoundary = 4;
     nVertexInnerBoundary = 0;
   }

@@ -168,6 +168,10 @@ void Simulation::DoTimeStep()
   // Set Wold = W
   vertexStateOld->SetEqual(vertexState);
 
+  // Calculate source term
+  if (problemDef == PROBLEM_SOURCE)
+    CalcSource(vertexState);
+
   // Calculate parameter vector Z at nodes
   CalculateParameterVector(0);
 
@@ -191,7 +195,8 @@ void Simulation::DoTimeStep()
     ReflectingBoundaries(dt);
 
   // Nonreflecting boundaries
-  if (problemDef == PROBLEM_VORTEX)
+  if (problemDef == PROBLEM_VORTEX ||
+      problemDef == PROBLEM_SOURCE)
     SetNonReflectingBoundaries();
 
   if (simulationParameter->integrationOrder == 2) {
@@ -208,6 +213,10 @@ void Simulation::DoTimeStep()
     // Boundary conditions for 2D Noh
     if (problemDef == PROBLEM_NOH)
       SetNohBoundaries();
+
+    // Calculate source term
+    if (problemDef == PROBLEM_SOURCE)
+      CalcSource(vertexState);
 
     // Calculate parameter vector Z at nodes
     CalculateParameterVector(0);
@@ -256,7 +265,8 @@ void Simulation::DoTimeStep()
       ReflectingBoundaries(dt);
 
     // Nonreflecting boundaries
-    if (problemDef == PROBLEM_VORTEX)
+    if (problemDef == PROBLEM_VORTEX ||
+        problemDef == PROBLEM_SOURCE)
       SetNonReflectingBoundaries();
   }
 

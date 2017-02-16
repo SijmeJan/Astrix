@@ -53,7 +53,8 @@ namespace astrix {
                           PROBLEM_CYL,       /*!< Flow around cylinder*/
                           PROBLEM_RIEMANN,   /*!< 2D Riemann problem*/
                           PROBLEM_VORTEX,    /*!< Isentropic vortex*/
-                          PROBLEM_NOH        /*!< Noh test problem*/
+                          PROBLEM_NOH,       /*!< Noh test problem*/
+                          PROBLEM_SOURCE     /*!< Scalar source problem*/
   };
 
   //! Integration schemes

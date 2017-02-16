@@ -61,6 +61,7 @@ void SimulationParameter::ReadFromFile(const char *fileName)
       if (secondWord == "BLAST") problemDef = PROBLEM_BLAST;
       if (secondWord == "VORTEX") problemDef = PROBLEM_VORTEX;
       if (secondWord == "NOH") problemDef = PROBLEM_NOH;
+      if (secondWord == "SOURCE") problemDef = PROBLEM_SOURCE;
     }
 
     // Time to stop simulation; check that secondWord is number
