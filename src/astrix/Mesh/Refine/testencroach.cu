@@ -482,9 +482,11 @@ void Refine::TestEncroach(Connectivity * const connectivity,
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-    for (int i = 0; i < nRefine; i++)
+    for (int i = 0; i < nRefine; i++) {
+      //std::cout << i << " " << nRefine << " " << pElementAdd[i] << std::endl;
       TestEncroachSingle(i, pElementAdd, pVcAdd,
                          pTv, pTe, pEt, pVc, nVertex, Px, Py, nTriangle);
+    }
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );

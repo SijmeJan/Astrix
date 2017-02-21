@@ -10,7 +10,7 @@
 
 #define NEW_INDEX
 
-#define SQ(X)		((X)*(X))		// Square macro
+#define SQ(X)           ((X)*(X))               // Square macro
 #define max(a,b) \
    ({ __typeof__ (a) _a = (a); \
        __typeof__ (b) _b = (b); \
@@ -41,7 +41,7 @@ extern int ndim;
 
 // State at vertices
 extern float *vertDens, *vertVelx, *vertVely, *vertPres;
-extern float *triBlend;
+//extern float *triBlend;
 
 extern float maxx, minx, maxy, miny;
 
@@ -49,7 +49,7 @@ extern float mindens, maxdens;
 extern float minvelx, maxvelx;
 extern float minvely, maxvely;
 extern float minpres, maxpres;
-extern float minblend, maxblend;
+//extern float minblend, maxblend;
 
 extern int display_grid;
 extern int display_triangle_numbers;
@@ -70,9 +70,9 @@ float orient2d(float ax, float ay, float bx, float by, float cx, float cy)
 }
 
 float incircle(float ax, float ay,
-	       float bx, float by,
-	       float cx, float cy,
-	       float dx, float dy)
+               float bx, float by,
+               float cx, float cy,
+               float dx, float dy)
 {
   float adx, bdx, cdx, ady, bdy, cdy;
   float bdxcdy, cdxbdy, cdxady, adxcdy, adxbdy, bdxady;
@@ -101,7 +101,7 @@ float incircle(float ax, float ay,
   det = alift * (bdxcdy - cdxbdy)
     + blift * (cdxady - adxcdy)
     + clift * (adxbdy - bdxady);
-  
+
   return det;
 }
 
@@ -148,7 +148,7 @@ int CanVertexBeTranslatedX(int a, int N)
   // Neither left nor right
   return 0;
 }
-      
+
 int CanVertexBeTranslatedY(int a, int N)
 {
   // Can be translated to bottom?
@@ -162,14 +162,14 @@ int CanVertexBeTranslatedY(int a, int N)
 }
 
 void GetTriangleCoordinates(int i, float *pVertX, float *pVertY,
-			    int *tv1, int *tv2, int *tv3, int nVertex,
-			    float minx, float maxx, float miny, float maxy,
-			    float *Ax, float *Bx, float *Cx,
-			    float *Ay, float *By, float *Cy)
+                            int *tv1, int *tv2, int *tv3, int nVertex,
+                            float minx, float maxx, float miny, float maxy,
+                            float *Ax, float *Bx, float *Cx,
+                            float *Ay, float *By, float *Cy)
 {
   int printFlag = 0;
   //if (i == 71) printFlag = 1;
-  
+
   int a = tv1[i];
   int b = tv2[i];
   int c = tv3[i];
@@ -190,7 +190,7 @@ void GetTriangleCoordinates(int i, float *pVertX, float *pVertY,
   while (b < 0) b += nVertex;
   while (c < 0) c += nVertex;
 
-  // Vertex coordinates    
+  // Vertex coordinates
   Ax[0] = pVertX[a] + dxa;
   Bx[0] = pVertX[b] + dxb;
   Cx[0] = pVertX[c] + dxc;
@@ -199,11 +199,11 @@ void GetTriangleCoordinates(int i, float *pVertX, float *pVertY,
   Cy[0] = pVertY[c] + dyc;
 
 #else
-  
+
   if (printFlag == 1)
     printf("Finding coordinates for triangle %i, vertices %i %i %i\n",
-	   i, a, b, c);
-  
+           i, a, b, c);
+
   float dya = 0.0f;
   if (a >= 2*nVertex) {
     a -= 2*nVertex;
@@ -238,9 +238,9 @@ void GetTriangleCoordinates(int i, float *pVertX, float *pVertY,
 
   if (printFlag == 1)
     printf("dxy: %f %f %f %f %f %f\n",
-	   dxa, dxb, dxc, dya, dyb, dyc);
+           dxa, dxb, dxc, dya, dyb, dyc);
 
-  // Vertex coordinates    
+  // Vertex coordinates
   float ax, bx, cx, ay, by, cy;
   ax = pVertX[a];
   bx = pVertX[b];
@@ -258,14 +258,14 @@ void GetTriangleCoordinates(int i, float *pVertX, float *pVertY,
 
   if (printFlag == 1)
     printf("First guess: %f %f %f %f %f %f\n", ax, bx, cx, ay, by, cy);
-  
+
   if (xa == 0.5f*(maxx + minx)) xa = maxx + minx - 0.5f*(bx + cx);
   if (xb == 0.5f*(maxx + minx)) xb = maxx + minx - 0.5f*(ax + cx);
   if (xc == 0.5f*(maxx + minx)) xc = maxx + minx - 0.5f*(ax + bx);
   if (ya == 0.5f*(maxy + miny)) ya = maxy + miny - 0.5f*(by + cy);
   if (yb == 0.5f*(maxy + miny)) yb = maxy + miny - 0.5f*(ay + cy);
   if (yc == 0.5f*(maxy + miny)) yc = maxy + miny - 0.5f*(ay + by);
-  
+
   ax -= sign(xa - 0.5f*(maxx + minx))*dxa;
   bx -= sign(xb - 0.5f*(maxx + minx))*dxb;
   cx -= sign(xc - 0.5f*(maxx + minx))*dxc;
@@ -278,24 +278,24 @@ void GetTriangleCoordinates(int i, float *pVertX, float *pVertY,
 
   // Deal with triangle that wraps onto itself
   if (a == b || a == c || b == c) {
-    if (dxa > 0.0) 
+    if (dxa > 0.0)
       if (orient2d(cx, cy, ax, ay, bx, by) < 0.0f)
-	ax += 2.0f*sign(xa - 0.5f*(maxx + minx))*dxa;
-    if (dxb > 0.0) 
+        ax += 2.0f*sign(xa - 0.5f*(maxx + minx))*dxa;
+    if (dxb > 0.0)
       if (orient2d(cx, cy, ax, ay, bx, by) < 0.0f)
-	bx += 2.0f*sign(xb - 0.5f*(maxx + minx))*dxb;
-    if (dxc > 0.0) 
+        bx += 2.0f*sign(xb - 0.5f*(maxx + minx))*dxb;
+    if (dxc > 0.0)
       if (orient2d(cx, cy, ax, ay, bx, by) < 0.0f)
-	cx += 2.0f*sign(xc - 0.5f*(maxx + minx))*dxc;
-    if (dya > 0.0) 
+        cx += 2.0f*sign(xc - 0.5f*(maxx + minx))*dxc;
+    if (dya > 0.0)
       if (orient2d(cx, cy, ax, ay, bx, by) < 0.0f)
-	ay += 2.0f*sign(ya - 0.5f*(maxy + miny))*dya;
-    if (dyb > 0.0) 
+        ay += 2.0f*sign(ya - 0.5f*(maxy + miny))*dya;
+    if (dyb > 0.0)
       if (orient2d(cx, cy, ax, ay, bx, by) < 0.0f)
-	by += 2.0f*sign(yb - 0.5f*(maxy + miny))*dyb;
-    if (dyc > 0.0) 
+        by += 2.0f*sign(yb - 0.5f*(maxy + miny))*dyb;
+    if (dyc > 0.0)
       if (orient2d(cx, cy, ax, ay, bx, by) < 0.0f)
-	cy += 2.0f*sign(yc - 0.5f*(maxy + miny))*dyc;
+        cy += 2.0f*sign(yc - 0.5f*(maxy + miny))*dyc;
   }
 
   if (printFlag == 1)
@@ -311,44 +311,44 @@ void GetTriangleCoordinates(int i, float *pVertX, float *pVertY,
   if (dxa > 0.0) {
     float axNew = ax + 2.0f*sign(xa - 0.5f*(maxx + minx))*dxa;
     if (sa != sb && sa != sc && sb == sc &&
-	orient2d(cx, cy, axNew, ay, bx, by) > 0.0f &&
-	orient2d(cx, cy, ax, ay, bx, by) < 0.0f) ax = axNew;
+        orient2d(cx, cy, axNew, ay, bx, by) > 0.0f &&
+        orient2d(cx, cy, ax, ay, bx, by) < 0.0f) ax = axNew;
   }
   if (dxb > 0.0) {
     float bxNew = bx + 2.0f*sign(xb - 0.5f*(maxx + minx))*dxb;
     if (sb != sa && sb != sc && sa == sc &&
-	orient2d(cx, cy, ax, ay, bxNew, by) > 0.0f &&
-	orient2d(cx, cy, ax, ay, bx, by) < 0.0f) bx = bxNew;
+        orient2d(cx, cy, ax, ay, bxNew, by) > 0.0f &&
+        orient2d(cx, cy, ax, ay, bx, by) < 0.0f) bx = bxNew;
   }
   if (dxc > 0.0) {
     float cxNew = cx + 2.0f*sign(xc - 0.5f*(maxx + minx))*dxc;
     if (sc != sa && sc != sb && sa == sb &&
-	orient2d(cxNew, cy, ax, ay, bx, by) > 0.0f &&
-	orient2d(cx, cy, ax, ay, bx, by) < 0.0f) cx = cxNew;
+        orient2d(cxNew, cy, ax, ay, bx, by) > 0.0f &&
+        orient2d(cx, cy, ax, ay, bx, by) < 0.0f) cx = cxNew;
   }
 
   if (dya > 0.0) {
     float ayNew = ay + 2.0f*sign(ya - 0.5f*(maxy + miny))*dya;
     if (ta != tb && ta != tc && tb == tc &&
-	orient2d(cx, cy, ax, ayNew, bx, by) > 0.0f &&
-	orient2d(cx, cy, ax, ay, bx, by) < 0.0f) ay = ayNew;
+        orient2d(cx, cy, ax, ayNew, bx, by) > 0.0f &&
+        orient2d(cx, cy, ax, ay, bx, by) < 0.0f) ay = ayNew;
   }
   if (dyb > 0.0) {
     float byNew = by + 2.0f*sign(yb - 0.5f*(maxy + miny))*dyb;
     if (tb != ta && tb != tc && ta == tc &&
-	orient2d(cx, cy, ax, ay, bx, byNew) > 0.0f &&
-	orient2d(cx, cy, ax, ay, bx, by) < 0.0f) by = byNew;
+        orient2d(cx, cy, ax, ay, bx, byNew) > 0.0f &&
+        orient2d(cx, cy, ax, ay, bx, by) < 0.0f) by = byNew;
   }
   if (dyc > 0.0) {
     float cyNew = cy + 2.0f*sign(yc - 0.5f*(maxy + miny))*dyc;
     if (tc != ta && tc != tb && ta == tb &&
-	orient2d(cx, cyNew, ax, ay, bx, by) > 0.0f &&
-	orient2d(cx, cy, ax, ay, bx, by) < 0.0f) cy = cyNew;
+        orient2d(cx, cyNew, ax, ay, bx, by) > 0.0f &&
+        orient2d(cx, cy, ax, ay, bx, by) < 0.0f) cy = cyNew;
   }
-  
+
    if (printFlag == 1)
     printf("Illegal: %f %f %f %f %f %f\n", ax, bx, cx, ay, by, cy);
-   
+
   Ax[0] = ax;
   Bx[0] = bx;
   Cx[0] = cx;
@@ -356,18 +356,18 @@ void GetTriangleCoordinates(int i, float *pVertX, float *pVertY,
   By[0] = by;
   Cy[0] = cy;
 #endif
-  
-} 
+
+}
 
 //###########################################################################
-// 
+//
 //###########################################################################
 
 void dispAstrix(void){
   int i, n;
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  
+
   float *VertexColor = malloc(3*n_vertex*sizeof(float));
   for (i = 0; i < n_vertex; i++) {
     float s = 0.0;
@@ -389,57 +389,57 @@ void dispAstrix(void){
       VertexColor[3*i+1] = 0.0;
       VertexColor[3*i+2] = 0.0;
     }
-  }   
-    
+  }
+
   float zValue = -1.0f;
 
   int maxCopy = 1;
   if (copy_flag == 1) maxCopy = 6;
 
-  int nCopy;  
-  for (nCopy = 0; nCopy < maxCopy; nCopy++) { 
+  int nCopy;
+  for (nCopy = 0; nCopy < maxCopy; nCopy++) {
     // Vertex and color arrays
     float *VertexArray = malloc(3*(ndim+1)*n_triangle*sizeof(float));
     float *ColorArray = malloc(3*(ndim+1)*n_triangle*sizeof(float));
     for (n = 0; n < n_triangle; n++) {
       float ax, bx, cx, ay, by, cy;
       GetTriangleCoordinates(n, vertX, vertY,
-			     &triVert[0*n_triangle],
-			     &triVert[1*n_triangle],
-			     &triVert[2*n_triangle], n_vertex,
-			     minx, maxx, miny, maxy,
-			     &ax, &bx, &cx,
-			     &ay, &by, &cy);
+                             &triVert[0*n_triangle],
+                             &triVert[1*n_triangle],
+                             &triVert[2*n_triangle], n_vertex,
+                             minx, maxx, miny, maxy,
+                             &ax, &bx, &cx,
+                             &ay, &by, &cy);
 
       if (nCopy == 1) {
-	ax = ax + maxx - minx;
-	bx = bx + maxx - minx;
-	cx = cx + maxx - minx;
+        ax = ax + maxx - minx;
+        bx = bx + maxx - minx;
+        cx = cx + maxx - minx;
       }
       if (nCopy == 2) {
-	ax = ax - maxx + minx;
-	bx = bx - maxx + minx;
-	cx = cx - maxx + minx;
+        ax = ax - maxx + minx;
+        bx = bx - maxx + minx;
+        cx = cx - maxx + minx;
       }
       if (nCopy == 3) {
-	ay = ay + maxy - miny;
-	by = by + maxy - miny;
-	cy = cy + maxy - miny;
+        ay = ay + maxy - miny;
+        by = by + maxy - miny;
+        cy = cy + maxy - miny;
       }
       if (nCopy == 4) {
-	ay = ay - maxy + miny;
-	by = by - maxy + miny;
-	cy = cy - maxy + miny;
+        ay = ay - maxy + miny;
+        by = by - maxy + miny;
+        cy = cy - maxy + miny;
       }
       if (nCopy == 5) {
-	ax = ax + maxx - minx;
-	bx = bx + maxx - minx;
-	cx = cx + maxx - minx;
-	ay = ay - maxy + miny;
-	by = by - maxy + miny;
-	cy = cy - maxy + miny;
+        ax = ax + maxx - minx;
+        bx = bx + maxx - minx;
+        cx = cx + maxx - minx;
+        ay = ay - maxy + miny;
+        by = by - maxy + miny;
+        cy = cy - maxy + miny;
       }
-      
+
       int a = triVert[0*n_triangle + n];
       int b = triVert[1*n_triangle + n];
       int c = triVert[2*n_triangle + n];
@@ -449,7 +449,7 @@ void dispAstrix(void){
       while (a < 0) a += n_vertex;
       while (b < 0) b += n_vertex;
       while (c < 0) c += n_vertex;
-       
+
       VertexArray[3*(ndim+1)*n+0*(ndim+1)+0] = ax;
       VertexArray[3*(ndim+1)*n+0*(ndim+1)+1] = ay;
       VertexArray[3*(ndim+1)*n+0*(ndim+1)+2] = zValue;
@@ -459,7 +459,7 @@ void dispAstrix(void){
       VertexArray[3*(ndim+1)*n+2*(ndim+1)+0] = cx;
       VertexArray[3*(ndim+1)*n+2*(ndim+1)+1] = cy;
       VertexArray[3*(ndim+1)*n+2*(ndim+1)+2] = zValue;
-      
+
       ColorArray[3*(ndim+1)*n+0*(ndim+1)+0] = VertexColor[3*a+0];
       ColorArray[3*(ndim+1)*n+0*(ndim+1)+1] = VertexColor[3*a+1];
       ColorArray[3*(ndim+1)*n+0*(ndim+1)+2] = VertexColor[3*a+2];
@@ -469,100 +469,100 @@ void dispAstrix(void){
       ColorArray[3*(ndim+1)*n+2*(ndim+1)+0] = VertexColor[3*c+0];
       ColorArray[3*(ndim+1)*n+2*(ndim+1)+1] = VertexColor[3*c+1];
       ColorArray[3*(ndim+1)*n+2*(ndim+1)+2] = VertexColor[3*c+2];
-      
+
       if (plot_var == -1) {
-	float s = (triBlend[n] - minblend)/(maxblend - minblend);
-	
-	ColorArray[3*(ndim+1)*n+0*(ndim+1)+0] = ColorTableRed(s);
-	ColorArray[3*(ndim+1)*n+0*(ndim+1)+1] = ColorTableGreen(s);
-	ColorArray[3*(ndim+1)*n+0*(ndim+1)+2] = ColorTableBlue(s);
-	ColorArray[3*(ndim+1)*n+1*(ndim+1)+0] = ColorTableRed(s);
-	ColorArray[3*(ndim+1)*n+1*(ndim+1)+1] = ColorTableGreen(s);
-	ColorArray[3*(ndim+1)*n+1*(ndim+1)+2] = ColorTableBlue(s);
-	ColorArray[3*(ndim+1)*n+2*(ndim+1)+0] = ColorTableRed(s);
-	ColorArray[3*(ndim+1)*n+2*(ndim+1)+1] = ColorTableGreen(s);
-	ColorArray[3*(ndim+1)*n+2*(ndim+1)+2] = ColorTableBlue(s);
+        float s = 1.0;//(triBlend[n] - minblend)/(maxblend - minblend);
+
+        ColorArray[3*(ndim+1)*n+0*(ndim+1)+0] = ColorTableRed(s);
+        ColorArray[3*(ndim+1)*n+0*(ndim+1)+1] = ColorTableGreen(s);
+        ColorArray[3*(ndim+1)*n+0*(ndim+1)+2] = ColorTableBlue(s);
+        ColorArray[3*(ndim+1)*n+1*(ndim+1)+0] = ColorTableRed(s);
+        ColorArray[3*(ndim+1)*n+1*(ndim+1)+1] = ColorTableGreen(s);
+        ColorArray[3*(ndim+1)*n+1*(ndim+1)+2] = ColorTableBlue(s);
+        ColorArray[3*(ndim+1)*n+2*(ndim+1)+0] = ColorTableRed(s);
+        ColorArray[3*(ndim+1)*n+2*(ndim+1)+1] = ColorTableGreen(s);
+        ColorArray[3*(ndim+1)*n+2*(ndim+1)+2] = ColorTableBlue(s);
       }
     }
-    
+
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
-    
+
     glColorPointer(3, GL_FLOAT, 0, ColorArray);
     glVertexPointer(3, GL_FLOAT, 0, VertexArray);
     glDrawArrays(GL_TRIANGLES, 0, 3*n_triangle);
-    
+
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
-    
+
     free(VertexArray);
     free(ColorArray);
   }
   free(VertexColor);
-  
-  if (display_grid) {    
+
+  if (display_grid) {
     int maxCopy = 1;
     if (copy_flag == 1) maxCopy = 6;
 
-    int nCopy;  
-    for (nCopy = maxCopy - 1; nCopy >= 0; nCopy--) { 
+    int nCopy;
+    for (nCopy = maxCopy - 1; nCopy >= 0; nCopy--) {
       glBegin(GL_LINES);
       for (n = 0; n < n_triangle; n++) {
-	glColor3f(1.0f, 1.0f, 1.0f);
-	if (nCopy > 0)
-	  glColor3f(0.0f, 0.0f, 0.0f);
+        glColor3f(1.0f, 1.0f, 1.0f);
+        if (nCopy > 0)
+          glColor3f(0.0f, 0.0f, 0.0f);
 
-	float ax, bx, cx, ay, by, cy;
-	GetTriangleCoordinates(n, vertX, vertY,
-			       &triVert[0*n_triangle],
-			       &triVert[1*n_triangle],
-			       &triVert[2*n_triangle], n_vertex,
-			       minx, maxx, miny, maxy,
-			       &ax, &bx, &cx,
-			       &ay, &by, &cy);
-	
-	if (nCopy == 1) {
-	  ax = ax + maxx - minx;
-	  bx = bx + maxx - minx;
-	  cx = cx + maxx - minx;
-	}
-	if (nCopy == 2) {
-	  ax = ax - maxx + minx;
-	  bx = bx - maxx + minx;
-	  cx = cx - maxx + minx;
-	}
-	if (nCopy == 3) {
-	  ay = ay + maxy - miny;
-	  by = by + maxy - miny;
-	  cy = cy + maxy - miny;
-	}
-	if (nCopy == 4) {
-	  ay = ay - maxy + miny;
-	  by = by - maxy + miny;
-	  cy = cy - maxy + miny;
-	}
-	if (nCopy == 5) {
-	  ax = ax + maxx - minx;
-	  bx = bx + maxx - minx;
-	  cx = cx + maxx - minx;
-	  ay = ay - maxy + miny;
-	  by = by - maxy + miny;
-	  cy = cy - maxy + miny;
-	}
-	
-	glVertex3f(ax, ay, 0.0);
-	glVertex3f(bx, by, 0.0);
-	
-	glVertex3f(bx, by, 0.0);
-	glVertex3f(cx, cy, 0.0);
-	
-	glVertex3f(cx, cy, 0.0);
-	glVertex3f(ax, ay, 0.0);
+        float ax, bx, cx, ay, by, cy;
+        GetTriangleCoordinates(n, vertX, vertY,
+                               &triVert[0*n_triangle],
+                               &triVert[1*n_triangle],
+                               &triVert[2*n_triangle], n_vertex,
+                               minx, maxx, miny, maxy,
+                               &ax, &bx, &cx,
+                               &ay, &by, &cy);
+
+        if (nCopy == 1) {
+          ax = ax + maxx - minx;
+          bx = bx + maxx - minx;
+          cx = cx + maxx - minx;
+        }
+        if (nCopy == 2) {
+          ax = ax - maxx + minx;
+          bx = bx - maxx + minx;
+          cx = cx - maxx + minx;
+        }
+        if (nCopy == 3) {
+          ay = ay + maxy - miny;
+          by = by + maxy - miny;
+          cy = cy + maxy - miny;
+        }
+        if (nCopy == 4) {
+          ay = ay - maxy + miny;
+          by = by - maxy + miny;
+          cy = cy - maxy + miny;
+        }
+        if (nCopy == 5) {
+          ax = ax + maxx - minx;
+          bx = bx + maxx - minx;
+          cx = cx + maxx - minx;
+          ay = ay - maxy + miny;
+          by = by - maxy + miny;
+          cy = cy - maxy + miny;
+        }
+
+        glVertex3f(ax, ay, 0.0);
+        glVertex3f(bx, by, 0.0);
+
+        glVertex3f(bx, by, 0.0);
+        glVertex3f(cx, cy, 0.0);
+
+        glVertex3f(cx, cy, 0.0);
+        glVertex3f(ax, ay, 0.0);
       }
-      glEnd();  
+      glEnd();
     }
   }
-  
+
   if (display_triangle_numbers) {
     for (n = 0; n < n_triangle; n++) {
       //int a = triVert[0*n_triangle + n];
@@ -571,77 +571,77 @@ void dispAstrix(void){
 
       float ax, bx, cx, ay, by, cy;
       GetTriangleCoordinates(n, vertX, vertY,
-			     &triVert[0*n_triangle],
-			     &triVert[1*n_triangle],
-			     &triVert[2*n_triangle], n_vertex,
-			     minx, maxx, miny, maxy,
-			     &ax, &bx, &cx,
-			     &ay, &by, &cy);
+                             &triVert[0*n_triangle],
+                             &triVert[1*n_triangle],
+                             &triVert[2*n_triangle], n_vertex,
+                             minx, maxx, miny, maxy,
+                             &ax, &bx, &cx,
+                             &ay, &by, &cy);
 
       /*
       float ax, bx, cx, ay, by, cy;
       if (a < n_vertex) {
-	ax = vertX[a];
-	ay = vertY[a];
+        ax = vertX[a];
+        ay = vertY[a];
       }
       if (b < n_vertex) {
-	bx = vertX[b];
-	by = vertY[b];
+        bx = vertX[b];
+        by = vertY[b];
       }
       if (c < n_vertex) {
-	cx = vertX[c];
-	cy = vertY[c];
+        cx = vertX[c];
+        cy = vertY[c];
       }
-  
+
       if (a >= n_vertex) {
-	a -= n_vertex;
-	
-	ax = vertX[a];
-	ay = vertY[a];
-	
-	float Ap = orient2d(ax + maxx - minx, ay, bx, by, cx, cy);
-	float Am = orient2d(ax - maxx + minx, ay, bx, by, cx, cy);
-	
-	if (Ap <= 0.0f) ax = ax - maxx + minx;
-	if (Am <= 0.0f) ax = ax + maxx - minx;
-	if (Ap > 0.0f && Am > 0.0f) {
-	  if (Ap < Am) ax = ax + maxx - minx; else ax = ax - maxx + minx;
-	}
+        a -= n_vertex;
+
+        ax = vertX[a];
+        ay = vertY[a];
+
+        float Ap = orient2d(ax + maxx - minx, ay, bx, by, cx, cy);
+        float Am = orient2d(ax - maxx + minx, ay, bx, by, cx, cy);
+
+        if (Ap <= 0.0f) ax = ax - maxx + minx;
+        if (Am <= 0.0f) ax = ax + maxx - minx;
+        if (Ap > 0.0f && Am > 0.0f) {
+          if (Ap < Am) ax = ax + maxx - minx; else ax = ax - maxx + minx;
+        }
       }
       if (b >= n_vertex) {
-	b -= n_vertex;
-	
-	bx = vertX[b];
-	by = vertY[b];
-	
-	float Ap = orient2d(ax, ay, bx + maxx - minx, by, cx, cy);
-	float Am = orient2d(ax, ay, bx - maxx + minx, by, cx, cy);
-	
-	if (Ap <= 0.0f) bx = bx - maxx + minx;
-	if (Am <= 0.0f) bx = bx + maxx - minx;
-	if (Ap > 0.0f && Am > 0.0f) {
-	  if (Ap < Am) bx = bx + maxx - minx; else bx = bx - maxx + minx;
-	}
+        b -= n_vertex;
+
+        bx = vertX[b];
+        by = vertY[b];
+
+        float Ap = orient2d(ax, ay, bx + maxx - minx, by, cx, cy);
+        float Am = orient2d(ax, ay, bx - maxx + minx, by, cx, cy);
+
+        if (Ap <= 0.0f) bx = bx - maxx + minx;
+        if (Am <= 0.0f) bx = bx + maxx - minx;
+        if (Ap > 0.0f && Am > 0.0f) {
+          if (Ap < Am) bx = bx + maxx - minx; else bx = bx - maxx + minx;
+        }
       }
       if (c >= n_vertex) {
-	c -= n_vertex;
-	
-	cx = vertX[c];
-	cy = vertY[c];
-	
-	float Ap = orient2d(ax, ay, bx, by, cx + maxx - minx, cy);
-	float Am = orient2d(ax, ay, bx, by, cx - maxx + minx, cy);
-	
-	if (Ap <= 0.0f) cx = cx - maxx + minx;
-	if (Am <= 0.0f) cx = cx + maxx - minx;
-	if (Ap > 0.0f && Am > 0.0f) {
-	  if (Ap < Am) cx = cx + maxx - minx; else cx = cx - maxx + minx;
-	}
+        c -= n_vertex;
+
+        cx = vertX[c];
+        cy = vertY[c];
+
+        float Ap = orient2d(ax, ay, bx, by, cx + maxx - minx, cy);
+        float Am = orient2d(ax, ay, bx, by, cx - maxx + minx, cy);
+
+        if (Ap <= 0.0f) cx = cx - maxx + minx;
+        if (Am <= 0.0f) cx = cx + maxx - minx;
+        if (Ap > 0.0f && Am > 0.0f) {
+          if (Ap < Am) cx = cx + maxx - minx; else cx = cx - maxx + minx;
+        }
       }
       */
-      
+
       glColor3f(1.0f, 1.0f, 1.0f);
- 
+
       float dx = (ax + bx + cx)/3.0;
       float dy = (ay + by + cy)/3.0;
 
@@ -718,24 +718,24 @@ void dispAstrix(void){
 
     }
   }
-  
+
   if(boundary_flag){
     glBegin(GL_LINES);
     glColor3f(1.0f,1.0f,1.0f);
-    
+
     //float minx=0.0,maxx=1.0,miny=0.0,maxy=1.0;
     glVertex3f(minx,miny,0.0);
     glVertex3f(maxx,miny,0.0);
-    
+
     glVertex3f(minx,miny,0.0);
     glVertex3f(minx,maxy,0.0);
-      
+
     glVertex3f(maxx,maxy,0.0);
     glVertex3f(maxx,miny,0.0);
-    
+
     glVertex3f(maxx,maxy,0.0);
     glVertex3f(minx,maxy,0.0);
-    
+
     glEnd();
   }
 
@@ -747,26 +747,26 @@ void dispAstrix(void){
       printf("Taking screenshot %i\n", nSave-1);
       char fname[30];
       sprintf(fname, "movie_frames/shot%3.3d.tga", nSave-1);
-      
+
       int nSize = winSizeX*winSizeY*3;
-      
+
       GLubyte *pixels = malloc(nSize*sizeof(GLubyte));
-      
+
       glPixelStorei(GL_PACK_ALIGNMENT, 1);
       glReadPixels(0, 0, winSizeX, winSizeY, GL_BGR, GL_UNSIGNED_BYTE, pixels);
-      
+
       unsigned char TGAheader[12] = {0,0,2,0,0,0,0,0,0,0,0,0};
-      unsigned char header[6] = 
-	{winSizeX%256, winSizeX/256, winSizeY%256, winSizeY/256, 24, 0};
-      
+      unsigned char header[6] =
+        {winSizeX%256, winSizeX/256, winSizeY%256, winSizeY/256, 24, 0};
+
       FILE *shot = fopen(fname, "wb");
       fwrite(TGAheader, sizeof(unsigned char), 12, shot);
       fwrite(header, sizeof(unsigned char), 6, shot);
       fwrite(pixels, sizeof(GLubyte), nSize, shot);
       fclose(shot);
-      
+
       free(pixels);
-      
+
     }
 
     char winTitle[25];
@@ -779,29 +779,29 @@ void dispAstrix(void){
 
 void resizeAstrix(int w, int h)
 {
-  float xleft = 0.5*(glut_maxx + glut_minx) - 
+  float xleft = 0.5*(glut_maxx + glut_minx) -
     0.5*((float)w/(float)winSizeX)*(glut_maxx - glut_minx);
   float xright = 0.5*(glut_maxx + glut_minx) +
     0.5*((float)w/(float)winSizeX)*(glut_maxx - glut_minx);
 
-  float yleft = 0.5*(glut_maxy + glut_miny) - 
+  float yleft = 0.5*(glut_maxy + glut_miny) -
     0.5*((float)h/(float)winSizeY)*(glut_maxy - glut_miny);
-  float yright = 0.5*(glut_maxy + glut_miny) + 
+  float yright = 0.5*(glut_maxy + glut_miny) +
     0.5*((float)h/(float)winSizeY)*(glut_maxy - glut_miny);
- 
+
   glut_minx = xleft;
   glut_maxx = xright;
   glut_miny = yleft;
   glut_maxy = yright;
 
-  xleft = 0.5*(glut_current_maxx + glut_current_minx) - 
+  xleft = 0.5*(glut_current_maxx + glut_current_minx) -
     0.5*((float)w/(float)winSizeX)*(glut_current_maxx - glut_current_minx);
   xright = 0.5*(glut_current_maxx + glut_current_minx) +
     0.5*((float)w/(float)winSizeX)*(glut_current_maxx - glut_current_minx);
 
-  yleft = 0.5*(glut_current_maxy + glut_current_miny) - 
+  yleft = 0.5*(glut_current_maxy + glut_current_miny) -
     0.5*((float)h/(float)winSizeY)*(glut_current_maxy - glut_current_miny);
-  yright = 0.5*(glut_current_maxy + glut_current_miny) + 
+  yright = 0.5*(glut_current_maxy + glut_current_miny) +
     0.5*((float)h/(float)winSizeY)*(glut_current_maxy - glut_current_miny);
 
   glut_current_minx = xleft;
@@ -814,7 +814,7 @@ void resizeAstrix(int w, int h)
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glOrtho(glut_current_minx, glut_current_maxx,
-	  glut_current_miny, glut_current_maxy, -1.0, 1.0);  
+          glut_current_miny, glut_current_maxy, -1.0, 1.0);
 
   glViewport(0, 0, w, h);
   printf("%i %i %f %f \n", w, h, glut_minx, glut_maxx);

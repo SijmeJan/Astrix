@@ -351,9 +351,14 @@ void Simulation::FineGrainSave()
   else
     outFile.open("simulation.dat", std::ios::app);
 
+  real2 Ekin = KineticEnergy();
+
   outFile << std::setprecision(10)
           << simulationTime << " "
-          << TotalMass() << std::endl;
+          << TotalMass() << " "
+          << Ekin.x <<  " "
+          << Ekin.y << " "
+          << DensityError() << std::endl;
   outFile.close();
   if (!outFile) {
     std::cout << "Error writing simulation.dat!" << std::endl;
@@ -447,7 +452,7 @@ void Simulation::RestoreFine()
   outFile.close();
   if (!inFile || !outFile) {
     std::cout << "Error updating simulation.dat, aborting restart!"
-              << std::endl;
+              << " " << !inFile << " " << !outFile << std::endl;
     throw std::runtime_error("");
   }
 

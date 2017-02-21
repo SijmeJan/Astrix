@@ -286,6 +286,15 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
       enerRO*(1.0f - f)*g + enerLO*f*g;
   }
 
+  if (problemDef == PROBLEM_SOURCE) {
+    dens = 1.0 - vertX;
+    //if (vertX < 0.0) dens = 2.0;
+    momx = 1.0e-10;
+    momy = 0.0;
+    ener = half*(Sq(momx) + Sq(momy))/dens + (1.0 - 0.1*dens*vertX)/(G - one);
+
+  }
+
   state[n].x = dens;
   state[n].y = momx;
   state[n].z = momy;
@@ -368,9 +377,7 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   }
 
   if (problemDef == PROBLEM_SOURCE) {
-    //real x = vertX;
-
-    dens = 1.0;// + exp(-1000.0*x*x);
+    dens = 1.0;
   }
 
   state[n] = dens;

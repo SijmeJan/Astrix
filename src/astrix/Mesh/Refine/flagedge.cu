@@ -74,6 +74,23 @@ void FlagEdgeForChecking(int i, real2 *pVcAdd, int *pElementAdd,
 
     tStart = t1;
     if (t2 > t1) tStart = t2;
+
+    if (t1 != -1 && t2 != -1) {
+      // Check if vertex lies in circumcircle of triangle t1
+      // This is usually the case but need not be for a periodic mesh
+      int a = pTv[t1].x;
+      int b = pTv[t1].y;
+      int c = pTv[t1].z;
+
+      real ax, bx, cx, ay, by, cy;
+      GetTriangleCoordinates(pVc, a, b, c, nVertex, Px, Py,
+                             ax, bx, cx, ay, by, cy);
+
+      real det = pred->incircle(ax, ay, bx, by, cx, cy, dx, dy, pParam);
+
+
+      if (det < (real) 0.0) tStart = t2;
+    }
   }
 
   int t = tStart;

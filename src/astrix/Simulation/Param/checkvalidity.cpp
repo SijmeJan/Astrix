@@ -45,13 +45,6 @@ void SimulationParameter::CheckValidity()
       throw std::runtime_error("");
 #endif
   }
-  if (problemDef == PROBLEM_SOURCE) {
-#if N_EQUATION != 1
-      std::cout << "Problem requires 1 equation to be solved. "
-                << "Need to set N_EQUATION = 1" << std::endl;
-      throw std::runtime_error("");
-#endif
-  }
 
   if (maxSimulationTime < 0.0 ||
       std::isinf(maxSimulationTime) ||

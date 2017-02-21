@@ -70,6 +70,9 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
     if (verboseLevel > 1)
       std::cout << "Refine cycle " << ncycle;
 
+    if (debugLevel > 0)
+      Save(ncycle, connectivity);
+
     if (verboseLevel > 2)
       std::cout << std::endl << "Testing triangles..." << std::endl;
 

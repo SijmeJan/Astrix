@@ -61,6 +61,7 @@ void Refine::SplitSegment(Connectivity * const connectivity,
                                              (unsigned int) nRefineGlobal);
   elementAddOld->SetEqual(elementAdd);
 
+  /*
   if (verboseLevel > 2 && cudaFlag == 0) {
     std::cout << std::endl << "Possibly problematic vertices:" << std::endl;
     int *pEadd = elementAdd->GetPointer();
@@ -69,6 +70,7 @@ void Refine::SplitSegment(Connectivity * const connectivity,
       std::cout << "(" << pVadd[i].x << ", " << pVadd[i].y
                 << ") inserted on edge " << pEadd[i] - nTriangle << std::endl;
   }
+  */
 
   // Test for encroached segments; if encroached move vertex onto segment
   TestEncroach(connectivity, meshParameter, nRefineGlobal);
@@ -83,6 +85,7 @@ void Refine::SplitSegment(Connectivity * const connectivity,
     return;
   }
 
+  /*
   if (verboseLevel > 2 && cudaFlag == 0) {
     std::cout << std::endl << "Problematic vertices:" << std::endl;
     int *pEadd = elementAdd->GetPointer();
@@ -92,6 +95,7 @@ void Refine::SplitSegment(Connectivity * const connectivity,
                 << ") to be inserted on edge " << pEadd[i] - nTriangle
                 << std::endl;
   }
+  */
 
   elementAddOld->SetEqual(elementAdd);
 

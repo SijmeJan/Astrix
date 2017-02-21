@@ -136,6 +136,9 @@ class Refine
   void FlagEdgesForChecking(Connectivity * const connectivity,
                             const Predicates *predicates,
                             const MeshParameter *meshParameter);
+
+  void Save(int nSave, Connectivity * const connectivity);
+
 };
 
 }  // namespace astrix

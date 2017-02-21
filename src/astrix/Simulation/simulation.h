@@ -167,6 +167,10 @@ class Simulation
 
   //! Calculate total mass in domain
   real TotalMass();
+  //! Calculate total kinetic energy in domain
+  real2 KineticEnergy();
+  //! Calculate L1 density error
+  real DensityError();
 };
 
 }  // namespace astrix
