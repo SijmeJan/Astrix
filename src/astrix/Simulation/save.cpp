@@ -445,7 +445,7 @@ void Simulation::RestoreFine()
 
   inFile.close();
   outFile.close();
-  if (!inFile || !outFile) {
+  if (!outFile) {
     std::cout << "Error updating simulation.dat, aborting restart!"
               << std::endl;
     throw std::runtime_error("");
