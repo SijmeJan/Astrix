@@ -222,6 +222,16 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
     What23*eulerK33(G, wtilde);
   pTresTot[n].w = ResTot3;
 
+  /*
+#ifndef __CUDA_ARCH__
+  std::cout << ResTot0 << " "
+            << ResTot1 << " "
+            << ResTot2 << " "
+            << ResTot3 << std::endl;
+  int qq; std::cin >> qq;
+#endif
+  */
+
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate Wtemp = Sum(K-*What)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

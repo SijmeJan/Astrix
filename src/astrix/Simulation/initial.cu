@@ -287,11 +287,21 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   }
 
   if (problemDef == PROBLEM_SOURCE) {
-    dens = 1.0 - vertX;
-    //if (vertX < 0.0) dens = 2.0;
+    /*
+    real alpha = 0.2;
+
+    real s = 1.0 - alpha*vertY;
+    real pres =
+      std::pow(1.0 - 0.1*(std::pow(s, (G - 1.0)/G) - 1.0), G/(G - 1.0));
+
+    dens = std::pow(pres/s, 1.0/G);
+    */
+
+    dens = 1.0;
+    real pres = 1.0 - 0.1*vertY*dens;
     momx = 1.0e-10;
     momy = 0.0;
-    ener = half*(Sq(momx) + Sq(momy))/dens + (1.0 - 0.1*dens*vertX)/(G - one);
+    ener = half*(Sq(momx) + Sq(momy))/dens + pres/(G - one);
 
   }
 
@@ -449,6 +459,8 @@ void Simulation::SetInitial(real time)
     // Add KH eigenvector
     if (p == PROBLEM_KH)
       KHAddEigenVector();
+    if (p == PROBLEM_SOURCE && N_EQUATION == 4)
+      RTAddEigenVector();
   }
   catch (...) {
     std::cout << "Warning: reading KH eigenvector file failed!" << std::endl;

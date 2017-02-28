@@ -80,7 +80,7 @@ void SetVertexOuterBoundarySingle(int n, ProblemDefinition problemDef,
   }
 
   if (problemDef == PROBLEM_SOD || problemDef == PROBLEM_BLAST ||
-      problemDef == PROBLEM_SOURCE) {
+      (problemDef == PROBLEM_SOURCE && N_EQUATION == 1)) {
     if (periodicFlagY == 1) {
       if (n == 0) {
         pVc[n].x = maxx;
@@ -121,7 +121,8 @@ void SetVertexOuterBoundarySingle(int n, ProblemDefinition problemDef,
   if (problemDef == PROBLEM_KH ||
       problemDef == PROBLEM_LINEAR ||
       problemDef == PROBLEM_VORTEX ||
-      problemDef == PROBLEM_NOH) {
+      problemDef == PROBLEM_NOH ||
+      (problemDef == PROBLEM_SOURCE && N_EQUATION == 4)) {
     if (n == 0) {
       pVc[n].x = 0.63*(maxx - minx) + minx;
       pVc[n].y = 0.60*(maxy - miny) + miny;

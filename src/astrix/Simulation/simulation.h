@@ -100,8 +100,10 @@ class Simulation
   void RestoreFine();
  //! Calculate Kelvin-Helmholtz diagnostics
   void KHDiagnostics(real& M, real& Ekin);
-  //! Add eigenvector perturbation
+  //! Add eigenvector perturbation for KH problem
   void KHAddEigenVector();
+  //! Add eigenvector perturbation for RT problem
+  void RTAddEigenVector();
 
   //! Do one time step
   void DoTimeStep();

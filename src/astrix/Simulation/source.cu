@@ -63,17 +63,17 @@ void CalcSourceSingle(int n, ProblemDefinition problemDef, int nVertex,
     real d3 = pState[v3].x;
     real dG = (d1 + d2 + d3)/three;
 
-    real m1 = pState[v1].y;
-    real m2 = pState[v2].y;
-    real m3 = pState[v3].y;
+    real m1 = pState[v1].z;
+    real m2 = pState[v2].z;
+    real m3 = pState[v3].z;
     real mG = (m1 + m2 + m3)/three;
 
     real s = (real) 0.5*(tl1 + tl2 + tl3);
     real area = sqrt(s*(s - tl1)*(s - tl2)*(s - tl3));
 
     pSource[n].x = 0.0;
-    pSource[n].y = dG*0.1*area;
-    pSource[n].z = 0.0;
+    pSource[n].y = 0.0;
+    pSource[n].z = dG*0.1*area;
     pSource[n].w = mG*0.1*area;
   }
 }
