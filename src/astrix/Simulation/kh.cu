@@ -27,21 +27,35 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 namespace astrix {
 
 //##############################################################################
+/*! \brief Add KH eigenvector perturbation to single vertex
+
+\param i Vertex to add perturbation to
+\param *pVc Pointer to Array of vertex coordinates
+\param *pState Pointer to Array of state vector
+\param *dens Pointer to density perturbation Array (real and imaginary)
+\param *velx Pointer to x velocity perturbation Array (real and imaginary)
+\param *vely Pointer to y velocity perturbation Array (real and imaginary)
+\param kxKH Number of wavelengths in x
+\param *yKH Pointer to Array of y values of perturbation
+\param miny Minimum y value in domain
+\param maxy Maximum y value in domain
+\param G Ratio of specific heats
+\param G1 Ratio of specific heats - 1*/
 //##############################################################################
 
 __host__ __device__
-void AddEigenVectorSingle(unsigned int i, const real2 *pVc, real4 *pState,
-                          real *dR, real*dI,
-                          real *uR, real *uI,
-                          real *vR, real *vI,
-                          real dyKH, real kxKH, real *yKH,
-                          real miny, real maxy, real G, real G1)
+void AddEigenVectorSingleKH(unsigned int i, const real2 *pVc, real4 *pState,
+                            real2 *dens, real2 *velx, real2 *vely,
+			    real kxKH, real *yKH,
+			    real miny, real maxy, real G, real G1)
 {
   real x = pVc[i].x;
   real y = pVc[i].y;
 
   if (y < miny) y += (maxy - miny);
   if (y > maxy) y -= (maxy - miny);
+
+  real dyKH = yKH[1] - yKH[0];
 
   int jj = (int)((y - yKH[0])/dyKH);
 #ifndef __CUDA_ARCH__
@@ -52,12 +66,19 @@ void AddEigenVectorSingle(unsigned int i, const real2 *pVc, real4 *pState,
   }
 #endif
 
-  real dRj = dR[jj] + (y - yKH[jj])*(dR[jj + 1] - dR[jj])/dyKH;
-  real dIj = dI[jj] + (y - yKH[jj])*(dI[jj + 1] - dI[jj])/dyKH;
-  real uRj = uR[jj] + (y - yKH[jj])*(uR[jj + 1] - uR[jj])/dyKH;
-  real uIj = uI[jj] + (y - yKH[jj])*(uI[jj + 1] - uI[jj])/dyKH;
-  real vRj = vR[jj] + (y - yKH[jj])*(vR[jj + 1] - vR[jj])/dyKH;
-  real vIj = vI[jj] + (y - yKH[jj])*(vI[jj + 1] - vI[jj])/dyKH;
+  real dRj = dens[jj].x + (y - yKH[jj])*(dens[jj + 1].x - dens[jj].x)/dyKH;
+  real dIj = dens[jj].y + (y - yKH[jj])*(dens[jj + 1].y - dens[jj].y)/dyKH;
+  real uRj = velx[jj].x + (y - yKH[jj])*(velx[jj + 1].x - velx[jj].x)/dyKH;
+  real uIj = velx[jj].y + (y - yKH[jj])*(velx[jj + 1].y - velx[jj].y)/dyKH;
+  real vRj = vely[jj].x + (y - yKH[jj])*(vely[jj + 1].x - vely[jj].x)/dyKH;
+  real vIj = vely[jj].y + (y - yKH[jj])*(vely[jj + 1].y - vely[jj].y)/dyKH;
+ 
+  //real dRj = dR[jj] + (y - yKH[jj])*(dR[jj + 1] - dR[jj])/dyKH;
+  //real dIj = dI[jj] + (y - yKH[jj])*(dI[jj + 1] - dI[jj])/dyKH;
+  //real uRj = uR[jj] + (y - yKH[jj])*(uR[jj + 1] - uR[jj])/dyKH;
+  //real uIj = uI[jj] + (y - yKH[jj])*(uI[jj + 1] - uI[jj])/dyKH;
+  //real vRj = vR[jj] + (y - yKH[jj])*(vR[jj + 1] - vR[jj])/dyKH;
+  //real vIj = vI[jj] + (y - yKH[jj])*(vI[jj + 1] - vI[jj])/dyKH;
 
   real d0 = pState[i].x;
   real a0 = pState[i].y;
@@ -73,37 +94,50 @@ void AddEigenVectorSingle(unsigned int i, const real2 *pVc, real4 *pState,
 }
 
 __host__ __device__
-void AddEigenVectorSingle(unsigned int i, const real2 *pVc, real *pState,
-                          real *dR, real*dI,
-                          real *uR, real *uI,
-                          real *vR, real *vI,
-                          real dyKH, real kxKH, real *yKH,
-                          real miny, real maxy, real G, real G1)
+void AddEigenVectorSingleKH(unsigned int i, const real2 *pVc, real *pState,
+			    real2 *dens, real2 *velx, real2 *vely,
+			    real kxKH, real *yKH,
+			    real miny, real maxy, real G, real G1)
 {
   // Dummy function; no eigenvector to add if solving scalar equation
 }
 
 //######################################################################
+/*! \brief Kernel adding KH eigenvector perturbation
+
+\param nVertex Total number of vertices in Mesh
+\param *pVc Pointer to Array of vertex coordinates
+\param *pState Pointer to Array of state vector
+\param *dens Pointer to density perturbation Array (real and imaginary)
+\param *velx Pointer to x velocity perturbation Array (real and imaginary)
+\param *vely Pointer to y velocity perturbation Array (real and imaginary)
+\param kxKH Number of wavelengths in x
+\param *yKH Pointer to Array of y values of perturbation
+\param miny Minimum y value in domain
+\param maxy Maximum y value in domain
+\param G Ratio of specific heats
+\param G1 Ratio of specific heats - 1*/
 //######################################################################
 
 __global__ void
-devAddEigenVector(unsigned int nVertex, const real2 *pVc, realNeq *pState,
-                  real *dR, real*dI, real *uR, real *uI, real *vR, real *vI,
-                  real dyKH, real kxKH, real *yKH,
-                  real miny, real maxy, real G, real G1)
+devAddEigenVectorKH(unsigned int nVertex, const real2 *pVc, realNeq *pState,
+		    real2 *dens, real2 *velx, real2 *vely,
+		    real kxKH, real *yKH,
+		    real miny, real maxy, real G, real G1)
 {
   // n = vertex number
   unsigned int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nVertex) {
-    AddEigenVectorSingle(n, pVc, pState, dR, dI, uR, uI, vR, vI,
-                         dyKH, kxKH, yKH, miny, maxy, G, G1);
+    AddEigenVectorSingleKH(n, pVc, pState, dens, velx, vely,
+			   kxKH, yKH, miny, maxy, G, G1);
 
     n += blockDim.x*gridDim.x;
   }
 }
 
 //######################################################################
+/*! Add eigenvector perturbation, specified in a file eigvec.txt. A runtime error is thrown if this file is not found.*/
 //######################################################################
 
 void Simulation::KHAddEigenVector()
@@ -129,41 +163,46 @@ void Simulation::KHAddEigenVector()
   KH >> kxKH;
 
   Array<real> *yKH = new Array<real>(1, 0, nKH);
-  Array<real> *densReal = new Array<real>(1, 0, nKH);
-  Array<real> *densImag = new Array<real>(1, 0, nKH);
-  Array<real> *velxReal = new Array<real>(1, 0, nKH);
-  Array<real> *velxImag = new Array<real>(1, 0, nKH);
-  Array<real> *velyReal = new Array<real>(1, 0, nKH);
-  Array<real> *velyImag = new Array<real>(1, 0, nKH);
+  // Real and imaginary parts, so real2
+  Array<real2> *dens = new Array<real2>(1, 0, nKH);
+  Array<real2> *velx = new Array<real2>(1, 0, nKH);
+  Array<real2> *vely = new Array<real2>(1, 0, nKH);
 
   real *pyKH = yKH->GetPointer();
-  real *pdR  = densReal->GetPointer();
-  real *pdI  = densImag->GetPointer();
-  real *puR  = velxReal->GetPointer();
-  real *puI  = velxImag->GetPointer();
-  real *pvR  = velyReal->GetPointer();
-  real *pvI  = velyImag->GetPointer();
+  real2 *pDens  = dens->GetPointer();
+  real2 *pVelx  = velx->GetPointer();
+  real2 *pVely  = vely->GetPointer();
 
   for (int j = 1; j < nKH - 1; j++)
-    KH >> pyKH[j] >> pdR[j] >> pdI[j] >> puR[j] >> puI[j] >> pvR[j] >> pvI[j];
+    KH >> pyKH[j] 
+       >> pDens[j].x >> pDens[j].y 
+       >> pVelx[j].x >> pDens[j].y 
+       >> pVely[j].x >> pDens[j].y;
 
   KH.close();
 
   pyKH[0] = pyKH[1] - (pyKH[2] - pyKH[1]);
-  pdR[0] = pdR[nKH - 2];
-  pdI[0] = pdI[nKH - 2];
-  puR[0] = puR[nKH - 2];
-  puI[0] = puI[nKH - 2];
-  pvR[0] = pvR[nKH - 2];
-  pvI[0] = pvI[nKH - 2];
+  pDens[0] = pDens[nKH - 2];
+  pVelx[0] = pVelx[nKH - 2];
+  pVely[0] = pVely[nKH - 2];
 
   pyKH[nKH - 1] = pyKH[nKH - 2] + (pyKH[2] - pyKH[1]);
-  pdR[nKH - 1] = pdR[1];
-  pdI[nKH - 1] = pdI[1];
-  puR[nKH - 1] = puR[1];
-  puI[nKH - 1] = puI[1];
-  pvR[nKH - 1] = pvR[1];
-  pvI[nKH - 1] = pvI[1];
+  pDens[nKH - 1] = pDens[1];
+  pVelx[nKH - 1] = pVelx[1];
+  pVely[nKH - 1] = pVely[1];
+
+  // Transform to device
+  if (cudaFlag == 1) {
+    yKH->TransformToDevice();
+    dens->TransformToDevice();
+    velx->TransformToDevice();
+    vely->TransformToDevice();
+
+    pyKH = yKH->GetPointer();
+    pDens = dens->GetPointer();
+    pVelx = velx->GetPointer();
+    pVely = vely->GetPointer();
+  }
 
   real miny = mesh->GetMinY();
   real maxy = mesh->GetMaxY();
@@ -174,29 +213,25 @@ void Simulation::KHAddEigenVector()
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devAddEigenVector,
+                                       devAddEigenVectorKH,
                                        (size_t) 0, 0);
 
-    devAddEigenVector<<<nBlocks, nThreads>>>
-      (nVertex, pVc, pState, pdR, pdI, puR, puI, pvR, pvI,
-       pyKH[1] - pyKH[0], kxKH, pyKH, miny, maxy, G, G - 1.0);
+    devAddEigenVectorKH<<<nBlocks, nThreads>>>
+      (nVertex, pVc, pState, pDens, pVelx, pVely,
+       kxKH, pyKH, miny, maxy, G, G - 1.0);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (unsigned int n = 0; n < nVertex; n++)
-      AddEigenVectorSingle(n, pVc, pState, pdR, pdI, puR, puI, pvR, pvI,
-                           pyKH[1] - pyKH[0], kxKH, pyKH, miny, maxy,
-                           G, G - 1.0);
+      AddEigenVectorSingleKH(n, pVc, pState, pDens, pVelx, pVely,
+			     kxKH, pyKH, miny, maxy, G, G - 1.0);
   }
 
   delete yKH;
-  delete densReal;
-  delete densImag;
-  delete velxReal;
-  delete velxImag;
-  delete velyReal;
-  delete velyImag;
+  delete dens;
+  delete velx;
+  delete vely;
 }
 
 //##############################################################################
