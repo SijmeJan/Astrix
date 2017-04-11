@@ -19,6 +19,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <ctime>
 #include <cmath>
 #include <fstream>
+#include <chrono>
 
 #include "../Common/definitions.h"
 #include "../Array/array.h"
@@ -58,6 +59,8 @@ void Simulation::Run(real maxWallClockHours)
   if (verboseLevel > 0)
     std::cout << "Starting time loop... " << nSave << std::endl;
 
+  auto start = std::chrono::high_resolution_clock::now();
+
   while (warning == 0 &&
          simulationTime < simulationParameter->maxSimulationTime &&
          elapsedTimeHours < maxWallClockHours) {
@@ -96,12 +99,22 @@ void Simulation::Run(real maxWallClockHours)
     elapsedTimeHours = difftime(time(NULL), startTime)/3600.0;
   }
 
+  auto finish = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> elapsed = finish - start;
+
+  std::cout << std::setprecision(6)
+            << "Time/cell/step (mus): "
+            << 1.0e6*elapsed.count()/(real) (nTimeStep*mesh->GetNVertex())
+            << std::endl;
+
   try {
     // Save if end of simulation reached
     if (warning == 0 &&
         elapsedTimeHours < maxWallClockHours) {
       Save();
       nSave++;
+      FineGrainSave();
+      nSaveFine++;
     }
   }
   catch (...) {
@@ -118,6 +131,8 @@ void Simulation::Run(real maxWallClockHours)
 
 void Simulation::DoTimeStep()
 {
+  auto start = std::chrono::high_resolution_clock::now();
+
   ProblemDefinition problemDef = simulationParameter->problemDef;
 
   // Number of time steps taken
@@ -192,7 +207,8 @@ void Simulation::DoTimeStep()
       problemDef == PROBLEM_SOD ||
       problemDef == PROBLEM_BLAST ||
       problemDef == PROBLEM_RIEMANN ||
-      (problemDef == PROBLEM_SOURCE && N_EQUATION == 4))
+      (problemDef == PROBLEM_SOURCE && N_EQUATION == 4) ||
+      problemDef == PROBLEM_SEDOV)
     ReflectingBoundaries(dt);
 
   // Nonreflecting boundaries
@@ -263,7 +279,8 @@ void Simulation::DoTimeStep()
         problemDef == PROBLEM_SOD ||
         problemDef == PROBLEM_BLAST ||
         problemDef == PROBLEM_RIEMANN ||
-        (problemDef == PROBLEM_SOURCE && N_EQUATION == 4))
+        (problemDef == PROBLEM_SOURCE && N_EQUATION == 4) ||
+        problemDef == PROBLEM_SEDOV)
       ReflectingBoundaries(dt);
 
     // Nonreflecting boundaries
@@ -272,9 +289,13 @@ void Simulation::DoTimeStep()
       SetNonReflectingBoundaries();
   }
 
+  auto finish = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> elapsed = finish - start;
+
   if (verboseLevel > 0) {
     std::cout << std::setprecision(6)
-              << "t = " << simulationTime << " dt = " << dt << " ";
+              << "t = " << simulationTime << " dt = " << dt << " "
+              << elapsed.count() << " ";
     if (cudaFlag == 0) {
       std::cout << ((real)(Array<real>::memAllocatedHost) +
                     (real)(Array<real2>::memAllocatedHost) +
