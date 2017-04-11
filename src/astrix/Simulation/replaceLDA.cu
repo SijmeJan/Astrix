@@ -48,7 +48,7 @@ void SingleReplaceLDA(int n, const int3* __restrict__ pTv,
                       real4 *pTresLDA0, real4 *pTresLDA1, real4 *pTresLDA2,
                       const int RKStep, const int nVertex)
 {
-  const real zero = (real) 0.0;
+  //const real zero = (real) 0.0;
 
   // Triangle vertices
   int a = pTv[n].x;
@@ -69,6 +69,7 @@ void SingleReplaceLDA(int n, const int3* __restrict__ pTv,
 
   // If any vertex has unphysical state, replace LDA with N
   if (correct_flag > 0) {
+    /*
     // If we are in the second-order update, just ignore residual
     if (RKStep == 1) {
       pTresN0[n].x = zero;
@@ -84,7 +85,7 @@ void SingleReplaceLDA(int n, const int3* __restrict__ pTv,
       pTresN2[n].z = zero;
       pTresN2[n].w = zero;
     }
-
+    */
     // Replace LDA
     pTresLDA0[n] = pTresN0[n];
     pTresLDA1[n] = pTresN1[n];
