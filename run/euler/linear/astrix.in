@@ -8,7 +8,7 @@ maxSimulationTime       1.0     # Maximum simulation time
 saveIntervalTimeFine    0.1     # Fine save interval
 saveIntervalTime        0.1     # Save interval
 writeVTK                1       # Flag whether to write VTK output (0 or 1)
-integrationScheme       LDA     # Integration scheme (N, LDA or B)
+integrationScheme       LDA       # Integration scheme (N, LDA or B)
 integrationOrder        2       # Integration order (1 or 2)
 massMatrix              1       # Mass matrix formulation (1, 2, 3 or 4)
 selectiveLumpFlag       0       # Flag whether to use selective lumping
@@ -20,7 +20,7 @@ specificHeatRatio       1.4     # Ratio of specific heats
 # Mesh parameters
 ###############################################################################
 
-equivalentPointsX       16      # Base resolution
+equivalentPointsX       32      # Base resolution
 minX                    -0.5    # Left x boundary
 maxX                    0.5     # Right x boundary
 minY                    -0.05   # Bottom y boundary
