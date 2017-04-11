@@ -1,5 +1,3 @@
-BUG: restart from end?
-
 new parallel flip selection test?
 adjust makefile register use / double prec ?
 
