@@ -352,13 +352,16 @@ void Simulation::FineGrainSave()
     outFile.open("simulation.dat", std::ios::app);
 
   real2 Ekin = KineticEnergy();
+  real Eth = ThermalEnergy();
 
   outFile << std::setprecision(10)
           << simulationTime << " "
           << TotalMass() << " "
           << Ekin.x <<  " "
           << Ekin.y << " "
-          << DensityError() << std::endl;
+          << Eth << " "
+          << DensityError() << " "
+          << SedovShockPos() << std::endl;
   outFile.close();
   if (!outFile) {
     std::cout << "Error writing simulation.dat!" << std::endl;
