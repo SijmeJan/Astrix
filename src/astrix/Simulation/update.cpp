@@ -69,10 +69,11 @@ void Simulation::UpdateState(real dt, int RKStep)
   int failFlag = 1;
   while (failFlag > 0) {
     nCycle++;
+
     // Do not try indefinitely
     if (nCycle > maxCycle) {
       std::cout << "Unphysical state after " << maxCycle
-                << " cycles, exiting" << std::endl;
+                << " cycles" << std::endl;
 
 #if N_EQUATION == 4
       if (cudaFlag == 0) {
@@ -94,6 +95,7 @@ void Simulation::UpdateState(real dt, int RKStep)
             std::cout << pVs[i].x << " " << pVs[i].y << " "
                       << pVs[i].z << " " << pVs[i].w << " "
                       << pres << std::endl;
+
           }
         }
       }
@@ -108,8 +110,15 @@ void Simulation::UpdateState(real dt, int RKStep)
     // Check for unphysical states
     FlagUnphysical(vertexUnphysicalFlag);
 
+    // Replace LDA if relative change too big
+    if (simulationParameter->intScheme != SCHEME_N &&
+        nCycle == 1)
+      FlagLimit(vertexUnphysicalFlag);
+
     // Check if unphysical state anywhere
     failFlag = vertexUnphysicalFlag->Maximum();
+
+
 
     if (failFlag > 0) {
       if (simulationParameter->intScheme == SCHEME_N) {
