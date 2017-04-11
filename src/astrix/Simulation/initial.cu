@@ -551,8 +551,8 @@ void Simulation::SetInitial(real time)
       RTAddEigenVector();
   }
   catch (...) {
-    std::cout << "Warning: reading KH eigenvector file failed!" << std::endl;
-    std::cout << "Running simulation without adding KH eigenvector!"
+    std::cout << "Warning: reading eigenvector file failed!" << std::endl;
+    std::cout << "Running simulation without adding eigenvector!"
               << std::endl;
   }
 }
