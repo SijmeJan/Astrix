@@ -16,6 +16,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #define ASTRIX_SIMULATION_H
 
 #define BURGERS -1
+#define SEDOV_CART -1
 
 namespace astrix {
 
@@ -104,6 +105,9 @@ class Simulation
   void KHAddEigenVector();
   //! Add eigenvector perturbation for RT problem
   void RTAddEigenVector();
+  //! Fill \a state with analytic Sedov solution
+  void SedovSetAnalytic(Array<realNeq> *state, real E);
+  real SedovShockPos();
 
   //! Do one time step
   void DoTimeStep();
@@ -150,6 +154,8 @@ class Simulation
   void AddResidue(real dt);
   //! Find unphysical state and put in vertexUnphysicalFlag
   void FlagUnphysical(Array<int> *vertexUnphysicalFlag);
+  //! Find changes that are too large
+  void FlagLimit(Array<int> *vertexLimitFlag);
   //! Replace LDA with N wherever unphysical state
   void ReplaceLDA(Array<int> *vertexUnphysicalFlag, int RKStep);
   //! Calculate shock sensor for BX scheme
@@ -171,6 +177,8 @@ class Simulation
   real TotalMass();
   //! Calculate total kinetic energy in domain
   real2 KineticEnergy();
+  //! Calculate total thermal energy in domain
+  real ThermalEnergy();
   //! Calculate L1 density error
   real DensityError();
 };
