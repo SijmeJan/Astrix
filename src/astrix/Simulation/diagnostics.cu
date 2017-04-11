@@ -230,9 +230,6 @@ real Simulation::DensityError()
   // Assume this gets the correct solution into vertexState
   SetInitial(simulationTime);
 
-  if (simulationParameter->problemDef == PROBLEM_SEDOV)
-    SedovSetAnalytic(vertexState, Etot);
-
   unsigned int nVertex = mesh->GetNVertex();
 
   realNeq *pState = vertexState->GetPointer();
@@ -264,8 +261,6 @@ real Simulation::DensityError()
   }
 
   real e = E->Sum()/mesh->GetTotalArea();
-  //if (simulationParameter->problemDef == PROBLEM_LINEAR)
-  //e = e/mesh->GetPy();
 
   delete E;
 

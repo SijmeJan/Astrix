@@ -266,27 +266,6 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     ener = 0.5f*(Sq(momx)+Sq(momy))/dens + p/(G - 1.0f);
   }
 
-  if (problemDef == PROBLEM_SEDOV) {
-    real p = 1.0e-6;
-#if SEDOV_CART == 1
-    // 1D Cartesian
-    real r = sqrt(vertX*vertX);
-    real fac = Py/0.0197044;
-    p = p + 0.02*(G - 1.0)*exp(-r*r/(fac*fac*0.2*0.2))/(0.2*fac*sqrt(M_PI));
-#else
-    // 2D cylindrical
-    real r = sqrt(vertX*vertX + vertY*vertY);
-    //if (r < 0.01) p = G - 1.0f;
-    real s = 0.01/1.0;
-    p += (G - 1.0f)*exp(-Sq(r/s))*Sq(0.01/s);
-#endif
-
-    dens = 1.0;
-    momx = 1.0e-10;
-    momy = 1.0e-10;
-    ener = 0.5*(Sq(momx)+Sq(momy))/dens + p/(G - 1.0);
-  }
-
   if (problemDef == PROBLEM_RIEMANN) {
     real f = 1.0f - (vertX > 0.8f);
     real g = 1.0f - (vertY > 0.8f);

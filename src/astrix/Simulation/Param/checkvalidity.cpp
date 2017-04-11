@@ -38,8 +38,7 @@ void SimulationParameter::CheckValidity()
       problemDef == PROBLEM_BLAST ||
       problemDef == PROBLEM_KH ||
       problemDef == PROBLEM_NOH ||
-      problemDef == PROBLEM_CYL ||
-      problemDef == PROBLEM_SEDOV) {
+      problemDef == PROBLEM_CYL) {
 #if N_EQUATION != 4
       std::cout << "Problem requires 4 equations to be solved. "
                 << "Need to set N_EQUATION = 4" << std::endl;

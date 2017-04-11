@@ -16,7 +16,6 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #define ASTRIX_SIMULATION_H
 
 #define BURGERS -1
-#define SEDOV_CART -1
 
 namespace astrix {
 
@@ -105,9 +104,6 @@ class Simulation
   void KHAddEigenVector();
   //! Add eigenvector perturbation for RT problem
   void RTAddEigenVector();
-  //! Fill \a state with analytic Sedov solution
-  void SedovSetAnalytic(Array<realNeq> *state, real E);
-  real SedovShockPos();
 
   //! Do one time step
   void DoTimeStep();

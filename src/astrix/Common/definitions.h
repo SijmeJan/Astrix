@@ -54,8 +54,7 @@ namespace astrix {
                           PROBLEM_RIEMANN,   /*!< 2D Riemann problem*/
                           PROBLEM_VORTEX,    /*!< Isentropic vortex*/
                           PROBLEM_NOH,       /*!< Noh test problem*/
-                          PROBLEM_SOURCE,    /*!< Scalar source problem*/
-                          PROBLEM_SEDOV      /*!< Sedov blast wave*/
+                          PROBLEM_SOURCE,    /*!< Source problem*/
   };
 
   //! Integration schemes

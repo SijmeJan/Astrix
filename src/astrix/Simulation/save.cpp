@@ -360,8 +360,7 @@ void Simulation::FineGrainSave()
           << Ekin.x <<  " "
           << Ekin.y << " "
           << Eth << " "
-          << DensityError() << " "
-          << SedovShockPos() << std::endl;
+          << DensityError() << std::endl;
   outFile.close();
   if (!outFile) {
     std::cout << "Error writing simulation.dat!" << std::endl;
