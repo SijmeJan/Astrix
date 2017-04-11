@@ -93,7 +93,7 @@ devFlagUnphysical(const int nVertex, realNeq *pState,
 //######################################################################
 /*! Check all vertices for unphysical state.
 
-  \param *pVertexUnphysicalFlag Pointer to array of flags indicating whether state is physical (0) or unphysical (1) (output)*/
+  \param *vertexUnphysicalFlag Pointer to Array of flags indicating whether state is physical (0) or unphysical (1) (output)*/
 //######################################################################
 
 void Simulation::FlagUnphysical(Array<int> *vertexUnphysicalFlag)
