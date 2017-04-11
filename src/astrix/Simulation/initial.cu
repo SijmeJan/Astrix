@@ -46,12 +46,16 @@ real funcBump(real t)
 \param problemDef Problem definition
 \param *pVpot Pointer to gravitational potential at vertices
 \param *pState Pointer to state vector (output)
-\param G Ratio of specific heats*/
+\param G Ratio of specific heats
+\param time Simulation time
+\param Px Length of x domain
+\param Py Length of y domain*/
 //##############################################################################
 
 __host__ __device__
 void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
-                      real *pVpot, real4 *state, real G, real time, real Px)
+                      real *pVpot, real4 *state, real G, real time,
+                      real Px, real Py)
 {
   // const real onethird = (real) (1.0/3.0);
   const real zero = (real) 0.0;
@@ -75,11 +79,12 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     real p0 = c0*c0/G;
 
     dens = one;
-    momx = two;
+    momx = zero;
     momy = (real) 1.0e-10;
 
+    dens += amp*cos(k*vertX);
     momx += amp*cos(k*vertX);
-    // momy += amp*cos(k*vertY);
+    p0   += amp*cos(k*vertX);
 
     ener = half*(Sq(momx) + Sq(momy))/dens + p0/(G - one);
   }
@@ -87,14 +92,15 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   if (problemDef == PROBLEM_VORTEX) {
     real x = vertX;
     real y = vertY;
-    real vx = 0.0;
+    real vx = 1.0;
     real vy = 0.0;
 
     // Temperature
     real temp = 1.0;
 
-    for (int i = -1; i < 2; i++) {
-      real xc = five + time + i*Px;
+    //for (int i = -1; i < 2; i++) {
+    //real xc = five + time + i*Px;
+      real xc = five + vx*time;
       real yc = five;
 
       real beta = five;
@@ -105,7 +111,7 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
 
       vx -= half*(y - yc)*beta*exp(half - half*r*r)/M_PI;
       vy += half*(x - xc)*beta*exp(half - half*r*r)/M_PI;
-    }
+      //}
 
     dens = std::pow(temp, (real)(one/(G - one)));
     real pres = dens*temp;
@@ -134,17 +140,97 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   }
 
   if (problemDef == PROBLEM_SOD) {
-    if (vertX < 0.5f) {
-      dens = 1.0f;
+    /*
+    real v = 0.5;
+    dens = 1.0;
+    if (vertX > 0.25 + v*time)
+      dens = 0.5;
+    momx = dens*v;
+    momy = 0.0;
+    ener = 0.5f*(Sq(momx)+Sq(momy))/dens + 1.0f/(G - 1.0f);
+    */
+
+    /*
+    real v = sqrt(G/(3.0 - G));
+    if (vertX > 0.0) v = -v;
+
+    dens = 1.0;
+    momx = v;
+    momy = 0.0;
+    ener = 0.5f*(Sq(momx)+Sq(momy))/dens + 1.0f/(G - 1.0f);
+
+    if (abs(vertX) < abs(v)*time) {
+      dens = 2.0;
+      momx = 0.0;
+      momy = 0.0;
+      ener = (1.0f + dens*v*v)/(G - 1.0f);
+    }
+    */
+
+
+    // Left state
+    real dL = 1.0;
+    real pL = 1.0;
+    real cL = sqrt(G*pL/dL);
+
+    // Right state
+    real dR = 0.125;
+    real pR = 0.1;
+    real cR = sqrt(G*pR/dR);
+
+    real G1 = G - 1.0;
+    real m = G1/(G + 1.0);
+
+    real pmid = 0.30313017805;
+
+    real vpost = 2.0*sqrt(G)*(1.0 - std::pow(pmid, 0.5*G1/G))/G1;
+
+    real dmidR = dR*(pmid + m*pR)/(pR + m*pmid);
+    real dmidL = dL*std::pow(pmid/pL, 1.0/G);
+
+    real umid = (pmid - pR)/sqrt(0.5*dR*((G + 1.0)*pmid + G1*pR));
+    real vshock = dmidR*umid/(dmidR - dR);
+
+    real x0 = 0.5;
+    real x1 = x0 - cL*time;
+    real x2 = x0 - cL*time*(std::pow(dmidL/dL, 0.5*G1) + m - 1.0)/m;
+    real x3 = x0 + vpost*time;
+    real x4 = x0 + vshock*time;
+
+    dens = dL;
+    momx = 1.0e-10f;
+    momy = 1.0e-10f;
+    real pres = pL;
+
+    if (vertX > x1) {
+      real c = m*(x0 - vertX)/time + (1.0 - m)*cL;
+      dens = dL*std::pow(c/cL, 2.0/G1);
+      momx = dens*((vertX - x1)*umid/(x2 - x1));
+      momy = 1.0e-10f;
+      pres = pL*std::pow(dens/dL, G);
+    }
+    if (vertX > x2) {
+      dens = dmidL;
+      momx = dens*umid;
+      momy = 1.0e-10f;
+      pres = pmid;
+    }
+    if (vertX > x3) {
+      dens = dmidR;
+      momx = dens*umid;
+      momy = 1.0e-10f;
+      pres = pmid;
+    }
+    if (vertX > x4) {
+      dens = dR;
       momx = 1.0e-10f;
       momy = 1.0e-10f;
-      ener = 0.5f*(Sq(momx)+Sq(momy))/dens + 1.0f/(G - 1.0f);
-    } else {
-      dens = 0.125f;
-      momx = 1.2e-10f;
-      momy = 2.0e-10f;
-      ener = 0.5f*(Sq(momx)+Sq(momy))/dens + 0.1f/(G - 1.0f);
+      pres = pR;
     }
+
+    ener = 0.5f*(Sq(momx)+Sq(momy))/dens + pres/G1;
+
+
   }
 
   if (problemDef == PROBLEM_NOH) {
@@ -178,6 +264,27 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     momx = 1.0e-10f;
     momy = 1.0e-10f;
     ener = 0.5f*(Sq(momx)+Sq(momy))/dens + p/(G - 1.0f);
+  }
+
+  if (problemDef == PROBLEM_SEDOV) {
+    real p = 1.0e-6;
+#if SEDOV_CART == 1
+    // 1D Cartesian
+    real r = sqrt(vertX*vertX);
+    real fac = Py/0.0197044;
+    p = p + 0.02*(G - 1.0)*exp(-r*r/(fac*fac*0.2*0.2))/(0.2*fac*sqrt(M_PI));
+#else
+    // 2D cylindrical
+    real r = sqrt(vertX*vertX + vertY*vertY);
+    //if (r < 0.01) p = G - 1.0f;
+    real s = 0.01/1.0;
+    p += (G - 1.0f)*exp(-Sq(r/s))*Sq(0.01/s);
+#endif
+
+    dens = 1.0;
+    momx = 1.0e-10;
+    momy = 1.0e-10;
+    ener = 0.5*(Sq(momx)+Sq(momy))/dens + p/(G - 1.0);
   }
 
   if (problemDef == PROBLEM_RIEMANN) {
@@ -313,7 +420,8 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
 
 __host__ __device__
 void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
-                      real *pVpot, real *state, real G, real time, real Px)
+                      real *pVpot, real *state, real G, real time,
+                      real Px, real Py)
 {
   real vertX = pVc[n].x;
   real vertY = pVc[n].y;
@@ -407,14 +515,14 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
 __global__ void
 devSetInitial(int nVertex, const real2 *pVc, ProblemDefinition problemDef,
               real *pVertexPotential, realNeq *state,
-              real G, real time, real Px)
+              real G, real time, real Px, real Py)
 {
   // n = vertex number
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nVertex) {
     SetInitialSingle(n, pVc, problemDef, pVertexPotential, state,
-                     G, time, Px);
+                     G, time, Px, Py);
 
     n += blockDim.x*gridDim.x;
   }
@@ -433,6 +541,7 @@ void Simulation::SetInitial(real time)
   const real2 *pVc = mesh->VertexCoordinatesData();
 
   real Px = mesh->GetPx();
+  real Py = mesh->GetPy();
   real G = simulationParameter->specificHeatRatio;
   ProblemDefinition p = simulationParameter->problemDef;
 
@@ -446,13 +555,13 @@ void Simulation::SetInitial(real time)
                                        (size_t) 0, 0);
 
     devSetInitial<<<nBlocks, nThreads>>>
-      (nVertex, pVc, p, pVertexPotential, state, G, time, Px);
+      (nVertex, pVc, p, pVertexPotential, state, G, time, Px, Py);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int n = 0; n < nVertex; n++)
-      SetInitialSingle(n, pVc, p, pVertexPotential, state, G, time, Px);
+      SetInitialSingle(n, pVc, p, pVertexPotential, state, G, time, Px, Py);
   }
 
   try {
