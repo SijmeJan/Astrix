@@ -64,7 +64,7 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
   real p = G1*(ener - half*id*(u*u + v*v));
 #ifndef __CUDA_ARCH__
   if (p < zero)
-    std::cout << "Hallo" << std::endl;
+    std::cout << "Negative pressure in timestep calculation!" << std::endl;
 #endif
 
   // Sound speed
@@ -87,7 +87,7 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
   p = G1*(ener - half*id*(u*u + v*v));
 #ifndef __CUDA_ARCH__
   if (p < zero)
-    std::cout << "Hallo" << std::endl;
+    std::cout << "Negative pressure in timestep calculation!" << std::endl;
 #endif
   cs = sqrt(G*p*id);
 
@@ -107,7 +107,7 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
   p = G1*(ener - half*id*(u*u + v*v));
 #ifndef __CUDA_ARCH__
   if (p < zero)
-    std::cout << "Hallo" << std::endl;
+    std::cout << "Negative pressure in timestep calculation!" << std::endl;
 #endif
   cs = sqrt(G*p*id);
 
