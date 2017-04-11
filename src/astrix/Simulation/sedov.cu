@@ -86,6 +86,7 @@ void Simulation::SedovSetAnalytic(Array<realNeq> *state, real E)
 #endif
 
   int nSedov = 0;
+
   sedov >> nSedov;
   nSedov += 3;
 
