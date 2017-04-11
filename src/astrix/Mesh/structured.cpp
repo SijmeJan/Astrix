@@ -45,12 +45,16 @@ void Mesh::CreateStructuredMesh()
   if (meshParameter->problemDef == PROBLEM_SOD ||
       meshParameter->problemDef == PROBLEM_BLAST ||
       meshParameter->problemDef == PROBLEM_LINEAR ||
-      meshParameter->problemDef == PROBLEM_SOURCE) {
+      meshParameter->problemDef == PROBLEM_SOURCE ||
+      meshParameter->problemDef == PROBLEM_SEDOV) {
     ny = 2;
     Py = Px*(real)(ny - 1)/((real)nx - 1.0);
     real y0 = 0.5*(meshParameter->miny + meshParameter->maxy);
     meshParameter->miny = y0 - 0.5*Py;
     meshParameter->maxy = y0 + 0.5*Py;
+
+    //std::cout << Py << std::endl;
+    //int qq; std::cin >> qq;
   }
 
   std::cout << "Creating structured mesh " << nx << "x" << ny << std::endl;
