@@ -268,6 +268,14 @@ int Mesh::IsAdaptive()
   return meshParameter->adaptiveMeshFlag;
 }
 
+//#########################################################################
+// Return total vertex area
+//#########################################################################
+
+real Mesh::GetTotalArea()
+{
+  return vertexArea->Sum();
+}
 
 const real2* Mesh::VertexCoordinatesData()
 {
