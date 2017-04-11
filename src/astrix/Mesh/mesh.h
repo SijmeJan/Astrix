@@ -78,6 +78,8 @@ class Mesh
   real GetMinY();
   //! Return maximum y
   real GetMaxY();
+  //! Return total vertex area
+  real GetTotalArea();
 
   // Give access to Mesh data through constant pointers to the data
 
