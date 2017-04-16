@@ -78,19 +78,27 @@ Flag any triangle located outside the outer boundary or inside the inner boundar
 \param *pVertexRemoveFlag Pointer to flags whether vertices will be removed
 \param *pVertexOrder Pointer to vertex insertion order
 \param nVertexOuterBoundary Number of vertices making up outer boundary
-\param *pTriangleRemoveFlag Pointer to output array*/
+\param *pTriangleRemoveFlag Pointer to output array
+\param nVertex Total number of vertices in current mesh*/
 //######################################################################
 
 __host__ __device__
 void FlagTriangleRemoveSingle(int i, int3 *pTv, int *pVertexRemoveFlag,
                               int *pVertexOrder, int nVertexOuterBoundary,
-                              int *pTriangleRemoveFlag)
+                              int *pTriangleRemoveFlag, int nVertex)
 {
   int ret = 0;
 
   int a = pTv[i].x;
   int b = pTv[i].y;
   int c = pTv[i].z;
+
+  while (a < 0) a += nVertex;
+  while (b < 0) b += nVertex;
+  while (c < 0) c += nVertex;
+  while (a >= nVertex) a -= nVertex;
+  while (b >= nVertex) b -= nVertex;
+  while (c >= nVertex) c -= nVertex;
 
   // Remove any triangle for which at least one vertex will be removed
   if (pVertexRemoveFlag[a] == 1 ||
@@ -130,20 +138,21 @@ Flag any triangle for which one of its vertices will be removed for removal.
 \param *pVertexRemoveFlag Pointer to flags whether vertices will be removed
 \param *pVertexOrder Pointer to vertex insertion order
 \param nVertexOuterBoundary Number of vertices making up outer boundary
-\param *pTriangleRemoveFlag Pointer to output array*/
+\param *pTriangleRemoveFlag Pointer to output array
+\param nVertex Total number of vertices in current mesh*/
 //######################################################################
 
 __global__ void
 devFlagTriangleRemove(int nTriangle, int3 *pTv, int *pVertexRemoveFlag,
                       int *pVertexOrder, int nVertexOuterBoundary,
-                      int *pTriangleRemoveFlag)
+                      int *pTriangleRemoveFlag, int nVertex)
 {
   int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nTriangle) {
     FlagTriangleRemoveSingle(i, pTv, pVertexRemoveFlag,
                              pVertexOrder, nVertexOuterBoundary,
-                             pTriangleRemoveFlag);
+                             pTriangleRemoveFlag, nVertex);
 
     // Next triangle
     i += blockDim.x*gridDim.x;
@@ -210,15 +219,24 @@ devFlagEdgeRemove(int nEdge, int2 *pEt,
 
 \param i Index of triangle
 \param *pTv Pointer to triangle vertices
-\param *pVertexFlagScan Pointer to scanned array of flags whether vertices will be removed*/
+\param *pVertexFlagScan Pointer to scanned array of flags whether vertices will be removed
+\param nVertex Total number of vertices in current mesh*/
 //######################################################################
 
 __host__ __device__
-void AdjustTriangleVerticesSingle(int i, int3 *pTv, int *pVertexFlagScan)
+void AdjustTriangleVerticesSingle(int i, int3 *pTv, int *pVertexFlagScan,
+                                  int nVertex)
 {
   int a = pTv[i].x;
   int b = pTv[i].y;
   int c = pTv[i].z;
+
+  while (a < 0) a += nVertex;
+  while (b < 0) b += nVertex;
+  while (c < 0) c += nVertex;
+  while (a >= nVertex) a -= nVertex;
+  while (b >= nVertex) b -= nVertex;
+  while (c >= nVertex) c -= nVertex;
 
   pTv[i].x -= pVertexFlagScan[a];
   pTv[i].y -= pVertexFlagScan[b];
@@ -230,16 +248,18 @@ void AdjustTriangleVerticesSingle(int i, int3 *pTv, int *pVertexFlagScan)
 
 \param nTriangle Total number of triangles in Mesh
 \param *pTv Pointer to triangle vertices
-\param *pVertexFlagScan Pointer to scanned array of flags whether vertices will be removed*/
+\param *pVertexFlagScan Pointer to scanned array of flags whether vertices will be removed
+\param nVertex Total number of vertices in current mesh*/
 //######################################################################
 
 __global__ void
-devAdjustTriangleVertices(int nTriangle, int3 *pTv, int *pVertexFlagScan)
+devAdjustTriangleVertices(int nTriangle, int3 *pTv, int *pVertexFlagScan,
+                          int nVertex)
 {
   int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nTriangle) {
-    AdjustTriangleVerticesSingle(i, pTv, pVertexFlagScan);
+    AdjustTriangleVerticesSingle(i, pTv, pVertexFlagScan, nVertex);
 
     // Next triangle
     i += blockDim.x*gridDim.x;
@@ -395,7 +415,7 @@ void Mesh::RemoveRedundant(Array<int> *vertexOrder,
 
     devFlagTriangleRemove<<<nBlocks, nThreads>>>
       (nTriangle, pTv, pVertexRemoveFlag,
-       pVertexOrder, nVertexOuterBoundary, pTriangleRemoveFlag);
+       pVertexOrder, nVertexOuterBoundary, pTriangleRemoveFlag, nVertex);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -403,7 +423,7 @@ void Mesh::RemoveRedundant(Array<int> *vertexOrder,
     for (int i = 0; i < nTriangle; i++)
       FlagTriangleRemoveSingle(i, pTv, pVertexRemoveFlag,
                                pVertexOrder, nVertexOuterBoundary,
-                               pTriangleRemoveFlag);
+                               pTriangleRemoveFlag, nVertex);
   }
 
   // Flag edges to be removed
@@ -440,13 +460,13 @@ void Mesh::RemoveRedundant(Array<int> *vertexOrder,
        (size_t) 0, 0);
 
     devAdjustTriangleVertices<<<nBlocks, nThreads>>>
-      (nTriangle, pTv, pVertexFlagScan);
+      (nTriangle, pTv, pVertexFlagScan, nVertex);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int i = 0; i < nTriangle; i++)
-      AdjustTriangleVerticesSingle(i, pTv, pVertexFlagScan);
+      AdjustTriangleVerticesSingle(i, pTv, pVertexFlagScan, nVertex);
   }
 
   triangleRemoveFlag->ExclusiveScan(triangleFlagScan, nTriangle);
