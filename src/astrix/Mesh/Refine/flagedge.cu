@@ -167,14 +167,38 @@ void FlagEdgeForChecking(int i, real2 *pVcAdd, int *pElementAdd,
         real det2 = det;
         // Do this only when cavity lies across periodic boundary
         if (translateFlag == 1) {
-          real DeltaX = dxOld - dxNew;
-          real DeltaY = dyOld - dyNew;
+          // Take coordinates from t (F, F + 1, dOld) and translate f + 2
+          real Ax, Bx, Cx, Ay, By, Cy;
+          GetTriangleCoordinates(pVc, A, B, C, nVertex, Px, Py,
+                                 Ax, Bx, Cx, Ay, By, Cy);
+          if (F == A) {
+            Bx = dxOld;
+            By = dyOld;
+          }
+          if (F == B) {
+            Cx = dxOld;
+            Cy = dyOld;
+          }
+          if (F == C) {
+            Ax = dxOld;
+            Ay = dyOld;
+          }
 
-          det2 = pred->incircle(ax + DeltaX, ay + DeltaY,
-                                bx + DeltaX, by + DeltaY,
-                                cx + DeltaX, cy + DeltaY,
-                                dxOld, dyOld, pParam);
-        }
+          real Dx = ax;
+          real Dy = ay;
+          if (f == a) {
+            Dx = cx;
+            Dy = cy;
+          }
+          if (f == c) {
+            Dx = bx;
+            Dy = by;
+          }
+
+          TranslateVertexToVertex(F, f, Px, Py, nVertex, Dx, Dy);
+
+          det2 = pred->incircle(Ax, Ay, Bx, By, Cx, Cy, Dx, Dy, pParam);
+       }
 
         // If triangle not part of cavity, do not move into it
         if (det < (real) 0.0 && det2 < (real) 0.0) {
