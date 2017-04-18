@@ -104,7 +104,12 @@ void FlagEdgeForChecking(int i, real2 *pVcAdd, int *pElementAdd,
   int eCrossed = eStart;
   int finished = 0;
 
-  while (finished == 0) {
+  int maxCavity = 100;
+  int nCavity = 0;
+
+  while (finished == 0 && nCavity < maxCavity) {
+    nCavity++;
+
     // We know t is in cavity; flag edges to be checked
     pEnC[e[0]] = e[0];
     pEnC[e[1]] = e[1];
