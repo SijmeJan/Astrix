@@ -43,6 +43,14 @@ void KineticEnergySingle(unsigned int i, const real *pVarea,
   Ey[i] = pVarea[i]*half*n*n/d;
 }
 
+__host__ __device__
+void KineticEnergySingle(unsigned int i, const real *pVarea,
+                         real *pState, real *Ex, real *Ey)
+{
+  Ex[i] = (real) 0.0;
+  Ey[i] = (real) 0.0;
+}
+
 //######################################################################
 //######################################################################
 
@@ -125,6 +133,13 @@ void ThermalEnergySingle(unsigned int i, const real *pVarea,
   E[i] = pVarea[i]*(e - half*(m*m + n*n)/d);
 }
 
+__host__ __device__
+void ThermalEnergySingle(unsigned int i, const real *pVarea,
+                         real *pState, real *E)
+{
+  E[i] = (real) 0.0;
+}
+
 //######################################################################
 //######################################################################
 
@@ -193,8 +208,17 @@ void DensityErrorSingle(unsigned int i, const real *pVarea,
   real d = pState[i].x;
   real d0 = pStateOld[i].x;
 
-  //E[i] = 0.0;
-  //if (std::abs(pVc[i].x) > 0.35)
+  E[i] = pVarea[i]*std::abs(d - d0);
+}
+
+__host__ __device__
+void DensityErrorSingle(unsigned int i, const real *pVarea,
+                        const real2 *pVc,
+                        real *pState, real *pStateOld, real *E)
+{
+  real d = pState[i];
+  real d0 = pStateOld[i];
+
   E[i] = pVarea[i]*std::abs(d - d0);
 }
 
@@ -223,7 +247,6 @@ real Simulation::DensityError()
 {
   real2 Ekin = KineticEnergy();
   real Eth = ThermalEnergy();
-  real Etot = Ekin.x + Ekin.y + Eth;
 
   vertexStateOld->SetEqual(vertexState);
 
