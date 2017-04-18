@@ -762,7 +762,7 @@ void CalcTotalResLDASingle(int n,
   real vy = Z0;
 #else
   real vx = one;
-  real vy = zero;
+  real vy = one;
 #endif
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
