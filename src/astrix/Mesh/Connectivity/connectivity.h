@@ -45,6 +45,9 @@ class Connectivity
   void CopyToHost();
   //! Copy data to device
   void CopyToDevice();
+
+  void CheckEdgeTriangles();
+
  private:
   //! Flag whether date resides on host (0) or device (1)
   int cudaFlag;
