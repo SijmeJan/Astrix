@@ -113,7 +113,8 @@ void Delaunay::MakeDelaunay(Connectivity * const connectivity,
       nvtxTemp = new nvtxEvent("Repair", 6);
 
       // Repair
-      EdgeRepair(connectivity, edgeNeedsChecking, nEdgeCheck);
+      //EdgeRepair(connectivity, edgeNeedsChecking, nEdgeCheck);
+      EdgeRepair(connectivity, 0, nEdge);
 
       delete nvtxTemp;
     }
