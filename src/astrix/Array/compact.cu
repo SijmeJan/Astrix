@@ -186,10 +186,16 @@ template void Array<int3>::Compact(int nKeep,
 template void Array<float2>::Compact(int nKeep,
                                      Array<int> *keepFlag,
                                      Array<int> *keepFlagScan);
+template void Array<float3>::Compact(int nKeep,
+                                     Array<int> *keepFlag,
+                                     Array<int> *keepFlagScan);
 template void Array<float4>::Compact(int nKeep,
                                      Array<int> *keepFlag,
                                      Array<int> *keepFlagScan);
 template void Array<double2>::Compact(int nKeep,
+                                     Array<int> *keepFlag,
+                                     Array<int> *keepFlagScan);
+template void Array<double3>::Compact(int nKeep,
                                      Array<int> *keepFlag,
                                      Array<int> *keepFlagScan);
 template void Array<double4>::Compact(int nKeep,
