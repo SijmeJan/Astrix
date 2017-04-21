@@ -1,8 +1,12 @@
-new parallel flip selection test?
-adjust makefile register use / double prec ?
+comment diagnostics.cu, source.cu
+vertexArea calculation in connectivity?
 
 source term integration
 test RT
+
+new parallel flip selection test?
+adjust makefile register use / double prec ?
+
 conservation during edge flipping
 vertex removal
 contour integration
