@@ -48,7 +48,8 @@ __host__ __device__
 void AddEigenVectorSingleRT(unsigned int i, const real2 *pVc, real4 *pState,
                             real2 *dens, real2 *velx, real2 *vely, real2 *pres,
                             real kxRT, real *yRT,
-                            real miny, real maxy, real G, real G1)
+                            real miny, real maxy, real G, real G1,
+                            real time, real omega2)
 {
   real x = pVc[i].x;
   real y = pVc[i].y;
@@ -68,7 +69,7 @@ void AddEigenVectorSingleRT(unsigned int i, const real2 *pVc, real4 *pState,
   real pRj = pres[jj].x + (y - yRT[jj])*(pres[jj + 1].x - pres[jj].x)/dyRT;
   real pIj = pres[jj].y + (y - yRT[jj])*(pres[jj + 1].y - pres[jj].y)/dyRT;
 
-  real amp = 1.0e-2;
+  real amp = 0.0;//1.0e-4;
 
   // Background state
   real d0 = pState[i].x;
@@ -77,19 +78,34 @@ void AddEigenVectorSingleRT(unsigned int i, const real2 *pVc, real4 *pState,
   real e0 = pState[i].w;
   real p0 = G1*(e0 - 0.5*(a0*a0 + b0*b0)/d0);
 
+  real f = M_PI*kxRT*x;
+  if (omega2 > 0.0)
+    f -= sqrt(omega2)*time;
+
   // Add perturbation
-  pState[i].x = d0 + amp*(dRj*cos(M_PI*kxRT*x) - dIj*sin(M_PI*kxRT*x));
-  pState[i].y = a0 + d0*amp*(uRj*cos(M_PI*kxRT*x) - uIj*sin(M_PI*kxRT*x));
-  pState[i].z = b0 + d0*amp*(vRj*cos(M_PI*kxRT*x) - vIj*sin(M_PI*kxRT*x));
-  real pr = p0 + amp*(pRj*cos(M_PI*kxRT*x) - pIj*sin(M_PI*kxRT*x));
+  pState[i].x = d0 + amp*(dRj*cos(f) - dIj*sin(f));
+  pState[i].y = a0 + d0*amp*(uRj*cos(f) - uIj*sin(f));
+  pState[i].z = b0 + d0*amp*(vRj*cos(f) - vIj*sin(f));
+  real pr = p0 + amp*(pRj*cos(f) - pIj*sin(f));
   pState[i].w = 0.5*(Sq(pState[i].y) + Sq(pState[i].z))/pState[i].x + pr/G1;
+}
+
+__host__ __device__
+void AddEigenVectorSingleRT(unsigned int i, const real2 *pVc, real3 *pState,
+                            real2 *dens, real2 *velx, real2 *vely, real2 *pres,
+                            real kxRT, real *yRT,
+                            real miny, real maxy, real G, real G1,
+                            real time, real omega2)
+{
+  // Dummy function; no eigenvector to add if solving isothermal equation
 }
 
 __host__ __device__
 void AddEigenVectorSingleRT(unsigned int i, const real2 *pVc, real *pState,
                             real2 *dens, real2 *velx, real2 *vely, real2 *pres,
                             real kxRT, real *yRT,
-                            real miny, real maxy, real G, real G1)
+                            real miny, real maxy, real G, real G1,
+                            real time, real omega2)
 {
   // Dummy function; no eigenvector to add if solving scalar equation
 }
@@ -116,14 +132,15 @@ __global__ void
 devAddEigenVectorRT(unsigned int nVertex, const real2 *pVc, realNeq *pState,
                     real2 *dens, real2 *velx, real2 *vely, real2 *pres,
                     real kxRT, real *yRT,
-                    real miny, real maxy, real G, real G1)
+                    real miny, real maxy, real G, real G1,
+                    real time, real omega2)
 {
   // n = vertex number
   unsigned int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nVertex) {
     AddEigenVectorSingleRT(n, pVc, pState, dens, velx, vely, pres,
-                           kxRT, yRT, miny, maxy, G, G1);
+                           kxRT, yRT, miny, maxy, G, G1, time, omega2);
 
     n += blockDim.x*gridDim.x;
   }
@@ -156,6 +173,11 @@ void Simulation::RTAddEigenVector()
   nRT += 3;
   real kxRT = 1.0;
   RT >> kxRT;
+  real omega2 = 0.0;
+  RT >> omega2;
+
+  //std::cout << omega2 << " " << 2.0*M_PI/sqrt(omega2) << std::endl;
+  //int qq; std::cin >> qq;
 
   // Create arrays of correct size on host
   Array<real> *yRT = new Array<real>(1, 0, nRT);
@@ -223,7 +245,7 @@ void Simulation::RTAddEigenVector()
 
     devAddEigenVectorRT<<<nBlocks, nThreads>>>
       (nVertex, pVc, pState, pDens, pVelx, pVely, pPres,
-       kxRT, pyRT, miny, maxy, G, G - 1.0);
+       kxRT, pyRT, miny, maxy, G, G - 1.0, simulationTime, omega2);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -231,7 +253,7 @@ void Simulation::RTAddEigenVector()
     for (unsigned int n = 0; n < nVertex; n++)
       AddEigenVectorSingleRT(n, pVc, pState, pDens, pVelx, pVely, pPres,
                              kxRT, pyRT, miny, maxy,
-                             G, G - 1.0);
+                             G, G - 1.0, simulationTime, omega2);
   }
 
   delete yRT;
