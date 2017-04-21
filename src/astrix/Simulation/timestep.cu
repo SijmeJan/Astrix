@@ -126,6 +126,67 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
 
 __host__ __device__
 real FindMaxSignalSpeed(int t, int a, int b, int c,
+                        real3 *pState, const real3* __restrict__ pTl,
+                        real G, real G1)
+{
+  real zero = (real) 0.0;
+  real one = (real) 1.0;
+
+  real vmax = zero;
+
+  // First vertex
+  real dens = pState[a].x;
+  real momx = pState[a].y;
+  real momy = pState[a].z;
+
+  real id = one/dens;
+  real u = momx;
+  real v = momy;
+  real absv = sqrt(u*u+v*v)*id;
+
+  // Sound speed
+  real cs = 1.0;
+
+  // Maximum signal speed
+  vmax = absv + cs;
+
+  // Second vertex
+  dens = pState[b].x;
+  momx = pState[b].y;
+  momy = pState[b].z;
+
+  id = one/dens;
+  u = momx;
+  v = momy;
+  absv = sqrt(u*u+v*v)*id;
+
+  vmax = max(vmax, absv + cs);
+
+  // Third vertex
+  dens = pState[c].x;
+  momx = pState[c].y;
+  momy = pState[c].z;
+
+  id = one/dens;
+  u = momx;
+  v = momy;
+  absv = sqrt(u*u+v*v)*id;
+
+  vmax = max(vmax, absv + cs);
+
+  // Triangle edge lengths
+  real tl1 = pTl[t].x;
+  real tl2 = pTl[t].y;
+  real tl3 = pTl[t].z;
+
+  // Scale with maximum edge length
+  vmax = vmax*max(tl1, max(tl2, tl3));
+
+  return vmax;
+}
+
+__host__ __device__
+real FindMaxSignalSpeed(int t, int a, int b, int c,
                         real *pState, const real3* __restrict__ pTl,
                         real G, real G1)
 {
