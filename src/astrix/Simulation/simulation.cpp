@@ -113,6 +113,7 @@ Simulation::Simulation(int _verboseLevel,
     delete triangleResidueSource;
 
     delete mesh;
+    delete simulationParameter;
 
     throw;
   }
@@ -137,6 +138,7 @@ Simulation::~Simulation()
   delete triangleResidueSource;
 
   delete mesh;
+  delete simulationParameter;
 }
 
 // #########################################################################
