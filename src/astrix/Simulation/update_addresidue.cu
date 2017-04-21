@@ -284,6 +284,207 @@ void AddResidueSingle(int n,
 }
 
 __host__ __device__
+void AddResidueSingle(int n,
+                      const int3* __restrict__ pTv,
+                      const real3 *pTl,
+                      const real *pVarea,
+                      real *pShock, real3 *pState, real3 *pTresTot,
+                      real3 *pTresN0, real3 *pTresN1, real3 *pTresN2,
+                      real3 *pTresLDA0, real3 *pTresLDA1, real3 *pTresLDA2,
+                      real dt, int nVertex, IntegrationScheme intScheme,
+                      int setToMinMaxFlag)
+{
+  const real one = (real) 1.0;
+  const real small = (real) 1.0e-10;
+
+  int a = pTv[n].x;
+  int b = pTv[n].y;
+  int c = pTv[n].z;
+  while (a >= nVertex) a -= nVertex;
+  while (a < 0) a += nVertex;
+  while (b >= nVertex) b -= nVertex;
+  while (b < 0) b += nVertex;
+  while (c >= nVertex) c -= nVertex;
+  while (c < 0) c += nVertex;
+
+  // Triangle edge lengths
+  real tl1 = pTl[n].x;
+  real tl2 = pTl[n].y;
+  real tl3 = pTl[n].z;
+
+  real lb0 = one;
+  real lb1 = one;
+  real lb2 = one;
+
+  if (intScheme == SCHEME_B) {
+    real resN0 = pTresN0[n].x;
+    real resN1 = pTresN0[n].y;
+    real resN2 = pTresN0[n].z;
+
+    real blend0 = fabs(resN0)*tl1;
+    real blend1 = fabs(resN1)*tl1;
+    real blend2 = fabs(resN2)*tl1;
+
+    resN0 = pTresN1[n].x;
+    resN1 = pTresN1[n].y;
+    resN2 = pTresN1[n].z;
+
+    blend0 += fabs(resN0)*tl1;
+    blend1 += fabs(resN1)*tl1;
+    blend2 += fabs(resN2)*tl1;
+
+    resN0 = pTresN2[n].x;
+    resN1 = pTresN2[n].y;
+    resN2 = pTresN2[n].z;
+
+    blend0 += fabs(resN0)*tl1;
+    blend1 += fabs(resN1)*tl1;
+    blend2 += fabs(resN2)*tl1;
+
+    real resTot0 = pTresTot[n].x;
+    real resTot1 = pTresTot[n].y;
+    real resTot2 = pTresTot[n].z;
+
+    blend0 = fabs(resTot0)/(blend0 + small);
+    blend1 = fabs(resTot1)/(blend1 + small);
+    blend2 = fabs(resTot2)/(blend2 + small);
+
+    // Set all to minimum
+    if (setToMinMaxFlag == -1) {
+      real blendMin = min(blend0, min(blend1, blend2));
+      blend0 = blendMin;
+      blend1 = blendMin;
+      blend2 = blendMin;
+    }
+
+    // Set all to maximum
+    if (setToMinMaxFlag == 1) {
+      real blendMax = max(blend0, max(blend1, blend2));
+      blend0 = blendMax;
+      blend1 = blendMax;
+      blend2 = blendMax;
+    }
+
+    lb0 = blend0;
+    lb1 = blend1;
+    lb2 = blend2;
+  }
+
+  if (intScheme == SCHEME_BX) {
+    lb0 = pShock[n];
+    lb1 = lb0;
+    lb2 = lb0;
+  }
+
+  real res0 = one;
+  real res1 = one;
+  real res2 = one;
+
+  real dtdx = dt*tl1/pVarea[a];
+  real dW;
+
+  if (intScheme == SCHEME_N) {
+    res0 = pTresN0[n].x;
+    res1 = pTresN0[n].y;
+    res2 = pTresN0[n].z;
+  }
+
+  if (intScheme == SCHEME_LDA) {
+    res0 = pTresLDA0[n].x;
+    res1 = pTresLDA0[n].y;
+    res2 = pTresLDA0[n].z;
+  }
+
+  if (intScheme == SCHEME_B || intScheme == SCHEME_BX) {
+    real resN0 = pTresN0[n].x;
+    real resN1 = pTresN0[n].y;
+    real resN2 = pTresN0[n].z;
+    real resLDA0 = pTresLDA0[n].x;
+    real resLDA1 = pTresLDA0[n].y;
+    real resLDA2 = pTresLDA0[n].z;
+
+    res0 = lb0*resN0 + (one - lb0)*resLDA0;
+    res1 = lb1*resN1 + (one - lb1)*resLDA1;
+    res2 = lb2*resN2 + (one - lb2)*resLDA2;
+  }
+
+  dW = -dtdx*res0;
+  AtomicAdd(&(pState[a].x), dW);
+  dW = -dtdx*res1;
+  AtomicAdd(&(pState[a].y), dW);
+  dW = -dtdx*res2;
+  AtomicAdd(&(pState[a].z), dW);
+
+  dtdx = dt*tl2/pVarea[b];
+
+  if (intScheme == SCHEME_N) {
+    res0 = pTresN1[n].x;
+    res1 = pTresN1[n].y;
+    res2 = pTresN1[n].z;
+  }
+
+  if (intScheme == SCHEME_LDA) {
+    res0 = pTresLDA1[n].x;
+    res1 = pTresLDA1[n].y;
+    res2 = pTresLDA1[n].z;
+  }
+
+  if (intScheme == SCHEME_B || intScheme == SCHEME_BX) {
+    real resN0 = pTresN1[n].x;
+    real resN1 = pTresN1[n].y;
+    real resN2 = pTresN1[n].z;
+    real resLDA0 = pTresLDA1[n].x;
+    real resLDA1 = pTresLDA1[n].y;
+    real resLDA2 = pTresLDA1[n].z;
+
+    res0 = lb0*resN0 + (one - lb0)*resLDA0;
+    res1 = lb1*resN1 + (one - lb1)*resLDA1;
+    res2 = lb2*resN2 + (one - lb2)*resLDA2;
+  }
+
+  dW = -dtdx*res0;
+  AtomicAdd(&(pState[b].x), dW);
+  dW = -dtdx*res1;
+  AtomicAdd(&(pState[b].y), dW);
+  dW = -dtdx*res2;
+  AtomicAdd(&(pState[b].z), dW);
+
+  dtdx = dt*tl3/pVarea[c];
+
+  if (intScheme == SCHEME_N) {
+    res0 = pTresN2[n].x;
+    res1 = pTresN2[n].y;
+    res2 = pTresN2[n].z;
+  }
+
+  if (intScheme == SCHEME_LDA) {
+    res0 = pTresLDA2[n].x;
+    res1 = pTresLDA2[n].y;
+    res2 = pTresLDA2[n].z;
+  }
+
+  if (intScheme == SCHEME_B || intScheme == SCHEME_BX) {
+    real resN0 = pTresN2[n].x;
+    real resN1 = pTresN2[n].y;
+    real resN2 = pTresN2[n].z;
+    real resLDA0 = pTresLDA2[n].x;
+    real resLDA1 = pTresLDA2[n].y;
+    real resLDA2 = pTresLDA2[n].z;
+
+    res0 = lb0*resN0 + (one - lb0)*resLDA0;
+    res1 = lb1*resN1 + (one - lb1)*resLDA1;
+    res2 = lb2*resN2 + (one - lb2)*resLDA2;
+  }
+
+  dW = -dtdx*res0;
+  AtomicAdd(&(pState[c].x), dW);
+  dW = -dtdx*res1;
+  AtomicAdd(&(pState[c].y), dW);
+  dW = -dtdx*res2;
+  AtomicAdd(&(pState[c].z), dW);
+}
+
+__host__ __device__
 void AddResidueSingle(int n, const int3* __restrict__ pTv,
                       const real3 *pTl, const real *pVarea,
                       real *pShock, real *pState, real *pTresTot,
