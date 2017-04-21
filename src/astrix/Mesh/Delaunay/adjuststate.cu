@@ -201,6 +201,15 @@ __host__ __device__
 void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
                        int nVertex, real2 *pVc, real *pVarea,
                        const Predicates *pred, real *pParam,
+                       real Px, real Py, real3 *pState)
+{
+  // Dummy: not supported for three equations
+}
+
+__host__ __device__
+void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
+                       int nVertex, real2 *pVc, real *pVarea,
+                       const Predicates *pred, real *pParam,
                        real Px, real Py, real *pState)
 {
   // Dummy: not supported for one equation
