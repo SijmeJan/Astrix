@@ -59,6 +59,23 @@ void CalcParamVecSingle(int n, real4 *pState, real4 *pVz, real G1)
 }
 
 __host__ __device__
+void CalcParamVecSingle(int n, real3 *pState, real3 *pVz, real G1)
+{
+  real dens = pState[n].x;
+  real momx = pState[n].y;
+  real momy = pState[n].z;
+
+  real d = sqrt(dens);
+  real u = momx/dens;
+  real v = momy/dens;
+
+  // Roe parameter vector
+  pVz[n].x = d;
+  pVz[n].y = d*u;
+  pVz[n].z = d*v;
+}
+
+__host__ __device__
 void CalcParamVecSingle(int n, real *pState, real *pVz, real G1)
 {
   pVz[n] = pState[n];
