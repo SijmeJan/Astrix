@@ -57,6 +57,30 @@ void FillMinMaxVelocitySingle(unsigned int i, real4 *pState,
 }
 
 __host__ __device__
+void FillMinMaxVelocitySingle(unsigned int i, real3 *pState,
+                              real *pMinVel, real *pMaxVel)
+{
+  real dens = pState[i].x;
+  real momx = pState[i].y;
+  real momy = pState[i].z;
+
+  // Assume maximum is x-velocity
+  real vMax = momx/dens;
+  real vMin = momy/dens;
+
+  // Swap if necessary
+  if (vMin > vMax) {
+    real vTemp = vMax;
+    vMax = vMin;
+    vMin = vTemp;
+  }
+
+  // Output
+  pMinVel[i] = vMin;
+  pMaxVel[i] = vMax;
+}
+
+__host__ __device__
 void FillMinMaxVelocitySingle(unsigned int i, real *pState,
                               real *pMinVel, real *pMaxVel)
 {
