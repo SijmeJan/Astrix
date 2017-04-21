@@ -383,18 +383,50 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     dens = std::pow(pres/s, 1.0/G);
     */
 
+    /*
     dens = 1.0;
     real pres = 1.0 - 0.1*vertY*dens;
     momx = 1.0e-10;
     momy = 0.0;
     ener = half*(Sq(momx) + Sq(momy))/dens + pres/(G - one);
+    */
 
+    real rhoMin = 2.0;
+    real rhoMax = 1.0;
+    real Ly = 1.0;
+    dens = rhoMin + 0.5*(rhoMax - rhoMin)*(vertY + Ly)/Ly;
+    momx = 1.0e-10;
+    momy = 0.0;
+    real pres = 1.0 - 0.1*(0.5*(rhoMax + rhoMin)*vertY +
+                           0.25*vertY*vertY*(rhoMax - rhoMin)/Ly);
+    ener = half*(Sq(momx) + Sq(momy))/dens + pres/(G - one);
   }
 
   state[n].x = dens;
   state[n].y = momx;
   state[n].z = momy;
   state[n].w = ener;
+}
+
+__host__ __device__
+void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
+                      real *pVpot, real3 *state, real G, real time,
+                      real Px, real Py)
+{
+  real vertX = pVc[n].x;
+  real vertY = pVc[n].y;
+
+  real dens = (real) 1.0;
+  real momx = (real) 0.0;
+  real momy = (real) 0.0;
+
+  if (problemDef == PROBLEM_SOURCE) {
+    dens = exp(-0.1*vertY);
+  }
+
+  state[n].x = dens;
+  state[n].y = momx;
+  state[n].z = momy;
 }
 
 __host__ __device__
@@ -474,7 +506,9 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   }
 
   if (problemDef == PROBLEM_SOURCE) {
-    dens = 1.0;
+    //dens = 1.0;
+    real k = M_PI;
+    dens = cos(k*(vertX + vertY - 2.0*time))*exp(-time);
   }
 
   state[n] = dens;
