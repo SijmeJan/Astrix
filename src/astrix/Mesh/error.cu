@@ -146,6 +146,17 @@ __host__ __device__
 void CalcOperatorEnergySingle(int i, int nVertex, int nTriangle,
                               int3 *pTv, real G, real3 *triL,
                               real2 *pTn1, real2 *pTn2, real2 *pTn3,
+                              real *pVertexArea, real3 *state,
+                              real *pVertexOperator,
+                              real *pTriangleOperator)
+{
+  // Dummy, not supported for 3 equations
+}
+
+__host__ __device__
+void CalcOperatorEnergySingle(int i, int nVertex, int nTriangle,
+                              int3 *pTv, real G, real3 *triL,
+                              real2 *pTn1, real2 *pTn2, real2 *pTn3,
                               real *pVertexArea, real *state,
                               real *pVertexOperator,
                               real *pTriangleOperator)
