@@ -773,6 +773,19 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
 __host__ __device__
 void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
                             const int3* __restrict__ pTv,
+                            const real3* __restrict__ pVz,
+                            const real3* __restrict__ pDstate,
+                            real3 *pTresTot, const real2 *pTn1,
+                            const real2 *pTn2, const real2 *pTn3,
+                            const real3 *pTl, int nVertex,
+                            real G, real G1, real G2)
+{
+  // Not supported for isothermal
+}
+
+__host__ __device__
+void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
+                            const int3* __restrict__ pTv,
                             const real* __restrict__ pVz,
                             const real* __restrict__ pDstate,
                             real *pTresTot, const real2 *pTn1,
