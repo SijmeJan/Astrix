@@ -660,8 +660,10 @@ template void Array<unsigned int>::Reindex(unsigned int *reindex);
 template void Array<int2>::Reindex(unsigned int *reindex);
 template void Array<int3>::Reindex(unsigned int *reindex);
 template void Array<float2>::Reindex(unsigned int *reindex);
+template void Array<float3>::Reindex(unsigned int *reindex);
 template void Array<float4>::Reindex(unsigned int *reindex);
 template void Array<double2>::Reindex(unsigned int *reindex);
+template void Array<double3>::Reindex(unsigned int *reindex);
 template void Array<double4>::Reindex(unsigned int *reindex);
 
 }  // namespace astrix
