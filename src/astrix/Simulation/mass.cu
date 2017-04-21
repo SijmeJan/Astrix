@@ -40,6 +40,13 @@ void FillMassArraySingle(unsigned int n, real4 *pState,
 }
 
 __host__ __device__
+void FillMassArraySingle(unsigned int n, real3 *pState,
+                         const real *pVarea, real *pVm)
+{
+  pVm[n] = pVarea[n]*pState[n].x;
+}
+
+__host__ __device__
 void FillMassArraySingle(unsigned int n, real *pState,
                          const real *pVarea, real *pVm)
 {
