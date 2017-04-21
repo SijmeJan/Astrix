@@ -78,8 +78,48 @@ void CalcSourceSingle(int n, ProblemDefinition problemDef, int nVertex,
   }
 }
 
-//######################################################################
-//######################################################################
+__host__ __device__
+void CalcSourceSingle(int n, ProblemDefinition problemDef, int nVertex,
+                      const int3 *pTv, const real2 *pVc,
+                      const real2 *pTn1, const real2 *pTn2, const real2 *pTn3,
+                      const real3 *pTl, const real *pVp,
+                      const real3 *pState, real3 *pSource)
+{
+  pSource[n].x = 0.0;
+  pSource[n].y = 0.0;
+  pSource[n].z = 0.0;
+
+  if (problemDef == PROBLEM_SOURCE) {
+    real three = (real) 3.0;
+
+    // Vertices belonging to triangle
+    int v1 = pTv[n].x;
+    int v2 = pTv[n].y;
+    int v3 = pTv[n].z;
+    while (v1 >= nVertex) v1 -= nVertex;
+    while (v2 >= nVertex) v2 -= nVertex;
+    while (v3 >= nVertex) v3 -= nVertex;
+    while (v1 < 0) v1 += nVertex;
+    while (v2 < 0) v2 += nVertex;
+    while (v3 < 0) v3 += nVertex;
+
+    real tl1 = pTl[n].x;
+    real tl2 = pTl[n].y;
+    real tl3 = pTl[n].z;
+
+    real d1 = pState[v1].x;
+    real d2 = pState[v2].x;
+    real d3 = pState[v3].x;
+    real dG = (d1 + d2 + d3)/three;
+
+    real s = (real) 0.5*(tl1 + tl2 + tl3);
+    real area = sqrt(s*(s - tl1)*(s - tl2)*(s - tl3));
+
+    pSource[n].x = 0.0;
+    pSource[n].y = 0.0;
+    pSource[n].z = dG*0.1*area;
+  }
+}
 
 __host__ __device__
 void CalcSourceSingle(int n, ProblemDefinition problemDef, int nVertex,
@@ -91,6 +131,34 @@ void CalcSourceSingle(int n, ProblemDefinition problemDef, int nVertex,
   pSource[n] = 0.0;
 
   if (problemDef == PROBLEM_SOURCE) {
+    real three = (real) 3.0;
+
+    // Vertices belonging to triangle
+    int v1 = pTv[n].x;
+    int v2 = pTv[n].y;
+    int v3 = pTv[n].z;
+    while (v1 >= nVertex) v1 -= nVertex;
+    while (v2 >= nVertex) v2 -= nVertex;
+    while (v3 >= nVertex) v3 -= nVertex;
+    while (v1 < 0) v1 += nVertex;
+    while (v2 < 0) v2 += nVertex;
+    while (v3 < 0) v3 += nVertex;
+
+    real tl1 = pTl[n].x;
+    real tl2 = pTl[n].y;
+    real tl3 = pTl[n].z;
+
+    real d1 = pState[v1];
+    real d2 = pState[v2];
+    real d3 = pState[v3];
+    real dG = (d1 + d2 + d3)/three;
+
+    real s = (real) 0.5*(tl1 + tl2 + tl3);
+    real area = sqrt(s*(s - tl1)*(s - tl2)*(s - tl3));
+
+    pSource[n] = dG*area;
+
+    /*
     real two = (real) 2.0;
     real three = (real) 3.0;
 
@@ -129,6 +197,7 @@ void CalcSourceSingle(int n, ProblemDefinition problemDef, int nVertex,
     //pSource[n] = -area*10.0*(s1 + s2 + s3)/three;
     pSource[n] = -area*10.0*(-two*xG*qG);
     //pSource[n] = -area*qG;
+    */
   }
 }
 
