@@ -134,6 +134,18 @@ void CalcShockSensorSingle(int i, int nVertex,
   pShockSensor[i] = min(one, sc*sc*rsqrtf(iA));
 }
 
+// Version for 3 equations just says shock
+__host__ __device__
+void CalcShockSensorSingle(int i, int nVertex,
+                           const int3* __restrict__ pTv,
+                           const real3* __restrict__ pTl,
+                           const real2 *pTn1, const real2 *pTn2,
+                           const real2 *pTn3, real iDv, real3 *pState,
+                           real *pShockSensor, const real G, const real G1)
+{
+  pShockSensor[i] = 1.0;
+}
+
 // Version for 1 equation just says shock
 __host__ __device__
 void CalcShockSensorSingle(int i, int nVertex,
