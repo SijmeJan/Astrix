@@ -43,6 +43,12 @@ void ReplaceEnergyWithPressureSingle(int i, real4 *pState, real G1)
 }
 
 __host__ __device__
+void ReplaceEnergyWithPressureSingle(int i, real3 *pState, real G1)
+{
+  // Dummy function, nothing to be done if solving only three equations
+}
+
+__host__ __device__
 void ReplaceEnergyWithPressureSingle(int i, real *pState, real G1)
 {
   // Dummy function, nothing to be done if solving only one equation
@@ -63,6 +69,12 @@ void ReplacePressureWithEnergySingle(int i, real4 *pState, real iG1)
 
   pState[i].w =
     half*(Sq(pState[i].y) + Sq(pState[i].z))/pState[i].x + pState[i].w*iG1;
+}
+
+__host__ __device__
+void ReplacePressureWithEnergySingle(int i, real3 *pState, real iG1)
+{
+  // Dummy function, nothing to be done if solving only three equations
 }
 
 __host__ __device__
