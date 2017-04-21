@@ -254,6 +254,17 @@ void AdjustStateCoarsenSingle(int vRemove, int *vTri, const int maxTriPerVert,
                               real *pVertexArea,
                               int nVertex, real2 *pVc,
                               real Px, real Py, int tTarget,
+                              real3 *state, real G, int *vNeighbour)
+{
+  // Dummy: coarsening for three equations not supported
+}
+
+  __host__ __device__
+void AdjustStateCoarsenSingle(int vRemove, int *vTri, const int maxTriPerVert,
+                              int3 *pTv, int3 *pTe, int2 *pEt,
+                              real *pVertexArea,
+                              int nVertex, real2 *pVc,
+                              real Px, real Py, int tTarget,
                               real *state, real G, int *vNeighbour)
 {
   // Dummy: coarsening for one equation not supported
