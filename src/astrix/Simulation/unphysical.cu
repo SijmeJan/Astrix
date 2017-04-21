@@ -60,6 +60,24 @@ void FlagUnphysicalVertex(const int v, real4 *pState,
 }
 
 __host__ __device__
+void FlagUnphysicalVertex(const int v, real3 *pState,
+                          int *pVertexUnphysicalFlag, const real G1)
+{
+  const real zero = (real) 0.0;
+
+  // Assume everything is fine
+  int ret = 0;
+
+  real dens = pState[v].x;
+
+  // Flag if negative density or pressure
+  if (dens < zero) ret = 1;
+
+  // Output flag
+  pVertexUnphysicalFlag[v] = ret;
+}
+
+__host__ __device__
 void FlagUnphysicalVertex(const int v, real *pState,
                           int *pVertexUnphysicalFlag, const real G1)
 {
