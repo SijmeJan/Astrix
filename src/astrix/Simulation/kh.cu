@@ -73,6 +73,17 @@ void AddEigenVectorSingle(unsigned int i, const real2 *pVc, real4 *pState,
 }
 
 __host__ __device__
+void AddEigenVectorSingle(unsigned int i, const real2 *pVc, real3 *pState,
+                          real *dR, real*dI,
+                          real *uR, real *uI,
+                          real *vR, real *vI,
+                          real dyKH, real kxKH, real *yKH,
+                          real miny, real maxy, real G, real G1)
+{
+  // Dummy function; no eigenvector to add if solving isothermal equation
+}
+
+__host__ __device__
 void AddEigenVectorSingle(unsigned int i, const real2 *pVc, real *pState,
                           real *dR, real*dI,
                           real *uR, real *uI,
@@ -220,6 +231,14 @@ void CalcDiagnosticsSingle(unsigned int i, const real2 *pVc,
   c[i] = momy*cos(4.0*M_PI*x)*d[i]/dens;
 
   E[i] = 0.5*momy*momy/dens;
+}
+
+__host__ __device__
+void CalcDiagnosticsSingle(unsigned int i, const real2 *pVc,
+                           const real *pVarea,
+                           real3 *pState, real *d, real *s, real *c, real *E)
+{
+  // Dummy function; nothing to be done if solving isothermal equations
 }
 
 __host__ __device__
