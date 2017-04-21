@@ -245,6 +245,117 @@ void SetReflectingEdge(int n, int e, real dt, real4 *pState,
 }
 
 __host__ __device__
+void SetReflectingEdge(int n, int e, real dt, real3 *pState,
+                       const int3 *pTv, int e1, int e2, int e3,
+                       const real *pVarea, const real3 *pTl,
+                       const real2 *pTn1, const real2 *pTn2,
+                       const real2 *pTn3, int nVertex, real G1)
+{
+  const real half  = (real) 0.5;
+  const real one = (real) 1.0;
+
+  int a = pTv[n].x;
+  int b = pTv[n].y;
+  int c = pTv[n].z;
+
+  // Edge vertices
+  int v1 = a;
+  int v2 = b;
+  int v3 = c;
+  if (e == e2) {
+    v1 = b;
+    v2 = c;
+    v3 = a;
+  }
+  if (e == e3) {
+    v1 = c;
+    v2 = a;
+    v3 = b;
+  }
+  while (v1 >= nVertex) v1 -= nVertex;
+  while (v2 >= nVertex) v2 -= nVertex;
+  while (v3 >= nVertex) v3 -= nVertex;
+  while (v1 < 0) v1 += nVertex;
+  while (v2 < 0) v2 += nVertex;
+  while (v3 < 0) v3 += nVertex;
+
+  // Triangle edge lengths
+  real tl1 = pTl[n].x;
+  real tl2 = pTl[n].y;
+  real tl3 = pTl[n].z;
+
+  real nx = pTn1[n].x;
+  real ny = pTn1[n].y;
+  real edge_length = tl1;
+  if (e == e3) {
+    nx = pTn2[n].x;
+    ny = pTn2[n].y;
+    edge_length = tl2;
+  }
+  if (e == e1) {
+    nx = pTn3[n].x;
+    ny = pTn3[n].y;
+    edge_length = tl3;
+  }
+
+  // Vertices belonging to edge e
+  int vj = v1;
+  int vk = v2;
+
+  real Dj = pState[vj].x;
+  real Uj = pState[vj].y/Dj;
+  real Vj = pState[vj].z/Dj;
+
+  real Dk = pState[vk].x;
+  real Uk = pState[vk].y/Dk;
+  real Vk = pState[vk].z/Dk;
+
+  // Velocities normal to edge
+  real vnj = Uj*nx + Vj*ny;
+  real vnk = Uk*nx + Vk*ny;
+
+  // Correction fluxes
+  real Fcorrj0 = Dj*vnj;
+  real Fcorrj1 = Dj*Uj*vnj;
+  real Fcorrj2 = Dj*Vj*vnj;
+
+  real Fcorrk0 = Dk*vnk;
+  real Fcorrk1 = Dk*Uk*vnk;
+  real Fcorrk2 = Dk*Vk*vnk;
+
+  real A = (real) 0.75;
+  real dtdx = dt*edge_length/pVarea[vj];
+  pState[vj].x -= half*dtdx*(A*Fcorrj0 + (one - A)*Fcorrk0);
+  pState[vj].y -= half*dtdx*(A*Fcorrj1 + (one - A)*Fcorrk1);
+  pState[vj].z -= half*dtdx*(A*Fcorrj2 + (one - A)*Fcorrk2);
+
+  dtdx = dt*edge_length/pVarea[vk];
+  pState[vk].x -= half*dtdx*(A*Fcorrk0 + (one - A)*Fcorrj0);
+  pState[vk].y -= half*dtdx*(A*Fcorrk1 + (one - A)*Fcorrj1);
+  pState[vk].z -= half*dtdx*(A*Fcorrk2 + (one - A)*Fcorrj2);
+
+  // Check for physical state
+  if (pState[vj].x < 0.0 || pState[vk].x < 0.0) {
+    // Try A = 1.0
+    real dtdx = dt*edge_length/pVarea[vj];
+    pState[vj].x += half*dtdx*(A*Fcorrj0 + (one - A)*Fcorrk0 - Fcorrj0);
+    pState[vj].y += half*dtdx*(A*Fcorrj1 + (one - A)*Fcorrk1 - Fcorrj1);
+    pState[vj].z += half*dtdx*(A*Fcorrj2 + (one - A)*Fcorrk2 - Fcorrj2);
+
+    dtdx = dt*edge_length/pVarea[vk];
+    pState[vk].x += half*dtdx*(A*Fcorrk0 + (one - A)*Fcorrj0 - Fcorrk0);
+    pState[vk].y += half*dtdx*(A*Fcorrk1 + (one - A)*Fcorrj1 - Fcorrk1);
+    pState[vk].z += half*dtdx*(A*Fcorrk2 + (one - A)*Fcorrj2 - Fcorrk2);
+
+#ifndef __CUDA_ARCH__
+    if (pState[vj].x < 0.0 || pState[vk].x < 0.0) {
+      std::cout << "Negative density in reflection " << std::endl;
+    }
+#endif
+  }
+}
+
+__host__ __device__
 void SetReflectingEdge(int n, int e, real dt, real *pState,
                        const int3 *pTv, int e1, int e2, int e3,
                        const real *pVarea, const real3 *pTl,
