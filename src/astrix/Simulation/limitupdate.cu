@@ -70,6 +70,26 @@ void FlagLimitVertex(const int v, real4 *pState, real4 *pStateOld,
 }
 
 __host__ __device__
+void FlagLimitVertex(const int v, real3 *pState, real3 *pStateOld,
+                     int *pVertexLimitFlag, const real G1)
+{
+  const real half = (real) 0.5;
+
+  // Assume everything is fine
+  int ret = 0;
+
+  real dens = pState[v].x;
+  real densOld = pStateOld[v].x;
+
+  if (abs(dens - densOld)/densOld > 0.1)
+    ret = 1;
+
+  // Output flag
+  if (ret == 1)
+    pVertexLimitFlag[v] = ret;
+}
+
+__host__ __device__
 void FlagLimitVertex(const int v, real *pState, real *pStateOld,
                      int *pVertexLimitFlag, const real G1)
 {
