@@ -83,6 +83,10 @@ template void Array<float>::SetToDiff(Array<float> *A,
                                       Array<float> *B);
 template void Array<double>::SetToDiff(Array<double> *A,
                                        Array<double> *B);
+template void Array<float3>::SetToDiff(Array<float3> *A,
+                                      Array<float3> *B);
+template void Array<double3>::SetToDiff(Array<double3> *A,
+                                       Array<double3> *B);
 template void Array<float4>::SetToDiff(Array<float4> *A,
                                        Array<float4> *B);
 template void Array<double4>::SetToDiff(Array<double4> *A,
