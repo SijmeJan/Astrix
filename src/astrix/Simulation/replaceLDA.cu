@@ -96,6 +96,39 @@ void SingleReplaceLDA(int n, const int3* __restrict__ pTv,
 __host__ __device__
 void SingleReplaceLDA(int n, const int3* __restrict__ pTv,
                       const int* __restrict__ pVuf,
+                      real3 *pTresN0, real3 *pTresN1, real3 *pTresN2,
+                      real3 *pTresLDA0, real3 *pTresLDA1, real3 *pTresLDA2,
+                      const int RKStep, const int nVertex)
+{
+  // Triangle vertices
+  int a = pTv[n].x;
+  int b = pTv[n].y;
+  int c = pTv[n].z;
+  while (a >= nVertex) a -= nVertex;
+  while (b >= nVertex) b -= nVertex;
+  while (c >= nVertex) c -= nVertex;
+  while (a < 0) a += nVertex;
+  while (b < 0) b += nVertex;
+  while (c < 0) c += nVertex;
+
+  // Check whether any vertex state is flagged as unphysical
+  int correct_flag = 0;
+  correct_flag += pVuf[a];
+  correct_flag += pVuf[b];
+  correct_flag += pVuf[c];
+
+  // If any vertex has unphysical state, replace LDA with N
+  if (correct_flag > 0) {
+    // Replace LDA
+    pTresLDA0[n] = pTresN0[n];
+    pTresLDA1[n] = pTresN1[n];
+    pTresLDA2[n] = pTresN2[n];
+  }
+}
+
+__host__ __device__
+void SingleReplaceLDA(int n, const int3* __restrict__ pTv,
+                      const int* __restrict__ pVuf,
                       real *pTresN0, real *pTresN1, real *pTresN2,
                       real *pTresLDA0, real *pTresLDA1, real *pTresLDA2,
                       const int RKStep, const int nVertex)
