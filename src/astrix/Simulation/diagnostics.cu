@@ -45,6 +45,20 @@ void KineticEnergySingle(unsigned int i, const real *pVarea,
 
 __host__ __device__
 void KineticEnergySingle(unsigned int i, const real *pVarea,
+                         real3 *pState, real *Ex, real *Ey)
+{
+  real half = (real) 0.5;
+
+  real d = pState[i].x;
+  real m = pState[i].y;
+  real n = pState[i].z;
+
+  Ex[i] = pVarea[i]*half*m*m/d;
+  Ey[i] = pVarea[i]*half*n*n/d;
+}
+
+  __host__ __device__
+void KineticEnergySingle(unsigned int i, const real *pVarea,
                          real *pState, real *Ex, real *Ey)
 {
   Ex[i] = (real) 0.0;
@@ -135,6 +149,13 @@ void ThermalEnergySingle(unsigned int i, const real *pVarea,
 
 __host__ __device__
 void ThermalEnergySingle(unsigned int i, const real *pVarea,
+                         real3 *pState, real *E)
+{
+  E[i] = (real) 0.0;
+}
+
+__host__ __device__
+void ThermalEnergySingle(unsigned int i, const real *pVarea,
                          real *pState, real *E)
 {
   E[i] = (real) 0.0;
@@ -201,9 +222,97 @@ real Simulation::ThermalEnergy()
 //##############################################################################
 
 __host__ __device__
+void PotentialEnergySingle(unsigned int i, const real2 *pVc, const real *pVarea,
+                           real4 *pState, real *E, ProblemDefinition problemDef)
+{
+  real d = pState[i].x;
+  real vertY = pVc[i].y;
+
+  real pot = 0.0;
+  if (problemDef == PROBLEM_SOURCE)
+    pot = 0.1*vertY;
+
+  E[i] = pVarea[i]*d*pot;
+}
+
+//######################################################################
+//######################################################################
+
+__global__ void
+devPotentialEnergy(unsigned int nVertex, const real2 *pVc, const real *pVarea,
+                   realNeq *pState, real *E, ProblemDefinition problemDef)
+{
+  // n = vertex number
+  unsigned int n = blockIdx.x*blockDim.x + threadIdx.x;
+
+  while (n < nVertex) {
+    PotentialEnergySingle(n, pVc, pVarea, pState, E, problemDef);
+
+    n += blockDim.x*gridDim.x;
+  }
+}
+
+//######################################################################
+//######################################################################
+
+real Simulation::PotentialEnergy()
+{
+  unsigned int nVertex = mesh->GetNVertex();
+
+  realNeq *pState = vertexState->GetPointer();
+
+  const real *pVarea = mesh->VertexAreaData();
+  const real2 *pVc = mesh->VertexCoordinatesData();
+
+  Array<real> *E = new Array<real>(1, cudaFlag, nVertex);
+  real *pE = E->GetPointer();
+
+  ProblemDefinition p = simulationParameter->problemDef;
+
+  if (cudaFlag == 1) {
+    int nBlocks = 128;
+    int nThreads = 128;
+
+    // Base nThreads and nBlocks on maximum occupancy
+    cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
+                                       devPotentialEnergy,
+                                       (size_t) 0, 0);
+
+    devPotentialEnergy<<<nBlocks, nThreads>>>
+      (nVertex, pVc, pVarea, pState, pE, p);
+
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
+  } else {
+    for (unsigned int n = 0; n < nVertex; n++)
+      PotentialEnergySingle(n, pVc, pVarea, pState, pE, p);
+  }
+
+  real e = E->Sum();
+
+  delete E;
+
+  return e;
+}
+
+//##############################################################################
+//##############################################################################
+
+__host__ __device__
 void DensityErrorSingle(unsigned int i, const real *pVarea,
                         const real2 *pVc,
                         real4 *pState, real4 *pStateOld, real *E)
+{
+  real d = pState[i].x;
+  real d0 = pStateOld[i].x;
+
+  E[i] = pVarea[i]*std::abs(d - d0);
+}
+
+__host__ __device__
+void DensityErrorSingle(unsigned int i, const real *pVarea,
+                        const real2 *pVc,
+                        real3 *pState, real3 *pStateOld, real *E)
 {
   real d = pState[i].x;
   real d0 = pStateOld[i].x;
