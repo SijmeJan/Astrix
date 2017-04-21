@@ -189,10 +189,12 @@ template void Array<unsigned int>::SetEqual(const Array *B, int startPosition);
 template void Array<float>::SetEqualComb(const Array<float2> *B,
                                          unsigned int N, unsigned int M);
 template void Array<float2>::SetEqual(const Array *B);
+template void Array<float3>::SetEqual(const Array *B);
 template void Array<float4>::SetEqual(const Array *B);
 template void Array<double>::SetEqualComb(const Array<double2> *B,
                                           unsigned int N, unsigned int M);
 template void Array<double2>::SetEqual(const Array *B);
+template void Array<double3>::SetEqual(const Array *B);
 template void Array<double4>::SetEqual(const Array *B);
 
 }  // namespace astrix
