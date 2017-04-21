@@ -192,17 +192,6 @@ When extrapolating, the corners of the mesh need special attention. In this func
 //######################################################################
 
 __host__ __device__
-void SetCornersToZero(int n, const int *pVbf, real *pState)
-{
-  if (pVbf[n] == 5 ||
-      pVbf[n] == 6 ||
-      pVbf[n] == 9 ||
-      pVbf[n] == 10) {
-    pState[n] = (real) 0.0;
-  }
-}
-
-__host__ __device__
 void SetCornersToZero(int n, const int *pVbf, real4 *pState)
 {
   const real zero = (real) 0.0;
@@ -217,6 +206,32 @@ void SetCornersToZero(int n, const int *pVbf, real4 *pState)
     pState[n].w = zero;
   }
 }
+
+__host__ __device__
+void SetCornersToZero(int n, const int *pVbf, real3 *pState)
+{
+  if (pVbf[n] == 5 ||
+      pVbf[n] == 6 ||
+      pVbf[n] == 9 ||
+      pVbf[n] == 10) {
+    pState[n].x = (real) 0.0;
+    pState[n].y = (real) 0.0;
+    pState[n].z = (real) 0.0;
+  }
+}
+
+
+__host__ __device__
+void SetCornersToZero(int n, const int *pVbf, real *pState)
+{
+  if (pVbf[n] == 5 ||
+      pVbf[n] == 6 ||
+      pVbf[n] == 9 ||
+      pVbf[n] == 10) {
+    pState[n] = (real) 0.0;
+  }
+}
+
 
 //######################################################################
 /*! \brief Kernel setting state in corners to zero
