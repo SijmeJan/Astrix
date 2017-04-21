@@ -175,6 +175,8 @@ class Simulation
   real2 KineticEnergy();
   //! Calculate total thermal energy in domain
   real ThermalEnergy();
+  //! Calculate total potential energy in domain
+  real PotentialEnergy();
   //! Calculate L1 density error
   real DensityError();
 };
