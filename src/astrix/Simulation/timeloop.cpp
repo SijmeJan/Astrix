@@ -207,7 +207,7 @@ void Simulation::DoTimeStep()
       problemDef == PROBLEM_SOD ||
       problemDef == PROBLEM_BLAST ||
       problemDef == PROBLEM_RIEMANN ||
-      (problemDef == PROBLEM_SOURCE && N_EQUATION == 4))
+      (problemDef == PROBLEM_SOURCE && N_EQUATION > 1))
     ReflectingBoundaries(dt);
 
   // Nonreflecting boundaries
@@ -278,7 +278,7 @@ void Simulation::DoTimeStep()
         problemDef == PROBLEM_SOD ||
         problemDef == PROBLEM_BLAST ||
         problemDef == PROBLEM_RIEMANN ||
-        (problemDef == PROBLEM_SOURCE && N_EQUATION == 4))
+        (problemDef == PROBLEM_SOURCE && N_EQUATION > 1))
       ReflectingBoundaries(dt);
 
     // Nonreflecting boundaries
