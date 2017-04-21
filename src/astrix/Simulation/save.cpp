@@ -353,6 +353,7 @@ void Simulation::FineGrainSave()
 
   real2 Ekin = KineticEnergy();
   real Eth = ThermalEnergy();
+  real Epot = PotentialEnergy();
 
   outFile << std::setprecision(10)
           << simulationTime << " "
@@ -360,6 +361,7 @@ void Simulation::FineGrainSave()
           << Ekin.x <<  " "
           << Ekin.y << " "
           << Eth << " "
+          << Epot << " "
           << DensityError() << std::endl;
   outFile.close();
   if (!outFile) {
