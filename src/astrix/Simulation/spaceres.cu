@@ -1664,7 +1664,6 @@ void Simulation::CalcResidual()
 
       cudaFlag = 1;
     } else {
-      vertexPotential->TransformToHost();
       vertexParameterVector->TransformToHost();
 
       triangleResidueN->TransformToHost();
