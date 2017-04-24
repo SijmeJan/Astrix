@@ -1,4 +1,5 @@
 comment diagnostics.cu, source.cu
+potential in total energy
 vertexArea calculation in connectivity?
 
 source term integration
