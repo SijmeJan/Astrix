@@ -222,31 +222,25 @@ real Simulation::ThermalEnergy()
 //##############################################################################
 
 __host__ __device__
-void PotentialEnergySingle(unsigned int i, const real2 *pVc, const real *pVarea,
-                           real4 *pState, real *E, ProblemDefinition problemDef)
+void PotentialEnergySingle(unsigned int i, const real *pVarea, real4 *pState,
+                           real *E, const real *pot)
 {
   real d = pState[i].x;
-  real vertY = pVc[i].y;
-
-  real pot = 0.0;
-  if (problemDef == PROBLEM_SOURCE)
-    pot = 0.1*vertY;
-
-  E[i] = pVarea[i]*d*pot;
+  E[i] = pVarea[i]*d*pot[i];
 }
 
 //######################################################################
 //######################################################################
 
 __global__ void
-devPotentialEnergy(unsigned int nVertex, const real2 *pVc, const real *pVarea,
-                   realNeq *pState, real *E, ProblemDefinition problemDef)
+devPotentialEnergy(unsigned int nVertex, const real *pVarea,
+                   realNeq *pState, real *E, const real *pot)
 {
   // n = vertex number
   unsigned int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nVertex) {
-    PotentialEnergySingle(n, pVc, pVarea, pState, E, problemDef);
+    PotentialEnergySingle(n, pVarea, pState, E, pot);
 
     n += blockDim.x*gridDim.x;
   }
@@ -260,14 +254,12 @@ real Simulation::PotentialEnergy()
   unsigned int nVertex = mesh->GetNVertex();
 
   realNeq *pState = vertexState->GetPointer();
+  const real *pVp = vertexPotential->GetPointer();
 
   const real *pVarea = mesh->VertexAreaData();
-  const real2 *pVc = mesh->VertexCoordinatesData();
 
   Array<real> *E = new Array<real>(1, cudaFlag, nVertex);
   real *pE = E->GetPointer();
-
-  ProblemDefinition p = simulationParameter->problemDef;
 
   if (cudaFlag == 1) {
     int nBlocks = 128;
@@ -279,13 +271,13 @@ real Simulation::PotentialEnergy()
                                        (size_t) 0, 0);
 
     devPotentialEnergy<<<nBlocks, nThreads>>>
-      (nVertex, pVc, pVarea, pState, pE, p);
+      (nVertex, pVarea, pState, pE, pVp);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (unsigned int n = 0; n < nVertex; n++)
-      PotentialEnergySingle(n, pVc, pVarea, pState, pE, p);
+      PotentialEnergySingle(n, pVarea, pState, pE, pVp);
   }
 
   real e = E->Sum();
