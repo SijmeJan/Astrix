@@ -206,9 +206,13 @@ void Simulation::DoTimeStep()
   if (problemDef == PROBLEM_CYL ||
       problemDef == PROBLEM_SOD ||
       problemDef == PROBLEM_BLAST ||
-      problemDef == PROBLEM_RIEMANN ||
-      (problemDef == PROBLEM_SOURCE && N_EQUATION > 1))
+      problemDef == PROBLEM_RIEMANN)
+    //||
+    //(problemDef == PROBLEM_SOURCE && N_EQUATION > 1))
     ReflectingBoundaries(dt);
+
+  if (problemDef == PROBLEM_SOURCE && N_EQUATION > 1)
+    SetSymmetricBoundaries();
 
   // Nonreflecting boundaries
   if (problemDef == PROBLEM_VORTEX ||
@@ -277,9 +281,13 @@ void Simulation::DoTimeStep()
     if (problemDef == PROBLEM_CYL ||
         problemDef == PROBLEM_SOD ||
         problemDef == PROBLEM_BLAST ||
-        problemDef == PROBLEM_RIEMANN ||
-        (problemDef == PROBLEM_SOURCE && N_EQUATION > 1))
+        problemDef == PROBLEM_RIEMANN)
+      //||
+      //(problemDef == PROBLEM_SOURCE && N_EQUATION > 1))
       ReflectingBoundaries(dt);
+
+    if (problemDef == PROBLEM_SOURCE && N_EQUATION > 1)
+      SetSymmetricBoundaries();
 
     // Nonreflecting boundaries
     if (problemDef == PROBLEM_VORTEX ||
