@@ -128,6 +128,8 @@ class Simulation
   void SetRiemannBoundaries();
   //! Set boundary conditions for 2D Noh problem
   void SetNohBoundaries();
+  //! Set symmetry boundary conditions
+  void SetSymmetricBoundaries();
 
   //! Function to calculate Roe's parameter vector at all vertices.
   void CalculateParameterVector(int useOldFlag);
