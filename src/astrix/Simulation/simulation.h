@@ -16,6 +16,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #define ASTRIX_SIMULATION_H
 
 #define BURGERS -1
+#define CONTOUR
 
 namespace astrix {
 
@@ -179,6 +180,8 @@ class Simulation
   real ThermalEnergy();
   //! Calculate total potential energy in domain
   real PotentialEnergy();
+  //! Calculate total energy in domain
+  real TotalEnergy();
   //! Calculate L1 density error
   real DensityError();
 };
