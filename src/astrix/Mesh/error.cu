@@ -347,7 +347,7 @@ void Mesh::CalcErrorEstimate(Array<realNeq> *vertexState, real G)
   real3 *triL = triangleEdgeLength->GetPointer();
 
   // Voronoi cell area
-  real *pVertexArea = vertexArea->GetPointer();
+  real *pVertexArea = connectivity->vertexArea->GetPointer();
 
   // State at vertices
   realNeq *state = vertexState->GetPointer();
