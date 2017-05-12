@@ -203,15 +203,15 @@ with PdfPages('testsuite.pdf') as pdf:
     plt.close()
 
     # Rayleigh-Taylor
-    plt.gca().set_aspect('equal')
-    with cd(args.directory + 'run/euler/source/'):
-        subprocess.call([direc + "/bin/astrix", "astrix.in"])
-        DensPlot2D(75, Px = 2.0, Py = 2.0)
-        TriPlot(75, Px = 2.0, Py = 2.0)
-        CleanUp()
+    #plt.gca().set_aspect('equal')
+    #with cd(args.directory + 'run/euler/source/'):
+    #    subprocess.call([direc + "/bin/astrix", "astrix.in"])
+    #    DensPlot2D(75, Px = 2.0, Py = 2.0)
+    #    TriPlot(75, Px = 2.0, Py = 2.0)
+    #    CleanUp()
 
-    plt.title('Rayleigh-Taylor')
-    plt.xlabel('x')
-    plt.ylabel('y')
-    pdf.savefig()  # saves the current figure into a pdf page
-    plt.close()
+    #plt.title('Rayleigh-Taylor')
+    #plt.xlabel('x')
+    #plt.ylabel('y')
+    #pdf.savefig()  # saves the current figure into a pdf page
+    #plt.close()
