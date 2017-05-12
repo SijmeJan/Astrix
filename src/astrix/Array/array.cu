@@ -153,6 +153,10 @@ template Array<double>::Array(unsigned int _nDims,
 template Array<double>::Array(unsigned int _nDims,
                               int _cudaFlag,
                               unsigned int _size);
+template Array<double>::Array(unsigned int _nDims,
+                              int _cudaFlag,
+                              unsigned int _size,
+                              int _dynArrayStep);
 template Array<double>::~Array();
 
 //#############################################################################
@@ -163,6 +167,10 @@ template Array<double4>::Array(unsigned int _nDims,
 template Array<double4>::Array(unsigned int _nDims,
                               int _cudaFlag,
                               unsigned int _size);
+template Array<double4>::Array(unsigned int _nDims,
+                               int _cudaFlag,
+                               unsigned int _size,
+                               int _dynArrayStep);
 template Array<double4>::~Array();
 
 //#############################################################################
@@ -173,6 +181,10 @@ template Array<double3>::Array(unsigned int _nDims,
 template Array<double3>::Array(unsigned int _nDims,
                               int _cudaFlag,
                               unsigned int _size);
+template Array<double3>::Array(unsigned int _nDims,
+                               int _cudaFlag,
+                               unsigned int _size,
+                               int _dynArrayStep);
 template Array<double3>::~Array();
 
 //#############################################################################
@@ -197,6 +209,10 @@ template Array<float>::Array(unsigned int _nDims,
 template Array<float>::Array(unsigned int _nDims,
                              int _cudaFlag,
                              unsigned int _size);
+template Array<float>::Array(unsigned int _nDims,
+                             int _cudaFlag,
+                             unsigned int _size,
+                             int _dynArrayStep);
 template Array<float>::~Array();
 
 //#############################################################################
