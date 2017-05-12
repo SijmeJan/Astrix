@@ -1,8 +1,4 @@
-comment diagnostics.cu, source.cu
-potential in total energy
-vertexArea calculation in connectivity?
-
-source term integration
+comment diagnostics.cu
 test RT
 
 new parallel flip selection test?
@@ -10,7 +6,6 @@ adjust makefile register use / double prec ?
 
 conservation during edge flipping
 vertex removal
-contour integration
 3D mesh
 3D residual distribution
 individual time steps
