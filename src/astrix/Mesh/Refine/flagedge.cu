@@ -20,6 +20,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../../Array/array.h"
 #include "./refine.h"
 #include "../../Common/cudaLow.h"
+#include "../../Common/atomic.h"
 #include "../Connectivity/connectivity.h"
 #include "../Predicates/predicates.h"
 #include "../Param/meshparameter.h"
@@ -46,6 +47,7 @@ Start at the insertion triangle and move in clockwise direction along the edge o
 \param Py Periodic domain size y
 \param *pred Pointer to Predicates object
 \param *pParam Pointer to parameter vector associated with Predicates
+\param *warningFlag Pointer to flag whether problems were encountered (output)
 \param *pEnc Pointer to Array edgeNeedsChecking (output)*/
 //#########################################################################
 
@@ -54,7 +56,7 @@ void FlagEdgeForChecking(int i, real2 *pVcAdd, int *pElementAdd,
                          int nTriangle, int3 *pTv, int3 *pTe,
                          int2 *pEt, real2 *pVc, int nVertex, real Px,
                          real Py, const Predicates *pred, real *pParam,
-                         int *pEnC)
+                         int *warningFlag, int *pEnC)
 {
   real dx = pVcAdd[i].x;
   real dy = pVcAdd[i].y;
@@ -162,6 +164,9 @@ void FlagEdgeForChecking(int i, real2 *pVcAdd, int *pElementAdd,
         real dyNew = dy;
 
         // Indicate that cavity lies across periodic boundary
+
+        // NEW
+        translateFlag = 0;
         if (f != F) translateFlag = 1;
         TranslateVertexToVertex(f, F, Px, Py, nVertex, dxNew, dyNew);
 
@@ -203,7 +208,7 @@ void FlagEdgeForChecking(int i, real2 *pVcAdd, int *pElementAdd,
           TranslateVertexToVertex(F, f, Px, Py, nVertex, Dx, Dy);
 
           det2 = pred->incircle(Ax, Ay, Bx, By, Cx, Cy, Dx, Dy, pParam);
-       }
+        }
 
         // If triangle not part of cavity, do not move into it
         if (det < (real) 0.0 && det2 < (real) 0.0) {
@@ -235,6 +240,10 @@ void FlagEdgeForChecking(int i, real2 *pVcAdd, int *pElementAdd,
     // next triangle can be found
     if ((t == tStart && eCrossed == eStart) || t == -1) finished = 1;
   }
+
+  // Warning if problem encountered
+  if (nCavity == maxCavity)
+    AtomicAdd(warningFlag, 1);
 }
 
 //#########################################################################
@@ -255,6 +264,7 @@ Upon return, pEnC[i] = i if edge \a i needs to be checked.
 \param Py Periodic domain size y
 \param *pred Pointer to Predicates object
 \param *pParam Pointer to parameter vector associated with Predicates
+\param *warningFlag Pointer to flag whether problems were encountered (output)
 \param *pEnc Pointer to Array edgeNeedsChecking (output)*/
 //#########################################################################
 
@@ -262,14 +272,15 @@ __global__ void
 devFlagEdgesForChecking(int nRefine, real2 *pVcAdd, int *pElementAdd,
                         int nTriangle, int3 *pTv, int3 *pTe,
                         int2 *pEt, real2 *pVc, int nVertex, real Px, real Py,
-                        const Predicates *pred, real *pParam, int *pEnC)
+                        const Predicates *pred, real *pParam,
+                        int *warningFlag, int *pEnC)
 {
   unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nRefine) {
     FlagEdgeForChecking(i, pVcAdd, pElementAdd, nTriangle,
                         pTv, pTe, pEt, pVc, nVertex, Px, Py,
-                        pred, pParam, pEnC);
+                        pred, pParam, warningFlag, pEnC);
 
     i += gridDim.x*blockDim.x;
   }
@@ -316,6 +327,8 @@ void Refine::FlagEdgesForChecking(Connectivity * const connectivity,
   int *pEnC = edgeNeedsChecking->GetPointer();
   edgeNeedsChecking->SetToValue(-1);
 
+  int warningFlag = 0;
+
   if (cudaFlag == 1) {
     int nBlocks = 128;
     int nThreads = 128;
@@ -331,7 +344,7 @@ void Refine::FlagEdgesForChecking(Connectivity * const connectivity,
     devFlagEdgesForChecking<<<nBlocks, nThreads>>>
       (nRefine, pVcAdd, pElementAdd, nTriangle,
        pTv, pTe, pEt, pVc, nVertex, Px, Py, predicates,
-       pParam, pEnC);
+       pParam, &warningFlag, pEnC);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -346,11 +359,18 @@ void Refine::FlagEdgesForChecking(Connectivity * const connectivity,
     for (int n = 0; n < (int) nRefine; n++)
       FlagEdgeForChecking(n, pVcAdd, pElementAdd, nTriangle,
                           pTv, pTe, pEt, pVc, nVertex, Px, Py,
-                          predicates, pParam, pEnC);
+                          predicates, pParam, &warningFlag, pEnC);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
 #endif
+  }
+
+  // Flag all edges for checking if problems were encountered
+  if (warningFlag > 0) {
+    std::cout << "Warning: going to check all edges for Delaunay-hood because of problem in determining insertion cavities!" << std::endl;
+    int qq; std::cin >> qq;
+    edgeNeedsChecking->SetToSeries();
   }
 
 #ifdef TIME_ASTRIX
