@@ -26,6 +26,19 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 namespace astrix {
 
 //######################################################################
+/*! \brief Calculating source term contribution to residual for single triangle.
+
+\param n Triangle to consider
+\param problemDef Problem definition
+\param nVertex Total number of vertices in Mesh
+\param *pTv Pointer to triangle vertices
+\param *pTn1 Pointer first triangle edge normal
+\param *pTn2 Pointer second triangle edge normal
+\param *pTn3 Pointer third triangle edge normal
+\param *pTl Pointer to triangle edge lengths
+\param *pVp Pointer to external potential at vertices
+\param *pState Pointer to state vector
+\param *pSource Pointer to source vector (output)  */
 //######################################################################
 
 __host__ __device__
@@ -64,6 +77,7 @@ void CalcSourceSingle(int n, ProblemDefinition problemDef,
     real d3 = pState[v3].x;
     real dG = (d1 + d2 + d3)/three;
 
+    /*
     real m1 = pState[v1].y;
     real m2 = pState[v2].y;
     real m3 = pState[v3].y;
@@ -73,6 +87,7 @@ void CalcSourceSingle(int n, ProblemDefinition problemDef,
     real n2 = pState[v2].z;
     real n3 = pState[v3].z;
     real nG = (n1 + n2 + n3)/three;
+    */
 
     real dpotdx = half*
       (pVp[v1]*pTn1[n].x*tl1 +
@@ -86,7 +101,7 @@ void CalcSourceSingle(int n, ProblemDefinition problemDef,
     pSource[n].x = 0.0;
     pSource[n].y = dG*dpotdx;
     pSource[n].z = dG*dpotdy;
-    pSource[n].w = mG*dpotdx + nG*dpotdy;
+    pSource[n].w = 0.0;//mG*dpotdx + nG*dpotdy;
   }
 }
 
@@ -180,6 +195,19 @@ void CalcSourceSingle(int n, ProblemDefinition problemDef,
 }
 
 //######################################################################
+/*! \brief Kernel calculating source term contribution to residual.
+
+\param nTriangle Total number of triangles in Mesh
+\param problemDef Problem definition
+\param nVertex Total number of vertices in Mesh
+\param *pTv Pointer to triangle vertices
+\param *pTn1 Pointer first triangle edge normal
+\param *pTn2 Pointer second triangle edge normal
+\param *pTn3 Pointer third triangle edge normal
+\param *pTl Pointer to triangle edge lengths
+\param *pVp Pointer to external potential at vertices
+\param *pState Pointer to state vector
+\param *pSource Pointer to source vector (output)  */
 //######################################################################
 
 __global__ void
@@ -202,6 +230,9 @@ devCalcSource(int nTriangle, ProblemDefinition problemDef,
 }
 
 //#########################################################################
+/*! Calculate source contribution to residual. Result will be in \a triangleResidueSource.
+
+\param state State vector to base source term calculation on. */
 //#########################################################################
 
 void Simulation::CalcSource(Array<realNeq> *state)
