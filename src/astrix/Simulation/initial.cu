@@ -373,33 +373,56 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   }
 
   if (problemDef == PROBLEM_SOURCE) {
-    /*
-    real alpha = 0.2;
-
-    real s = 1.0 - alpha*vertY;
-    real pres =
-      std::pow(1.0 - 0.1*(std::pow(s, (G - 1.0)/G) - 1.0), G/(G - 1.0));
-
-    dens = std::pow(pres/s, 1.0/G);
-    */
-
-    /*
-    dens = 1.0;
-    real pres = 1.0 - 0.1*vertY*dens;
-    momx = 1.0e-10;
-    momy = 0.0;
-    ener = half*(Sq(momx) + Sq(momy))/dens + pres/(G - one);
-    */
-
-    real rhoMin = 2.0;
-    real rhoMax = 1.0;
+    real rhoBot = 2.0;
+    real rhoTop = 1.0;
     real Ly = 1.0;
-    dens = rhoMin + 0.5*(rhoMax - rhoMin)*(vertY + Ly)/Ly;
+    dens = rhoBot + 0.5*(rhoTop - rhoBot)*(vertY + Ly)/Ly;
+    momx = 1.0*dens;
+    momy = 0.0;
+    real pres = 1.0 - 0.1*(0.5*(rhoTop + rhoBot)*vertY +
+                           0.25*vertY*vertY*(rhoTop - rhoBot)/Ly);
+    ener = half*(Sq(momx) + Sq(momy))/dens + dens*pVpot[n] + pres/(G - one);
+
+    /*
+    real x = vertX;
+    real y = vertY;
+
+    real xc = five;
+    real yc = five;
+
+    real beta = five;
+
+    real r = sqrt(Sq(x - xc)+Sq(y - yc)) + (real) 1.0e-10;
+
+    real vx = -half*(y - yc)*beta*exp(half - half*r*r)/M_PI;
+    real vy = half*(x - xc)*beta*exp(half - half*r*r)/M_PI;
+
+    dens = 1.0;
+    momx = (real)1.0e-10 + dens*vx;
+    momy = (real)2.0e-10 + dens*vy;
+    real pres = 1.0;
+    ener = half*(Sq(momx) + Sq(momy))/dens + dens*pVpot[n] + pres/(G - one);
+    */
+
+    /*
+    real x = vertX;
+    real y = vertY;
+
+    real xc = five;
+    real yc = five;
+
+    real beta = five;
+
+    real r = sqrt(Sq(x - xc)+Sq(y - yc)) + (real) 1.0e-10;
+
+    real pot = y;//-0.125*beta*beta*exp(1.0 - r*r)/(M_PI*M_PI);
+
+    dens = std::pow(1.0 - (G - 1.0)*pot/G, 1.0/(G - 1.0));
     momx = 1.0e-10;
     momy = 0.0;
-    real pres = 1.0 - 0.1*(0.5*(rhoMax + rhoMin)*vertY +
-                           0.25*vertY*vertY*(rhoMax - rhoMin)/Ly);
-    ener = half*(Sq(momx) + Sq(momy))/dens + pres/(G - one);
+    real pres = std::pow(dens, G);
+    ener = half*(Sq(momx) + Sq(momy))/dens + dens*pVpot[n] + pres/(G - one);
+    */
   }
 
   state[n].x = dens;
@@ -413,6 +436,11 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
                       real *pVpot, real3 *state, real G, real time,
                       real Px, real Py)
 {
+  real zero = (real) 0.0;
+  real one = (real) 1.0;
+  real five = (real) 5.0;
+  real half = (real) 0.5;
+
   real vertX = pVc[n].x;
   real vertY = pVc[n].y;
 
@@ -420,8 +448,45 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   real momx = (real) 0.0;
   real momy = (real) 0.0;
 
+  if (problemDef == PROBLEM_VORTEX) {
+    real x = vertX;
+    real y = vertY;
+    real vx = one;
+    real vy = zero;
+
+    real xc = five + vx*time;
+    real yc = five;
+
+    real beta = five;
+
+    real r = sqrt(Sq(x - xc)+Sq(y - yc)) + (real) 1.0e-10;
+
+    dens = exp(-Sq(beta/M_PI)*exp(one - r*r)/8.0);
+    vx -= half*(y - yc)*beta*exp(half - half*r*r)/M_PI;
+    vy += half*(x - xc)*beta*exp(half - half*r*r)/M_PI;
+
+    momx = (real)1.0e-10 + dens*vx;
+    momy = (real)2.0e-10 + dens*vy;
+  }
+
   if (problemDef == PROBLEM_SOURCE) {
-    dens = exp(-0.1*vertY);
+    //dens = exp(-0.1*vertY);
+
+    real x = vertX;
+    real y = vertY;
+
+    real xc = five;
+    real yc = five;
+
+    real beta = five;
+
+    real r = sqrt(Sq(x - xc)+Sq(y - yc)) + (real) 1.0e-10;
+
+    real vx = -half*(y - yc)*beta*exp(half - half*r*r)/M_PI;
+    real vy = half*(x - xc)*beta*exp(half - half*r*r)/M_PI;
+
+    momx = (real)1.0e-10 + dens*vx;
+    momy = (real)2.0e-10 + dens*vy;
   }
 
   state[n].x = dens;
@@ -507,8 +572,8 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
 
   if (problemDef == PROBLEM_SOURCE) {
     //dens = 1.0;
-    real k = M_PI;
-    dens = cos(k*(vertX + vertY - 2.0*time))*exp(-time);
+    real k = 2.0*M_PI;
+    dens = cos(k*(vertX + 0.0*vertY - 1.0*time))*exp(-time);
   }
 
   state[n] = dens;
@@ -581,8 +646,8 @@ void Simulation::SetInitial(real time)
     // Add KH eigenvector
     if (p == PROBLEM_KH)
       KHAddEigenVector();
-    if (p == PROBLEM_SOURCE && N_EQUATION == 4)
-      RTAddEigenVector();
+    //if (p == PROBLEM_SOURCE && N_EQUATION == 4)
+    //RTAddEigenVector();
   }
   catch (...) {
     std::cout << "Warning: reading eigenvector file failed!" << std::endl;
