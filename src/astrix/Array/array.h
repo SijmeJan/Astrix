@@ -66,6 +66,8 @@ template <class T> class Array
   //! Transform from device vector to host vector
   void TransformToHost();
 
+  //! Return whether data currently resides on host or device
+  int GetCudaFlag() const { return cudaFlag; }
   //! Return size of array
   unsigned int GetSize() const;
   //! Return realSize of array
