@@ -274,8 +274,8 @@ void Delaunay::AdjustState(Connectivity * const connectivity,
   real Px = meshParameter->maxx - meshParameter->minx;
   real Py = meshParameter->maxy - meshParameter->miny;
 
-  CalcVertexArea(connectivity, meshParameter);
-  real *pVarea = vertexArea->GetPointer();
+  connectivity->CalcVertexArea(Px, Py);
+  real *pVarea = connectivity->vertexArea->GetPointer();
 
   realNeq *pState = vertexState->GetPointer();
 
