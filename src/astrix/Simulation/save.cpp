@@ -28,6 +28,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../Common/nvtxEvent.h"
 #include "./VTK/vtk.h"
 #include "./Param/simulationparameter.h"
+#include "./Diagnostics/diagnostics.h"
 
 namespace astrix {
 
@@ -344,6 +345,10 @@ void Simulation::Restore(int nRestore)
 
 void Simulation::FineGrainSave()
 {
+  Diagnostics<realNeq, CL_CART_EULER> *d  =
+    new Diagnostics<realNeq, CL_CART_EULER>(vertexState, vertexPotential, mesh);
+  real *pResult = d->result->GetPointer();
+
   std::ofstream outFile;
 
   if (nSave == 0)
@@ -351,43 +356,18 @@ void Simulation::FineGrainSave()
   else
     outFile.open("simulation.dat", std::ios::app);
 
-  real2 Ekin = KineticEnergy();
-  real Eth = ThermalEnergy();
-  real Epot = PotentialEnergy();
-  real Etot = TotalEnergy();
-
   outFile << std::setprecision(10)
           << simulationTime << " "
-          << TotalMass() << " "
-          << Ekin.x <<  " "
-          << Ekin.y << " "
-          << Eth << " "
-          << Epot << " "
-          << Etot << " "
-          << DensityError() << std::endl;
+          << DensityError() << " ";
+  for (int i = 0; i < d->result->GetSize(); i++)
+    outFile << pResult[i] << " ";
+  outFile << std::endl;
+
+  delete d;
   outFile.close();
   if (!outFile) {
     std::cout << "Error writing simulation.dat!" << std::endl;
     throw std::runtime_error("");
-  }
-
-  if (simulationParameter->problemDef == PROBLEM_KH) {
-    real M = 0.0, E = 0.0;
-    KHDiagnostics(M, E);
-
-    if (nSave == 0)
-      outFile.open("kh.dat");
-    else
-      outFile.open("kh.dat", std::ios::app);
-    outFile << std::setprecision(10)
-            << simulationTime << " "
-            << M << " "
-            << E << std::endl;
-    outFile.close();
-    if (!outFile) {
-      std::cout << "Error writing kh.dat!" << std::endl;
-      throw std::runtime_error("");
-    }
   }
 }
 
