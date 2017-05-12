@@ -168,15 +168,15 @@ void VTK::Write(const char *fileName, Mesh *mesh, realNeq *state)
 
 #if N_EQUATION == 4
     var1[i] = state[j].x;
-    var2[3*i + 0] = state[j].y;
-    var2[3*i + 1] = state[j].z;
+    var2[3*i + 0] = state[j].y/state[j].x;
+    var2[3*i + 1] = state[j].z/state[j].x;
     var2[3*i + 2] = 0.0;
     var3[i] = state[j].w;
 #endif
 #if N_EQUATION == 3
     var1[i] = state[j].x;
-    var2[3*i + 0] = state[j].y;
-    var2[3*i + 1] = state[j].z;
+    var2[3*i + 0] = state[j].y/state[j].x;
+    var2[3*i + 1] = state[j].z/state[j].y;
     var2[3*i + 2] = 0.0;
 #endif
 #if N_EQUATION == 1
