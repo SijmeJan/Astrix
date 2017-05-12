@@ -121,7 +121,7 @@ int Mesh::ImproveQuality(Array<realNeq> *vertexState,
   if (nAdded > 0) {
     // Calculate triangle normals and areas
     CalcNormalEdge();
-    CalcVertexArea();
+    connectivity->CalcVertexArea(GetPx(), GetPy());
     FindBoundaryVertices();
   }
 
