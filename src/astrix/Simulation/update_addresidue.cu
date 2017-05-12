@@ -44,7 +44,8 @@ namespace astrix {
 \param *pTresLDA2 Triangle residue LDA direction 2
 \param dt Time step
 \param nVertex Total number of vertices in Mesh
-\param intScheme Integration scheme*/
+\param intScheme Integration scheme
+\param setToMinMaxFlag Flag to use maximum or minimum in blend parameter*/
 //######################################################################
 
 __host__ __device__
@@ -591,7 +592,8 @@ void AddResidueSingle(int n, const int3* __restrict__ pTv,
 \param *pTresLDA2 Triangle residue LDA direction 2
 \param dt Time step
 \param nVertex Total number of vertices in Mesh
-\param intScheme Integration scheme*/
+\param intScheme Integration scheme
+\param setToMinMaxFlag Flag to use maximum or minimum in blend parameter*/
 //######################################################################
 
 __global__ void
