@@ -38,7 +38,6 @@ Delaunay::Delaunay(int _cudaFlag, int _debugLevel)
   // Allocate Arrays of large size
   edgeNonDelaunay = new Array<int>(1, cudaFlag, 0, 128*8192);
   triangleSubstitute = new Array<int>(1, cudaFlag, 0, 128*8192);
-  vertexArea = new Array<real>(1, cudaFlag);
 
   triangleAffected = new Array<int>(1, cudaFlag, 0, 128*8192);
   triangleAffectedEdge = new Array<int>(1, cudaFlag, 0, 128*8192);
@@ -52,7 +51,6 @@ Delaunay::~Delaunay()
 {
   delete edgeNonDelaunay;
   delete triangleSubstitute;
-  delete vertexArea;
 
   delete triangleAffected;
   delete triangleAffectedEdge;
