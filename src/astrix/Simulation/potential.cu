@@ -43,6 +43,22 @@ void CalcPotentialSingle(int i, ProblemDefinition problemDef,
   pVpot[i] = zero;
 
   if (problemDef == PROBLEM_SOURCE) pVpot[i] = tenth*pVc[i].y;
+  /*
+  if (problemDef == PROBLEM_SOURCE) {
+    real x = pVc[i].x;
+    real y = pVc[i].y;
+
+    real xc = 5.0;
+    real yc = 5.0;
+
+    real beta = 5.0;
+
+    real r = sqrt((x - xc)*(x - xc) +
+                  (y - yc)*(y - yc)) + (real) 1.0e-10;
+
+    pVpot[i] = -0.125*beta*beta*exp(1.0 - r*r)/(M_PI*M_PI);
+  }
+  */
 }
 
 //######################################################################
