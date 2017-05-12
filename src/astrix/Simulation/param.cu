@@ -31,11 +31,12 @@ This function calculates Roe's parameter vector Z at vertex \a n.
  \param n index of vertex.
  \param *pState Pointer to state vector at vertices
  \param *pVz Pointer to parameter vector at vertices (output)
- \param G1 Ratio of specific heats - 1*/
+ \param G1 Ratio of specific heats - 1
+\param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
 __host__ __device__
-void CalcParamVecSingle(int n, real4 *pState, real4 *pVz, real G1)
+void CalcParamVecSingle(int n, real4 *pState, real4 *pVz, real G1, real *pVp)
 {
   real half = (real) 0.5;
 
@@ -49,7 +50,7 @@ void CalcParamVecSingle(int n, real4 *pState, real4 *pVz, real G1)
   real v = momy/dens;
 
   // Pressure
-  real p = G1*(ener - half*dens*(u*u + v*v));
+  real p = G1*(ener - half*dens*(u*u + v*v) - dens*pVp[n]);
 
   // Roe parameter vector
   pVz[n].x = d;
@@ -59,7 +60,7 @@ void CalcParamVecSingle(int n, real4 *pState, real4 *pVz, real G1)
 }
 
 __host__ __device__
-void CalcParamVecSingle(int n, real3 *pState, real3 *pVz, real G1)
+void CalcParamVecSingle(int n, real3 *pState, real3 *pVz, real G1, real *pVp)
 {
   real dens = pState[n].x;
   real momx = pState[n].y;
@@ -76,7 +77,7 @@ void CalcParamVecSingle(int n, real3 *pState, real3 *pVz, real G1)
 }
 
 __host__ __device__
-void CalcParamVecSingle(int n, real *pState, real *pVz, real G1)
+void CalcParamVecSingle(int n, real *pState, real *pVz, real G1, real *pVp)
 {
   pVz[n] = pState[n];
 }
@@ -89,17 +90,18 @@ This kernel function calculates Roe's parameter vector Z for all vertices in the
  \param nVertex total number of vertices.
  \param *pState Pointer to state vector at vertices
  \param *pVz Pointer to parameter vector at vertices (output)
- \param G1 Ratio of specific heats - 1*/
+ \param G1 Ratio of specific heats - 1
+\param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
 __global__ void
-devCalcParamVec(int nVertex, realNeq *pState, realNeq *pVz, real G1)
+devCalcParamVec(int nVertex, realNeq *pState, realNeq *pVz, real G1, real *pVp)
 {
   // n=vertex number
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nVertex) {
-    CalcParamVecSingle(n, pState, pVz, G1);
+    CalcParamVecSingle(n, pState, pVz, G1, pVp);
 
     n += blockDim.x*gridDim.x;
   }
@@ -123,6 +125,7 @@ void Simulation::CalculateParameterVector(int useOldFlag)
   int nVertex = mesh->GetNVertex();
 
   realNeq *pState = vertexState->GetPointer();
+  real *pVp = vertexPotential->GetPointer();
   real G = simulationParameter->specificHeatRatio;
 
   // Use old state
@@ -145,7 +148,7 @@ void Simulation::CalculateParameterVector(int useOldFlag)
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     devCalcParamVec<<<nBlocks, nThreads>>>
-      (nVertex, pState, pVz, G - 1.0);
+      (nVertex, pState, pVz, G - 1.0, pVp);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -157,7 +160,7 @@ void Simulation::CalculateParameterVector(int useOldFlag)
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     for (int n = 0; n < nVertex; n++)
-      CalcParamVecSingle(n, pState, pVz, G - 1.0);
+      CalcParamVecSingle(n, pState, pVz, G - 1.0, pVp);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
