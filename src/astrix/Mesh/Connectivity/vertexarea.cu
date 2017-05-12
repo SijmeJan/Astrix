@@ -15,14 +15,14 @@ You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <iostream>
 
-#include "../Common/definitions.h"
-#include "../Array/array.h"
-#include "./mesh.h"
-#include "./triangleLow.h"
-#include "../Common/atomic.h"
-#include "../Common/cudaLow.h"
-#include "./Connectivity/connectivity.h"
-#include "./Param/meshparameter.h"
+#include "../../Common/definitions.h"
+#include "../../Array/array.h"
+#include "../mesh.h"
+#include "../triangleLow.h"
+#include "../../Common/atomic.h"
+#include "../../Common/cudaLow.h"
+#include "./connectivity.h"
+#include "../Param/meshparameter.h"
 
 namespace astrix {
 
@@ -107,21 +107,18 @@ devCalcVertexArea(int nVertex, int nTriangle,
 cell associated with its vertices. Atomically add this contribution to \a vertexArea*/
 //#########################################################################
 
-void Mesh::CalcVertexArea()
+void Connectivity::CalcVertexArea(real Px, real Py)
 {
-  int nTriangle = connectivity->triangleVertices->GetSize();
-  int nVertex = connectivity->vertexCoordinates->GetSize();
+  int nTriangle = triangleVertices->GetSize();
+  int nVertex = vertexCoordinates->GetSize();
 
-  real2 *pVc = connectivity->vertexCoordinates->GetPointer();
-  int3 *pTv = connectivity->triangleVertices->GetPointer();
+  real2 *pVc = vertexCoordinates->GetPointer();
+  int3 *pTv = triangleVertices->GetPointer();
 
   // Vertex area (= volume Voronoi cell)
   vertexArea->SetSize(nVertex);
   vertexArea->SetToValue(0.0);
   real *pVertexArea = vertexArea->GetPointer();
-
-  real Px = meshParameter->maxx - meshParameter->minx;
-  real Py = meshParameter->maxy - meshParameter->miny;
 
   if (cudaFlag == 1) {
     int nBlocks = 128;
