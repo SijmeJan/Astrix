@@ -59,7 +59,7 @@ int Mesh::RemoveVertices(Array<realNeq> *vertexState,
 
   if (nRemove > 0) {
     CalcNormalEdge();
-    CalcVertexArea();
+    connectivity->CalcVertexArea(GetPx(), GetPy());
     FindBoundaryVertices();
   }
 
