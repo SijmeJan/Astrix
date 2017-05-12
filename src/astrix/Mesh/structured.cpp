@@ -269,7 +269,7 @@ void Mesh::CreateStructuredMesh()
 
   // Calculate triangle normals and areas
   CalcNormalEdge();
-  CalcVertexArea();
+  connectivity->CalcVertexArea(GetPx(), GetPy());
   FindBoundaryVertices();
 }
 
