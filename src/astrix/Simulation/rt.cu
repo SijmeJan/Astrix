@@ -32,6 +32,7 @@ namespace astrix {
 \param i Vertex to add perturbation to
 \param *pVc Pointer to Array of vertex coordinates
 \param *pState Pointer to Array of state vector
+\param *pVp Pointer to external potential at vertices
 \param *dens Pointer to density perturbation Array (real and imaginary)
 \param *velx Pointer to x velocity perturbation Array (real and imaginary)
 \param *vely Pointer to y velocity perturbation Array (real and imaginary)
@@ -41,11 +42,14 @@ namespace astrix {
 \param miny Minimum y value in domain
 \param maxy Maximum y value in domain
 \param G Ratio of specific heats
-\param G1 Ratio of specific heats - 1*/
+\param G1 Ratio of specific heats - 1
+\param time Current time
+\param omega2 Frequency squared of eigenmode*/
 //##############################################################################
 
 __host__ __device__
 void AddEigenVectorSingleRT(unsigned int i, const real2 *pVc, real4 *pState,
+                            real *pVp,
                             real2 *dens, real2 *velx, real2 *vely, real2 *pres,
                             real kxRT, real *yRT,
                             real miny, real maxy, real G, real G1,
@@ -76,7 +80,7 @@ void AddEigenVectorSingleRT(unsigned int i, const real2 *pVc, real4 *pState,
   real a0 = pState[i].y;
   real b0 = pState[i].z;
   real e0 = pState[i].w;
-  real p0 = G1*(e0 - 0.5*(a0*a0 + b0*b0)/d0);
+  real p0 = G1*(e0 - 0.5*(a0*a0 + b0*b0)/d0 - d0*pVp[i]);
 
   real f = M_PI*kxRT*x;
   if (omega2 > 0.0)
@@ -87,11 +91,13 @@ void AddEigenVectorSingleRT(unsigned int i, const real2 *pVc, real4 *pState,
   pState[i].y = a0 + d0*amp*(uRj*cos(f) - uIj*sin(f));
   pState[i].z = b0 + d0*amp*(vRj*cos(f) - vIj*sin(f));
   real pr = p0 + amp*(pRj*cos(f) - pIj*sin(f));
-  pState[i].w = 0.5*(Sq(pState[i].y) + Sq(pState[i].z))/pState[i].x + pr/G1;
+  pState[i].w = 0.5*(Sq(pState[i].y) + Sq(pState[i].z))/pState[i].x +
+    pState[i].x*pVp[i] + pr/G1;
 }
 
 __host__ __device__
 void AddEigenVectorSingleRT(unsigned int i, const real2 *pVc, real3 *pState,
+                            real *pVp,
                             real2 *dens, real2 *velx, real2 *vely, real2 *pres,
                             real kxRT, real *yRT,
                             real miny, real maxy, real G, real G1,
@@ -102,6 +108,7 @@ void AddEigenVectorSingleRT(unsigned int i, const real2 *pVc, real3 *pState,
 
 __host__ __device__
 void AddEigenVectorSingleRT(unsigned int i, const real2 *pVc, real *pState,
+                            real *pVp,
                             real2 *dens, real2 *velx, real2 *vely, real2 *pres,
                             real kxRT, real *yRT,
                             real miny, real maxy, real G, real G1,
@@ -116,6 +123,7 @@ void AddEigenVectorSingleRT(unsigned int i, const real2 *pVc, real *pState,
 \param nVertex Total number of vertices in Mesh
 \param *pVc Pointer to Array of vertex coordinates
 \param *pState Pointer to Array of state vector
+\param *pVp Pointer to external potential at vertices
 \param *dens Pointer to density perturbation Array (real and imaginary)
 \param *velx Pointer to x velocity perturbation Array (real and imaginary)
 \param *vely Pointer to y velocity perturbation Array (real and imaginary)
@@ -130,6 +138,7 @@ void AddEigenVectorSingleRT(unsigned int i, const real2 *pVc, real *pState,
 
 __global__ void
 devAddEigenVectorRT(unsigned int nVertex, const real2 *pVc, realNeq *pState,
+                    real *pVp,
                     real2 *dens, real2 *velx, real2 *vely, real2 *pres,
                     real kxRT, real *yRT,
                     real miny, real maxy, real G, real G1,
@@ -139,7 +148,7 @@ devAddEigenVectorRT(unsigned int nVertex, const real2 *pVc, realNeq *pState,
   unsigned int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nVertex) {
-    AddEigenVectorSingleRT(n, pVc, pState, dens, velx, vely, pres,
+    AddEigenVectorSingleRT(n, pVc, pState, pVp, dens, velx, vely, pres,
                            kxRT, yRT, miny, maxy, G, G1, time, omega2);
 
     n += blockDim.x*gridDim.x;
@@ -155,6 +164,7 @@ void Simulation::RTAddEigenVector()
   unsigned int nVertex = mesh->GetNVertex();
 
   realNeq *pState = vertexState->GetPointer();
+  real *pVp = vertexPotential->GetPointer();
   real G = simulationParameter->specificHeatRatio;
 
   const real2 *pVc = mesh->VertexCoordinatesData();
@@ -244,14 +254,14 @@ void Simulation::RTAddEigenVector()
                                        (size_t) 0, 0);
 
     devAddEigenVectorRT<<<nBlocks, nThreads>>>
-      (nVertex, pVc, pState, pDens, pVelx, pVely, pPres,
+      (nVertex, pVc, pState, pVp, pDens, pVelx, pVely, pPres,
        kxRT, pyRT, miny, maxy, G, G - 1.0, simulationTime, omega2);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (unsigned int n = 0; n < nVertex; n++)
-      AddEigenVectorSingleRT(n, pVc, pState, pDens, pVelx, pVely, pPres,
+      AddEigenVectorSingleRT(n, pVc, pState, pVp, pDens, pVelx, pVely, pPres,
                              kxRT, pyRT, miny, maxy,
                              G, G - 1.0, simulationTime, omega2);
   }
