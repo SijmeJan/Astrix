@@ -99,8 +99,8 @@ class Simulation
   void FineGrainSave();
   //! Make fine grain save file consistent when restoring
   void RestoreFine();
- //! Calculate Kelvin-Helmholtz diagnostics
-  void KHDiagnostics(real& M, real& Ekin);
+  //! Calculate Kelvin-Helmholtz diagnostics
+  //void KHDiagnostics(real& M, real& Ekin);
   //! Add eigenvector perturbation for KH problem
   void KHAddEigenVector();
   //! Add eigenvector perturbation for RT problem
@@ -173,15 +173,15 @@ class Simulation
   void ReplacePressureWithEnergy();
 
   //! Calculate total mass in domain
-  real TotalMass();
+  //real TotalMass();
   //! Calculate total kinetic energy in domain
-  real2 KineticEnergy();
+  //real2 KineticEnergy();
   //! Calculate total thermal energy in domain
-  real ThermalEnergy();
+  //real ThermalEnergy();
   //! Calculate total potential energy in domain
-  real PotentialEnergy();
+  //real PotentialEnergy();
   //! Calculate total energy in domain
-  real TotalEnergy();
+  //real TotalEnergy();
   //! Calculate L1 density error
   real DensityError();
 };
