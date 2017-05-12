@@ -13,6 +13,7 @@ Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 
 You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
+
 #include <iostream>
 #include <iomanip>
 
@@ -29,7 +30,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 namespace astrix {
 
 //######################################################################
-/*! \brief Calculate spacial residue at triangle n
+/*! \brief Calculate spatial residue at triangle n
 
 \param n Triangle to consider
 \param *pTv Pointer to triangle vertices
@@ -49,7 +50,8 @@ namespace astrix {
 \param nVertex Total number of vertices in Mesh
 \param G Ratio of specific heats
 \param G1 G - 1
-\param G2 G - 2*/
+\param G2 G - 2
+\param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
 __host__ __device__
@@ -59,7 +61,8 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
                         real4 *pResSource,
                         real4 *pTresN0, real4 *pTresN1, real4 *pTresN2,
                         real4 *pTresLDA0, real4 *pTresLDA1, real4 *pTresLDA2,
-                        real4 *pTresTot, int nVertex, real G, real G1, real G2)
+                        real4 *pTresTot, int nVertex, real G, real G1, real G2,
+                        real *pVp)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -77,6 +80,12 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   while (v1 < 0) v1 += nVertex;
   while (v2 < 0) v2 += nVertex;
   while (v3 < 0) v3 += nVertex;
+
+  // External potential at vertices
+  real pot0 = pVp[v1];
+  real pot1 = pVp[v2];
+  real pot2 = pVp[v3];
+  real pot = (pot0 + pot1 + pot2)*onethird;
 
   // Parameter vector at vertices: 12 uncoalesced loads
   real Zv00 = pVz[v1].x;
@@ -102,15 +111,18 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   real What00 = two*Z0*Zv00;
   real What01 = Z1*Zv00 + Z0*Zv01;
   real What02 = Z2*Zv00 + Z0*Zv02;
-  real What03 = (Z3*Zv00 + G1*Z1*Zv01 + G1*Z2*Zv02 + Z0*Zv03)/G;
+  real What03 = (Z3*Zv00 + G1*Z1*Zv01 + G1*Z2*Zv02 +
+                 Z0*Zv03 + two*G1*pot*Z0*Zv00)/G;
   real What10 = two*Z0*Zv10;
   real What11 = Z1*Zv10 + Z0*Zv11;
   real What12 = Z2*Zv10 + Z0*Zv12;
-  real What13 = (Z3*Zv10 + G1*Z1*Zv11 + G1*Z2*Zv12 + Z0*Zv13)/G;
+  real What13 = (Z3*Zv10 + G1*Z1*Zv11 + G1*Z2*Zv12 +
+                 Z0*Zv13 + two*G1*pot*Z0*Zv10)/G;
   real What20 = two*Z0*Zv20;
   real What21 = Z1*Zv20 + Z0*Zv21;
   real What22 = Z2*Zv20 + Z0*Zv22;
-  real What23 = (Z3*Zv20 + G1*Z1*Zv21 + G1*Z2*Zv22 + Z0*Zv23)/G;
+  real What23 = (Z3*Zv20 + G1*Z1*Zv21 + G1*Z2*Zv22 +
+                 Z0*Zv23 + two*G1*pot*Z0*Zv20)/G;
 
   real ResTot0 = pResSource[n].x;
   real ResTot1 = pResSource[n].y;
@@ -125,7 +137,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   real utilde = Z1/Z0;
   real vtilde = Z2/Z0;
   real htilde = Z3/Z0;
-  real alpha  = G1*half*(Sq(utilde) + Sq(vtilde));
+  real alpha  = G1*half*(Sq(utilde) + Sq(vtilde)) - G1*pot;
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate the total residue = Sum(K*What)
@@ -143,6 +155,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   real tny2 = pTn2[n].y;
   real tny3 = pTn3[n].y;
 
+#ifndef CONTOUR
   // First direction
   real tl = tl1;
   real nx = half*tl*tnx1;
@@ -222,22 +235,124 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
     What23*eulerK33(G, wtilde);
   pTresTot[n].w = ResTot3;
 
-  /*
-#ifndef __CUDA_ARCH__
-  std::cout << ResTot0 << " "
-            << ResTot1 << " "
-            << ResTot2 << " "
-            << ResTot3 << std::endl;
-  int qq; std::cin >> qq;
+#else
+
+  real GG = G1/G;
+  real res0 =
+    tl3*(Zv00*Zv01 + (Zv00 + Zv10)*(Zv01 + Zv11) + Zv10*Zv11)*tnx3/6.0 +
+    tl3*(Zv00*Zv02 + (Zv00 + Zv10)*(Zv02 + Zv12) + Zv10*Zv12)*tny3/6.0 +
+    tl1*(Zv10*Zv11 + (Zv10 + Zv20)*(Zv11 + Zv21) + Zv20*Zv21)*tnx1/6.0 +
+    tl1*(Zv10*Zv12 + (Zv10 + Zv20)*(Zv12 + Zv22) + Zv20*Zv22)*tny1/6.0 +
+    tl2*(Zv20*Zv21 + (Zv20 + Zv00)*(Zv21 + Zv01) + Zv00*Zv01)*tnx2/6.0 +
+    tl2*(Zv20*Zv22 + (Zv20 + Zv00)*(Zv22 + Zv02) + Zv00*Zv02)*tny2/6.0;
+  ResTot0 -= res0;
+  pTresTot[n].x = ResTot0;
+  Wtemp0 -= res0;
+  real res1 =
+    tl3*(Sq(Zv01) +
+         GG*(Zv00*Zv03 -
+             half*(Sq(Zv01) + Sq(Zv02)) -
+             Sq(Zv00)*pot0) +
+         Sq(Zv01 + Zv11) +
+         GG*((Zv00 + Zv10)*(Zv03 + Zv13) -
+             half*(Sq(Zv01 + Zv11) + Sq(Zv02 + Zv12)) -
+             half*Sq(Zv00 + Zv10)*(pot0 + pot1)) +
+         Sq(Zv11) +
+         GG*(Zv10*Zv13 -
+             half*(Sq(Zv11) + Sq(Zv12)) -
+             Sq(Zv10)*pot1))*tnx3/6.0 +
+    tl3*(Zv01*Zv02 + (Zv01 + Zv11)*(Zv02 + Zv12) + Zv11*Zv12)*tny3/6.0 +
+    tl1*(Sq(Zv11) +
+         GG*(Zv10*Zv13 -
+             half*(Sq(Zv11) + Sq(Zv12)) -
+             Sq(Zv10)*pot1) +
+         Sq(Zv11 + Zv21) +
+         GG*((Zv10 + Zv20)*(Zv13 + Zv23) -
+             half*(Sq(Zv11 + Zv21) + Sq(Zv12 + Zv22)) -
+             half*Sq(Zv10 + Zv20)*(pot1 + pot2)) +
+         Sq(Zv21) +
+         GG*(Zv20*Zv23 -
+             half*(Sq(Zv21) + Sq(Zv22)) -
+             Sq(Zv20)*pot2))*tnx1/6.0 +
+    tl1*(Zv11*Zv12 + (Zv11 + Zv21)*(Zv12 + Zv22) + Zv21*Zv22)*tny1/6.0 +
+    tl2*(Sq(Zv01) +
+         GG*(Zv00*Zv03 -
+             half*(Sq(Zv01) + Sq(Zv02)) -
+             Sq(Zv00)*pot0) +
+         Sq(Zv01 + Zv21) +
+         GG*((Zv00 + Zv20)*(Zv03 + Zv23) -
+             half*(Sq(Zv01 + Zv21) + Sq(Zv02 + Zv22)) -
+             half*Sq(Zv00 + Zv20)*(pot0 + pot2)) +
+         Sq(Zv21) +
+         GG*(Zv20*Zv23 -
+             half*(Sq(Zv21) + Sq(Zv22)) -
+             Sq(Zv20)*pot2))*tnx2/6.0 +
+    tl2*(Zv01*Zv02 + (Zv01 + Zv21)*(Zv02 + Zv22) + Zv21*Zv22)*tny2/6.0;
+  ResTot1 -= res1;
+  pTresTot[n].y = ResTot1;
+  Wtemp1 -= res1;
+  real res2 =
+    tl3*(Sq(Zv02) +
+         GG*(Zv00*Zv03 -
+             half*(Sq(Zv01) + Sq(Zv02)) -
+             Sq(Zv00)*pot0) +
+         Sq(Zv02 + Zv12) +
+         GG*((Zv00 + Zv10)*(Zv03 + Zv13) -
+             half*(Sq(Zv01 + Zv11) + Sq(Zv02 + Zv12)) -
+             half*Sq(Zv00 + Zv10)*(pot0 + pot1)) +
+         Sq(Zv12) +
+         GG*(Zv10*Zv13 -
+             half*(Sq(Zv11) + Sq(Zv12)) -
+             Sq(Zv10)*pot1))*tny3/6.0 +
+    tl3*(Zv01*Zv02 + (Zv01 + Zv11)*(Zv02 + Zv12) + Zv11*Zv12)*tnx3/6.0 +
+    tl1*(Sq(Zv12) +
+         GG*(Zv10*Zv13 -
+             half*(Sq(Zv11) + Sq(Zv12)) -
+             Sq(Zv10)*pot1) +
+         Sq(Zv12 + Zv22) +
+         GG*((Zv10 + Zv20)*(Zv13 + Zv23) -
+             half*(Sq(Zv11 + Zv21) + Sq(Zv12 + Zv22)) -
+             half*Sq(Zv10 + Zv20)*(pot1 + pot2)) +
+         Sq(Zv22) +
+         GG*(Zv20*Zv23 -
+             half*(Sq(Zv21) + Sq(Zv22)) -
+             Sq(Zv20)*pot2))*tny1/6.0 +
+    tl1*(Zv11*Zv12 + (Zv11 + Zv21)*(Zv12 + Zv22) + Zv21*Zv22)*tnx1/6.0 +
+    tl2*(Sq(Zv02) +
+         GG*(Zv00*Zv03 -
+             half*(Sq(Zv01) + Sq(Zv02)) -
+             Sq(Zv00)*pot0) +
+         Sq(Zv02 + Zv22) +
+         GG*((Zv00 + Zv20)*(Zv03 + Zv23) -
+             half*(Sq(Zv01 + Zv21) + Sq(Zv02 + Zv22)) -
+             half*Sq(Zv00 + Zv20)*(pot0 + pot2)) +
+         Sq(Zv22) +
+         GG*(Zv20*Zv23 -
+             half*(Sq(Zv21) + Sq(Zv22)) -
+             Sq(Zv20)*pot2))*tny2/6.0 +
+    tl2*(Zv01*Zv02 + (Zv01 + Zv21)*(Zv02 + Zv22) + Zv21*Zv22)*tnx2/6.0;
+  ResTot2 -= res2;
+  pTresTot[n].z = ResTot2;
+  Wtemp2 -= res2;
+  real res3 =
+    tl3*(Zv03*Zv01 + (Zv03 + Zv13)*(Zv01 + Zv11) + Zv13*Zv11)*tnx3/6.0 +
+    tl3*(Zv03*Zv02 + (Zv03 + Zv13)*(Zv02 + Zv12) + Zv13*Zv12)*tny3/6.0 +
+    tl1*(Zv13*Zv11 + (Zv13 + Zv23)*(Zv11 + Zv21) + Zv23*Zv21)*tnx1/6.0 +
+    tl1*(Zv13*Zv12 + (Zv13 + Zv23)*(Zv12 + Zv22) + Zv23*Zv22)*tny1/6.0 +
+    tl2*(Zv23*Zv21 + (Zv23 + Zv03)*(Zv21 + Zv01) + Zv03*Zv01)*tnx2/6.0 +
+    tl2*(Zv23*Zv22 + (Zv23 + Zv03)*(Zv22 + Zv02) + Zv03*Zv02)*tny2/6.0;
+  ResTot3 -= res3;
+  pTresTot[n].w = ResTot3;
+  Wtemp3 -= res3;
+
 #endif
-  */
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate Wtemp = Sum(K-*What)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   real km;
-  real ic = one/sqrt(G1*htilde - alpha);
+  real ic = one/sqrt(G1*(htilde - two*pot) - alpha);
   real ctilde = one/ic;
 
   real hc = htilde*ic;
@@ -246,6 +361,8 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   real ac = alpha*ic;
 
   // First direction
+
+#ifndef CONTOUR
   nx = tnx1;
   ny = tny1;
   tl = half*tl1;
@@ -254,6 +371,16 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   real l1 = min(zero, wtilde + ctilde);
   real l2 = min(zero, wtilde - ctilde);
   real l3 = min(zero, wtilde);
+#else
+  real nx = tnx1;
+  real ny = tny1;
+  real tl = half*tl1;
+  real wtilde = utilde*nx + vtilde*ny;
+
+  real l1 = -max(zero, wtilde + ctilde);
+  real l2 = -max(zero, wtilde - ctilde);
+  real l3 = -max(zero, wtilde);
+#endif
 
   // Auxiliary variables
   real l1l2l3 = half*(l1 + l2) - l3;
@@ -329,9 +456,15 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   tl = half*tl2;
   wtilde = (uc*nx + vc*ny)*ctilde;
 
+#ifndef CONTOUR
   l1 = min(wtilde + ctilde, zero);
   l2 = min(wtilde - ctilde, zero);
   l3 = min(wtilde, zero);
+#else
+  l1 = -max(wtilde + ctilde, zero);
+  l2 = -max(wtilde - ctilde, zero);
+  l3 = -max(wtilde, zero);
+#endif
 
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
@@ -407,9 +540,15 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   tl = half*tl3;
   wtilde = (uc*nx + vc*ny)*ctilde;
 
+#ifndef CONTOUR
   l1 = min(wtilde + ctilde, zero);
   l2 = min(wtilde - ctilde, zero);
   l3 = min(wtilde, zero);
+#else
+  l1 = -max(wtilde + ctilde, zero);
+  l2 = -max(wtilde - ctilde, zero);
+  l3 = -max(wtilde, zero);
+#endif
 
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
@@ -840,7 +979,8 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
                         real3 *pResSource,
                         real3 *pTresN0, real3 *pTresN1, real3 *pTresN2,
                         real3 *pTresLDA0, real3 *pTresLDA1, real3 *pTresLDA2,
-                        real3 *pTresTot, int nVertex, real G, real G1, real G2)
+                        real3 *pTresTot, int nVertex, real G, real G1, real G2,
+                        real *pVp)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -917,6 +1057,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   // Not necessary for first-order N scheme
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+#ifndef CONTOUR
   // First direction
   real tl = tl1;
   real nx = half*tl*tnx1;
@@ -971,6 +1112,47 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
     What21*isoK21(nx, vtilde) +
     What22*isoK22(ny, wtilde, vtilde);
 
+#else
+
+  real res0 =
+    tl3*(Zv00*Zv01 + (Zv00 + Zv10)*(Zv01 + Zv11) + Zv10*Zv11)*tnx3/6.0 +
+    tl3*(Zv00*Zv02 + (Zv00 + Zv10)*(Zv02 + Zv12) + Zv10*Zv12)*tny3/6.0 +
+    tl1*(Zv10*Zv11 + (Zv10 + Zv20)*(Zv11 + Zv21) + Zv20*Zv21)*tnx1/6.0 +
+    tl1*(Zv10*Zv12 + (Zv10 + Zv20)*(Zv12 + Zv22) + Zv20*Zv22)*tny1/6.0 +
+    tl2*(Zv20*Zv21 + (Zv20 + Zv00)*(Zv21 + Zv01) + Zv00*Zv01)*tnx2/6.0 +
+    tl2*(Zv20*Zv22 + (Zv20 + Zv00)*(Zv22 + Zv02) + Zv00*Zv02)*tny2/6.0;
+  ResTot0 -= res0;
+  pTresTot[n].x = ResTot0;
+  Wtemp0 -= res0;
+  real res1 =
+    tl3*(Sq(Zv01) + Sq(Zv00) + Sq(Zv01 + Zv11) + Sq(Zv00 + Zv10) +
+         Sq(Zv11) + Sq(Zv10))*tnx3/6.0 +
+    tl3*(Zv01*Zv02 + (Zv01 + Zv11)*(Zv02 + Zv12) + Zv11*Zv12)*tny3/6.0 +
+    tl1*(Sq(Zv11) + Sq(Zv10) + Sq(Zv11 + Zv21) + Sq(Zv10 + Zv20) +
+         Sq(Zv21) + Sq(Zv20))*tnx1/6.0 +
+    tl1*(Zv11*Zv12 + (Zv11 + Zv21)*(Zv12 + Zv22) + Zv21*Zv22)*tny1/6.0 +
+    tl2*(Sq(Zv01) + Sq(Zv00) + Sq(Zv01 + Zv21) + Sq(Zv00 + Zv20) +
+         Sq(Zv21) + Sq(Zv20))*tnx2/6.0 +
+    tl2*(Zv01*Zv02 + (Zv01 + Zv21)*(Zv02 + Zv22) + Zv21*Zv22)*tny2/6.0;
+  ResTot1 -= res1;
+  pTresTot[n].y = ResTot1;
+  Wtemp1 -= res1;
+  real res2 =
+    tl3*(Sq(Zv02) + Sq(Zv00) + Sq(Zv02 + Zv12) + Sq(Zv00 + Zv10) +
+         Sq(Zv12) + Sq(Zv10))*tny3/6.0 +
+    tl3*(Zv01*Zv02 + (Zv01 + Zv11)*(Zv02 + Zv12) + Zv11*Zv12)*tnx3/6.0 +
+    tl1*(Sq(Zv12) + Sq(Zv10) + Sq(Zv12 + Zv22) + Sq(Zv10 + Zv20) +
+         Sq(Zv22) + Sq(Zv20))*tny1/6.0 +
+    tl1*(Zv11*Zv12 + (Zv11 + Zv21)*(Zv12 + Zv22) + Zv21*Zv22)*tnx1/6.0 +
+    tl2*(Sq(Zv02) + Sq(Zv00) + Sq(Zv02 + Zv22) + Sq(Zv00 + Zv20) +
+         Sq(Zv22) + Sq(Zv20))*tny2/6.0 +
+    tl2*(Zv01*Zv02 + (Zv01 + Zv21)*(Zv02 + Zv22) + Zv21*Zv22)*tnx2/6.0;
+  ResTot2 -= res2;
+  pTresTot[n].z = ResTot2;
+  Wtemp2 -= res2;
+
+#endif
+
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate Wtemp = Sum(K-*What)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -982,6 +1164,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   real vc = vtilde*ic;
 
   // First direction
+#ifndef CONTOUR
   nx = tnx1;
   ny = tny1;
   tl = half*tl1;
@@ -990,6 +1173,16 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   real l1 = min(zero, wtilde + ctilde);
   real l2 = min(zero, wtilde - ctilde);
   real l3 = min(zero, wtilde);
+#else
+  real nx = tnx1;
+  real ny = tny1;
+  real tl = half*tl1;
+  real wtilde = utilde*nx + vtilde*ny;
+
+  real l1 = -max(zero, wtilde + ctilde);
+  real l2 = -max(zero, wtilde - ctilde);
+  real l3 = -max(zero, wtilde);
+#endif
 
   // Auxiliary variables
   real l1l2l3 = half*(l1 + l2) - l3;
@@ -1046,9 +1239,15 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   tl = half*tl2;
   wtilde = (uc*nx + vc*ny)*ctilde;
 
+#ifndef CONTOUR
   l1 = min(wtilde + ctilde, zero);
   l2 = min(wtilde - ctilde, zero);
   l3 = min(wtilde, zero);
+#else
+  l1 = -max(wtilde + ctilde, zero);
+  l2 = -max(wtilde - ctilde, zero);
+  l3 = -max(wtilde, zero);
+#endif
 
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
@@ -1105,9 +1304,15 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   tl = half*tl3;
   wtilde = (uc*nx + vc*ny)*ctilde;
 
+#ifndef CONTOUR
   l1 = min(wtilde + ctilde, zero);
   l2 = min(wtilde - ctilde, zero);
   l3 = min(wtilde, zero);
+#else
+  l1 = -max(wtilde + ctilde, zero);
+  l2 = -max(wtilde - ctilde, zero);
+  l3 = -max(wtilde, zero);
+#endif
 
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
@@ -1424,7 +1629,8 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
                         real *pResSource,
                         real *pTresN0, real *pTresN1, real *pTresN2,
                         real *pTresLDA0, real *pTresLDA1, real *pTresLDA2,
-                        real *pTresTot, int nVertex, real G, real G1, real G2)
+                        real *pTresTot, int nVertex, real G, real G1, real G2,
+                        real *pVp)
 {
   const real zero  = (real) 0.0;
   const real half  = (real) 0.5;
@@ -1454,7 +1660,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
   real vy = Z0;
 #else
   real vx = one;
-  real vy = one;
+  real vy = zero;
 #endif
 
   // Average state at vertices
@@ -1482,6 +1688,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
   // Not necessary for first-order N scheme
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+#ifndef CONTOUR
   // First direction
   real nx = half*tl1*tnx1;
   real ny = half*tl1*tny1;
@@ -1501,17 +1708,37 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
   ResTot += (vx*nx + vy*ny)*What2;
 
   pTresTot[n] = ResTot;
+#else
+  real res =
+    tl3*half*vx*(What0 + What1)*tnx3 +
+    tl3*half*vy*(What0 + What1)*tny3 +
+    tl1*half*vx*(What1 + What2)*tnx1 +
+    tl1*half*vy*(What1 + What2)*tny1 +
+    tl2*half*vx*(What2 + What0)*tnx2 +
+    tl2*half*vy*(What2 + What0)*tny2;
+  ResTot -= res;
+  pTresTot[n] = ResTot;
+  Wtemp -= res;
+#endif
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate Wtemp = Sum(K-*What)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   // First direction
+#ifndef CONTOUR
   nx = tnx1;
   ny = tny1;
   real tl = half*tl1;
 
   real l1 = min(zero, vx*nx + vy*ny);
+#else
+  real nx = tnx1;
+  real ny = tny1;
+  real tl = half*tl1;
+
+  real l1 = -max(zero, vx*nx + vy*ny);
+#endif
 
   Wtemp += tl*l1*What0;
   real nm = tl*l1;
@@ -1521,7 +1748,11 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
   ny = tny2;
   tl = half*tl2;
 
+#ifndef CONTOUR
   l1 = min(zero, vx*nx + vy*ny);
+#else
+  l1 = -max(zero, vx*nx + vy*ny);
+#endif
 
   Wtemp += tl*l1*What1;
   nm += tl*l1;
@@ -1531,7 +1762,11 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
   ny = tny3;
   tl = half*tl3;
 
+#ifndef CONTOUR
   l1 = min(zero, vx*nx + vy*ny);
+#else
+  l1 = -max(zero, vx*nx + vy*ny);
+#endif
 
   Wtemp += tl*l1*What2;
   nm += tl*l1;
@@ -1613,7 +1848,8 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
 \param nVertex Total number of vertices in Mesh
 \param G Ratio of specific heats
 \param G1 G - 1
-\param G2 G - 2*/
+\param G2 G - 2
+\param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
 __global__ void
@@ -1622,7 +1858,8 @@ devCalcSpaceRes(int nTriangle, const int3 *pTv, realNeq *pVz,
                 const real2 *pTn3, const real3 *pTl, realNeq *pResSource,
                 realNeq *pTresN0, realNeq *pTresN1, realNeq *pTresN2,
                 realNeq *pTresLDA0, realNeq *pTresLDA1, realNeq *pTresLDA2,
-                realNeq *pTresTot, int nVertex, real G, real G1, real G2)
+                realNeq *pTresTot, int nVertex, real G, real G1, real G2,
+                real *pVp)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -1631,7 +1868,7 @@ devCalcSpaceRes(int nTriangle, const int3 *pTv, realNeq *pVz,
     CalcSpaceResSingle(n, pTv, pVz, pTn1, pTn2, pTn3, pTl, pResSource,
                        pTresN0, pTresN1, pTresN2,
                        pTresLDA0, pTresLDA1, pTresLDA2,
-                       pTresTot, nVertex, G, G1, G2);
+                       pTresTot, nVertex, G, G1, G2, pVp);
 
     // Next triangle
     n += blockDim.x*gridDim.x;
@@ -1680,6 +1917,7 @@ void Simulation::CalcResidual()
 
   realNeq *pResSource = triangleResidueSource->GetPointer();
   realNeq *pVz = vertexParameterVector->GetPointer();
+  real *pVp = vertexPotential->GetPointer();
   real G = simulationParameter->specificHeatRatio;
 
   realNeq *pTresN0 = triangleResidueN->GetPointer(0);
@@ -1717,7 +1955,7 @@ void Simulation::CalcResidual()
        pTn1, pTn2, pTn3, pTl, pResSource,
        pTresN0, pTresN1, pTresN2,
        pTresLDA0, pTresLDA1, pTresLDA2,
-       pTresTot, nVertex, G, G - 1.0, G - 2.0);
+       pTresTot, nVertex, G, G - 1.0, G - 2.0, pVp);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -1734,7 +1972,7 @@ void Simulation::CalcResidual()
                          pTn1, pTn2, pTn3, pTl, pResSource,
                          pTresN0, pTresN1, pTresN2,
                          pTresLDA0, pTresLDA1, pTresLDA2,
-                         pTresTot, nVertex, G, G - 1.0, G - 2.0);
+                         pTresTot, nVertex, G, G - 1.0, G - 2.0, pVp);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
