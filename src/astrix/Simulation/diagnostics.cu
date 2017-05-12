@@ -135,7 +135,7 @@ real2 Simulation::KineticEnergy()
 
 __host__ __device__
 void ThermalEnergySingle(unsigned int i, const real *pVarea,
-                         real4 *pState, real *E)
+                         real4 *pState, real *pVp, real *E)
 {
   real half = (real) 0.5;
 
@@ -144,19 +144,19 @@ void ThermalEnergySingle(unsigned int i, const real *pVarea,
   real n = pState[i].z;
   real e = pState[i].w;
 
-  E[i] = pVarea[i]*(e - half*(m*m + n*n)/d);
+  E[i] = pVarea[i]*(e - half*(m*m + n*n)/d - d*pVp[i]);
 }
 
 __host__ __device__
 void ThermalEnergySingle(unsigned int i, const real *pVarea,
-                         real3 *pState, real *E)
+                         real3 *pState, real *pVp, real *E)
 {
   E[i] = (real) 0.0;
 }
 
 __host__ __device__
 void ThermalEnergySingle(unsigned int i, const real *pVarea,
-                         real *pState, real *E)
+                         real *pState, real *pVp, real *E)
 {
   E[i] = (real) 0.0;
 }
@@ -166,13 +166,13 @@ void ThermalEnergySingle(unsigned int i, const real *pVarea,
 
 __global__ void
 devThermalEnergy(unsigned int nVertex, const real *pVarea,
-                 realNeq *pState, real *E)
+                 realNeq *pState, real *pVp, real *E)
 {
   // n = vertex number
   unsigned int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nVertex) {
-    ThermalEnergySingle(n, pVarea, pState, E);
+    ThermalEnergySingle(n, pVarea, pState, pVp, E);
 
     n += blockDim.x*gridDim.x;
   }
@@ -186,6 +186,7 @@ real Simulation::ThermalEnergy()
   unsigned int nVertex = mesh->GetNVertex();
 
   realNeq *pState = vertexState->GetPointer();
+  real *pVp = vertexPotential->GetPointer();
 
   const real *pVarea = mesh->VertexAreaData();
 
@@ -202,13 +203,13 @@ real Simulation::ThermalEnergy()
                                        (size_t) 0, 0);
 
     devThermalEnergy<<<nBlocks, nThreads>>>
-      (nVertex, pVarea, pState, pE);
+      (nVertex, pVarea, pState, pVp, pE);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (unsigned int n = 0; n < nVertex; n++)
-      ThermalEnergySingle(n, pVarea, pState, pE);
+      ThermalEnergySingle(n, pVarea, pState, pVp, pE);
   }
 
   real e = E->Sum();
@@ -227,6 +228,20 @@ void PotentialEnergySingle(unsigned int i, const real *pVarea, real4 *pState,
 {
   real d = pState[i].x;
   E[i] = pVarea[i]*d*pot[i];
+}
+
+__host__ __device__
+void PotentialEnergySingle(unsigned int i, const real *pVarea, real3 *pState,
+                           real *E, const real *pot)
+{
+  E[i] = 0.0;
+}
+
+__host__ __device__
+void PotentialEnergySingle(unsigned int i, const real *pVarea, real *pState,
+                           real *E, const real *pot)
+{
+  E[i] = 0.0;
 }
 
 //######################################################################
@@ -278,6 +293,86 @@ real Simulation::PotentialEnergy()
   } else {
     for (unsigned int n = 0; n < nVertex; n++)
       PotentialEnergySingle(n, pVarea, pState, pE, pVp);
+  }
+
+  real e = E->Sum();
+
+  delete E;
+
+  return e;
+}
+
+//##############################################################################
+//##############################################################################
+
+__host__ __device__
+void TotalEnergySingle(unsigned int i, const real *pVarea, real4 *pState,
+                       real *E)
+{
+  E[i] = pVarea[i]*pState[i].w;
+}
+
+__host__ __device__
+void TotalEnergySingle(unsigned int i, const real *pVarea, real3 *pState,
+                       real *E)
+{
+  E[i] = 0.0;
+}
+
+__host__ __device__
+void TotalEnergySingle(unsigned int i, const real *pVarea, real *pState,
+                       real *E)
+{
+  E[i] = 0.0;
+}
+
+//######################################################################
+//######################################################################
+
+__global__ void
+devTotalEnergy(unsigned int nVertex, const real *pVarea,
+                   realNeq *pState, real *E)
+{
+  // n = vertex number
+  unsigned int n = blockIdx.x*blockDim.x + threadIdx.x;
+
+  while (n < nVertex) {
+    TotalEnergySingle(n, pVarea, pState, E);
+
+    n += blockDim.x*gridDim.x;
+  }
+}
+
+//######################################################################
+//######################################################################
+
+real Simulation::TotalEnergy()
+{
+  unsigned int nVertex = mesh->GetNVertex();
+
+  realNeq *pState = vertexState->GetPointer();
+  const real *pVarea = mesh->VertexAreaData();
+
+  Array<real> *E = new Array<real>(1, cudaFlag, nVertex);
+  real *pE = E->GetPointer();
+
+  if (cudaFlag == 1) {
+    int nBlocks = 128;
+    int nThreads = 128;
+
+    // Base nThreads and nBlocks on maximum occupancy
+    cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
+                                       devPotentialEnergy,
+                                       (size_t) 0, 0);
+
+    devTotalEnergy<<<nBlocks, nThreads>>>
+      (nVertex, pVarea, pState, pE);
+
+    gpuErrchk( cudaPeekAtLastError() );
+    gpuErrchk( cudaDeviceSynchronize() );
+  } else {
+    for (unsigned int n = 0; n < nVertex; n++)
+      TotalEnergySingle(n, pVarea, pState, pE);
   }
 
   real e = E->Sum();
