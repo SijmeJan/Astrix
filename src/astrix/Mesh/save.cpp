@@ -319,7 +319,7 @@ void Mesh::ReadFromDisk(int nSave)
   if (cudaFlag == 1) connectivity->CopyToDevice();
 
   CalcNormalEdge();
-  CalcVertexArea();
+  connectivity->CalcVertexArea(GetPx(), GetPy());
   FindBoundaryVertices();
 
   std::cout << "Done reading mesh from disk" << std::endl;
