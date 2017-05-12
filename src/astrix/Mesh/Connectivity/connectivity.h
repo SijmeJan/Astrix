@@ -38,6 +38,8 @@ class Connectivity
   Array <int3> *triangleEdges;
   //! Triangles associated with edges
   Array <int2> *edgeTriangles;
+  //! Vertex area (area of Voronoi cell)
+  Array <real> *vertexArea;
 
   //! Transform from device to host or vice versa
   void Transform();
@@ -48,6 +50,8 @@ class Connectivity
 
   void CheckEdgeTriangles();
 
+  //! Calculate area associated with vertices (Voronoi cells)
+  void CalcVertexArea(real Px, real Py);
  private:
   //! Flag whether date resides on host (0) or device (1)
   int cudaFlag;
