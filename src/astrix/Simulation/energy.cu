@@ -30,26 +30,28 @@ namespace astrix {
 
 \param i Index of vertex
 \param *pState Pointer to state vector at vertices
-\param G1 Ratio of specific heats - 1*/
+\param G1 Ratio of specific heats - 1
+\param *pVp Pointer to external potential at vertices*/
 //#########################################################################
 
 __host__ __device__
-void ReplaceEnergyWithPressureSingle(int i, real4 *pState, real G1)
+void ReplaceEnergyWithPressureSingle(int i, real4 *pState, real G1, real *pVp)
 {
   real half = (real) 0.5;
 
-  pState[i].w = G1*(pState[i].w - half*(Sq(pState[i].y) + Sq(pState[i].z))/
-                   pState[i].x);
+  pState[i].w = G1*(pState[i].w -
+                    half*(Sq(pState[i].y) + Sq(pState[i].z))/pState[i].x -
+                    pState[i].x*pVp[i]);
 }
 
 __host__ __device__
-void ReplaceEnergyWithPressureSingle(int i, real3 *pState, real G1)
+void ReplaceEnergyWithPressureSingle(int i, real3 *pState, real G1, real *pVp)
 {
   // Dummy function, nothing to be done if solving only three equations
 }
 
 __host__ __device__
-void ReplaceEnergyWithPressureSingle(int i, real *pState, real G1)
+void ReplaceEnergyWithPressureSingle(int i, real *pState, real G1, real *pVp)
 {
   // Dummy function, nothing to be done if solving only one equation
 }
@@ -59,26 +61,27 @@ void ReplaceEnergyWithPressureSingle(int i, real *pState, real G1)
 
 \param i Index of vertex
 \param *pState Pointer to state vector at vertices
-\param iG1 1/(Ratio of specific heats - 1)*/
+\param iG1 1/(Ratio of specific heats - 1)
+\param *pVp Pointer to external potential at vertices*/
 //#########################################################################
 
 __host__ __device__
-void ReplacePressureWithEnergySingle(int i, real4 *pState, real iG1)
+void ReplacePressureWithEnergySingle(int i, real4 *pState, real iG1, real *pVp)
 {
   real half = (real) 0.5;
 
-  pState[i].w =
-    half*(Sq(pState[i].y) + Sq(pState[i].z))/pState[i].x + pState[i].w*iG1;
+  pState[i].w = half*(Sq(pState[i].y) + Sq(pState[i].z))/pState[i].x +
+    pState[i].x*pVp[i] + pState[i].w*iG1;
 }
 
 __host__ __device__
-void ReplacePressureWithEnergySingle(int i, real3 *pState, real iG1)
+void ReplacePressureWithEnergySingle(int i, real3 *pState, real iG1, real *pVp)
 {
   // Dummy function, nothing to be done if solving only three equations
 }
 
 __host__ __device__
-void ReplacePressureWithEnergySingle(int i, real *pState, real iG1)
+void ReplacePressureWithEnergySingle(int i, real *pState, real iG1, real *pVp)
 {
   // Dummy function, nothing to be done if solving only one equation
 }
@@ -88,16 +91,17 @@ void ReplacePressureWithEnergySingle(int i, real *pState, real iG1)
 
 \param nVertex Total number of vertices
 \param *pState Pointer to state vector at vertices
-\param G1 Ratio of specific heats - 1*/
+\param G1 Ratio of specific heats - 1
+\param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
 __global__ void
-devReplaceEnergyWithPressure(int nVertex, realNeq *pState, real G1)
+devReplaceEnergyWithPressure(int nVertex, realNeq *pState, real G1, real *pVp)
 {
   int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nVertex) {
-    ReplaceEnergyWithPressureSingle(i, pState, G1);
+    ReplaceEnergyWithPressureSingle(i, pState, G1, pVp);
 
     // Next vertex
     i += blockDim.x*gridDim.x;
@@ -109,16 +113,17 @@ devReplaceEnergyWithPressure(int nVertex, realNeq *pState, real G1)
 
 \param nVertex Total number of vertices
 \param *pState Pointer to state vector at vertices
-\param iG1 1/(Ratio of specific heats - 1)*/
+\param iG1 1/(Ratio of specific heats - 1)
+\param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
 __global__ void
-devReplacePressureWithEnergy(int nVertex, realNeq *pState, real iG1)
+devReplacePressureWithEnergy(int nVertex, realNeq *pState, real iG1, real *pVp)
 {
   int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nVertex) {
-    ReplacePressureWithEnergySingle(i, pState, iG1);
+    ReplacePressureWithEnergySingle(i, pState, iG1, pVp);
 
     // Next vertex
     i += blockDim.x*gridDim.x;
@@ -136,6 +141,7 @@ void Simulation::ReplaceEnergyWithPressure()
   int nVertex = mesh->GetNVertex();
 
   realNeq *pState = vertexState->GetPointer();
+  real *pVp = vertexPotential->GetPointer();
   real G = simulationParameter->specificHeatRatio;
 
   if (cudaFlag == 1) {
@@ -149,12 +155,12 @@ void Simulation::ReplaceEnergyWithPressure()
        (size_t) 0, 0);
 
     devReplaceEnergyWithPressure<<<nBlocks, nThreads>>>
-      (nVertex, pState, G - 1.0);
+      (nVertex, pState, G - 1.0, pVp);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int i = 0; i < nVertex; i++)
-      ReplaceEnergyWithPressureSingle(i, pState, G - 1.0);
+      ReplaceEnergyWithPressureSingle(i, pState, G - 1.0, pVp);
   }
 }
 
@@ -170,6 +176,7 @@ void Simulation::ReplacePressureWithEnergy()
   int nVertex = mesh->GetNVertex();
 
   realNeq *pState = vertexState->GetPointer();
+  real *pVp = vertexPotential->GetPointer();
   real G = simulationParameter->specificHeatRatio;
 
   if (cudaFlag == 1) {
@@ -183,12 +190,12 @@ void Simulation::ReplacePressureWithEnergy()
        (size_t) 0, 0);
 
     devReplacePressureWithEnergy<<<nBlocks, nThreads>>>
-      (nVertex, pState, 1.0/(G - 1.0));
+      (nVertex, pState, 1.0/(G - 1.0), pVp);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int i = 0; i < nVertex; i++)
-      ReplacePressureWithEnergySingle(i, pState, 1.0/(G - 1.0));
+      ReplacePressureWithEnergySingle(i, pState, 1.0/(G - 1.0), pVp);
   }
 }
 
