@@ -42,7 +42,8 @@ Reflecting boundary conditions are implemented "weakly" by adding a corrective f
 \param *pTn2 Pointer to first edge normal of triangle
 \param *pTn3 Pointer to first edge normal of triangle
 \param nVertex Total number of vertices in Mesh
-\param G1 Ratio of specific heats - 1*/
+\param G1 Ratio of specific heats - 1
+\param *pVp Pointer to external potential at vertices*/
 //#########################################################################
 
 __host__ __device__
@@ -50,7 +51,8 @@ void SetReflectingEdge(int n, int e, real dt, real4 *pState,
                        const int3 *pTv, int e1, int e2, int e3,
                        const real *pVarea, const real3 *pTl,
                        const real2 *pTn1, const real2 *pTn2,
-                       const real2 *pTn3, int nVertex, real G1)
+                       const real2 *pTn3, int nVertex, real G1,
+                       const real *pVp)
 {
   const real half  = (real) 0.5;
   const real one = (real) 1.0;
@@ -103,6 +105,9 @@ void SetReflectingEdge(int n, int e, real dt, real4 *pState,
   int vj = v1;
   int vk = v2;
 
+  real potj = pVp[vj];
+  real potk = pVp[vk];
+
   real Dj = pState[vj].x;
   real Uj = pState[vj].y/Dj;
   real Vj = pState[vj].z/Dj;
@@ -121,13 +126,13 @@ void SetReflectingEdge(int n, int e, real dt, real4 *pState,
   real Fcorrj0 = Dj*vnj;
   real Fcorrj1 = Dj*Uj*vnj;
   real Fcorrj2 = Dj*Vj*vnj;
-  real Pj = G1*(Ej - half*Dj*(Sq(Uj) + Sq(Vj)));
+  real Pj = G1*(Ej - half*Dj*(Sq(Uj) + Sq(Vj)) - Dj*potj);
   real Fcorrj3 = (Ej + Pj)*vnj;
 
   real Fcorrk0 = Dk*vnk;
   real Fcorrk1 = Dk*Uk*vnk;
   real Fcorrk2 = Dk*Vk*vnk;
-  real Pk = G1*(Ek - half*Dk*(Sq(Uk) + Sq(Vk)));
+  real Pk = G1*(Ek - half*Dk*(Sq(Uk) + Sq(Vk)) - Dk*potk);
   real Fcorrk3 = (Ek + Pk)*vnk;
 
   real A = (real) 0.75;
@@ -144,10 +149,12 @@ void SetReflectingEdge(int n, int e, real dt, real4 *pState,
   pState[vk].w -= half*dtdx*(A*Fcorrk3 + (one - A)*Fcorrj3);
 
   // Check for physical state
-  real presj =
-    G1*(pState[vj].w - half*(Sq(pState[vj].y) + Sq(pState[vj].z))/pState[vj].x);
-  real presk =
-    G1*(pState[vk].w - half*(Sq(pState[vk].y) + Sq(pState[vk].z))/pState[vk].x);
+  real presj = G1*(pState[vj].w -
+                   half*(Sq(pState[vj].y) + Sq(pState[vj].z))/pState[vj].x -
+                   pState[vj].x*potj);
+  real presk = G1*(pState[vk].w -
+                   half*(Sq(pState[vk].y) + Sq(pState[vk].z))/pState[vk].x -
+                   pState[vk].x*potk);
 
   if (presj < 0.0 || presk < 0.0 ||
       pState[vj].x < 0.0 || pState[vk].x < 0.0) {
@@ -165,10 +172,12 @@ void SetReflectingEdge(int n, int e, real dt, real4 *pState,
     pState[vk].w += half*dtdx*(A*Fcorrk3 + (one - A)*Fcorrj3 - Fcorrk3);
 
 #ifndef __CUDA_ARCH__
-    presj = G1*(pState[vj].w - half*(Sq(pState[vj].y) +
-                                     Sq(pState[vj].z))/pState[vj].x);
-    presk = G1*(pState[vk].w - half*(Sq(pState[vk].y) +
-                                     Sq(pState[vk].z))/pState[vk].x);
+    presj = G1*(pState[vj].w -
+                half*(Sq(pState[vj].y) + Sq(pState[vj].z))/pState[vj].x -
+                pState[vj].x*potj);
+    presk = G1*(pState[vk].w -
+                half*(Sq(pState[vk].y) + Sq(pState[vk].z))/pState[vk].x -
+                pState[vk].x*potk);
 
     if (presj < 0.0 || presk < 0.0 ||
         pState[vj].x < 0.0 || pState[vk].x < 0.0) {
@@ -195,10 +204,12 @@ void SetReflectingEdge(int n, int e, real dt, real4 *pState,
       pState[vk].z += half*dtdx*(A*Fcorrk2 + (one - A)*Fcorrj2);
       pState[vk].w += half*dtdx*(A*Fcorrk3 + (one - A)*Fcorrj3);
 
-      presj = G1*(pState[vj].w - half*(Sq(pState[vj].y) +
-                                       Sq(pState[vj].z))/pState[vj].x);
-      presk = G1*(pState[vk].w - half*(Sq(pState[vk].y) +
-                                       Sq(pState[vk].z))/pState[vk].x);
+      presj = G1*(pState[vj].w -
+                  half*(Sq(pState[vj].y) + Sq(pState[vj].z))/pState[vj].x -
+                  pState[vj].x*potj);
+      presk = G1*(pState[vk].w -
+                  half*(Sq(pState[vk].y) + Sq(pState[vk].z))/pState[vk].x -
+                  pState[vk].x*potk);
 
       std::cout << "Old pressures: " << presj << " " << presk << std::endl;
 
@@ -219,10 +230,12 @@ void SetReflectingEdge(int n, int e, real dt, real4 *pState,
         pState[vk].z -= half*dtdx*(A*Fcorrk2 + (one - A)*Fcorrj2);
         pState[vk].w -= half*dtdx*(A*Fcorrk3 + (one - A)*Fcorrj3);
 
-        presj = G1*(pState[vj].w - half*(Sq(pState[vj].y) +
-                                         Sq(pState[vj].z))/pState[vj].x);
-        presk = G1*(pState[vk].w - half*(Sq(pState[vk].y) +
-                                         Sq(pState[vk].z))/pState[vk].x);
+        presj = G1*(pState[vj].w -
+                    half*(Sq(pState[vj].y) + Sq(pState[vj].z))/pState[vj].x -
+                    pState[vj].x*potj);
+        presk = G1*(pState[vk].w -
+                    half*(Sq(pState[vk].y) + Sq(pState[vk].z))/pState[vk].x -
+                    pState[vk].x*potk);
 
         // Go back to old state
         dtdx = dt*edge_length/pVarea[vj];
@@ -249,7 +262,7 @@ void SetReflectingEdge(int n, int e, real dt, real3 *pState,
                        const int3 *pTv, int e1, int e2, int e3,
                        const real *pVarea, const real3 *pTl,
                        const real2 *pTn1, const real2 *pTn2,
-                       const real2 *pTn3, int nVertex, real G1)
+                       const real2 *pTn3, int nVertex, real G1, real *pVp)
 {
   const real half  = (real) 0.5;
   const real one = (real) 1.0;
@@ -360,7 +373,7 @@ void SetReflectingEdge(int n, int e, real dt, real *pState,
                        const int3 *pTv, int e1, int e2, int e3,
                        const real *pVarea, const real3 *pTl,
                        const real2 *pTn1, const real2 *pTn2,
-                       const real2 *pTn3, int nVertex, real G1)
+                       const real2 *pTn3, int nVertex, real G1, real *pVp)
 {
   const real half  = (real) 0.5;
   const real one = (real) 1.0;
@@ -449,7 +462,8 @@ Reflecting boundary conditions are implemented "weakly" by adding a corrective f
 \param *pTn2 Pointer to first edge normal of triangle
 \param *pTn3 Pointer to first edge normal of triangle
 \param nVertex Total number of vertices in Mesh
-\param G1 Ratio of specific heats - 1*/
+\param G1 Ratio of specific heats - 1
+\param *pVp Pointer to external potential at vertices*/
 //#########################################################################
 
 __host__ __device__
@@ -458,7 +472,8 @@ void SetReflectingSingle(int n, real dt, realNeq *pState, const int3 *pTv,
                          const int2* __restrict__ pEt,
                          const real *pVarea, const real3 *pTl,
                          const real2 *pTn1, const real2 *pTn2,
-                         const real2 *pTn3, int nVertex, real G1)
+                         const real2 *pTn3, int nVertex, real G1,
+                         real *pVp)
 {
   int e1 = pTe[n].x;
   int e2 = pTe[n].y;
@@ -472,7 +487,7 @@ void SetReflectingSingle(int n, real dt, realNeq *pState, const int3 *pTv,
                       pTv, e1, e2, e3,
                       pVarea, pTl,
                       pTn1, pTn2, pTn3,
-                      nVertex, G1);
+                      nVertex, G1, pVp);
 
   int t12 = pEt[e2].x;
   int t22 = pEt[e2].y;
@@ -482,7 +497,7 @@ void SetReflectingSingle(int n, real dt, realNeq *pState, const int3 *pTv,
                       pTv, e1, e2, e3,
                       pVarea, pTl,
                       pTn1, pTn2, pTn3,
-                      nVertex, G1);
+                      nVertex, G1, pVp);
 
   int t13 = pEt[e3].x;
   int t23 = pEt[e3].y;
@@ -492,7 +507,7 @@ void SetReflectingSingle(int n, real dt, realNeq *pState, const int3 *pTv,
                       pTv, e1, e2, e3,
                       pVarea, pTl,
                       pTn1, pTn2, pTn3,
-                      nVertex, G1);
+                      nVertex, G1, pVp);
 }
 
 //############################################################################
@@ -512,7 +527,8 @@ Reflecting boundary conditions are implemented "weakly" by adding a corrective f
 \param *pTn3 Pointer to first edge normal of triangle
 \param nTriangle Total number of triangles in Mesh
 \param nVertex Total number of vertices in Mesh
-\param G1 Ratio of specific heats - 1*/
+\param G1 Ratio of specific heats - 1
+\param *pVp Pointer to external potential at vertices*/
 //############################################################################
 
 __global__ void
@@ -521,7 +537,7 @@ devSetReflecting(real dt, realNeq *pState, const int3 *pTv,
                  const int2* __restrict__ pEt,
                  const real *pVarea, const real3 *pTl,
                  const real2 *pTn1, const real2 *pTn2, const real2 *pTn3,
-                 int nTriangle, int nVertex, real G1)
+                 int nTriangle, int nVertex, real G1, real *pVp)
 {
   unsigned int n = blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -530,7 +546,7 @@ devSetReflecting(real dt, realNeq *pState, const int3 *pTv,
                         pTv, pTe, pEt,
                         pVarea, pTl,
                         pTn1, pTn2, pTn3,
-                        nVertex, G1);
+                        nVertex, G1, pVp);
 
     n += gridDim.x*blockDim.x;
   }
@@ -545,6 +561,7 @@ devSetReflecting(real dt, realNeq *pState, const int3 *pTv,
 void Simulation::ReflectingBoundaries(real dt)
 {
   realNeq *pState = vertexState->GetPointer();
+  real *pVp = vertexPotential->GetPointer();
 
   const int3 *pTv = mesh->TriangleVerticesData();
   const int3 *pTe = mesh->TriangleEdgesData();
@@ -571,7 +588,7 @@ void Simulation::ReflectingBoundaries(real dt)
 
     devSetReflecting<<<nBlocks, nThreads>>>
       (dt, pState, pTv, pTe, pEt, pVarea, pTl,
-       pTn1, pTn2, pTn3, nTriangle, nVertex, G - 1.0);
+       pTn1, pTn2, pTn3, nTriangle, nVertex, G - 1.0, pVp);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -580,7 +597,7 @@ void Simulation::ReflectingBoundaries(real dt)
       SetReflectingSingle(n, dt, pState,
                           pTv, pTe, pEt, pVarea, pTl,
                           pTn1, pTn2, pTn3,
-                          nVertex, G - 1.0);
+                          nVertex, G - 1.0, pVp);
   }
 }
 
