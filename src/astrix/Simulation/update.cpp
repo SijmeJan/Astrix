@@ -80,6 +80,7 @@ void Simulation::UpdateState(real dt, int RKStep)
         int *pVu = vertexUnphysicalFlag->GetHostPointer();
         const real2 *pVc = mesh->VertexCoordinatesData();
         realNeq *pVs = vertexState->GetHostPointer();
+        real *pVp = vertexPotential->GetPointer();
 
         for (int i = 0; i < nVertex; i++) {
           if (pVu[i] != 0) {
@@ -90,7 +91,7 @@ void Simulation::UpdateState(real dt, int RKStep)
             real momy = pVs[i].z;
             real ener = pVs[i].w;
             real pres = (simulationParameter->specificHeatRatio - 1.0)*
-              (ener - 0.5*(momx*momx + momy*momy)/dens);
+              (ener - 0.5*(momx*momx + momy*momy)/dens - dens*pVp[i]);
 
             std::cout << pVs[i].x << " " << pVs[i].y << " "
                       << pVs[i].z << " " << pVs[i].w << " "
