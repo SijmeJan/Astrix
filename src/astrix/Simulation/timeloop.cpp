@@ -59,7 +59,7 @@ void Simulation::Run(real maxWallClockHours)
   if (verboseLevel > 0)
     std::cout << "Starting time loop... " << nSave << std::endl;
 
-  auto start = std::chrono::high_resolution_clock::now();
+  //auto start = std::chrono::high_resolution_clock::now();
 
   while (warning == 0 &&
          simulationTime < simulationParameter->maxSimulationTime &&
@@ -99,6 +99,7 @@ void Simulation::Run(real maxWallClockHours)
     elapsedTimeHours = difftime(time(NULL), startTime)/3600.0;
   }
 
+  /*
   auto finish = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = finish - start;
 
@@ -106,6 +107,7 @@ void Simulation::Run(real maxWallClockHours)
             << "Time/cell/step (mus): "
             << 1.0e6*elapsed.count()/(real) (nTimeStep*mesh->GetNVertex())
             << std::endl;
+  */
 
   try {
     // Save if end of simulation reached
@@ -131,7 +133,8 @@ void Simulation::Run(real maxWallClockHours)
 
 void Simulation::DoTimeStep()
 {
-  auto start = std::chrono::high_resolution_clock::now();
+  //auto start = std::chrono::high_resolution_clock::now();
+  //std::cout << "Mass: " << TotalMass() - 4.0 << " ";
 
   ProblemDefinition problemDef = simulationParameter->problemDef;
 
@@ -202,16 +205,17 @@ void Simulation::DoTimeStep()
     throw;
   }
 
+
   // Reflecting boundaries
   if (problemDef == PROBLEM_CYL ||
       problemDef == PROBLEM_SOD ||
-      problemDef == PROBLEM_BLAST ||
-      problemDef == PROBLEM_RIEMANN)
+      problemDef == PROBLEM_BLAST)
     //||
     //(problemDef == PROBLEM_SOURCE && N_EQUATION > 1))
     ReflectingBoundaries(dt);
 
-  if (problemDef == PROBLEM_SOURCE && N_EQUATION > 1)
+  if ((problemDef == PROBLEM_SOURCE && N_EQUATION > 1) ||
+      problemDef == PROBLEM_RIEMANN)
     SetSymmetricBoundaries();
 
   // Nonreflecting boundaries
@@ -280,13 +284,13 @@ void Simulation::DoTimeStep()
     // Reflecting boundaries
     if (problemDef == PROBLEM_CYL ||
         problemDef == PROBLEM_SOD ||
-        problemDef == PROBLEM_BLAST ||
-        problemDef == PROBLEM_RIEMANN)
+        problemDef == PROBLEM_BLAST)
       //||
       //(problemDef == PROBLEM_SOURCE && N_EQUATION > 1))
       ReflectingBoundaries(dt);
 
-    if (problemDef == PROBLEM_SOURCE && N_EQUATION > 1)
+    if ((problemDef == PROBLEM_SOURCE && N_EQUATION > 1) ||
+        problemDef == PROBLEM_RIEMANN)
       SetSymmetricBoundaries();
 
     // Nonreflecting boundaries
@@ -295,13 +299,13 @@ void Simulation::DoTimeStep()
       SetNonReflectingBoundaries();
   }
 
-  auto finish = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> elapsed = finish - start;
+  //auto finish = std::chrono::high_resolution_clock::now();
+  //std::chrono::duration<double> elapsed = finish - start;
 
   if (verboseLevel > 0) {
     std::cout << std::setprecision(6)
-              << "t = " << simulationTime << " dt = " << dt << " "
-              << elapsed.count() << " ";
+              << "t = " << simulationTime << " dt = " << dt << " ";
+      //<< elapsed.count() << " ";
     if (cudaFlag == 0) {
       std::cout << ((real)(Array<real>::memAllocatedHost) +
                     (real)(Array<real2>::memAllocatedHost) +
