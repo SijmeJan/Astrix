@@ -40,6 +40,7 @@ Connectivity::Connectivity(int _cudaFlag)
   triangleVertices = new Array<int3>(1, cudaFlag, 0, 128*8192);
   triangleEdges = new Array<int3>(1, cudaFlag, 0, 128*8192);
   edgeTriangles = new Array<int2>(1, cudaFlag, 0, 128*8192);
+  vertexArea = new Array<real>(1, cudaFlag, 0, 128*8192);
 }
 
 //#########################################################################
@@ -53,6 +54,7 @@ Connectivity::~Connectivity()
   delete triangleVertices;
   delete triangleEdges;
   delete edgeTriangles;
+  delete vertexArea;
 }
 
 //#########################################################################
@@ -67,12 +69,14 @@ void Connectivity::Transform()
     triangleVertices->TransformToHost();
     triangleEdges->TransformToHost();
     edgeTriangles->TransformToHost();
+    vertexArea->TransformToHost();
     cudaFlag = 0;
   } else {
     vertexCoordinates->TransformToDevice();
     triangleVertices->TransformToDevice();
     triangleEdges->TransformToDevice();
     edgeTriangles->TransformToDevice();
+    vertexArea->TransformToDevice();
     cudaFlag = 1;
   }
 }
@@ -88,6 +92,7 @@ void Connectivity::CopyToHost()
   triangleVertices->CopyToHost();
   triangleEdges->CopyToHost();
   edgeTriangles->CopyToHost();
+  vertexArea->CopyToHost();
 }
 
 //#########################################################################
@@ -101,6 +106,7 @@ void Connectivity::CopyToDevice()
   triangleVertices->CopyToDevice();
   triangleEdges->CopyToDevice();
   edgeTriangles->CopyToDevice();
+  vertexArea->CopyToDevice();
 }
 
 }  // namespace astrix
