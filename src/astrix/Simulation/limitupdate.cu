@@ -73,8 +73,6 @@ __host__ __device__
 void FlagLimitVertex(const int v, real3 *pState, real3 *pStateOld,
                      int *pVertexLimitFlag, const real G1)
 {
-  const real half = (real) 0.5;
-
   // Assume everything is fine
   int ret = 0;
 
