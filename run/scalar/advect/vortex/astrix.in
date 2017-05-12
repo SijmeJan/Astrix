@@ -20,7 +20,7 @@ specificHeatRatio       1.4     # Ratio of specific heats
 # Mesh parameters
 ###############################################################################
 
-equivalentPointsX       8     # Base resolution
+equivalentPointsX       8       # Base resolution
 minX                    0.0     # Left x boundary
 maxX                    1.0     # Right x boundary
 minY                    0.0     # Bottom y boundary
@@ -34,4 +34,4 @@ nStepSkipCoarsen        1       # Time steps without derefining
 minError                0.01    # Coarsen if error below
 maxError                0.02    # Refine if error above
 qualityBound            1.0     # Quality bound on triangles
-structuredFlag          1       # Flag whether to use structured mesh
+structuredFlag          0       # Flag whether to use structured mesh
