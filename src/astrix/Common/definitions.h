@@ -65,6 +65,17 @@ namespace astrix {
                           SCHEME_B,         /*!< Blended N-LDA scheme*/
                           SCHEME_BX         /*!< Blended X scheme*/
   };
+
+  //! Conservation laws
+  /*! Enumeration of available conservation laws */
+  enum ConservationLaw {CL_UNDEFINED,  /*!< Undefined, will lead to error*/
+                        CL_ADVECT,     /*!< Linear advection*/
+                        CL_BURGERS,    /*!< Burgers equation*/
+                        CL_CART_ISO,   /*!< Isothermal Cartesian hydro*/
+                        CL_CART_EULER  /*!< Cartesian Euler eqs*/
+  };
+
+
 }  // namespace astrix
 
 #endif
