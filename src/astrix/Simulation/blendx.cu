@@ -37,7 +37,8 @@ namespace astrix {
 \param *pState Pointer to state at vertices
 \param *pShockSensor Pointer to shock sensor (output)
 \param G Specific heat ratio
-\param G1 \a G - 1*/
+\param G1 \a G - 1
+\param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
 __host__ __device__
@@ -46,7 +47,8 @@ void CalcShockSensorSingle(int i, int nVertex,
                            const real3* __restrict__ pTl,
                            const real2 *pTn1, const real2 *pTn2,
                            const real2 *pTn3, real iDv, real4 *pState,
-                           real *pShockSensor, const real G, const real G1)
+                           real *pShockSensor, const real G, const real G1,
+                           const real *pVp)
 {
   const real zero = (real) 0.0;
   const real half  = (real) 0.5;
@@ -73,7 +75,7 @@ void CalcShockSensorSingle(int i, int nVertex,
   real id1 = one/dens;
   real u1 = momx;
   real v1 = momy;
-  real p1 = G1*(ener - half*id1*(u1*u1 + v1*v1));
+  real p1 = G1*(ener - half*id1*(u1*u1 + v1*v1) - dens*pVp[a]);
 
   // Make sure divergence is finite when velocity is zero
   u1 += tenth*sqrt(G*p1*id1);
@@ -87,7 +89,7 @@ void CalcShockSensorSingle(int i, int nVertex,
   real id2 = one/dens;
   real u2 = momx;
   real v2 = momy;
-  real p2 = G1*(ener - half*id2*(u2*u2 + v2*v2));
+  real p2 = G1*(ener - half*id2*(u2*u2 + v2*v2) - dens*pVp[b]);
 
   // Make sure divergence is finite when velocity is zero
   u2 += tenth*sqrt(G*p2*id2);
@@ -101,7 +103,7 @@ void CalcShockSensorSingle(int i, int nVertex,
   real id3 = one/dens;
   real u3 = momx;
   real v3 = momy;
-  real p3 = G1*(ener - half*id3*(u3*u3 + v3*v3));
+  real p3 = G1*(ener - half*id3*(u3*u3 + v3*v3) - dens*pVp[c]);
 
   // Make sure divergence is finite when velocity is zero
   u3 += tenth*sqrt(G*p3*id3);
@@ -141,7 +143,8 @@ void CalcShockSensorSingle(int i, int nVertex,
                            const real3* __restrict__ pTl,
                            const real2 *pTn1, const real2 *pTn2,
                            const real2 *pTn3, real iDv, real3 *pState,
-                           real *pShockSensor, const real G, const real G1)
+                           real *pShockSensor, const real G, const real G1,
+                           const real *pVp)
 {
   pShockSensor[i] = 1.0;
 }
@@ -153,7 +156,8 @@ void CalcShockSensorSingle(int i, int nVertex,
                            const real3* __restrict__ pTl,
                            const real2 *pTn1, const real2 *pTn2,
                            const real2 *pTn3, real iDv, real *pState,
-                           real *pShockSensor, const real G, const real G1)
+                           real *pShockSensor, const real G, const real G1,
+                           const real *pVp)
 {
 #if BURGERS == 1
   // Triangle vertices
@@ -215,7 +219,8 @@ void CalcShockSensorSingle(int i, int nVertex,
 \param *pState Pointer to state at vertices
 \param *pShockSensor Pointer to shock sensor (output)
 \param G Specific heat ratio
-\param G1 \a G - 1*/
+\param G1 \a G - 1
+\param *pVp Pointer to external potential at vertices*/
 // #########################################################################
 
 __global__ void
@@ -224,13 +229,13 @@ devCalcShockSensor(int nVertex, int nTriangle,
                    const real3* __restrict__ pTl,
                    const real2 *pTn1, const real2 *pTn2, const real2 *pTn3,
                    real iDv, realNeq *pState, real *pShockSensor,
-                   const real G, const real G1)
+                   const real G, const real G1, const real *pVp)
 {
   unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nTriangle) {
     CalcShockSensorSingle(i, nVertex, pTv, pTl, pTn1, pTn2, pTn3,
-                          iDv, pState, pShockSensor, G, G1);
+                          iDv, pState, pShockSensor, G, G1, pVp);
 
     i += gridDim.x*blockDim.x;
   }
@@ -264,6 +269,8 @@ void Simulation::CalcShockSensor()
 
   // State at vertices
   realNeq *pState = vertexState->GetPointer();
+  // External potential at vertices
+  real *pVp = vertexPotential->GetPointer();
 
   // Shock sensor
   triangleShockSensor->SetSize(nTriangle);
@@ -283,7 +290,7 @@ void Simulation::CalcShockSensor()
 
     devCalcShockSensor<<<nBlocks, nThreads>>>
       (nVertex, nTriangle, pTv, pTl, pTn1, pTn2, pTn3,
-       1.0/(maxVel - minVel), pState, pShockSensor, G, G - 1.0);
+       1.0/(maxVel - minVel), pState, pShockSensor, G, G - 1.0, pVp);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -291,7 +298,7 @@ void Simulation::CalcShockSensor()
     for (int i = 0; i < nTriangle; i++)
       CalcShockSensorSingle(i, nVertex, pTv, pTl, pTn1, pTn2, pTn3,
                             1.0/(maxVel - minVel), pState, pShockSensor,
-                            G, G - 1.0);
+                            G, G - 1.0, pVp);
   }
 }
 
