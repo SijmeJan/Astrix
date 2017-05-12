@@ -62,7 +62,6 @@ Mesh::Mesh(int meshVerboseLevel, int meshDebugLevel, int meshCudaFlag,
 
   // Define arrays
   vertexBoundaryFlag = new Array<int>(1, cudaFlag);
-  vertexArea = new Array<real>(1, cudaFlag);
 
   triangleWantRefine = new Array<int>(1, cudaFlag);
   triangleEdgeNormals = new Array<real2>(3, cudaFlag);
@@ -77,7 +76,6 @@ Mesh::Mesh(int meshVerboseLevel, int meshDebugLevel, int meshCudaFlag,
 
     // Clean up; destructor won't be called
     delete vertexBoundaryFlag;
-    delete vertexArea;
 
     delete triangleWantRefine;
     delete triangleEdgeNormals;
@@ -103,7 +101,6 @@ Mesh::Mesh(int meshVerboseLevel, int meshDebugLevel, int meshCudaFlag,
 Mesh::~Mesh()
 {
   delete vertexBoundaryFlag;
-  delete vertexArea;
 
   delete triangleWantRefine;
   delete triangleEdgeNormals;
@@ -274,7 +271,7 @@ int Mesh::IsAdaptive()
 
 real Mesh::GetTotalArea()
 {
-  return vertexArea->Sum();
+  return connectivity->vertexArea->Sum();
 }
 
 const real2* Mesh::VertexCoordinatesData()
@@ -289,7 +286,7 @@ const int* Mesh::VertexBoundaryFlagData()
 
 const real* Mesh::VertexAreaData()
 {
-  return vertexArea->GetPointer();
+  return connectivity->vertexArea->GetPointer();
 }
 
 const int3* Mesh::TriangleEdgesData()
@@ -323,7 +320,6 @@ void Mesh::Transform()
 
   if (cudaFlag == 1) {
     vertexBoundaryFlag->TransformToHost();
-    vertexArea->TransformToHost();
     triangleWantRefine->TransformToHost();
     triangleEdgeNormals->TransformToHost();
     triangleEdgeLength->TransformToHost();
@@ -332,7 +328,6 @@ void Mesh::Transform()
     cudaFlag = 0;
   } else {
     vertexBoundaryFlag->TransformToDevice();
-    vertexArea->TransformToDevice();
     triangleWantRefine->TransformToDevice();
     triangleEdgeNormals->TransformToDevice();
     triangleEdgeLength->TransformToDevice();
