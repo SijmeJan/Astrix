@@ -25,6 +25,22 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 namespace astrix {
 
 //######################################################################
+/*! \brief Computing contribution of second mass matrix and selective lumping for single triangle
+
+\param n Triangle to consider
+\param dt Time step
+\param massMatrix Mass matrix used
+\param selectLumpFlag Flag whether to use selective lumping
+\param *pTv Pointer to triangle vertices
+\param *pDstate Pointer to state difference at vertices
+\param *pTresLDA0 Triangle residue LDA direction 0
+\param *pTresLDA1 Triangle residue LDA direction 1
+\param *pTresLDA2 Triangle residue LDA direction 2
+\param *pTresN0 Triangle residue N direction 0
+\param *pTresN1 Triangle residue N direction 1
+\param *pTresN2 Triangle residue N direction 2
+\param *pTl Pointer to triangle edge lengths
+\param nVertex Total number of vertices in Mesh*/
 //######################################################################
 
 __host__ __device__
@@ -82,6 +98,22 @@ void SelectLumpSingle(int n, real dt, int massMatrix, int selectLumpFlag,
 }
 
 //######################################################################
+/*! \brief Kernel computing contribution of second mass matrix and selective lumping for all triangles
+
+\param nTriangle Total number of triangles in Mesh
+\param dt Time step
+\param massMatrix Mass matrix used
+\param selectLumpFlag Flag whether to use selective lumping
+\param *pTv Pointer to triangle vertices
+\param *pDstate Pointer to state difference at vertices
+\param *pTresLDA0 Triangle residue LDA direction 0
+\param *pTresLDA1 Triangle residue LDA direction 1
+\param *pTresLDA2 Triangle residue LDA direction 2
+\param *pTresN0 Triangle residue N direction 0
+\param *pTresN1 Triangle residue N direction 1
+\param *pTresN2 Triangle residue N direction 2
+\param *pTl Pointer to triangle edge lengths
+\param nVertex Total number of vertices in Mesh*/
 //######################################################################
 
 __global__ void
@@ -105,6 +137,11 @@ devSelectLump(int nTriangle, real dt, int massMatrix, int selectLumpFlag,
 }
 
 //######################################################################
+/*! Add contribution of selective lumping and the second mass matrix to residuals. If \a massMatrix is not equal to 2 and \a selectLumpFlag is not equal to 1 nothing happens.
+
+\param dt Time step
+\param massMatrix Mass matrix used
+\param selectLumpFlag Flag whether to use selective lumping*/
 //######################################################################
 
 void Simulation::SelectLump(real dt, int massMatrix, int selectLumpFlag)
