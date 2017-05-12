@@ -35,13 +35,14 @@ namespace astrix {
 \param *pState Pointer to vertex state vector
 \param *pTl Pointer to triangle edge lengths
 \param G Ratio of specific heats
-\param G1 G - 1*/
+\param G1 G - 1
+\param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
 __host__ __device__
 real FindMaxSignalSpeed(int t, int a, int b, int c,
                         real4 *pState, const real3* __restrict__ pTl,
-                        real G, real G1)
+                        real G, real G1, real *pVp)
 {
   real zero = (real) 0.0;
   real half = (real) 0.5;
@@ -61,7 +62,7 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
   real absv = sqrt(u*u+v*v)*id;
 
   // Pressure
-  real p = G1*(ener - half*id*(u*u + v*v));
+  real p = G1*(ener - half*id*(u*u + v*v) - dens*pVp[a]);
 #ifndef __CUDA_ARCH__
   if (p < zero)
     std::cout << "Negative pressure in timestep calculation!" << std::endl;
@@ -84,7 +85,7 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
   v = momy;
   absv = sqrt(u*u+v*v)*id;
 
-  p = G1*(ener - half*id*(u*u + v*v));
+  p = G1*(ener - half*id*(u*u + v*v) - dens*pVp[b]);
 #ifndef __CUDA_ARCH__
   if (p < zero)
     std::cout << "Negative pressure in timestep calculation!" << std::endl;
@@ -104,7 +105,7 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
   v = momy;
   absv = sqrt(u*u+v*v)*id;
 
-  p = G1*(ener - half*id*(u*u + v*v));
+  p = G1*(ener - half*id*(u*u + v*v) - dens*pVp[c]);
 #ifndef __CUDA_ARCH__
   if (p < zero)
     std::cout << "Negative pressure in timestep calculation!" << std::endl;
@@ -127,7 +128,7 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
 __host__ __device__
 real FindMaxSignalSpeed(int t, int a, int b, int c,
                         real3 *pState, const real3* __restrict__ pTl,
-                        real G, real G1)
+                        real G, real G1, real *pVp)
 {
   real zero = (real) 0.0;
   real one = (real) 1.0;
@@ -188,7 +189,7 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
 __host__ __device__
 real FindMaxSignalSpeed(int t, int a, int b, int c,
                         real *pState, const real3* __restrict__ pTl,
-                        real G, real G1)
+                        real G, real G1, real *pVp)
 {
   // Triangle edge lengths
   real tl1 = pTl[t].x;
@@ -214,13 +215,14 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
 \param *pVts Pointer to maximum time step at vertex (output)
 \param nVertex Total number of vertices in Mesh
 \param G Ratio of specific heats
-\param G1 G - 1*/
+\param G1 G - 1
+\param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
 __host__ __device__
 void CalcVmaxSingle(int t, const int3* __restrict__ pTv, realNeq *pState,
                     const real3* __restrict__ pTl, real *pVts,
-                    int nVertex, real G, real G1)
+                    int nVertex, real G, real G1, real *pVp)
 {
   int a = pTv[t].x;
   int b = pTv[t].y;
@@ -232,7 +234,7 @@ void CalcVmaxSingle(int t, const int3* __restrict__ pTv, realNeq *pState,
   while (b < 0) b += nVertex;
   while (c < 0) c += nVertex;
 
-  real vMax = FindMaxSignalSpeed(t, a, b, c, pState, pTl, G, G1);
+  real vMax = FindMaxSignalSpeed(t, a, b, c, pState, pTl, G, G1, pVp);
 
   AtomicAdd(&pVts[a], vMax);
   AtomicAdd(&pVts[b], vMax);
@@ -253,19 +255,20 @@ void CalcVmaxSingle(int t, const int3* __restrict__ pTv, realNeq *pState,
 \param *pTriangleEdgeLengths Pointer to triangle edge lengths
 \param *pVts Pointer to maximum time step at vertex (output)
 \param nVertex Total number of vertices in Mesh
-\param G Ratio of specific heats*/
+\param G Ratio of specific heats
+\param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
 __global__ void
 devCalcVmax(int nTriangle, const int3* __restrict__ pTv, realNeq *pState,
             const real3* __restrict__ pTl, real *pVts,
-            int nVertex, real G, real G1)
+            int nVertex, real G, real G1, real *pVp)
 {
   // n = triangle number
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nTriangle) {
-    CalcVmaxSingle(n, pTv, pState, pTl, pVts, nVertex, G, G1);
+    CalcVmaxSingle(n, pTv, pState, pTl, pVts, nVertex, G, G1, pVp);
 
     n += blockDim.x*gridDim.x;
   }
@@ -324,6 +327,7 @@ real Simulation::CalcVertexTimeStep()
   int nTriangle = mesh->GetNTriangle();
 
   realNeq *pState = vertexState->GetPointer();
+  real *pVp = vertexPotential->GetPointer();
   real G = simulationParameter->specificHeatRatio;
 
   const int3 *pTv = mesh->TriangleVerticesData();
@@ -349,7 +353,7 @@ real Simulation::CalcVertexTimeStep()
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     devCalcVmax<<<nBlocks, nThreads>>>
-      (nTriangle, pTv, pState, pTl, pVts, nVertex, G, G - 1.0);
+      (nTriangle, pTv, pState, pTl, pVts, nVertex, G, G - 1.0, pVp);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -362,7 +366,7 @@ real Simulation::CalcVertexTimeStep()
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     for (int n = 0; n < nTriangle; n++)
-      CalcVmaxSingle(n, pTv, pState, pTl, pVts, nVertex, G, G - 1.0);
+      CalcVmaxSingle(n, pTv, pState, pTl, pVts, nVertex, G, G - 1.0, pVp);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
