@@ -125,8 +125,6 @@ class Mesh
 
   //! Flag whether vertex is part of boundary
   Array <int> *vertexBoundaryFlag;
-  //! Vertex area (area of Voronoi cell)
-  Array <real> *vertexArea;
 
   //! Flag whether triangle needs to be refined
   Array <int> *triangleWantRefine;
@@ -155,8 +153,6 @@ class Mesh
 
   //! Calculate triangle normals and edge lengths
   void CalcNormalEdge();
-  //! Calculate areas associated with vertices (Voronoi cells)
-  void CalcVertexArea();
   //! Flag vertices where boundary conditions need to be applied
   void FindBoundaryVertices();
 
