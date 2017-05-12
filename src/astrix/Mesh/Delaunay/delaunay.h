@@ -54,7 +54,7 @@ class Delaunay
   //! List of triangle subs, possibly necessary after flip
   Array <int> *triangleSubstitute;
   //! Area associated with vertex (Voronoi cell)
-  Array <real> *vertexArea;
+  //Array <real> *vertexArea;
   //! List of triangles affected by flips
   Array <int> *triangleAffected;
   //! Indices in edgeNonDelaunay for affected triangles
@@ -92,8 +92,8 @@ class Delaunay
                    const MeshParameter *meshParameter,
                    const int nNonDel);
   //! Calculate areas associates with vertices (Voronoi cells)
-  void CalcVertexArea(Connectivity * const connectivity,
-                      const MeshParameter *meshParameter);
+  //void CalcVertexArea(Connectivity * const connectivity,
+  //                    const MeshParameter *meshParameter);
 };
 
 }
