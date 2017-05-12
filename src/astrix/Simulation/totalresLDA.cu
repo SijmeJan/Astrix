@@ -45,7 +45,8 @@ namespace astrix {
 \param nVertex Total number of vertices in Mesh
 \param G Ratio of specific heats
 \param G1 G - 1
-\param G2 G - 2*/
+\param G2 G - 2
+\param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
 __host__ __device__
@@ -58,7 +59,8 @@ void CalcTotalResLDASingle(int n,
                            const real2 *pTn2,
                            const real2 *pTn3,
                            const real3* __restrict__ pTl,
-                           int nVertex, real G, real G1, real G2)
+                           int nVertex, real G, real G1, real G2,
+                           const real *pVp)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -75,7 +77,13 @@ void CalcTotalResLDASingle(int n,
   while (vs2 < 0) vs2 += nVertex;
   while (vs3 < 0) vs3 += nVertex;
 
-  // Parameter vector at vertices: 12 uncoalesced loads
+  // External potential at vertices
+  real pot0 = pVp[vs1];
+  real pot1 = pVp[vs2];
+  real pot2 = pVp[vs3];
+  real pot = (pot0 + pot1 + pot2)*onethird;
+
+  // Parameter vector at vertices
   real Zv00 = pVz[vs1].x;
   real Zv01 = pVz[vs1].y;
   real Zv02 = pVz[vs1].z;
@@ -97,10 +105,10 @@ void CalcTotalResLDASingle(int n,
 
   real utilde = Z1/Z0;
   real vtilde = Z2/Z0;
-  real alpha = G1*half*(utilde*utilde + vtilde*vtilde);
+  real alpha = G1*half*(utilde*utilde + vtilde*vtilde) - G1*pot;
 
   real htilde = Z3/Z0;
-  real ctilde = sqrt(G1*htilde - alpha);
+  real ctilde = sqrt(G1*(htilde - 2.0*pot) - alpha);
   real ic = one/ctilde;
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -129,9 +137,6 @@ void CalcTotalResLDASingle(int n,
   real l1 = min(zero, wtilde + ctilde);
   real l2 = min(zero, wtilde - ctilde);
   real l3 = min(zero, wtilde);
-  // real l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
-  // real l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
-  // real l3 = half*(wtilde - fabs(wtilde));
 
   // Auxiliary variables
   real l1l2l3 = half*(l1 + l2) - l3;
@@ -166,9 +171,6 @@ void CalcTotalResLDASingle(int n,
   l1 = min(wtilde + ctilde, zero);
   l2 = min(wtilde - ctilde, zero);
   l3 = min(wtilde, zero);
-  // l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
-  // l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
-  // l3 = half*(wtilde - fabs(wtilde));
 
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
@@ -203,9 +205,6 @@ void CalcTotalResLDASingle(int n,
   l1 = min(wtilde + ctilde, zero);
   l2 = min(wtilde - ctilde, zero);
   l3 = min(wtilde, zero);
-  // l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
-  // l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
-  // l3 = half*(wtilde - fabs(wtilde));
 
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
@@ -303,10 +302,6 @@ void CalcTotalResLDASingle(int n,
   ny = half*Tny1;
   wtilde = (uc*nx + vc*ny)*ctilde;
 
-  // l1 = max(wtilde + ctilde, zero);
-  // l2 = max(wtilde - ctilde, zero);
-  // l3 = max(wtilde, zero);
-
   l1 = half*(wtilde + ctilde + fabs(wtilde + ctilde));
   l2 = half*(wtilde - ctilde + fabs(wtilde - ctilde));
   l3 = half*(wtilde + fabs(wtilde));
@@ -351,9 +346,6 @@ void CalcTotalResLDASingle(int n,
   ny = half*Tny2;
   wtilde = (uc*nx + vc*ny)*ctilde;
 
-  // l1 = max(wtilde + ctilde, zero);
-  // l2 = max(wtilde - ctilde, zero);
-  // l3 = max(wtilde, zero);
   l1 = half*(wtilde + ctilde + fabs(wtilde + ctilde));
   l2 = half*(wtilde - ctilde + fabs(wtilde - ctilde));
   l3 = half*(wtilde + fabs(wtilde));
@@ -398,9 +390,6 @@ void CalcTotalResLDASingle(int n,
   ny = half*Tny3;
   wtilde = (uc*nx + vc*ny)*ctilde;
 
-  // l1 = max(wtilde + ctilde, zero);
-  // l2 = max(wtilde - ctilde, zero);
-  // l3 = max(wtilde, zero);
   l1 = half*(wtilde + ctilde + fabs(wtilde + ctilde));
   l2 = half*(wtilde - ctilde + fabs(wtilde - ctilde));
   l3 = half*(wtilde + fabs(wtilde));
@@ -449,7 +438,8 @@ void CalcTotalResLDASingle(int n,
                            const real2 *pTn2,
                            const real2 *pTn3,
                            const real3* __restrict__ pTl,
-                           int nVertex, real G, real G1, real G2)
+                           int nVertex, real G, real G1, real G2,
+                           const real *pVp)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -733,7 +723,8 @@ void CalcTotalResLDASingle(int n,
                            const real2 *pTn2,
                            const real2 *pTn3,
                            const real3* __restrict__  pTl,
-                           int nVertex, real G, real G1, real G2)
+                           int nVertex, real G, real G1, real G2,
+                           const real *pVp)
 {
   const real zero  = (real) 0.0;
   const real half  = (real) 0.5;
@@ -762,7 +753,7 @@ void CalcTotalResLDASingle(int n,
   real vy = Z0;
 #else
   real vx = one;
-  real vy = one;
+  real vy = zero;
 #endif
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -841,34 +832,21 @@ void CalcTotalResLDASingle(int n,
 /*! \brief Kernel calculating space-time LDA residue for all triangles
 
 \param nTriangle Total number of triangles in Mesh
-\param *tv1 Pointer to first vertex of triangle
-\param *tv2 Pointer to second vertex of triangle
-\param *tv3 Pointer to third vertex of triangle
-\param *pVz0 pointer to array of values for zeroth component of parameter vector
-\param *pVz1 pointer to array of values for first component of parameter vector
-\param *pVz2 pointer to array of values for second component of parameter vector
-\param *pVz3 pointer to array of values for third component of parameter vector
-\param *pTresLDA00 Triangle residue LDA direction 0 state 0
-\param *pTresLDA01 Triangle residue LDA direction 0 state 1
-\param *pTresLDA02 Triangle residue LDA direction 0 state 2
-\param *pTresLDA03 Triangle residue LDA direction 0 state 3
-\param *pTresLDA10 Triangle residue LDA direction 1 state 0
-\param *pTresLDA11 Triangle residue LDA direction 1 state 1
-\param *pTresLDA12 Triangle residue LDA direction 1 state 2
-\param *pTresLDA13 Triangle residue LDA direction 1 state 3
-\param *pTresLDA20 Triangle residue LDA direction 2 state 0
-\param *pTresLDA21 Triangle residue LDA direction 2 state 1
-\param *pTresLDA22 Triangle residue LDA direction 2 state 2
-\param *pTresLDA23 Triangle residue LDA direction 2 state 3
-\param *pTresTot0 Triangle total residue state 0
-\param *pTresTot1 Triangle total residue state 1
-\param *pTresTot2 Triangle total residue state 2
-\param *pTresTot3 Triangle total residue state 3
-\param *triNx Pointer to x component of triangle edge normals
-\param *triNy Pointer to y component of triangle edge normals
+\param *pTv Pointer to triangle vertices
+\param *pVz Pointer to parameter vector
+\param *pTresLDA0 Triangle residue LDA direction 0
+\param *pTresLDA1 Triangle residue LDA direction 1
+\param *pTresLDA2 Triangle residue LDA direction 2
+\param *pTresTot Triangle total residue
+\param *pTn1 Pointer first triangle edge normal
+\param *pTn2 Pointer second triangle edge normal
+\param *pTn3 Pointer third triangle edge normal
 \param *pTl Pointer to triangle edge lengths
 \param nVertex Total number of vertices in Mesh
-\param G Ratio of specific heats*/
+\param G Ratio of specific heats
+\param G1 G - 1
+\param G2 G - 2
+\param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
 __global__ void
@@ -878,13 +856,14 @@ devCalcTotalResLDA(int nTriangle, const int3* __restrict__ pTv,
                    realNeq *pTresTot, const real2 *pTn1, const real2 *pTn2,
                    const real2 *pTn3,
                    const real3* __restrict__ pTl,
-                   int nVertex, real G, real G1, real G2)
+                   int nVertex, real G, real G1, real G2,  const real *pVp)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nTriangle) {
     CalcTotalResLDASingle(n, pTv, pVz, pTresLDA0, pTresLDA1, pTresLDA2,
-                          pTresTot, pTn1, pTn2, pTn3, pTl, nVertex, G, G1, G2);
+                          pTresTot, pTn1, pTn2, pTn3, pTl,
+                          nVertex, G, G1, G2, pVp);
 
     // Next triangle
     n += blockDim.x*gridDim.x;
@@ -929,6 +908,7 @@ void Simulation::CalcTotalResLDA()
   int nVertex = mesh->GetNVertex();
 
   realNeq *pVz = vertexParameterVector->GetPointer();
+  real *pVp = vertexPotential->GetPointer();
   real G = simulationParameter->specificHeatRatio;
 
   realNeq *pTresLDA0 = triangleResidueLDA->GetPointer(0);
@@ -958,7 +938,7 @@ void Simulation::CalcTotalResLDA()
     devCalcTotalResLDA<<<nBlocks, nThreads>>>
       (nTriangle, pTv, pVz,
        pTresLDA0, pTresLDA1, pTresLDA2, pTresTot,
-       pTn1, pTn2, pTn3, pTl, nVertex, G, G - 1.0, G - 2.0);
+       pTn1, pTn2, pTn3, pTl, nVertex, G, G - 1.0, G - 2.0, pVp);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -975,7 +955,7 @@ void Simulation::CalcTotalResLDA()
       CalcTotalResLDASingle(n, pTv, pVz,
                             pTresLDA0, pTresLDA1, pTresLDA2, pTresTot,
                             pTn1, pTn2, pTn3, pTl, nVertex,
-                            G, G - 1.0, G - 2.0);
+                            G, G - 1.0, G - 2.0, pVp);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
