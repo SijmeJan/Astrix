@@ -1,6 +1,6 @@
 // -*-c++-*-
 /*! \file mass.cu
-\brief Functions to calculate total mass in Simulation
+\brief Functions to calculate total mass
 
 \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
@@ -15,11 +15,11 @@ You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <iostream>
 
-#include "../Common/definitions.h"
-#include "../Array/array.h"
-#include "../Mesh/mesh.h"
-#include "./simulation.h"
-#include "../Common/cudaLow.h"
+#include "../../Common/definitions.h"
+#include "../../Array/array.h"
+#include "../../Common/cudaLow.h"
+#include "../../Mesh/mesh.h"
+#include "./diagnostics.h"
 
 namespace astrix {
 
@@ -32,25 +32,50 @@ namespace astrix {
 \param *pVm Pointer to vertex mass (output)*/
 //######################################################################
 
+
+template<class T, ConservationLaw CL>
 __host__ __device__
-void FillMassArraySingle(unsigned int n, real4 *pState,
+void FillMassArraySingle(unsigned int n, T *pState,
                          const real *pVarea, real *pVm)
 {
-  pVm[n] = pVarea[n]*pState[n].x;
+  // General case, make zero
+  pVm[n] = 0.0;
 }
 
+template<>
 __host__ __device__
-void FillMassArraySingle(unsigned int n, real3 *pState,
-                         const real *pVarea, real *pVm)
+void FillMassArraySingle<real, CL_ADVECT>(unsigned int n, real *pState,
+                                          const real *pVarea, real *pVm)
 {
-  pVm[n] = pVarea[n]*pState[n].x;
-}
-
-__host__ __device__
-void FillMassArraySingle(unsigned int n, real *pState,
-                         const real *pVarea, real *pVm)
-{
+  // Specialization for linear advection
   pVm[n] = pVarea[n]*pState[n];
+}
+
+template<>
+__host__ __device__
+void FillMassArraySingle<real, CL_BURGERS>(unsigned int n, real *pState,
+                                           const real *pVarea, real *pVm)
+{
+  // Specialization for Burgers equation
+  pVm[n] = pVarea[n]*pState[n];
+}
+
+template<>
+__host__ __device__
+void FillMassArraySingle<real3, CL_CART_ISO>(unsigned int n, real3 *pState,
+                                             const real *pVarea, real *pVm)
+{
+  // Specialization for isothermal Cartesian hydro
+  pVm[n] = pVarea[n]*pState[n].x;
+}
+
+template<>
+__host__ __device__
+void FillMassArraySingle<real4, CL_CART_EULER>(unsigned int n, real4 *pState,
+                                               const real *pVarea, real *pVm)
+{
+  // Specialization for Cartesian hydro
+  pVm[n] = pVarea[n]*pState[n].x;
 }
 
 //######################################################################
@@ -62,15 +87,16 @@ void FillMassArraySingle(unsigned int n, real *pState,
 \param *pVm Pointer to vertex mass (output)*/
 //######################################################################
 
+template<class T, ConservationLaw CL>
 __global__ void
-devFillMassArray(unsigned int nVertex, realNeq *pState,
+devFillMassArray(unsigned int nVertex, T *pState,
                  const real *pVarea, real *pVm)
 {
   // n=vertex number
   unsigned int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nVertex) {
-    FillMassArraySingle(n, pState, pVarea, pVm);
+    FillMassArraySingle<T, CL>(n, pState, pVarea, pVm);
     n += blockDim.x*gridDim.x;
   }
 }
@@ -79,14 +105,16 @@ devFillMassArray(unsigned int nVertex, realNeq *pState,
 /*! \brief Compute total mass in simulation*/
 //######################################################################
 
-real Simulation::TotalMass()
+template <class T, ConservationLaw CL>
+real Diagnostics<T, CL>::TotalMass(Array<T> *state, Mesh *mesh)
 {
   unsigned int nVertex = mesh->GetNVertex();
-  realNeq *pState = vertexState->GetPointer();
+  int cudaFlag = state->GetCudaFlag();
 
   // Mass in every cell
   Array<real> *vertexMass = new Array<real>(1, cudaFlag, nVertex);
   real *pVm = vertexMass->GetPointer();
+  T* pState = state->GetPointer();
 
   const real *pVarea = mesh->VertexAreaData();
 
@@ -96,18 +124,18 @@ real Simulation::TotalMass()
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devFillMassArray,
+                                       devFillMassArray<T, CL>,
                                        (size_t) 0, 0);
 
     // Execute kernel...
-    devFillMassArray<<<nBlocks, nThreads>>>
+    devFillMassArray<T, CL><<<nBlocks, nThreads>>>
       (nVertex, pState, pVarea, pVm);
 
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
   } else {
     for (unsigned int n = 0; n < nVertex; n++)
-      FillMassArraySingle(n, pState, pVarea, pVm);
+      FillMassArraySingle<T, CL>(n, pState, pVarea, pVm);
   }
 
   real mass = vertexMass->Sum();
@@ -116,5 +144,22 @@ real Simulation::TotalMass()
 
   return mass;
 }
+
+//###################################################
+// Instantiate
+//###################################################
+
+template
+real Diagnostics<real, CL_ADVECT>::TotalMass(Array<real> *state,
+                                             Mesh *mesh);
+template
+real Diagnostics<real, CL_BURGERS>::TotalMass(Array<real> *state,
+                                              Mesh *mesh);
+template
+real Diagnostics<real3, CL_CART_ISO>::TotalMass(Array<real3> *state,
+                                                Mesh *mesh);
+template
+real Diagnostics<real4, CL_CART_EULER>::TotalMass(Array<real4> *state,
+                                                  Mesh *mesh);
 
 }  // namespace astrix
