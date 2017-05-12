@@ -30,12 +30,13 @@ namespace astrix {
 
 \param v Vertex to consider
 \param *pState Pointer to state at vertices
+\param *pVp Pointer to external potential at vertices
 \param *pVertexUnphysicalFlag Pointer to array of flags indicating whether state is physical (0) or unphysical (1) (output)
 \param G1 Ratio of specific heats - 1*/
 //######################################################################
 
 __host__ __device__
-void FlagUnphysicalVertex(const int v, real4 *pState,
+void FlagUnphysicalVertex(const int v, real4 *pState, real *pVp,
                           int *pVertexUnphysicalFlag, const real G1)
 {
   const real zero = (real) 0.0;
@@ -50,7 +51,7 @@ void FlagUnphysicalVertex(const int v, real4 *pState,
   real ener = pState[v].w;
 
   // Pressure
-  real p = G1*(ener - half*(Sq(momx) + Sq(momy))/dens);
+  real p = G1*(ener - half*(Sq(momx) + Sq(momy))/dens - dens*pVp[v]);
 
   // Flag if negative density or pressure
   if (dens < zero || p < zero || isnan(p)) ret = 1;
@@ -60,7 +61,7 @@ void FlagUnphysicalVertex(const int v, real4 *pState,
 }
 
 __host__ __device__
-void FlagUnphysicalVertex(const int v, real3 *pState,
+void FlagUnphysicalVertex(const int v, real3 *pState, real *pVp,
                           int *pVertexUnphysicalFlag, const real G1)
 {
   const real zero = (real) 0.0;
@@ -78,7 +79,7 @@ void FlagUnphysicalVertex(const int v, real3 *pState,
 }
 
 __host__ __device__
-void FlagUnphysicalVertex(const int v, real *pState,
+void FlagUnphysicalVertex(const int v, real *pState, real *pVp,
                           int *pVertexUnphysicalFlag, const real G1)
 {
   // Output flag
@@ -90,19 +91,20 @@ void FlagUnphysicalVertex(const int v, real *pState,
 
 \param nVertex Total number of vertices in Mesh
 \param *pState Pointer to state at vertices
+\param *pVp Pointer to external potential at vertices
 \param *pVertexUnphysicalFlag Pointer to array of flags indicating whether state is physical (0) or unphysical (1) (output)
 \param G1 Ratio of specific heats - 1*/
 //######################################################################
 
 __global__ void
-devFlagUnphysical(const int nVertex, realNeq *pState,
+devFlagUnphysical(const int nVertex, realNeq *pState, real *pVp,
                   int *pVertexUnphysicalFlag, const real G1)
 {
   // n=vertex number
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nVertex) {
-    FlagUnphysicalVertex(n, pState, pVertexUnphysicalFlag, G1);
+    FlagUnphysicalVertex(n, pState, pVp, pVertexUnphysicalFlag, G1);
 
     n += blockDim.x*gridDim.x;
   }
@@ -121,6 +123,7 @@ void Simulation::FlagUnphysical(Array<int> *vertexUnphysicalFlag)
 
   // State vector at vertices
   realNeq *state = vertexState->GetPointer();
+  real *pVp = vertexPotential->GetPointer();
 
   // Ratio of specific heats
   real G = simulationParameter->specificHeatRatio;
@@ -139,12 +142,12 @@ void Simulation::FlagUnphysical(Array<int> *vertexUnphysicalFlag)
 
     // Execute kernel...
     devFlagUnphysical<<<nBlocks, nThreads>>>
-      (nVertex, state, pVertexUnphysicalFlag, G - 1.0);
+      (nVertex, state, pVp, pVertexUnphysicalFlag, G - 1.0);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int v = 0; v < nVertex; v++)
-      FlagUnphysicalVertex(v, state, pVertexUnphysicalFlag, G - 1.0);
+      FlagUnphysicalVertex(v, state, pVp, pVertexUnphysicalFlag, G - 1.0);
   }
 }
 
