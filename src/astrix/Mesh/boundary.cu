@@ -65,18 +65,10 @@ void SetVertexOuterBoundarySingle(int n, ProblemDefinition problemDef,
       pVc[n].x = minx;
       pVc[n].y = miny;
     }
-#if N_EQUATION == 4
-    if (n == 3) {
-      pVc[n].x = 0.5*(maxx + minx);
-      pVc[n].y = 0.5*(maxy + miny);
-    }
-#endif
-#if N_EQUATION == 1
     if (n == 3) {
       pVc[n].x = maxx;
       pVc[n].y = miny;
     }
-#endif
   }
 
   if (problemDef == PROBLEM_SOD || problemDef == PROBLEM_BLAST) {

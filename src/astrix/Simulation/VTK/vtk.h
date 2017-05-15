@@ -33,7 +33,8 @@ class VTK
   ~VTK();
 
   //! Write mesh and state into legacy VTK file
-  void Write(const char *fileName, Mesh *mesh, realNeq *state);
+  template<class realNeq, ConservationLaw CL>
+    void Write(const char *fileName, Mesh *mesh, realNeq *state);
  private:
   //! Output stream
   std::ofstream outFile;

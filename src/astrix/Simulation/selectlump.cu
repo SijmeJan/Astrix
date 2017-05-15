@@ -43,6 +43,7 @@ namespace astrix {
 \param nVertex Total number of vertices in Mesh*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __host__ __device__
 void SelectLumpSingle(int n, real dt, int massMatrix, int selectLumpFlag,
                       const int3* __restrict__ pTv, realNeq *pDstate,
@@ -116,6 +117,7 @@ void SelectLumpSingle(int n, real dt, int massMatrix, int selectLumpFlag,
 \param nVertex Total number of vertices in Mesh*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devSelectLump(int nTriangle, real dt, int massMatrix, int selectLumpFlag,
               const int3* __restrict__ pTv, realNeq *pDstate,
@@ -126,10 +128,11 @@ devSelectLump(int nTriangle, real dt, int massMatrix, int selectLumpFlag,
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nTriangle) {
-    SelectLumpSingle(n, dt, massMatrix, selectLumpFlag, pTv, pDstate,
-                     pTresLDA0, pTresLDA1, pTresLDA2,
-                     pTresN0, pTresN1, pTresN2,
-                     pTl, nVertex);
+    SelectLumpSingle<realNeq, CL>(n, dt, massMatrix, selectLumpFlag,
+                                  pTv, pDstate,
+                                  pTresLDA0, pTresLDA1, pTresLDA2,
+                                  pTresN0, pTresN1, pTresN2,
+                                  pTl, nVertex);
 
     // Next triangle
     n += blockDim.x*gridDim.x;
@@ -144,7 +147,9 @@ devSelectLump(int nTriangle, real dt, int massMatrix, int selectLumpFlag,
 \param selectLumpFlag Flag whether to use selective lumping*/
 //######################################################################
 
-void Simulation::SelectLump(real dt, int massMatrix, int selectLumpFlag)
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::SelectLump(real dt, int massMatrix,
+                                         int selectLumpFlag)
 {
   int nTriangle = mesh->GetNTriangle();
   int nVertex = mesh->GetNVertex();
@@ -166,10 +171,10 @@ void Simulation::SelectLump(real dt, int massMatrix, int selectLumpFlag)
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devSelectLump,
+                                       devSelectLump<realNeq, CL>,
                                        (size_t) 0, 0);
 
-    devSelectLump<<<nBlocks, nThreads>>>
+    devSelectLump<realNeq, CL><<<nBlocks, nThreads>>>
       (nTriangle, dt, massMatrix, selectLumpFlag,
        pTv, pDstate,
        pTresLDA0, pTresLDA1, pTresLDA2,
@@ -180,11 +185,29 @@ void Simulation::SelectLump(real dt, int massMatrix, int selectLumpFlag)
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int n = 0; n < nTriangle; n++)
-      SelectLumpSingle(n, dt, massMatrix, selectLumpFlag, pTv, pDstate,
-                       pTresLDA0, pTresLDA1, pTresLDA2,
-                       pTresN0, pTresN1, pTresN2,
-                       pTl, nVertex);
+      SelectLumpSingle<realNeq, CL>(n, dt, massMatrix, selectLumpFlag,
+                                    pTv, pDstate,
+                                    pTresLDA0, pTresLDA1, pTresLDA2,
+                                    pTresN0, pTresN1, pTresN2,
+                                    pTl, nVertex);
   }
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::SelectLump(real dt,
+                                                      int massMatrix,
+                                                      int selectLumpFlag);
+template void Simulation<real, CL_BURGERS>::SelectLump(real dt,
+                                                       int massMatrix,
+                                                       int selectLumpFlag);
+template void Simulation<real3, CL_CART_ISO>::SelectLump(real dt,
+                                                         int massMatrix,
+                                                         int selectLumpFlag);
+template void Simulation<real4, CL_CART_EULER>::SelectLump(real dt,
+                                                           int massMatrix,
+                                                           int selectLumpFlag);
 
 }  // namespace astrix

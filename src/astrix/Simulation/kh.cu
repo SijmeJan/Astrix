@@ -97,6 +97,7 @@ void AddEigenVectorSingle(unsigned int i, const real2 *pVc, real *pState,
 //######################################################################
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devAddEigenVector(unsigned int nVertex, const real2 *pVc, realNeq *pState,
                   real *dR, real*dI, real *uR, real *uI, real *vR, real *vI,
@@ -117,7 +118,8 @@ devAddEigenVector(unsigned int nVertex, const real2 *pVc, realNeq *pState,
 //######################################################################
 //######################################################################
 
-void Simulation::KHAddEigenVector()
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::KHAddEigenVector()
 {
   unsigned int nVertex = mesh->GetNVertex();
 
@@ -185,10 +187,10 @@ void Simulation::KHAddEigenVector()
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devAddEigenVector,
+                                       devAddEigenVector<realNeq, CL>,
                                        (size_t) 0, 0);
 
-    devAddEigenVector<<<nBlocks, nThreads>>>
+    devAddEigenVector<realNeq, CL><<<nBlocks, nThreads>>>
       (nVertex, pVc, pState, pdR, pdI, puR, puI, pvR, pvI,
        pyKH[1] - pyKH[0], kxKH, pyKH, miny, maxy, G, G - 1.0);
 
@@ -209,5 +211,14 @@ void Simulation::KHAddEigenVector()
   delete velyReal;
   delete velyImag;
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::KHAddEigenVector();
+template void Simulation<real, CL_BURGERS>::KHAddEigenVector();
+template void Simulation<real3, CL_CART_ISO>::KHAddEigenVector();
+template void Simulation<real4, CL_CART_EULER>::KHAddEigenVector();
 
 }  // namespace astrix

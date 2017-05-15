@@ -28,7 +28,7 @@ namespace astrix {
 An error is thrown if any problems are detected.*/
 //#########################################################################
 
-void SimulationParameter::CheckValidity()
+void SimulationParameter::CheckValidity(ConservationLaw CL)
 {
   if (problemDef == PROBLEM_UNDEFINED) {
     std::cout << "Invalid value for problemDefinition" << std::endl;
@@ -39,11 +39,11 @@ void SimulationParameter::CheckValidity()
       problemDef == PROBLEM_KH ||
       problemDef == PROBLEM_NOH ||
       problemDef == PROBLEM_CYL) {
-#if N_EQUATION != 4
-      std::cout << "Problem requires 4 equations to be solved. "
-                << "Need to set N_EQUATION = 4" << std::endl;
+    if (CL != CL_CART_EULER) {
+      std::cout << "Problem requires Conservation law CL_CART_EULER"
+                << std::endl;
       throw std::runtime_error("");
-#endif
+    }
   }
 
   if (maxSimulationTime < 0.0 ||

@@ -31,6 +31,7 @@ namespace astrix {
 \param *vertexState Pointer to Array containing state vector (density, momentum, energy)*/
 //#########################################################################
 
+template<class realNeq, ConservationLaw CL>
 void Morton::OrderVertex(Connectivity * const connectivity,
                          Array<realNeq> * const vertexState)
 {
@@ -54,5 +55,22 @@ void Morton::OrderVertex(Connectivity * const connectivity,
   // Adjust tv's
   connectivity->triangleVertices->InverseReindex(pInverseIndex, nVertex, false);
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void
+Morton::OrderVertex<real, CL_ADVECT>(Connectivity * const connectivity,
+                                     Array<real> * const vertexState);
+template void
+Morton::OrderVertex<real, CL_BURGERS>(Connectivity * const connectivity,
+                                      Array<real> * const vertexState);
+template void
+Morton::OrderVertex<real3, CL_CART_ISO>(Connectivity * const connectivity,
+                                        Array<real3> * const vertexState);
+template void
+Morton::OrderVertex<real4, CL_CART_EULER>(Connectivity * const connectivity,
+                                          Array<real4> * const vertexState);
 
 }  // namespace astrix

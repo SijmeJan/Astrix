@@ -210,6 +210,7 @@ void CalcSourceSingle(int n, ProblemDefinition problemDef,
 \param *pSource Pointer to source vector (output)  */
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devCalcSource(int nTriangle, ProblemDefinition problemDef,
               int nVertex, const int3 *pTv,
@@ -235,7 +236,8 @@ devCalcSource(int nTriangle, ProblemDefinition problemDef,
 \param state State vector to base source term calculation on. */
 //#########################################################################
 
-void Simulation::CalcSource(Array<realNeq> *state)
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::CalcSource(Array<realNeq> *state)
 {
   int nTriangle = mesh->GetNTriangle();
   int nVertex = mesh->GetNVertex();
@@ -259,10 +261,10 @@ void Simulation::CalcSource(Array<realNeq> *state)
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devCalcSource,
+                                       devCalcSource<realNeq, CL>,
                                        (size_t) 0, 0);
 
-    devCalcSource<<<nBlocks, nThreads>>>
+    devCalcSource<realNeq, CL><<<nBlocks, nThreads>>>
       (nTriangle, problemDef, nVertex,
        pTv, pTn1, pTn2, pTn3, pTl, pVp, pState, pSource);
 
@@ -275,5 +277,14 @@ void Simulation::CalcSource(Array<realNeq> *state)
                        pVp, pState, pSource);
   }
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::CalcSource(Array<real> *state);
+template void Simulation<real, CL_BURGERS>::CalcSource(Array<real> *state);
+template void Simulation<real3, CL_CART_ISO>::CalcSource(Array<real3> *state);
+template void Simulation<real4, CL_CART_EULER>::CalcSource(Array<real4> *state);
 
 }  // namespace astrix

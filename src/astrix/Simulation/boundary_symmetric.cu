@@ -90,6 +90,7 @@ void SetSymmetricVertex(int a, real2 n, real *pState, int nVertex)
 \param nVertex Total number of vertices in Mesh*/
 //#########################################################################
 
+template<class realNeq, ConservationLaw CL>
 __host__ __device__
 void SetSymmetricSingle(int n, realNeq *pState, const int3 *pTv,
                         const int3* __restrict__ pTe,
@@ -142,6 +143,7 @@ void SetSymmetricSingle(int n, realNeq *pState, const int3 *pTv,
 \param nVertex Total number of vertices in Mesh*/
 //############################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devSetSymmetry(realNeq *pState, const int3 *pTv,
                const int3* __restrict__ pTe,
@@ -152,7 +154,8 @@ devSetSymmetry(realNeq *pState, const int3 *pTv,
   unsigned int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nTriangle) {
-    SetSymmetricSingle(n, pState, pTv, pTe, pEt, pTn1, pTn2, pTn3, nVertex);
+    SetSymmetricSingle<realNeq, CL>(n, pState, pTv, pTe,
+                                    pEt, pTn1, pTn2, pTn3, nVertex);
 
     n += gridDim.x*blockDim.x;
   }
@@ -162,7 +165,8 @@ devSetSymmetry(realNeq *pState, const int3 *pTv,
 /* Set symmetry boundary conditions on any segment found in the mesh. For any segment found, the velocity perpendicular to the segment is set to zero, leaving alone the velocity parallel to the segment.*/
 //#########################################################################
 
-void Simulation::SetSymmetricBoundaries()
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::SetSymmetricBoundaries()
 {
   realNeq *pState = vertexState->GetPointer();
 
@@ -182,10 +186,10 @@ void Simulation::SetSymmetricBoundaries()
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devSetSymmetry,
+                                       devSetSymmetry<realNeq, CL>,
                                        (size_t) 0, 0);
 
-    devSetSymmetry<<<nBlocks, nThreads>>>
+    devSetSymmetry<realNeq, CL><<<nBlocks, nThreads>>>
       (pState, pTv, pTe, pEt,
        pTn1, pTn2, pTn3, nTriangle, nVertex);
 
@@ -193,11 +197,20 @@ void Simulation::SetSymmetricBoundaries()
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int n = 0; n < nTriangle; n++)
-      SetSymmetricSingle(n, pState,
-                         pTv, pTe, pEt,
-                         pTn1, pTn2, pTn3,
-                         nVertex);
+      SetSymmetricSingle<realNeq, CL>(n, pState,
+                                      pTv, pTe, pEt,
+                                      pTn1, pTn2, pTn3,
+                                      nVertex);
   }
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::SetSymmetricBoundaries();
+template void Simulation<real, CL_BURGERS>::SetSymmetricBoundaries();
+template void Simulation<real3, CL_CART_ISO>::SetSymmetricBoundaries();
+template void Simulation<real4, CL_CART_EULER>::SetSymmetricBoundaries();
 
 }  // namespace astrix

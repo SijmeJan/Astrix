@@ -300,6 +300,7 @@ void AdjustStateCoarsenSingle(int vRemove, int *vTri, const int maxTriPerVert,
 \param *pVertexNeighbour Pointer to array of neighbouring vertices*/
 //#########################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__
 void devAdjustStateCoarsen(int nRemove, int *pVertexRemove,
                            int *pVertexTriangleList, int maxTriPerVert,
@@ -338,6 +339,7 @@ void devAdjustStateCoarsen(int nRemove, int *pVertexRemove,
 \param *vertexNeighbour Pointer to Array containing indices of neighbouring vertices */
 //#########################################################################
 
+template<class realNeq, ConservationLaw CL>
 void Coarsen::AdjustState(Connectivity *connectivity,
                           int maxTriPerVert,
                           Array<int> *vertexTriangleList,
@@ -401,10 +403,10 @@ void Coarsen::AdjustState(Connectivity *connectivity,
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devAdjustStateCoarsen,
+                                       devAdjustStateCoarsen<realNeq, CL>,
                                        (size_t) 0, 0);
 
-    devAdjustStateCoarsen<<<nBlocks, nThreads>>>
+    devAdjustStateCoarsen<realNeq, CL><<<nBlocks, nThreads>>>
       (nRemove, pVertexRemove, pVertexTriangleList,
        maxTriPerVert, pTv, pTe, pEt,
        pVertexArea, nVertex, pVc,
@@ -446,7 +448,43 @@ void Coarsen::AdjustState(Connectivity *connectivity,
       cudaFlag = 1;
     }
   }
-
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void
+Coarsen::AdjustState<real, CL_ADVECT>(Connectivity *connectivity,
+                                      int maxTriPerVert,
+                                      Array<int> *vertexTriangleList,
+                                      Array<int> *triangleTarget,
+                                      Array<real> *vertexState,
+                                      real G, const MeshParameter *mp,
+                                      Array<int> *vertexNeighbour);
+template void
+Coarsen::AdjustState<real, CL_BURGERS>(Connectivity *connectivity,
+                                       int maxTriPerVert,
+                                       Array<int> *vertexTriangleList,
+                                       Array<int> *triangleTarget,
+                                       Array<real> *vertexState,
+                                       real G, const MeshParameter *mp,
+                                      Array<int> *vertexNeighbour);
+  template void
+  Coarsen::AdjustState<real3, CL_CART_ISO>(Connectivity *connectivity,
+                                           int maxTriPerVert,
+                                           Array<int> *vertexTriangleList,
+                                           Array<int> *triangleTarget,
+                                           Array<real3> *vertexState,
+                                           real G, const MeshParameter *mp,
+                                           Array<int> *vertexNeighbour);
+template void
+Coarsen::AdjustState<real4, CL_CART_EULER>(Connectivity *connectivity,
+                                           int maxTriPerVert,
+                                           Array<int> *vertexTriangleList,
+                                           Array<int> *triangleTarget,
+                                           Array<real4> *vertexState,
+                                           real G, const MeshParameter *mp,
+                                           Array<int> *vertexNeighbour);
 
 }

@@ -466,6 +466,7 @@ Reflecting boundary conditions are implemented "weakly" by adding a corrective f
 \param *pVp Pointer to external potential at vertices*/
 //#########################################################################
 
+template<class realNeq, ConservationLaw CL>
 __host__ __device__
 void SetReflectingSingle(int n, real dt, realNeq *pState, const int3 *pTv,
                          const int3* __restrict__ pTe,
@@ -531,6 +532,7 @@ Reflecting boundary conditions are implemented "weakly" by adding a corrective f
 \param *pVp Pointer to external potential at vertices*/
 //############################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devSetReflecting(real dt, realNeq *pState, const int3 *pTv,
                  const int3* __restrict__ pTe,
@@ -542,11 +544,11 @@ devSetReflecting(real dt, realNeq *pState, const int3 *pTv,
   unsigned int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nTriangle) {
-    SetReflectingSingle(n, dt, pState,
-                        pTv, pTe, pEt,
-                        pVarea, pTl,
-                        pTn1, pTn2, pTn3,
-                        nVertex, G1, pVp);
+    SetReflectingSingle<realNeq, CL>(n, dt, pState,
+                                     pTv, pTe, pEt,
+                                     pVarea, pTl,
+                                     pTn1, pTn2, pTn3,
+                                     nVertex, G1, pVp);
 
     n += gridDim.x*blockDim.x;
   }
@@ -558,7 +560,8 @@ devSetReflecting(real dt, realNeq *pState, const int3 *pTv,
   \param dt Time step*/
 //#########################################################################
 
-void Simulation::ReflectingBoundaries(real dt)
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::ReflectingBoundaries(real dt)
 {
   realNeq *pState = vertexState->GetPointer();
   real *pVp = vertexPotential->GetPointer();
@@ -583,10 +586,10 @@ void Simulation::ReflectingBoundaries(real dt)
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devSetReflecting,
+                                       devSetReflecting<realNeq, CL>,
                                        (size_t) 0, 0);
 
-    devSetReflecting<<<nBlocks, nThreads>>>
+    devSetReflecting<realNeq, CL><<<nBlocks, nThreads>>>
       (dt, pState, pTv, pTe, pEt, pVarea, pTl,
        pTn1, pTn2, pTn3, nTriangle, nVertex, G - 1.0, pVp);
 
@@ -594,11 +597,20 @@ void Simulation::ReflectingBoundaries(real dt)
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int n = 0; n < nTriangle; n++)
-      SetReflectingSingle(n, dt, pState,
-                          pTv, pTe, pEt, pVarea, pTl,
-                          pTn1, pTn2, pTn3,
-                          nVertex, G - 1.0, pVp);
+      SetReflectingSingle<realNeq, CL>(n, dt, pState,
+                                       pTv, pTe, pEt, pVarea, pTl,
+                                       pTn1, pTn2, pTn3,
+                                       nVertex, G - 1.0, pVp);
   }
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::ReflectingBoundaries(real dt);
+template void Simulation<real, CL_BURGERS>::ReflectingBoundaries(real dt);
+template void Simulation<real3, CL_CART_ISO>::ReflectingBoundaries(real dt);
+template void Simulation<real4, CL_CART_EULER>::ReflectingBoundaries(real dt);
 
 }  // namespace astrix

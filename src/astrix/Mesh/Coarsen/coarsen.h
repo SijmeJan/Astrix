@@ -33,14 +33,15 @@ class Coarsen
   //! Destructor; releases memory.
   ~Coarsen();
 
-  int RemoveVertices(Connectivity *connectivity,
-                     Predicates *predicates,
-                     Array<realNeq> *vertexState,
-                     real specificHeatRatio,
-                     Array<int> *triangleWantRefine,
-                     const MeshParameter *meshParameter,
-                     Delaunay *delaunay,
-                     int maxCycle);
+  template<class realNeq, ConservationLaw CL>
+    int RemoveVertices(Connectivity *connectivity,
+                       Predicates *predicates,
+                       Array<realNeq> *vertexState,
+                       real specificHeatRatio,
+                       Array<int> *triangleWantRefine,
+                       const MeshParameter *meshParameter,
+                       Delaunay *delaunay,
+                       int maxCycle);
 
  private:
   //! Flag whether to use device or host
@@ -65,20 +66,22 @@ class Coarsen
                      Array<int> *vertexRemoveFlag,
                      const MeshParameter *mp);
   //! Remove vertices from mesh
-  void Remove(Connectivity *connectivity,
-              Array<int> *triangleWantRefine,
-              Array<int> *vertexTriangleList,
-              int maxTriPerVert,
-              Array<int> *triangleTarget,
-              Array<realNeq> *vertexState);
+  template<class realNeq, ConservationLaw CL>
+    void Remove(Connectivity *connectivity,
+                Array<int> *triangleWantRefine,
+                Array<int> *vertexTriangleList,
+                int maxTriPerVert,
+                Array<int> *triangleTarget,
+                Array<realNeq> *vertexState);
   //! Adjust state conservatively after coarsening
-  void AdjustState(Connectivity *connectivity,
-                   int maxTriPerVert,
-                   Array<int> *vertexTriangleList,
-                   Array<int> *triangleTarget,
-                   Array<realNeq> *vertexState,
-                   real G, const MeshParameter *mp,
-                   Array<int> *vertexNeighbour);
+  template<class realNeq, ConservationLaw CL>
+    void AdjustState(Connectivity *connectivity,
+                     int maxTriPerVert,
+                     Array<int> *vertexTriangleList,
+                     Array<int> *triangleTarget,
+                     Array<realNeq> *vertexState,
+                     real G, const MeshParameter *mp,
+                     Array<int> *vertexNeighbour);
   //! Find single triangle for every vertex
   void FillVertexTriangle(Connectivity *connectivity);
   //! Maximum number of triangles per vertex

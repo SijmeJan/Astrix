@@ -36,6 +36,7 @@ If triangle has exactly one vertex on the boundary, we extrapolate the state to 
 \param *pState Pointer to state vector*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __host__ __device__
 void ExtrapolateSingle(int n, const int3 *pTv, const real2 *pVc,
                        const int *pVbf, realNeq *pState)
@@ -168,6 +169,7 @@ If a triangle has exactly one vertex on the boundary, we extrapolate the state t
 \param *pState Pointer to state vector*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devExtrapolateBoundaries(int nTriangle, const int3 *pTv, const real2 *pVc,
                          const int *pVbf, realNeq *pState)
@@ -243,6 +245,7 @@ When extrapolating, the corners of the mesh need special attention. In this func
 \param *pState Pointer to state vector*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devSetCornersToZero(int nVertex, const int *pVbf, realNeq *pState)
 {
@@ -266,6 +269,7 @@ The state has been set to zero in the corners previously. Now extrapolate the st
 \param *pState Pointer to state vector*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __host__ __device__
 void ExtrapolateCorners(int n, const int *pVbf,
                         const int3* __restrict__ pTv, realNeq *pState)
@@ -319,6 +323,7 @@ The state has been set to zero in the corners previously. Now extrapolate the st
 \param *pState Pointer to state vector*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devExtrapolateCorners(int nTriangle, const int *pVbf,
                       const int3* __restrict__ pTv, realNeq *pState)
@@ -337,7 +342,8 @@ vertex on the boundary, we extrapolate the state to this vertex by using
 the state at the other two vertices.*/
 //######################################################################
 
-void Simulation::ExtrapolateBoundaries()
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::ExtrapolateBoundaries()
 {
   int nTriangle = mesh->GetNTriangle();
   int nVertex = mesh->GetNVertex();
@@ -355,7 +361,7 @@ void Simulation::ExtrapolateBoundaries()
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devExtrapolateBoundaries,
+                                       devExtrapolateBoundaries<realNeq, CL>,
                                        (size_t) 0, 0);
 
     // Execute kernel...
@@ -376,7 +382,7 @@ void Simulation::ExtrapolateBoundaries()
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devSetCornersToZero,
+                                       devSetCornersToZero<realNeq, CL>,
                                        (size_t) 0, 0);
 
     // Execute kernel...
@@ -397,7 +403,7 @@ void Simulation::ExtrapolateBoundaries()
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devExtrapolateCorners,
+                                       devExtrapolateCorners<realNeq, CL>,
                                        (size_t) 0, 0);
 
     // Execute kernel...

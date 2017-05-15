@@ -29,9 +29,6 @@ ASTRIX_DEBUG ?= 0
 # By default, use single precision (requires rebuild if changed)
 ASTRIX_DOUBLE ?= -1
 
-# By default, solve Euler rather than scalar (requires rebuild if changed to 1)
-ASTRIX_NEQ ?= 4
-
 # Directory to put binaries in
 BINDIR = ../../bin
 
@@ -98,9 +95,6 @@ endif
 
 # Double precision support
 NVCCFLAGS += -DUSE_DOUBLE=$(ASTRIX_DOUBLE)
-
-# Number of equations to solve
-NVCCFLAGS += -DN_EQUATION=$(ASTRIX_NEQ)
 
 # Compiler flags
 ALL_CCFLAGS :=

@@ -34,6 +34,7 @@ namespace astrix {
 \param *pVbf Pointer to array of boundary flags*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __host__ __device__
 void SetNonReflectingVertex(int n, realNeq *pState, realNeq *pStateOld,
                             const int *pVbf)
@@ -53,6 +54,7 @@ to the old state, so that the state at the boundary never changes.
 \param *pVbf Pointer to array of boundary flags*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devSetNonReflectingBoundaries(int nVertex, realNeq *pState, realNeq *pStateOld,
                               const int *pVbf)
@@ -61,7 +63,7 @@ devSetNonReflectingBoundaries(int nVertex, realNeq *pState, realNeq *pStateOld,
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nVertex) {
-    SetNonReflectingVertex(n, pState, pStateOld, pVbf);
+    SetNonReflectingVertex<realNeq, CL>(n, pState, pStateOld, pVbf);
     n += blockDim.x*gridDim.x;
   }
 }
@@ -71,7 +73,8 @@ devSetNonReflectingBoundaries(int nVertex, realNeq *pState, realNeq *pStateOld,
 equal to the old state, so that the state at the boundary never changes.*/
 //######################################################################
 
-void Simulation::SetNonReflectingBoundaries()
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::SetNonReflectingBoundaries()
 {
   int nVertex = mesh->GetNVertex();
 
@@ -87,19 +90,28 @@ void Simulation::SetNonReflectingBoundaries()
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize
       (&nBlocks, &nThreads,
-       devSetNonReflectingBoundaries,
+       devSetNonReflectingBoundaries<realNeq, CL>,
        (size_t) 0, 0);
 
     // Execute kernel...
-    devSetNonReflectingBoundaries<<<nBlocks, nThreads>>>
+    devSetNonReflectingBoundaries<realNeq, CL><<<nBlocks, nThreads>>>
       (nVertex, pState, pStateOld, pVbf);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     // Set boundary state to previous state (= initial state)
     for (int n = 0; n < nVertex; n++)
-      SetNonReflectingVertex(n, pState, pStateOld, pVbf);
+      SetNonReflectingVertex<realNeq, CL>(n, pState, pStateOld, pVbf);
   }
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::SetNonReflectingBoundaries();
+template void Simulation<real, CL_BURGERS>::SetNonReflectingBoundaries();
+template void Simulation<real3, CL_CART_ISO>::SetNonReflectingBoundaries();
+template void Simulation<real4, CL_CART_EULER>::SetNonReflectingBoundaries();
 
 }  // namespace astrix

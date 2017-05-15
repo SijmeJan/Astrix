@@ -41,6 +41,7 @@ namespace astrix {
 \param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
+template<ConservationLaw CL>
 __host__ __device__
 void CalcShockSensorSingle(int i, int nVertex,
                            const int3* __restrict__ pTv,
@@ -137,6 +138,7 @@ void CalcShockSensorSingle(int i, int nVertex,
 }
 
 // Version for 3 equations just says shock
+template<ConservationLaw CL>
 __host__ __device__
 void CalcShockSensorSingle(int i, int nVertex,
                            const int3* __restrict__ pTv,
@@ -150,6 +152,7 @@ void CalcShockSensorSingle(int i, int nVertex,
 }
 
 // Version for 1 equation just says shock
+template<ConservationLaw CL>
 __host__ __device__
 void CalcShockSensorSingle(int i, int nVertex,
                            const int3* __restrict__ pTv,
@@ -159,50 +162,50 @@ void CalcShockSensorSingle(int i, int nVertex,
                            real *pShockSensor, const real G, const real G1,
                            const real *pVp)
 {
-#if BURGERS == 1
-  // Triangle vertices
-  int a = pTv[i].x;
-  int b = pTv[i].y;
-  int c = pTv[i].z;
-  while (a >= nVertex) a -= nVertex;
-  while (b >= nVertex) b -= nVertex;
-  while (c >= nVertex) c -= nVertex;
-  while (a < 0) a += nVertex;
-  while (b < 0) b += nVertex;
-  while (c < 0) c += nVertex;
+  if (CL == CL_BURGERS) {
+    // Triangle vertices
+    int a = pTv[i].x;
+    int b = pTv[i].y;
+    int c = pTv[i].z;
+    while (a >= nVertex) a -= nVertex;
+    while (b >= nVertex) b -= nVertex;
+    while (c >= nVertex) c -= nVertex;
+    while (a < 0) a += nVertex;
+    while (b < 0) b += nVertex;
+    while (c < 0) c += nVertex;
 
-  // State at vertices
-  real u1 = pState[a];
-  real u2 = pState[b];
-  real u3 = pState[c];
+    // State at vertices
+    real u1 = pState[a];
+    real u2 = pState[b];
+    real u3 = pState[c];
 
-  // Triangle edge lengths
-  real tl1 = pTl[i].x;
-  real tl2 = pTl[i].y;
-  real tl3 = pTl[i].z;
+    // Triangle edge lengths
+    real tl1 = pTl[i].x;
+    real tl2 = pTl[i].y;
+    real tl3 = pTl[i].z;
 
-  // Triangle inward pointing normals
-  real nx1 = pTn1[i].x*tl1;
-  real ny1 = pTn1[i].y*tl1;
-  real nx2 = pTn2[i].x*tl2;
-  real ny2 = pTn2[i].y*tl2;
-  real nx3 = pTn3[i].x*tl3;
-  real ny3 = pTn3[i].y*tl3;
+    // Triangle inward pointing normals
+    real nx1 = pTn1[i].x*tl1;
+    real ny1 = pTn1[i].y*tl1;
+    real nx2 = pTn2[i].x*tl2;
+    real ny2 = pTn2[i].y*tl2;
+    real nx3 = pTn3[i].x*tl3;
+    real ny3 = pTn3[i].y*tl3;
 
-  // du/dx + du/dy
-  real divuc = u1*nx1 + u1*ny1 + u2*nx2 + u2*ny2 + u3*nx3 + u3*ny3;
+    // du/dx + du/dy
+    real divuc = u1*nx1 + u1*ny1 + u2*nx2 + u2*ny2 + u3*nx3 + u3*ny3;
 
-  real s = 0.5*(tl1 + tl2 + tl3);
-  // 1/triangle area
-  real iA = rsqrtf(s*(s - tl1)*(s - tl2)*(s - tl3));
-  // Shock sensor
-  real sc = max(0.0, -0.5*divuc*iA*iDv);
+    real s = 0.5*(tl1 + tl2 + tl3);
+    // 1/triangle area
+    real iA = rsqrtf(s*(s - tl1)*(s - tl2)*(s - tl3));
+    // Shock sensor
+    real sc = max(0.0, -0.5*divuc*iA*iDv);
 
-  // Output shock sensor
-  pShockSensor[i] = min(1.0, sc*sc*rsqrtf(iA));
-#else
-  pShockSensor[i] = 1.0;
-#endif
+    // Output shock sensor
+    pShockSensor[i] = min(1.0, sc*sc*rsqrtf(iA));
+  } else {
+    pShockSensor[i] = 1.0;
+  }
 }
 
 // #########################################################################
@@ -223,6 +226,7 @@ void CalcShockSensorSingle(int i, int nVertex,
 \param *pVp Pointer to external potential at vertices*/
 // #########################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devCalcShockSensor(int nVertex, int nTriangle,
                    const int3* __restrict__ pTv,
@@ -234,8 +238,8 @@ devCalcShockSensor(int nVertex, int nTriangle,
   unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nTriangle) {
-    CalcShockSensorSingle(i, nVertex, pTv, pTl, pTn1, pTn2, pTn3,
-                          iDv, pState, pShockSensor, G, G1, pVp);
+    CalcShockSensorSingle<CL>(i, nVertex, pTv, pTl, pTn1, pTn2, pTn3,
+                              iDv, pState, pShockSensor, G, G1, pVp);
 
     i += gridDim.x*blockDim.x;
   }
@@ -246,12 +250,13 @@ devCalcShockSensor(int nVertex, int nTriangle,
 the BX scheme. Result in \a triangleShockSensor.*/
 //##############################################################################
 
-void Simulation::CalcShockSensor()
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::CalcShockSensor()
 {
   // Determine minimum/maximum velocity on mesh
-  real minVel = 0.0;
-  real maxVel = 1.0;
-  FindMinMaxVelocity(minVel, maxVel);
+  real2 minmaxvel = FindMinMaxVelocity();
+  real minVel = minmaxvel.x;
+  real maxVel = minmaxvel.y;
 
   int nVertex = mesh->GetNVertex();
   int nTriangle = mesh->GetNTriangle();
@@ -285,10 +290,10 @@ void Simulation::CalcShockSensor()
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devCalcShockSensor,
+                                       devCalcShockSensor<realNeq, CL>,
                                        (size_t) 0, 0);
 
-    devCalcShockSensor<<<nBlocks, nThreads>>>
+    devCalcShockSensor<realNeq, CL><<<nBlocks, nThreads>>>
       (nVertex, nTriangle, pTv, pTl, pTn1, pTn2, pTn3,
        1.0/(maxVel - minVel), pState, pShockSensor, G, G - 1.0, pVp);
 
@@ -296,10 +301,19 @@ void Simulation::CalcShockSensor()
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int i = 0; i < nTriangle; i++)
-      CalcShockSensorSingle(i, nVertex, pTv, pTl, pTn1, pTn2, pTn3,
-                            1.0/(maxVel - minVel), pState, pShockSensor,
-                            G, G - 1.0, pVp);
+      CalcShockSensorSingle<CL>(i, nVertex, pTv, pTl, pTn1, pTn2, pTn3,
+                                1.0/(maxVel - minVel), pState, pShockSensor,
+                                G, G - 1.0, pVp);
   }
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::CalcShockSensor();
+template void Simulation<real, CL_BURGERS>::CalcShockSensor();
+template void Simulation<real3, CL_CART_ISO>::CalcShockSensor();
+template void Simulation<real4, CL_CART_EULER>::CalcShockSensor();
 
 }  // namespace astrix

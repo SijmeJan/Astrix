@@ -38,6 +38,7 @@ namespace astrix {
 \param nTimeStep Number of time steps taken so far. Used in combination with \a nStepSkipRefine to possibly avoid refining every timestep*/
 //#########################################################################
 
+template<class realNeq, ConservationLaw CL>
 int Mesh::ImproveQuality(Array<realNeq> *vertexState,
                          real specificHeatRatio, int nTimeStep)
 {
@@ -52,23 +53,26 @@ int Mesh::ImproveQuality(Array<realNeq> *vertexState,
   // Flag triangles if refinement is needed
   if (vertexState != 0) {
     triangleWantRefine->SetSize(nTriangle);
-    FillWantRefine(vertexState, specificHeatRatio);
+    FillWantRefine<realNeq, CL>(vertexState, specificHeatRatio);
 
-    nAdded = refine->ImproveQuality(connectivity,
-                                    meshParameter,
-                                    predicates,
-                                    morton, delaunay,
-                                    vertexState,
-                                    specificHeatRatio,
-                                    triangleWantRefine);
+    nAdded = refine->ImproveQuality<realNeq, CL>(connectivity,
+                                                 meshParameter,
+                                                 predicates,
+                                                 morton,
+                                                 delaunay,
+                                                 vertexState,
+                                                 specificHeatRatio,
+                                                 triangleWantRefine);
   } else {
     try {
-      nAdded = refine->ImproveQuality(connectivity,
-                                      meshParameter,
-                                      predicates,
-                                      morton, delaunay,
-                                      vertexState,
-                                      specificHeatRatio, 0);
+      nAdded = refine->ImproveQuality<realNeq, CL>(connectivity,
+                                                   meshParameter,
+                                                   predicates,
+                                                   morton,
+                                                   delaunay,
+                                                   vertexState,
+                                                   specificHeatRatio,
+                                                   0);
     }
     catch (...) {
       std::cout << "Error improving Mesh, saving Mesh" << std::endl;
@@ -127,5 +131,26 @@ int Mesh::ImproveQuality(Array<realNeq> *vertexState,
 
   return nAdded;
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template int
+Mesh::ImproveQuality<real, CL_ADVECT>(Array<real> *vertexState,
+                                      real specificHeatRatio,
+                                      int nTimeStep);
+template int
+Mesh::ImproveQuality<real, CL_BURGERS>(Array<real> *vertexState,
+                                       real specificHeatRatio,
+                                       int nTimeStep);
+template int
+Mesh::ImproveQuality<real3, CL_CART_ISO>(Array<real3> *vertexState,
+                                         real specificHeatRatio,
+                                         int nTimeStep);
+template int
+Mesh::ImproveQuality<real4, CL_CART_EULER>(Array<real4> *vertexState,
+                                           real specificHeatRatio,
+                                           int nTimeStep);
 
 }  // namespace astrix

@@ -96,13 +96,15 @@ int Refine::AddVertices(Connectivity * const connectivity,
     AddToPeriodic(connectivity, nRefine);
 
     // Insert vertices into Mesh
-    InsertVertices(connectivity, meshParameter, predicates, 0, 0);
+    InsertVertices<real, CL_ADVECT>(connectivity,
+                                    meshParameter,
+                                    predicates, (Array<real> *) 0, 0);
 
     nRefine = vertexBoundaryCoordinates->GetSize();
 
     // Maintain Delaunay triangulation
-    delaunay->MakeDelaunay(connectivity, 0, predicates,
-                           meshParameter, 0, 0, 0, 0);
+    delaunay->MakeDelaunay<real, CL_ADVECT>(connectivity, 0, predicates,
+                                            meshParameter, 0, 0, 0, 0);
 
     if (verboseLevel > 1)
       std::cout << ", added so far: " << nAdded << std::endl;

@@ -95,6 +95,7 @@ void ReplacePressureWithEnergySingle(int i, real *pState, real iG1, real *pVp)
 \param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devReplaceEnergyWithPressure(int nVertex, realNeq *pState, real G1, real *pVp)
 {
@@ -117,6 +118,7 @@ devReplaceEnergyWithPressure(int nVertex, realNeq *pState, real G1, real *pVp)
 \param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devReplacePressureWithEnergy(int nVertex, realNeq *pState, real iG1, real *pVp)
 {
@@ -136,7 +138,8 @@ rather than the total energy. This function replaces the total energy with
 the pressure in the state vector for all vertices.*/
 //#########################################################################
 
-void Simulation::ReplaceEnergyWithPressure()
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::ReplaceEnergyWithPressure()
 {
   int nVertex = mesh->GetNVertex();
 
@@ -151,10 +154,10 @@ void Simulation::ReplaceEnergyWithPressure()
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize
       (&nBlocks, &nThreads,
-       devReplaceEnergyWithPressure,
+       devReplaceEnergyWithPressure<realNeq, CL>,
        (size_t) 0, 0);
 
-    devReplaceEnergyWithPressure<<<nBlocks, nThreads>>>
+    devReplaceEnergyWithPressure<realNeq, CL><<<nBlocks, nThreads>>>
       (nVertex, pState, G - 1.0, pVp);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -171,7 +174,8 @@ back. This function replaces the pressure with the total energy in the state
 vector for all vertices.*/
 //#########################################################################
 
-void Simulation::ReplacePressureWithEnergy()
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::ReplacePressureWithEnergy()
 {
   int nVertex = mesh->GetNVertex();
 
@@ -186,10 +190,10 @@ void Simulation::ReplacePressureWithEnergy()
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize
       (&nBlocks, &nThreads,
-       devReplacePressureWithEnergy,
+       devReplacePressureWithEnergy<realNeq, CL>,
        (size_t) 0, 0);
 
-    devReplacePressureWithEnergy<<<nBlocks, nThreads>>>
+    devReplacePressureWithEnergy<realNeq, CL><<<nBlocks, nThreads>>>
       (nVertex, pState, 1.0/(G - 1.0), pVp);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -198,5 +202,21 @@ void Simulation::ReplacePressureWithEnergy()
       ReplacePressureWithEnergySingle(i, pState, 1.0/(G - 1.0), pVp);
   }
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::ReplacePressureWithEnergy();
+template void Simulation<real, CL_BURGERS>::ReplacePressureWithEnergy();
+template void Simulation<real3, CL_CART_ISO>::ReplacePressureWithEnergy();
+template void Simulation<real4, CL_CART_EULER>::ReplacePressureWithEnergy();
+
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::ReplaceEnergyWithPressure();
+template void Simulation<real, CL_BURGERS>::ReplaceEnergyWithPressure();
+template void Simulation<real3, CL_CART_ISO>::ReplaceEnergyWithPressure();
+template void Simulation<real4, CL_CART_EULER>::ReplaceEnergyWithPressure();
 
 }  // namespace astrix

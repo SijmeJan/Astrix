@@ -271,6 +271,7 @@ Kernel calculating triangle-based and vertex-based operators for the internal en
  \param *pTriangleOperator pointer to triangle-based operator (output).*/
 // #########################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devCalcOperatorEnergy(int nVertex, int nTriangle,
                       int3 *pTv, real G, real3 *triL,
@@ -328,6 +329,7 @@ devCalcErrorEstimate(int nTriangle, int nVertex, int3 *pTv,
 \param G Ratio of specific heats*/
 //##############################################################################
 
+template<class realNeq, ConservationLaw CL>
 void Mesh::CalcErrorEstimate(Array<realNeq> *vertexState, real G)
 {
   const real zero = (real) 0.0;
@@ -375,10 +377,10 @@ void Mesh::CalcErrorEstimate(Array<realNeq> *vertexState, real G)
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devCalcOperatorEnergy,
+                                       devCalcOperatorEnergy<realNeq, CL>,
                                        (size_t) 0, 0);
 
-    devCalcOperatorEnergy<<<nBlocks, nThreads>>>
+    devCalcOperatorEnergy<realNeq, CL><<<nBlocks, nThreads>>>
       (nVertex, nTriangle, pTv, G, triL,
        pTn1, pTn2, pTn3,
        pVertexArea, state,
@@ -421,5 +423,23 @@ void Mesh::CalcErrorEstimate(Array<realNeq> *vertexState, real G)
   delete vertexOperator;
   delete triangleOperator;
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void
+Mesh::CalcErrorEstimate<real, CL_ADVECT>(Array<real> *vertexState,
+                                         real G);
+template void
+Mesh::CalcErrorEstimate<real, CL_BURGERS>(Array<real> *vertexState,
+                                          real G);
+template void
+Mesh::CalcErrorEstimate<real3, CL_CART_ISO>(Array<real3> *vertexState,
+                                            real G);
+template void
+Mesh::CalcErrorEstimate<real4, CL_CART_EULER>(Array<real4> *vertexState,
+                                              real G);
+
 
 }  // namespace astrix

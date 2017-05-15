@@ -32,6 +32,7 @@ namespace astrix {
 \param *vertexState Pointer to state vector*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 void Morton::Order(Connectivity * const connectivity,
                    Array<int> * const triangleWantRefine,
                    Array<realNeq> * const vertexState)
@@ -68,7 +69,7 @@ void Morton::Order(Connectivity * const connectivity,
   temp = new nvtxEvent("Vertices", 3);
 
   // Reorder vertices
-  OrderVertex(connectivity, vertexState);
+  OrderVertex<realNeq, CL>(connectivity, vertexState);
 
   delete temp;
   temp = new nvtxEvent("Triangles", 4);
@@ -85,5 +86,27 @@ void Morton::Order(Connectivity * const connectivity,
   delete temp;
   delete nvtxMorton;
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void
+Morton::Order<real, CL_ADVECT>(Connectivity * const connectivity,
+                               Array<int> * const triangleWantRefine,
+                               Array<real> * const vertexState);
+template void
+Morton::Order<real, CL_BURGERS>(Connectivity * const connectivity,
+                                Array<int> * const triangleWantRefine,
+                                Array<real> * const vertexState);
+template void
+Morton::Order<real3, CL_CART_ISO>(Connectivity * const connectivity,
+                                 Array<int> * const triangleWantRefine,
+                                 Array<real3> * const vertexState);
+template void
+Morton::Order<real4, CL_CART_EULER>(Connectivity * const connectivity,
+                                   Array<int> * const triangleWantRefine,
+                                   Array<real4> * const vertexState);
+
 
 }  // namespace astrix

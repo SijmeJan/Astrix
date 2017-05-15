@@ -32,6 +32,7 @@ namespace astrix {
 \param specificHeatRatio Ratio of specific heats*/
 //##############################################################################
 
+template<class realNeq, ConservationLaw CL>
 void Refine::SplitSegment(Connectivity * const connectivity,
                           const MeshParameter *meshParameter,
                           const Predicates *predicates,
@@ -124,19 +125,19 @@ void Refine::SplitSegment(Connectivity * const connectivity,
     vertexCoordinatesAdd->SetSingleValue(X, 0);
 
     if (vertexState != 0)
-      InterpolateState(connectivity,
-                       meshParameter,
-                       vertexState,
-                       triangleWantRefine,
-                       specificHeatRatio);
+      InterpolateState<realNeq, CL>(connectivity,
+                                    meshParameter,
+                                    vertexState,
+                                    triangleWantRefine,
+                                    specificHeatRatio);
 
     AddToPeriodic(connectivity, 1);
 
-    InsertVertices(connectivity,
-                   meshParameter,
-                   predicates,
-                   vertexState,
-                   triangleWantRefine);
+    InsertVertices<realNeq, CL>(connectivity,
+                                meshParameter,
+                                predicates,
+                                vertexState,
+                                triangleWantRefine);
   }
 
   delete elementAddOld;
@@ -144,5 +145,42 @@ void Refine::SplitSegment(Connectivity * const connectivity,
 
   delete nvtxSplitSegment;
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void
+Refine::SplitSegment<real, CL_ADVECT>(Connectivity * const connectivity,
+                                      const MeshParameter *meshParameter,
+                                      const Predicates *predicates,
+                                      Array<real> * const vertexState,
+                                      Array<int> * const triangleWantRefine,
+                                      const real specificHeatRatio,
+                                      const int nTriangleOld);
+template void
+Refine::SplitSegment<real, CL_BURGERS>(Connectivity * const connectivity,
+                                       const MeshParameter *meshParameter,
+                                       const Predicates *predicates,
+                                       Array<real> * const vertexState,
+                                       Array<int> * const triangleWantRefine,
+                                       const real specificHeatRatio,
+                                       const int nTriangleOld);
+template void
+Refine::SplitSegment<real3, CL_CART_ISO>(Connectivity * const connectivity,
+                                         const MeshParameter *meshParameter,
+                                         const Predicates *predicates,
+                                         Array<real3> * const vertexState,
+                                         Array<int> * const triangleWantRefine,
+                                         const real specificHeatRatio,
+                                         const int nTriangleOld);
+template void
+Refine::SplitSegment<real4, CL_CART_EULER>(Connectivity * const connectivity,
+                                           const MeshParameter *meshParameter,
+                                           const Predicates *predicates,
+                                           Array<real4> * const vertexState,
+                                           Array<int>* const triangleWantRefine,
+                                           const real specificHeatRatio,
+                                           const int nTriangleOld);
 
 }  // namespace astrix

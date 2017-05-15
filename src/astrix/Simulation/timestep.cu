@@ -39,6 +39,7 @@ namespace astrix {
 \param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
+template<ConservationLaw CL>
 __host__ __device__
 real FindMaxSignalSpeed(int t, int a, int b, int c,
                         real4 *pState, const real3* __restrict__ pTl,
@@ -125,6 +126,7 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
   return vmax;
 }
 
+template<ConservationLaw CL>
 __host__ __device__
 real FindMaxSignalSpeed(int t, int a, int b, int c,
                         real3 *pState, const real3* __restrict__ pTl,
@@ -186,6 +188,7 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
   return vmax;
 }
 
+template<ConservationLaw CL>
 __host__ __device__
 real FindMaxSignalSpeed(int t, int a, int b, int c,
                         real *pState, const real3* __restrict__ pTl,
@@ -196,13 +199,13 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
   real tl2 = pTl[t].y;
   real tl3 = pTl[t].z;
 
-#if BURGERS == 1
-  real vmax = max(fabs(pState[a]), max(fabs(pState[b]), fabs(pState[c])));
-  return vmax*max(tl1, max(tl2, tl3));
-#else
-  // Scalar advection with velocity unity
-  return 1.0*max(tl1, max(tl2, tl3));
-#endif
+  if (CL == CL_BURGERS) {
+    real vmax = max(fabs(pState[a]), max(fabs(pState[b]), fabs(pState[c])));
+    return vmax*max(tl1, max(tl2, tl3));
+  } else {
+    // Scalar advection with velocity unity
+    return 1.0*max(tl1, max(tl2, tl3));
+  }
 }
 
 //######################################################################
@@ -219,6 +222,7 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
 \param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __host__ __device__
 void CalcVmaxSingle(int t, const int3* __restrict__ pTv, realNeq *pState,
                     const real3* __restrict__ pTl, real *pVts,
@@ -234,7 +238,7 @@ void CalcVmaxSingle(int t, const int3* __restrict__ pTv, realNeq *pState,
   while (b < 0) b += nVertex;
   while (c < 0) c += nVertex;
 
-  real vMax = FindMaxSignalSpeed(t, a, b, c, pState, pTl, G, G1, pVp);
+  real vMax = FindMaxSignalSpeed<CL>(t, a, b, c, pState, pTl, G, G1, pVp);
 
   AtomicAdd(&pVts[a], vMax);
   AtomicAdd(&pVts[b], vMax);
@@ -259,6 +263,7 @@ void CalcVmaxSingle(int t, const int3* __restrict__ pTv, realNeq *pState,
 \param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devCalcVmax(int nTriangle, const int3* __restrict__ pTv, realNeq *pState,
             const real3* __restrict__ pTl, real *pVts,
@@ -268,7 +273,7 @@ devCalcVmax(int nTriangle, const int3* __restrict__ pTv, realNeq *pState,
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nTriangle) {
-    CalcVmaxSingle(n, pTv, pState, pTl, pVts, nVertex, G, G1, pVp);
+    CalcVmaxSingle<realNeq, CL>(n, pTv, pState, pTl, pVts, nVertex, G, G1, pVp);
 
     n += blockDim.x*gridDim.x;
   }
@@ -314,7 +319,8 @@ devCalcVertexTimeStep(int nVertex, real *pVts, const real *pVarea)
 /*! Calculate maximum possible time step.*/
 //######################################################################
 
-real Simulation::CalcVertexTimeStep()
+template <class realNeq, ConservationLaw CL>
+real Simulation<realNeq, CL>::CalcVertexTimeStep()
 {
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
@@ -345,14 +351,14 @@ real Simulation::CalcVertexTimeStep()
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devCalcVmax,
+                                       devCalcVmax<realNeq, CL>,
                                        (size_t) 0, 0);
 
     // Execute kernel...
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-    devCalcVmax<<<nBlocks, nThreads>>>
+    devCalcVmax<realNeq, CL><<<nBlocks, nThreads>>>
       (nTriangle, pTv, pState, pTl, pVts, nVertex, G, G - 1.0, pVp);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
@@ -366,7 +372,8 @@ real Simulation::CalcVertexTimeStep()
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     for (int n = 0; n < nTriangle; n++)
-      CalcVmaxSingle(n, pTv, pState, pTl, pVts, nVertex, G, G - 1.0, pVp);
+      CalcVmaxSingle<realNeq, CL>(n, pTv, pState, pTl, pVts,
+                                  nVertex, G, G - 1.0, pVp);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -429,5 +436,14 @@ real Simulation::CalcVertexTimeStep()
 
   return dt;
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template real Simulation<real, CL_ADVECT>::CalcVertexTimeStep();
+template real Simulation<real, CL_BURGERS>::CalcVertexTimeStep();
+template real Simulation<real3, CL_CART_ISO>::CalcVertexTimeStep();
+template real Simulation<real4, CL_CART_EULER>::CalcVertexTimeStep();
 
 }  // namespace astrix

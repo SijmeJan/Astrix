@@ -29,6 +29,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "./VTK/vtk.h"
 #include "./Param/simulationparameter.h"
 #include "./Diagnostics/diagnostics.h"
+#include "../Common/state.h"
 
 namespace astrix {
 
@@ -39,7 +40,8 @@ namespace astrix {
   from nSave.*/
 //#########################################################################
 
-void Simulation::Save()
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::Save()
 {
   nvtxEvent *nvtxSave = new nvtxEvent("Save", 3);
 
@@ -49,7 +51,7 @@ void Simulation::Save()
     char VTKname[15];
     snprintf(VTKname, sizeof(VTKname), "astrix%4.4d.vtk", nSave);
     VTK *vtk = new VTK();
-    vtk->Write(VTKname, mesh, vertexState->GetPointer());
+    vtk->Write<realNeq, CL>(VTKname, mesh, vertexState->GetPointer());
     delete vtk;
     ReplacePressureWithEnergy();
   }
@@ -74,25 +76,13 @@ void Simulation::Save()
   real *pMomy = momy->GetPointer();
   real *pEner = ener->GetPointer();
 
-#if N_EQUATION == 1
-  real *state = vertexState->GetHostPointer();
+  realNeq *pState = vertexState->GetHostPointer();
   for (int n = 0; n < nVertex; n++) {
-    pDens[n] = state[n];
-    pMomx[n] = 0.0;
-    pMomy[n] = 0.0;
-    pEner[n] = 0.0;
+    pDens[n] = state::GetDensity<realNeq, CL>(pState[n]);
+    pMomx[n] = state::GetMomX<realNeq, CL>(pState[n]);
+    pMomy[n] = state::GetMomY<realNeq, CL>(pState[n]);
+    pEner[n] = state::GetEnergy<realNeq, CL>(pState[n]);
   }
-#endif
-
-#if N_EQUATION == 4
-  real4 *state = vertexState->GetHostPointer();
-  for (int n = 0; n < nVertex; n++) {
-    pDens[n] = state[n].x;
-    pMomx[n] = state[n].y;
-    pMomy[n] = state[n].z;
-    pEner[n] = state[n].w;
-  }
-#endif
 
   char fname[13];
   int sizeOfData = sizeof(real);
@@ -183,7 +173,8 @@ void Simulation::Save()
   \param nRestore Save number to restore.*/
 //#########################################################################
 
-void Simulation::Restore(int nRestore)
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::Restore(int nRestore)
 {
   std::ifstream inFile;
   char fname[13];
@@ -307,21 +298,15 @@ void Simulation::Restore(int nRestore)
     throw std::runtime_error("");
   }
 
-#if N_EQUATION == 1
-  real *state = vertexState->GetHostPointer();
+  realNeq *pState = vertexState->GetHostPointer();
   for (int n = 0; n < nVertex; n++) {
-    state[n] = pDens[n];
+    state::SetDensity<realNeq, CL>(pState[n], pDens[n]);
+    state::SetMomX<realNeq, CL>(pState[n], pMomx[n]);
+    state::SetMomY<realNeq, CL>(pState[n], pMomy[n]);
+    state::SetEnergy<realNeq, CL>(pState[n], pEner[n]);
   }
-#endif
-#if N_EQUATION == 4
-  real4 *state = vertexState->GetHostPointer();
-  for (int n = 0; n < nVertex; n++) {
-    state[n].x = pDens[n];
-    state[n].y = pMomx[n];
-    state[n].z = pMomy[n];
-    state[n].w = pEner[n];
-  }
-#endif
+
+
   // Copy data to device
   if (cudaFlag == 1) vertexState->CopyToDevice();
 
@@ -343,10 +328,11 @@ void Simulation::Restore(int nRestore)
 /*! Do a fine grain save, i.e. write output files for certain global quantities but do not do a full data dump.*/
 //#########################################################################
 
-void Simulation::FineGrainSave()
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::FineGrainSave()
 {
-  Diagnostics<realNeq, CL_CART_EULER> *d  =
-    new Diagnostics<realNeq, CL_CART_EULER>(vertexState, vertexPotential, mesh);
+  Diagnostics<realNeq, CL> *d  =
+    new Diagnostics<realNeq, CL>(vertexState, vertexPotential, mesh);
   real *pResult = d->result->GetPointer();
 
   std::ofstream outFile;
@@ -375,7 +361,8 @@ void Simulation::FineGrainSave()
 /*! When restoring a previous dump, we must ensure that we start writing simulation.dat in the correct place. Upon return, the file simulation.dat has been stripped of any excess lines, and nSaveFine is set to the correct number.*/
 //#########################################################################
 
-void Simulation::RestoreFine()
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::RestoreFine()
 {
   // Copy simulation.dat into temp.dat
   std::ifstream src("simulation.dat", std::ios::binary);
@@ -445,5 +432,35 @@ void Simulation::RestoreFine()
   // Delete temporary file
   std::remove("temp.dat");
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::Save();
+template void Simulation<real, CL_BURGERS>::Save();
+template void Simulation<real3, CL_CART_ISO>::Save();
+template void Simulation<real4, CL_CART_EULER>::Save();
+
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::Restore(int nRestore);
+template void Simulation<real, CL_BURGERS>::Restore(int nRestore);
+template void Simulation<real3, CL_CART_ISO>::Restore(int nRestore);
+template void Simulation<real4, CL_CART_EULER>::Restore(int nRestore);
+
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::FineGrainSave();
+template void Simulation<real, CL_BURGERS>::FineGrainSave();
+template void Simulation<real3, CL_CART_ISO>::FineGrainSave();
+template void Simulation<real4, CL_CART_EULER>::FineGrainSave();
+
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::RestoreFine();
+template void Simulation<real, CL_BURGERS>::RestoreFine();
+template void Simulation<real3, CL_CART_ISO>::RestoreFine();
+template void Simulation<real4, CL_CART_EULER>::RestoreFine();
 
 }  // namespace astrix

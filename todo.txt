@@ -1,4 +1,4 @@
-comment diagnostics.cu
+comment diagnostics.cu, state.h
 test RT
 
 new parallel flip selection test?

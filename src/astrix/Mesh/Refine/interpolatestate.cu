@@ -56,6 +56,7 @@ Use linear interpolation to determine state at new vertex.
 \param *pParam Pointer to initialised Predicates parameter vector*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __host__ __device__
 void InterpolateSingle(int t, int e, int indexInVertexArray, realNeq *state,
                        int3 *pTv, int2 *pEt, real2 *pVc,
@@ -98,16 +99,6 @@ void InterpolateSingle(int t, int e, int indexInVertexArray, realNeq *state,
 
   state[indexInVertexArray] =
     (A*state[v1] + B*state[v2] + C*state[v3])/T;
-  /*
-  state[indexInVertexArray].x =
-    (A*state[v1].x + B*state[v2].x + C*state[v3].x)/T;
-  state[indexInVertexArray].y =
-    (A*state[v1].y + B*state[v2].y + C*state[v3].y)/T;
-  state[indexInVertexArray].z =
-    (A*state[v1].z + B*state[v2].z + C*state[v3].z)/T;
-  state[indexInVertexArray].w =
-    (A*state[v1].w + B*state[v2].w + C*state[v3].w)/T;
-  */
 }
 
 //######################################################################
@@ -138,6 +129,7 @@ Use linear interpolation to determine state at new vertices.
 \param Py Periodic domain size y*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devInterpolateState(int nRefine, int *pElementAdd, realNeq *state,
                     int nVertex, int nTriangle, real2 *pVcAdd,
@@ -154,10 +146,10 @@ devInterpolateState(int nRefine, int *pElementAdd, realNeq *state,
       t = -1;
     }
 
-    InterpolateSingle(t, e, i + nVertex, state,
-                      pTv, pEt, pVc,
-                      pVcAdd[i].x, pVcAdd[i].y, wantRefine, G,
-                      nVertex, Px, Py);
+    InterpolateSingle<realNeq, CL>(t, e, i + nVertex, state,
+                                   pTv, pEt, pVc,
+                                   pVcAdd[i].x, pVcAdd[i].y, wantRefine, G,
+                                   nVertex, Px, Py);
 
     i += blockDim.x*gridDim.x;
   }
@@ -170,6 +162,7 @@ devInterpolateState(int nRefine, int *pElementAdd, realNeq *state,
 \param specificHeatRatio Ratio of specific heats*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 void Refine::InterpolateState(Connectivity * const connectivity,
                               const MeshParameter *meshParameter,
                               Array<realNeq> * const vertexState,
@@ -202,10 +195,10 @@ void Refine::InterpolateState(Connectivity * const connectivity,
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devInterpolateState,
+                                       devInterpolateState<realNeq, CL>,
                                        (size_t) 0, 0);
 
-    devInterpolateState<<<nBlocks, nThreads>>>
+    devInterpolateState<realNeq, CL><<<nBlocks, nThreads>>>
       (nRefine, pElementAdd, state,
        nVertex, nTriangle, pVcAdd, pVc, pTv, pEt,
        pWantRefine, specificHeatRatio, Px, Py);
@@ -221,11 +214,45 @@ void Refine::InterpolateState(Connectivity * const connectivity,
         t = -1;
       }
 
-      InterpolateSingle(t, e, n + nVertex, state,
-                        pTv, pEt, pVc, pVcAdd[n].x, pVcAdd[n].y,
-                        pWantRefine, specificHeatRatio, nVertex, Px, Py);
+      InterpolateSingle<realNeq, CL>(t, e, n + nVertex, state,
+                                     pTv, pEt, pVc, pVcAdd[n].x, pVcAdd[n].y,
+                                     pWantRefine, specificHeatRatio,
+                                     nVertex, Px, Py);
     }
   }
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void
+Refine::InterpolateState<real,
+                         CL_ADVECT>(Connectivity * const connectivity,
+                                    const MeshParameter *meshParameter,
+                                    Array<real> * const vertexState,
+                                    Array<int> * const triangleWantRefine,
+                                    const real specificHeatRatio);
+template void
+Refine::InterpolateState<real,
+                         CL_BURGERS>(Connectivity * const connectivity,
+                                     const MeshParameter *meshParameter,
+                                     Array<real> * const vertexState,
+                                     Array<int> * const triangleWantRefine,
+                                     const real specificHeatRatio);
+template void
+Refine::InterpolateState<real3,
+                         CL_CART_ISO>(Connectivity * const connectivity,
+                                      const MeshParameter *meshParameter,
+                                      Array<real3> * const vertexState,
+                                      Array<int> * const triangleWantRefine,
+                                      const real specificHeatRatio);
+template void
+Refine::InterpolateState<real4,
+                         CL_CART_EULER>(Connectivity * const connectivity,
+                                        const MeshParameter *meshParameter,
+                                        Array<real4> * const vertexState,
+                                        Array<int> * const triangleWantRefine,
+                                        const real specificHeatRatio);
 
 }  // namespace astrix

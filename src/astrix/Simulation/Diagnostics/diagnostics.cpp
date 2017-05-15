@@ -59,15 +59,32 @@ Diagnostics<T, CL>::~Diagnostics()
   delete result;
 }
 
-//###################################################
+//##############################################################################
 // Instantiate
-//###################################################
+//##############################################################################
 
 template
-Diagnostics<double4, CL_CART_EULER>::Diagnostics(Array<double4> *state,
-                                                 Array<real> *pot,
-                                                 Mesh *mesh);
+Diagnostics<real, CL_ADVECT>::Diagnostics(Array<real> *state,
+                                          Array<real> *pot,
+                                          Mesh *mesh);
 template
-Diagnostics<double4, CL_CART_EULER>::~Diagnostics();
+Diagnostics<real, CL_BURGERS>::Diagnostics(Array<real> *state,
+                                           Array<real> *pot,
+                                           Mesh *mesh);
+template
+Diagnostics<real3, CL_CART_ISO>::Diagnostics(Array<real3> *state,
+                                             Array<real> *pot,
+                                             Mesh *mesh);
+template
+Diagnostics<real4, CL_CART_EULER>::Diagnostics(Array<real4> *state,
+                                               Array<real> *pot,
+                                               Mesh *mesh);
+
+//##############################################################################
+
+template Diagnostics<real, CL_ADVECT>::~Diagnostics();
+template Diagnostics<real, CL_BURGERS>::~Diagnostics();
+template Diagnostics<real3, CL_CART_ISO>::~Diagnostics();
+template Diagnostics<real4, CL_CART_EULER>::~Diagnostics();
 
 }  // namespace astrix

@@ -180,7 +180,7 @@ void Mesh::Init(const char *fileName, int restartNumber)
 
       try {
         // Refine mesh to base resolution
-        ImproveQuality(0, 0.0, 0);
+        ImproveQuality<real, CL_ADVECT>((Array<real> *)0, 0.0, 0);
       }
       catch (...) {
         std::cout << "Error refining initial mesh" << std::endl;

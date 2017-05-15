@@ -94,6 +94,7 @@ This kernel function calculates Roe's parameter vector Z for all vertices in the
 \param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devCalcParamVec(int nVertex, realNeq *pState, realNeq *pVz, real G1, real *pVp)
 {
@@ -113,7 +114,8 @@ devCalcParamVec(int nVertex, realNeq *pState, realNeq *pVz, real G1, real *pVp)
   \param useOldFlag flag indicating whether to use \a vertexStateOld (1) or \a vertexState (any other value).*/
 //##############################################################################
 
-void Simulation::CalculateParameterVector(int useOldFlag)
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::CalculateParameterVector(int useOldFlag)
 {
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
@@ -140,14 +142,14 @@ void Simulation::CalculateParameterVector(int useOldFlag)
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devCalcParamVec,
+                                       devCalcParamVec<realNeq, CL>,
                                        (size_t) 0, 0);
 
     // Execute kernel...
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-    devCalcParamVec<<<nBlocks, nThreads>>>
+    devCalcParamVec<realNeq, CL><<<nBlocks, nThreads>>>
       (nVertex, pState, pVz, G - 1.0, pVp);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
@@ -172,5 +174,18 @@ void Simulation::CalculateParameterVector(int useOldFlag)
   WriteProfileFile("Param.prof2", nVertex, elapsedTime, cudaFlag);
 #endif
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void
+Simulation<real, CL_ADVECT>::CalculateParameterVector(int useOldFlag);
+template void
+Simulation<real, CL_BURGERS>::CalculateParameterVector(int useOldFlag);
+template void
+Simulation<real3, CL_CART_ISO>::CalculateParameterVector(int useOldFlag);
+template void
+Simulation<real4, CL_CART_EULER>::CalculateParameterVector(int useOldFlag);
 
 }  // namespace astrix

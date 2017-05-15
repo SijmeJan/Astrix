@@ -47,6 +47,7 @@ namespace astrix {
 \param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
+template<ConservationLaw CL>
 __host__ __device__
 void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
                             const int3* __restrict__ pTv,
@@ -457,6 +458,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   pTresTot[n].w += tl3*ResLDA;
 }
 
+template<ConservationLaw CL>
 __host__ __device__
 void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
                             const int3* __restrict__ pTv,
@@ -772,6 +774,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   pTresTot[n].z += tl3*ResLDA;
 }
 
+template<ConservationLaw CL>
 __host__ __device__
 void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
                             const int3* __restrict__ pTv,
@@ -815,18 +818,17 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   dW2 *= Adt;
 
   // Average parameter vector
-#if BURGERS == 1
-  real Zv0 = pVz[vs1];
-  real Zv1 = pVz[vs2];
-  real Zv2 = pVz[vs3];
-
-  real Z0 = (Zv0 + Zv1 + Zv2)*onethird;
-  real vx = Z0;
-  real vy = Z0;
-#else
   real vx = (real) 1.0;
   real vy = zero;
-#endif
+  if (CL == CL_BURGERS) {
+    real Zv0 = pVz[vs1];
+    real Zv1 = pVz[vs2];
+    real Zv2 = pVz[vs3];
+
+    real Z0 = (Zv0 + Zv1 + Zv2)*onethird;
+    vx = Z0;
+    vy = Z0;
+  }
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate N
@@ -935,6 +937,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
 \param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devMassMatrixF34Tot(int nTriangle, real dt, int massMatrix,
                     const int3* __restrict__ pTv,
@@ -947,9 +950,9 @@ devMassMatrixF34Tot(int nTriangle, real dt, int massMatrix,
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nTriangle) {
-    MassMatrixF34TotSingle(n, dt, massMatrix, pTv, pVz, pDstate,
-                           pTresTot, pTn1, pTn2, pTn3, pTl,
-                           nVertex, G, G1, G2, pVp);
+    MassMatrixF34TotSingle<CL>(n, dt, massMatrix, pTv, pVz, pDstate,
+                               pTresTot, pTn1, pTn2, pTn3, pTl,
+                               nVertex, G, G1, G2, pVp);
 
     // Next triangle
     n += blockDim.x*gridDim.x;
@@ -960,7 +963,8 @@ devMassMatrixF34Tot(int nTriangle, real dt, int massMatrix,
 /*! Calculate mass matrix contribution F3/F4 to total residual.*/
 //######################################################################
 
-void Simulation::MassMatrixF34Tot(real dt, int massMatrix)
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::MassMatrixF34Tot(real dt, int massMatrix)
 {
   int nTriangle = mesh->GetNTriangle();
   int nVertex = mesh->GetNVertex();
@@ -984,10 +988,10 @@ void Simulation::MassMatrixF34Tot(real dt, int massMatrix)
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devMassMatrixF34Tot,
+                                       devMassMatrixF34Tot<realNeq, CL>,
                                        (size_t) 0, 0);
 
-    devMassMatrixF34Tot<<<nBlocks, nThreads>>>
+    devMassMatrixF34Tot<realNeq, CL><<<nBlocks, nThreads>>>
       (nTriangle, dt, massMatrix, pTv, pVz, pDstate,
        pTresTot, pTn1, pTn2, pTn3, pTl, nVertex,
        G, G - 1.0, G - 2.0, pVp);
@@ -997,10 +1001,23 @@ void Simulation::MassMatrixF34Tot(real dt, int massMatrix)
 
   } else {
     for (int n = 0; n < nTriangle; n++)
-      MassMatrixF34TotSingle(n, dt, massMatrix, pTv, pVz, pDstate,
-                             pTresTot, pTn1, pTn2, pTn3, pTl, nVertex,
-                             G, G - 1.0, G - 2.0, pVp);
+      MassMatrixF34TotSingle<CL>(n, dt, massMatrix, pTv, pVz, pDstate,
+                                 pTresTot, pTn1, pTn2, pTn3, pTl, nVertex,
+                                 G, G - 1.0, G - 2.0, pVp);
   }
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void
+Simulation<real, CL_ADVECT>::MassMatrixF34Tot(real dt, int massMatrix);
+template void
+Simulation<real, CL_BURGERS>::MassMatrixF34Tot(real dt, int massMatrix);
+template void
+Simulation<real3, CL_CART_ISO>::MassMatrixF34Tot(real dt, int massMatrix);
+template void
+Simulation<real4, CL_CART_EULER>::MassMatrixF34Tot(real dt, int massMatrix);
 
 }  // namespace astrix

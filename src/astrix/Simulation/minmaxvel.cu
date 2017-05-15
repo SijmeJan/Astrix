@@ -32,6 +32,7 @@ namespace astrix {
 \param *pMinVel Pointer to maximum velocities (output)*/
 //#########################################################################
 
+template<ConservationLaw CL>
 __host__ __device__
 void FillMinMaxVelocitySingle(unsigned int i, real4 *pState,
                               real *pMinVel, real *pMaxVel)
@@ -56,6 +57,7 @@ void FillMinMaxVelocitySingle(unsigned int i, real4 *pState,
   pMaxVel[i] = vMax;
 }
 
+template<ConservationLaw CL>
 __host__ __device__
 void FillMinMaxVelocitySingle(unsigned int i, real3 *pState,
                               real *pMinVel, real *pMaxVel)
@@ -80,17 +82,18 @@ void FillMinMaxVelocitySingle(unsigned int i, real3 *pState,
   pMaxVel[i] = vMax;
 }
 
+template<ConservationLaw CL>
 __host__ __device__
 void FillMinMaxVelocitySingle(unsigned int i, real *pState,
                               real *pMinVel, real *pMaxVel)
 {
-#if BURGERS == 1
-  pMinVel[i] = pState[i];
-  pMaxVel[i] = pState[i];
-#else
   pMinVel[i] = (real) 1.0;
   pMaxVel[i] = (real) 1.0;
-#endif
+
+  if (CL == CL_BURGERS) {
+    pMinVel[i] = pState[i];
+    pMaxVel[i] = pState[i];
+  }
 }
 
 //#########################################################################
@@ -102,6 +105,7 @@ void FillMinMaxVelocitySingle(unsigned int i, real *pState,
 \param *pMinVel Pointer to maximum velocities (output)*/
 //#########################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devFillMinMaxVelocity(unsigned int nVertex, realNeq *pState,
                       real *pMinVel, real *pMaxVel)
@@ -109,20 +113,18 @@ devFillMinMaxVelocity(unsigned int nVertex, realNeq *pState,
   unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nVertex) {
-    FillMinMaxVelocitySingle(i, pState, pMinVel, pMaxVel);
+    FillMinMaxVelocitySingle<CL>(i, pState, pMinVel, pMaxVel);
 
     i += gridDim.x*blockDim.x;
   }
 }
 
 //#########################################################################
-/*! \brief Find minimum and maximum velocity on Mesh
-
-\param minVel Will contain minimum velocity (output)
-\param maxVel Will contain maximum velocity (output)*/
+/*! Returns minimum and maximum velocity on Mesh*/
 //#########################################################################
 
-void Simulation::FindMinMaxVelocity(real& minVel, real& maxVel)
+template <class realNeq, ConservationLaw CL>
+real2 Simulation<realNeq, CL>::FindMinMaxVelocity()
 {
   unsigned int nVertex = mesh->GetNVertex();
 
@@ -143,24 +145,36 @@ void Simulation::FindMinMaxVelocity(real& minVel, real& maxVel)
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devFillMinMaxVelocity,
+                                       devFillMinMaxVelocity<realNeq, CL>,
                                        (size_t) 0, 0);
 
-    devFillMinMaxVelocity<<<nBlocks, nThreads>>>
+    devFillMinMaxVelocity<realNeq, CL><<<nBlocks, nThreads>>>
       (nVertex, pState, pMinVel, pMaxVel);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (unsigned int i = 0; i < nVertex; i++)
-      FillMinMaxVelocitySingle(i, pState, pMinVel, pMaxVel);
+      FillMinMaxVelocitySingle<CL>(i, pState, pMinVel, pMaxVel);
   }
 
   // Find minimum/maximum velocity
-  minVel = minVelocity->Minimum();
-  maxVel = maxVelocity->Maximum();
+  real2 minmaxvel;
+  minmaxvel.x = minVelocity->Minimum();
+  minmaxvel.y = maxVelocity->Maximum();
 
   delete minVelocity;
   delete maxVelocity;
+
+  return minmaxvel;
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template real2 Simulation<real, CL_ADVECT>::FindMinMaxVelocity();
+template real2 Simulation<real, CL_BURGERS>::FindMinMaxVelocity();
+template real2 Simulation<real3, CL_CART_ISO>::FindMinMaxVelocity();
+template real2 Simulation<real4, CL_CART_EULER>::FindMinMaxVelocity();
 
 }  // namespace astrix

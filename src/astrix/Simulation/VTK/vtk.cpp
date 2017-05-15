@@ -21,6 +21,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <fstream>
 
 #include "../../Common/definitions.h"
+#include "../../Common/state.h"
 #include "../../Mesh/mesh.h"
 #include "./vtk.h"
 
@@ -57,7 +58,8 @@ VTK::~VTK()
 */
 //#########################################################################
 
-void VTK::Write(const char *fileName, Mesh *mesh, realNeq *state)
+template<class realNeq, ConservationLaw CL>
+void VTK::Write(const char *fileName, Mesh *mesh, realNeq *pState)
 {
   int nVertex = mesh->GetNVertex();
   int nTriangle = mesh->GetNTriangle();
@@ -90,9 +92,14 @@ void VTK::Write(const char *fileName, Mesh *mesh, realNeq *state)
   // Coordinates of vertices
   float *pts = new float[3*nPoints];
 
-#if N_EQUATION == 4
   // Density, velocity, pressure
   int nVars = 3;
+  // Just scalar
+  if (CL == CL_ADVECT || CL == CL_BURGERS)
+    nVars = 1;
+  // Density, velocity
+  if (CL == CL_CART_ISO)
+    nVars = 2;
   int varDim[3] = {1, 3, 1};
   int centering[3] = {1, 1, 1};
   const char *varNames[3] = {"Density", "Velocity", "Pressure"};
@@ -102,32 +109,6 @@ void VTK::Write(const char *fileName, Mesh *mesh, realNeq *state)
   float *var3 = new float[nPoints];
 
   float *vars[3] = {var1, var2, var3};
-#endif
-
-#if N_EQUATION == 3
-  // Density, velocity
-  int nVars = 2;
-  int varDim[3] = {1, 3};
-  int centering[3] = {1, 1};
-  const char *varNames[3] = {"Density", "Velocity"};
-
-  float *var1 = new float[nPoints];
-  float *var2 = new float[3*nPoints];
-
-  float *vars[3] = {var1, var2};
-#endif
-
-#if N_EQUATION == 1
-  // Output just scalar
-  int nVars = 1;
-  int varDim[1] = {1};
-  int centering[1] = {1};
-  const char *varNames[1] = {"Scalar"};
-
-  float *var1 = new float[nPoints];
-
-  float *vars[1] = {var1};
-#endif
 
   for (int i = 0; i < nPoints; i++) {
     int a = sortConn[i];
@@ -166,22 +147,11 @@ void VTK::Write(const char *fileName, Mesh *mesh, realNeq *state)
     while (j >= nVertex) j -= nVertex;
     while (j < 0) j += nVertex;
 
-#if N_EQUATION == 4
-    var1[i] = state[j].x;
-    var2[3*i + 0] = state[j].y/state[j].x;
-    var2[3*i + 1] = state[j].z/state[j].x;
+    var1[i] = state::GetDensity<realNeq, CL>(pState[j]);
+    var2[3*i + 0] = state::GetMomX<realNeq, CL>(pState[j])/var1[i];
+    var2[3*i + 1] = state::GetMomY<realNeq, CL>(pState[j])/var1[i];
     var2[3*i + 2] = 0.0;
-    var3[i] = state[j].w;
-#endif
-#if N_EQUATION == 3
-    var1[i] = state[j].x;
-    var2[3*i + 0] = state[j].y/state[j].x;
-    var2[3*i + 1] = state[j].z/state[j].y;
-    var2[3*i + 2] = 0.0;
-#endif
-#if N_EQUATION == 1
-    var1[i] = state[j];
-#endif
+    var3[i] = state::GetEnergy<realNeq, CL>(pState[j]);
   }
 
   // Now adjust connectivity for added points
@@ -215,13 +185,8 @@ void VTK::Write(const char *fileName, Mesh *mesh, realNeq *state)
 
   delete[] pts;
   delete[] var1;
-#if N_EQUATION == 4
   delete[] var2;
   delete[] var3;
-#endif
-#if N_EQUATION == 3
-  delete[] var2;
-#endif
 }
 
 //#########################################################################
@@ -497,5 +462,22 @@ void VTK::writeData(const char *fileName, int nPoints, float *pts,
   // Close file
   outFile.close();
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void VTK::Write<real, CL_ADVECT>(const char *fileName,
+                                          Mesh *mesh,
+                                          real *state);
+template void VTK::Write<real, CL_BURGERS>(const char *fileName,
+                                           Mesh *mesh,
+                                           real *state);
+template void VTK::Write<real3, CL_CART_ISO>(const char *fileName,
+                                             Mesh *mesh,
+                                             real3 *state);
+template void VTK::Write<real4, CL_CART_EULER>(const char *fileName,
+                                               Mesh *mesh,
+                                               real4 *state);
 
 }  // namespace astrix

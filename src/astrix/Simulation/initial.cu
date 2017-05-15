@@ -514,37 +514,6 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   }
 
   if (problemDef == PROBLEM_VORTEX) {
-#if BURGERS == 1
-    real x = vertX;
-    real y = vertY;
-
-    real u0 = 1.0;
-    real u1 = 0.0;
-    real u2 = 0.0;
-    real amp = 0.001;
-
-    for (int i = 0; i < 2; i++) {
-      for (int j = 0; j < 2; j++) {
-        // Start center location
-        real xStart = -1.0 + (real)i;
-        real yStart = -1.0 + (real)j;
-
-        // Current centre location
-        real cx = xStart + time;
-        real cy = yStart + time;
-
-        real r = sqrt(Sq(x - cx) + Sq(y - cy));
-
-        if (r < 0.25) {
-          u1 += amp*cos(2.0*M_PI*r)*cos(2.0*M_PI*r);
-          u2 += amp*amp*4.0*M_PI*time*(x + y)*cos(2.0*M_PI*r)*
-            cos(2.0*M_PI*r)*cos(2.0*M_PI*r)*sin(2.0*M_PI*r)/(r + 1.0e-10);
-        }
-      }
-    }
-
-    dens = u0 + u1 + u2;
-#else
     real half = (real) 0.5;
 
     for (int i = -1; i < 2; i++) {
@@ -558,7 +527,6 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
 
       if (r <= (real) 0.25) dens += Sq(cos(2.0*M_PI*r));
     }
-#endif
   }
 
   if (problemDef == PROBLEM_RIEMANN) {
@@ -590,6 +558,7 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
 \param G Ratio of specific heats*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devSetInitial(int nVertex, const real2 *pVc, ProblemDefinition problemDef,
               real *pVertexPotential, realNeq *state,
@@ -610,7 +579,8 @@ devSetInitial(int nVertex, const real2 *pVc, ProblemDefinition problemDef,
 /*! Set initial conditions for all vertices based on problemSpecification*/
 //######################################################################
 
-void Simulation::SetInitial(real time)
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::SetInitial(real time)
 {
   int nVertex = mesh->GetNVertex();
 
@@ -629,10 +599,10 @@ void Simulation::SetInitial(real time)
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devSetInitial,
+                                       devSetInitial<realNeq, CL>,
                                        (size_t) 0, 0);
 
-    devSetInitial<<<nBlocks, nThreads>>>
+    devSetInitial<realNeq, CL><<<nBlocks, nThreads>>>
       (nVertex, pVc, p, pVertexPotential, state, G, time, Px, Py);
 
     gpuErrchk( cudaPeekAtLastError() );
@@ -646,7 +616,7 @@ void Simulation::SetInitial(real time)
     // Add KH eigenvector
     if (p == PROBLEM_KH)
       KHAddEigenVector();
-    //if (p == PROBLEM_SOURCE && N_EQUATION == 4)
+    //if (p == PROBLEM_SOURCE && CL == CL_CART_EULER)
     //RTAddEigenVector();
   }
   catch (...) {
@@ -655,5 +625,14 @@ void Simulation::SetInitial(real time)
               << std::endl;
   }
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::SetInitial(real time);
+template void Simulation<real, CL_BURGERS>::SetInitial(real time);
+template void Simulation<real3, CL_CART_ISO>::SetInitial(real time);
+template void Simulation<real4, CL_CART_EULER>::SetInitial(real time);
 
 }  // namespace astrix

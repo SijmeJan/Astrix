@@ -96,6 +96,7 @@ void FlagUnphysicalVertex(const int v, real *pState, real *pVp,
 \param G1 Ratio of specific heats - 1*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devFlagUnphysical(const int nVertex, realNeq *pState, real *pVp,
                   int *pVertexUnphysicalFlag, const real G1)
@@ -116,7 +117,8 @@ devFlagUnphysical(const int nVertex, realNeq *pState, real *pVp,
   \param *vertexUnphysicalFlag Pointer to Array of flags indicating whether state is physical (0) or unphysical (1) (output)*/
 //######################################################################
 
-void Simulation::FlagUnphysical(Array<int> *vertexUnphysicalFlag)
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::FlagUnphysical(Array<int> *vertexUnphysicalFlag)
 {
   // Total number of vertices in Mesh
   int nVertex = mesh->GetNVertex();
@@ -137,11 +139,11 @@ void Simulation::FlagUnphysical(Array<int> *vertexUnphysicalFlag)
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devFlagUnphysical,
+                                       devFlagUnphysical<realNeq, CL>,
                                        (size_t) 0, 0);
 
     // Execute kernel...
-    devFlagUnphysical<<<nBlocks, nThreads>>>
+    devFlagUnphysical<realNeq, CL><<<nBlocks, nThreads>>>
       (nVertex, state, pVp, pVertexUnphysicalFlag, G - 1.0);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -150,5 +152,18 @@ void Simulation::FlagUnphysical(Array<int> *vertexUnphysicalFlag)
       FlagUnphysicalVertex(v, state, pVp, pVertexUnphysicalFlag, G - 1.0);
   }
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::
+FlagUnphysical(Array<int> *vertexUnphysicalFlag);
+template void Simulation<real, CL_BURGERS>::
+FlagUnphysical(Array<int> *vertexUnphysicalFlag);
+template void Simulation<real3, CL_CART_ISO>::
+FlagUnphysical(Array<int> *vertexUnphysicalFlag);
+template void Simulation<real4, CL_CART_EULER>::
+FlagUnphysical(Array<int> *vertexUnphysicalFlag);
 
 }  // namespace astrix

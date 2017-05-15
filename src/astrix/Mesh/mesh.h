@@ -45,10 +45,12 @@ class Mesh
   ~Mesh();
 
   //! Refine mesh
+  template<class realNeq, ConservationLaw CL>
   int ImproveQuality(Array<realNeq> *vertexState,
                      real specificHeatRatio,
                      int nTimeStep);
   //! Coarsen mesh
+  template<class realNeq, ConservationLaw CL>
   int RemoveVertices(Array<realNeq> *vertexState,
                      real specificHeatRatio,
                      int nTimeStep);
@@ -169,8 +171,10 @@ class Mesh
   // Functions for adaptive Mesh
 
   //! Calculate estimate of discretization error
+  template<class realNeq, ConservationLaw CL>
   void CalcErrorEstimate(Array<realNeq> *vertexState, real G);
   //! Check which triangles want refining based of state
+  template<class realNeq, ConservationLaw CL>
   void FillWantRefine(Array<realNeq> *vertexState, real specificHeatRatio);
 
   // Debugging functions

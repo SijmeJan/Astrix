@@ -32,7 +32,8 @@ namespace astrix {
 \param *fileName Pointer to input file name*/
 //#########################################################################
 
-void SimulationParameter::ReadFromFile(const char *fileName)
+void SimulationParameter::ReadFromFile(const char *fileName,
+                                       ConservationLaw CL)
 {
   // Open input file
   std::ifstream inFile(fileName);
@@ -145,7 +146,7 @@ void SimulationParameter::ReadFromFile(const char *fileName)
 
   // Check validity of parameters
   try {
-    CheckValidity();
+    CheckValidity(CL);
   }
   catch(...) {
     std::cout << "Some Simulation parameters not valid, exiting..."

@@ -89,7 +89,8 @@ devCalcPotential(int nVertex, ProblemDefinition problemDef,
 coordinates and problem definition.*/
 //#########################################################################
 
-void Simulation::CalcPotential()
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::CalcPotential()
 {
   int nVertex = mesh->GetNVertex();
   real *vertPot = vertexPotential->GetPointer();
@@ -115,5 +116,14 @@ void Simulation::CalcPotential()
       CalcPotentialSingle(i, p, pVc, vertPot);
   }
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::CalcPotential();
+template void Simulation<real, CL_BURGERS>::CalcPotential();
+template void Simulation<real3, CL_CART_ISO>::CalcPotential();
+template void Simulation<real4, CL_CART_EULER>::CalcPotential();
 
 }  // namespace astrix

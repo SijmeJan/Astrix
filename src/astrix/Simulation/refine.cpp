@@ -30,7 +30,8 @@ namespace astrix {
 until no more refinement is needed*/
 //##############################################################################
 
-void Simulation::Refine()
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::Refine()
 {
   int ret = 0;
 
@@ -38,7 +39,7 @@ void Simulation::Refine()
   real G = simulationParameter->specificHeatRatio;
 
   try {
-    ret = mesh->ImproveQuality(vertexState, G, nTimeStep);
+    ret = mesh->ImproveQuality<realNeq, CL>(vertexState, G, nTimeStep);
   }
   catch (...) {
     std::cout << "Error refining mesh" << std::endl;
@@ -59,7 +60,7 @@ void Simulation::Refine()
 
     while (ret > 0) {
       try {
-        ret = mesh->ImproveQuality(vertexState, G, nTimeStep);
+        ret = mesh->ImproveQuality<realNeq, CL>(vertexState, G, nTimeStep);
       }
       catch (...) {
         std::cout << "Error refining mesh" << std::endl;
@@ -101,7 +102,8 @@ void Simulation::Refine()
 \param maxCycle Maximum number of coarsening cycles. If < 0, coarsen until no more triangles to do*/
 //##############################################################################
 
-void Simulation::Coarsen(int maxCycle)
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::Coarsen(int maxCycle)
 {
   int nCycle = 0;
   int finishedFlag = 0;
@@ -109,7 +111,7 @@ void Simulation::Coarsen(int maxCycle)
   real G = simulationParameter->specificHeatRatio;
 
   while (finishedFlag == 0) {
-    if (mesh->RemoveVertices(vertexState, G, nTimeStep) == 0)
+    if (mesh->RemoveVertices<realNeq, CL>(vertexState, G, nTimeStep) == 0)
       finishedFlag = 1;
     nCycle++;
     if (nCycle >= maxCycle && maxCycle >= 0)
@@ -139,5 +141,21 @@ void Simulation::Coarsen(int maxCycle)
   if (simulationParameter->intScheme == SCHEME_BX)
     triangleShockSensor->SetSize(nTriangle);
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::Refine();
+template void Simulation<real, CL_BURGERS>::Refine();
+template void Simulation<real3, CL_CART_ISO>::Refine();
+template void Simulation<real4, CL_CART_EULER>::Refine();
+
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::Coarsen(int maxCycle);
+template void Simulation<real, CL_BURGERS>::Coarsen(int maxCycle);
+template void Simulation<real3, CL_CART_ISO>::Coarsen(int maxCycle);
+template void Simulation<real4, CL_CART_EULER>::Coarsen(int maxCycle);
 
 }  // namespace astrix

@@ -33,16 +33,6 @@ namespace astrix {
   typedef float2 real2;
 #endif
 
-#if N_EQUATION == 1
-  typedef real realNeq;
-#endif
-#if N_EQUATION == 3
-  typedef real3 realNeq;
-#endif
-#if N_EQUATION == 4
-  typedef real4 realNeq;
-#endif
-
   //! Problem definitions
   /*! Enumeration of predefined test problems*/
   enum ProblemDefinition {PROBLEM_UNDEFINED, /*!< Undefined, leads to error*/

@@ -34,14 +34,15 @@ class Refine
   ~Refine();
 
   //! Add vertices to Mesh until quality constraints met
-  int ImproveQuality(Connectivity * const connectivity,
-                     const MeshParameter *meshParameter,
-                     const Predicates *predicates,
-                     Morton * const morton,
-                     Delaunay * const delaunay,
-                     Array<realNeq> * const vertexState,
-                     const real specificHeatRatio,
-                     Array<int> * const triangleWantRefine);
+  template<class realNeq, ConservationLaw CL>
+    int ImproveQuality(Connectivity * const connectivity,
+                       const MeshParameter *meshParameter,
+                       const Predicates *predicates,
+                       Morton * const morton,
+                       Delaunay * const delaunay,
+                       Array<realNeq> * const vertexState,
+                       const real specificHeatRatio,
+                       Array<int> * const triangleWantRefine);
 
   //! Add list of vertices to Mesh
   int AddVertices(Connectivity * const connectivity,
@@ -100,25 +101,28 @@ class Refine
   int FlagSegment(Connectivity * const connectivity,
                   Array<unsigned int> * const onSegmentFlagScan);
   //! Insert new vertices into Mesh
-  void InsertVertices(Connectivity * const connectivity,
+  template<class realNeq, ConservationLaw CL>
+    void InsertVertices(Connectivity * const connectivity,
+                        const MeshParameter *meshParameter,
+                        const Predicates *predicates,
+                        Array<realNeq> * const vertexState,
+                        Array<int> * const triangleWantRefine);
+  //! Interpolate state at new vertices
+  template<class realNeq, ConservationLaw CL>
+    void InterpolateState(Connectivity * const connectivity,
+                          const MeshParameter *meshParameter,
+                          Array<realNeq> * const vertexState,
+                          Array<int> * const triangleWantRefine,
+                          const real specificHeatRatio);
+  //! Split any additional segments
+  template<class realNeq, ConservationLaw CL>
+    void SplitSegment(Connectivity * const connectivity,
                       const MeshParameter *meshParameter,
                       const Predicates *predicates,
                       Array<realNeq> * const vertexState,
-                      Array<int> * const triangleWantRefine);
-  //! Interpolate state at new vertices
-  void InterpolateState(Connectivity * const connectivity,
-                        const MeshParameter *meshParameter,
-                        Array<realNeq> * const vertexState,
-                        Array<int> * const triangleWantRefine,
-                        const real specificHeatRatio);
-  //! Split any additional segments
-  void SplitSegment(Connectivity * const connectivity,
-                    const MeshParameter *meshParameter,
-                    const Predicates *predicates,
-                    Array<realNeq> * const vertexState,
-                    Array<int> * const triangleWantRefine,
-                    const real specificHeatRatio,
-                    const int nTriangleOld);
+                      Array<int> * const triangleWantRefine,
+                      const real specificHeatRatio,
+                      const int nTriangleOld);
   //! Test whether any new vertices encroach a segment
   void TestEncroach(Connectivity * const connectivity,
                     const MeshParameter *meshParameter,

@@ -121,11 +121,14 @@ int main(int argc, char *argv[])
   char *fileName = argv[argc-1];
 
   // Create simulation from input file
-  astrix::Simulation *simulation;
+
+  astrix::Simulation<astrix::real4, astrix::CL_CART_EULER> *simulation;
   try {
     simulation =
-      new astrix::Simulation(verboseLevel, debugLevel,
-                             fileName, device, restartNumber);
+      new astrix::Simulation<astrix::real4,
+                             astrix::CL_CART_EULER>(verboseLevel, debugLevel,
+                                                    fileName, device,
+                                                    restartNumber);
   }
   catch (...) {
     std::cout << "Could not create Simulation object, exiting..." << std::endl;

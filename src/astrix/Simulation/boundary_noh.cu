@@ -96,6 +96,7 @@ At the outer boundaries the state is set to the analytic solution
 \param iG1 1/(Ratio of specific heats - 1)*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devSetNohBoundaries(int nVertex, realNeq *pState,
                     const real2 *pVc, const int *pVbf,
@@ -115,7 +116,8 @@ devSetNohBoundaries(int nVertex, realNeq *pState,
 /*! At the outer boundaries the state is set to the analytic solution*/
 //######################################################################
 
-void Simulation::SetNohBoundaries()
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::SetNohBoundaries()
 {
   int nVertex = mesh->GetNVertex();
 
@@ -131,11 +133,11 @@ void Simulation::SetNohBoundaries()
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devSetNohBoundaries,
+                                       devSetNohBoundaries<realNeq, CL>,
                                        (size_t) 0, 0);
 
     // Execute kernel...
-    devSetNohBoundaries<<<nBlocks, nThreads>>>
+    devSetNohBoundaries<realNeq, CL><<<nBlocks, nThreads>>>
       (nVertex, pState, pVc, pVbf,
        simulationTime, 1.0/(G - 1.0));
 
@@ -148,5 +150,14 @@ void Simulation::SetNohBoundaries()
                                1.0/(G - 1.0));
   }
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::SetNohBoundaries();
+template void Simulation<real, CL_BURGERS>::SetNohBoundaries();
+template void Simulation<real3, CL_CART_ISO>::SetNohBoundaries();
+template void Simulation<real4, CL_CART_EULER>::SetNohBoundaries();
 
 }  // namespace astrix

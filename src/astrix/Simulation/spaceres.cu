@@ -54,6 +54,7 @@ namespace astrix {
 \param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
+template<ConservationLaw CL>
 __host__ __device__
 void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
                         const real2 *pTn1, const real2 *pTn2,
@@ -972,6 +973,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   pTresLDA2[n].w = half*ResLDA;
 }
 
+template<ConservationLaw CL>
 __host__ __device__
 void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
                         const real2 *pTn1, const real2 *pTn2,
@@ -1622,6 +1624,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   pTresLDA2[n].z = half*ResLDA;
 }
 
+template<ConservationLaw CL>
 __host__ __device__
 void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
                         const real2 *pTn1, const real2 *pTn2,
@@ -1653,15 +1656,14 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
   real Zv2 = pVz[v3];
 
   // Average parameter vector
-#if BURGERS == 1
-  const real onethird = (real) (1.0/3.0);
-  real Z0 = (Zv0 + Zv1 + Zv2)*onethird;
-  real vx = Z0;
-  real vy = Z0;
-#else
   real vx = one;
   real vy = zero;
-#endif
+  if (CL == CL_BURGERS) {
+    const real onethird = (real) (1.0/3.0);
+    real Z0 = (Zv0 + Zv1 + Zv2)*onethird;
+    vx = Z0;
+    vy = Z0;
+  }
 
   // Average state at vertices
   real What0 = Zv0;
@@ -1852,6 +1854,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
 \param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devCalcSpaceRes(int nTriangle, const int3 *pTv, realNeq *pVz,
                 const real2 *pTn1, const real2 *pTn2,
@@ -1865,10 +1868,10 @@ devCalcSpaceRes(int nTriangle, const int3 *pTv, realNeq *pVz,
 
 
   while (n < nTriangle) {
-    CalcSpaceResSingle(n, pTv, pVz, pTn1, pTn2, pTn3, pTl, pResSource,
-                       pTresN0, pTresN1, pTresN2,
-                       pTresLDA0, pTresLDA1, pTresLDA2,
-                       pTresTot, nVertex, G, G1, G2, pVp);
+    CalcSpaceResSingle<CL>(n, pTv, pVz, pTn1, pTn2, pTn3, pTl, pResSource,
+                           pTresN0, pTresN1, pTresN2,
+                           pTresLDA0, pTresLDA1, pTresLDA2,
+                           pTresTot, nVertex, G, G1, G2, pVp);
 
     // Next triangle
     n += blockDim.x*gridDim.x;
@@ -1880,7 +1883,8 @@ devCalcSpaceRes(int nTriangle, const int3 *pTv, realNeq *pVz,
 \a triangleResidueLDA and \a triangleResidueTotal.*/
 //######################################################################
 
-void Simulation::CalcResidual()
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::CalcResidual()
 {
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
@@ -1944,13 +1948,13 @@ void Simulation::CalcResidual()
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devCalcSpaceRes,
+                                       devCalcSpaceRes<realNeq, CL>,
                                        (size_t) 0, 0);
 
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-    devCalcSpaceRes<<<nBlocks, nThreads>>>
+    devCalcSpaceRes<realNeq, CL><<<nBlocks, nThreads>>>
       (nTriangle, pTv, pVz,
        pTn1, pTn2, pTn3, pTl, pResSource,
        pTresN0, pTresN1, pTresN2,
@@ -1968,11 +1972,11 @@ void Simulation::CalcResidual()
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     for (int n = 0; n < nTriangle; n++)
-      CalcSpaceResSingle(n, pTv, pVz,
-                         pTn1, pTn2, pTn3, pTl, pResSource,
-                         pTresN0, pTresN1, pTresN2,
-                         pTresLDA0, pTresLDA1, pTresLDA2,
-                         pTresTot, nVertex, G, G - 1.0, G - 2.0, pVp);
+      CalcSpaceResSingle<CL>(n, pTv, pVz,
+                             pTn1, pTn2, pTn3, pTl, pResSource,
+                             pTresN0, pTresN1, pTresN2,
+                             pTresLDA0, pTresLDA1, pTresLDA2,
+                             pTresTot, nVertex, G, G - 1.0, G - 2.0, pVp);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -2007,5 +2011,14 @@ void Simulation::CalcResidual()
     }
   }
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::CalcResidual();
+template void Simulation<real, CL_BURGERS>::CalcResidual();
+template void Simulation<real3, CL_CART_ISO>::CalcResidual();
+template void Simulation<real4, CL_CART_EULER>::CalcResidual();
 
 }  // namespace astrix

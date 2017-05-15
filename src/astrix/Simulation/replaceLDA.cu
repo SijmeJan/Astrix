@@ -154,6 +154,7 @@ If any of the vertices of a triangle has an unphysical state, replace the triang
 \param nVertex Total number of vertices in Mesh*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devReplaceLDA(int nTriangle,
               const int3* __restrict__ pTv,
@@ -181,7 +182,9 @@ devReplaceLDA(int nTriangle,
 \param RKStep Stage of Runge-Kutta integration*/
 //######################################################################
 
-void Simulation::ReplaceLDA(Array<int> *vertexUnphysicalFlag, int RKStep)
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::ReplaceLDA(Array<int> *vertexUnphysicalFlag,
+                                         int RKStep)
 {
   int nTriangle = mesh->GetNTriangle();
   int nVertex = mesh->GetNVertex();
@@ -204,11 +207,11 @@ void Simulation::ReplaceLDA(Array<int> *vertexUnphysicalFlag, int RKStep)
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devReplaceLDA,
+                                       devReplaceLDA<realNeq, CL>,
                                        (size_t) 0, 0);
 
     // Execute kernel...
-    devReplaceLDA<<<nBlocks, nThreads>>>
+    devReplaceLDA<realNeq, CL><<<nBlocks, nThreads>>>
       (nTriangle, pTv, pVuf,
        pTresN0, pTresN1, pTresN2,
        pTresLDA0, pTresLDA1, pTresLDA2,
@@ -223,5 +226,26 @@ void Simulation::ReplaceLDA(Array<int> *vertexUnphysicalFlag, int RKStep)
                        RKStep, nVertex);
   }
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template
+void Simulation<real,
+                CL_ADVECT>::ReplaceLDA(Array<int> *vertexUnphysicalFlag,
+                                       int RKStep);
+template
+void Simulation<real,
+                CL_BURGERS>::ReplaceLDA(Array<int> *vertexUnphysicalFlag,
+                                        int RKStep);
+template
+void Simulation<real3,
+                CL_CART_ISO>::ReplaceLDA(Array<int> *vertexUnphysicalFlag,
+                                         int RKStep);
+template
+void Simulation<real4,
+                CL_CART_EULER>::ReplaceLDA(Array<int> *vertexUnphysicalFlag,
+                                           int RKStep);
 
 }  // namespace astrix

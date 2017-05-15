@@ -62,11 +62,11 @@ class SimulationParameter
   int writeVTK;
 
   //! Read in data from file
-  void ReadFromFile(const char *fileName);
+  void ReadFromFile(const char *fileName, ConservationLaw CL);
 
  private:
   //! Check if contents are valid
-  void CheckValidity();
+  void CheckValidity(ConservationLaw CL);
 };
 
 }  // namespace astrix

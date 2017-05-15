@@ -65,6 +65,7 @@ void DensityErrorSingle(unsigned int i, const real *pVarea,
 //######################################################################
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devDensityError(unsigned int nVertex, const real *pVarea,
                 const real2 *pVc,
@@ -83,7 +84,8 @@ devDensityError(unsigned int nVertex, const real *pVarea,
 //######################################################################
 //######################################################################
 
-real Simulation::DensityError()
+template <class realNeq, ConservationLaw CL>
+real Simulation<realNeq, CL>::DensityError()
 {
   vertexStateOld->SetEqual(vertexState);
 
@@ -107,10 +109,10 @@ real Simulation::DensityError()
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devDensityError,
+                                       devDensityError<realNeq, CL>,
                                        (size_t) 0, 0);
 
-    devDensityError<<<nBlocks, nThreads>>>
+    devDensityError<realNeq, CL><<<nBlocks, nThreads>>>
       (nVertex, pVarea, pVc, pState, pStateOld, pE);
 
     gpuErrchk( cudaPeekAtLastError() );
@@ -128,5 +130,14 @@ real Simulation::DensityError()
 
   return e;
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template real Simulation<real, CL_ADVECT>::DensityError();
+template real Simulation<real, CL_BURGERS>::DensityError();
+template real Simulation<real3, CL_CART_ISO>::DensityError();
+template real Simulation<real4, CL_CART_EULER>::DensityError();
 
 }  // namespace astrix

@@ -31,7 +31,8 @@ an unphysical state. Wherever we find an unphysical state we force a first
 order update using the N-scheme.*/
 //##############################################################################
 
-void Simulation::UpdateState(real dt, int RKStep)
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::UpdateState(real dt, int RKStep)
 {
   int transformFlag = 0;
   if (transformFlag == 1) {
@@ -75,32 +76,15 @@ void Simulation::UpdateState(real dt, int RKStep)
       std::cout << "Unphysical state after " << maxCycle
                 << " cycles" << std::endl;
 
-#if N_EQUATION == 4
       if (cudaFlag == 0) {
         int *pVu = vertexUnphysicalFlag->GetHostPointer();
         const real2 *pVc = mesh->VertexCoordinatesData();
-        realNeq *pVs = vertexState->GetHostPointer();
-        real *pVp = vertexPotential->GetPointer();
 
-        for (int i = 0; i < nVertex; i++) {
-          if (pVu[i] != 0) {
+        for (int i = 0; i < nVertex; i++)
+          if (pVu[i] != 0)
             std::cout << "Unphysical state at x = "
                       << pVc[i].x << ", y = " << pVc[i].y << std::endl;
-            real dens = pVs[i].x;
-            real momx = pVs[i].y;
-            real momy = pVs[i].z;
-            real ener = pVs[i].w;
-            real pres = (simulationParameter->specificHeatRatio - 1.0)*
-              (ener - 0.5*(momx*momx + momy*momy)/dens - dens*pVp[i]);
-
-            std::cout << pVs[i].x << " " << pVs[i].y << " "
-                      << pVs[i].z << " " << pVs[i].w << " "
-                      << pres << std::endl;
-
-          }
-        }
       }
-#endif
 
       throw std::runtime_error("");
     }
@@ -165,5 +149,15 @@ void Simulation::UpdateState(real dt, int RKStep)
     }
   }
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::UpdateState(real dt, int RKStep);
+template void Simulation<real, CL_BURGERS>::UpdateState(real dt, int RKStep);
+template void Simulation<real3, CL_CART_ISO>::UpdateState(real dt, int RKStep);
+template void Simulation<real4, CL_CART_EULER>::UpdateState(real dt,
+                                                            int RKStep);
 
 }  // namespace astrix

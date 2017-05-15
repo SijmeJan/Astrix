@@ -136,6 +136,7 @@ void AddEigenVectorSingleRT(unsigned int i, const real2 *pVc, real *pState,
 \param G1 Ratio of specific heats - 1*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devAddEigenVectorRT(unsigned int nVertex, const real2 *pVc, realNeq *pState,
                     real *pVp,
@@ -159,7 +160,8 @@ devAddEigenVectorRT(unsigned int nVertex, const real2 *pVc, realNeq *pState,
 /*! Add eigenvector perturbation, specified in a file eigvec.txt. A runtime error is thrown if this file is not found.*/
 //######################################################################
 
-void Simulation::RTAddEigenVector()
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::RTAddEigenVector()
 {
   unsigned int nVertex = mesh->GetNVertex();
 
@@ -250,7 +252,7 @@ void Simulation::RTAddEigenVector()
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devAddEigenVectorRT,
+                                       devAddEigenVectorRT<realNeq, CL>,
                                        (size_t) 0, 0);
 
     devAddEigenVectorRT<<<nBlocks, nThreads>>>

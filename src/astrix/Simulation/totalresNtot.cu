@@ -52,6 +52,7 @@ namespace astrix {
 \param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
+template<ConservationLaw CL>
 __host__ __device__
 void CalcTotalResNtotSingle(const int n, const real dt,
                             const int3* __restrict__ pTv,
@@ -880,6 +881,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   pTresN2[n].w += half*ResN;
 }
 
+template<ConservationLaw CL>
 __host__ __device__
 void CalcTotalResNtotSingle(const int n, const real dt,
                             const int3* __restrict__ pTv,
@@ -1480,6 +1482,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   pTresN2[n].z += half*ResN;
 }
 
+template<ConservationLaw CL>
 __host__ __device__
 void CalcTotalResNtotSingle(const int n, const real dt,
                             const int3* __restrict__ pTv,
@@ -1540,14 +1543,14 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real Zv2 = pVz[v3];
 
   // Average parameter vector
-#if BURGERS == 1
-  real Z0 = (Zv0 + Zv1 + Zv2)*onethird;
-  real vx = Z0;
-  real vy = Z0;
-#else
   real vx = one;
   real vy = zero;
-#endif
+
+  if (CL == CL_BURGERS) {
+    real Z0 = (Zv0 + Zv1 + Zv2)*onethird;
+    vx = Z0;
+    vy = Z0;
+  }
 
   // Average state at vertices
   real What0 = Zv0;
@@ -1732,6 +1735,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
 \param *pVp Pointer to external potential at vertices*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devCalcTotalResNtot(int nTriangle, real dt,
                     const int3* __restrict__ pTv,
@@ -1745,10 +1749,10 @@ devCalcTotalResNtot(int nTriangle, real dt,
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nTriangle) {
-    CalcTotalResNtotSingle(n, dt, pTv, pVz, pDstate,
-                           pTn1, pTn2, pTn3, pTl, pResSource,
-                           pTresN0, pTresN1, pTresN2,
-                           pTresTot, nVertex, G, G1, G2, iG, pVp);
+    CalcTotalResNtotSingle<CL>(n, dt, pTv, pVz, pDstate,
+                               pTn1, pTn2, pTn3, pTl, pResSource,
+                               pTresN0, pTresN1, pTresN2,
+                               pTresTot, nVertex, G, G1, G2, iG, pVp);
 
     // Next triangle
     n += blockDim.x*gridDim.x;
@@ -1761,7 +1765,8 @@ devCalcTotalResNtot(int nTriangle, real dt,
 \param dt Time step*/
 //######################################################################
 
-void Simulation::CalcTotalResNtot(real dt)
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::CalcTotalResNtot(real dt)
 {
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
@@ -1823,13 +1828,13 @@ void Simulation::CalcTotalResNtot(real dt)
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devCalcTotalResNtot,
+                                       devCalcTotalResNtot<realNeq, CL>,
                                        (size_t) 0, 0);
 
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
-    devCalcTotalResNtot<<<nBlocks, nThreads>>>
+    devCalcTotalResNtot<realNeq, CL><<<nBlocks, nThreads>>>
       (nTriangle, dt, pTv, pVz, pDstate,
        pTn1, pTn2, pTn3, pTl, pResSource,
        pTresN0, pTresN1, pTresN2,
@@ -1846,10 +1851,11 @@ void Simulation::CalcTotalResNtot(real dt)
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     for (int n = 0; n < nTriangle; n++)
-      CalcTotalResNtotSingle(n, dt, pTv, pVz, pDstate,
-                             pTn1, pTn2, pTn3, pTl, pResSource,
-                             pTresN0, pTresN1, pTresN2,
-                             pTresTot, nVertex, G, G - 1.0, G - 2.0, 1.0/G, pVp);
+      CalcTotalResNtotSingle<CL>(n, dt, pTv, pVz, pDstate,
+                                 pTn1, pTn2, pTn3, pTl, pResSource,
+                                 pTresN0, pTresN1, pTresN2,
+                                 pTresTot, nVertex, G, G - 1.0, G - 2.0,
+                                 1.0/G, pVp);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -1884,5 +1890,14 @@ void Simulation::CalcTotalResNtot(real dt)
     }
   }
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::CalcTotalResNtot(real dt);
+template void Simulation<real, CL_BURGERS>::CalcTotalResNtot(real dt);
+template void Simulation<real3, CL_CART_ISO>::CalcTotalResNtot(real dt);
+template void Simulation<real4, CL_CART_EULER>::CalcTotalResNtot(real dt);
 
 }  // namespace astrix

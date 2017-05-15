@@ -484,6 +484,7 @@ void devRemoveVertex(int nRemove, int *pVertexRemove, int *pVertexTriangleList,
 \param *vertexState Pointer to Array containing state vector */
 //#########################################################################
 
+template<class realNeq, ConservationLaw CL>
 void Coarsen::Remove(Connectivity *connectivity,
                      Array<int> *triangleWantRefine,
                      Array<int> *vertexTriangleList,
@@ -679,5 +680,38 @@ void Coarsen::Remove(Connectivity *connectivity,
   }
 
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void
+Coarsen::Remove<real, CL_ADVECT>(Connectivity *connectivity,
+                                 Array<int> *triangleWantRefine,
+                                 Array<int> *vertexTriangleList,
+                                 int maxTriPerVert,
+                                 Array<int> *triangleTarget,
+                                 Array<real> *vertexState);
+template void
+Coarsen::Remove<real, CL_BURGERS>(Connectivity *connectivity,
+                                  Array<int> *triangleWantRefine,
+                                  Array<int> *vertexTriangleList,
+                                  int maxTriPerVert,
+                                  Array<int> *triangleTarget,
+                                  Array<real> *vertexState);
+template void
+Coarsen::Remove<real3, CL_CART_ISO>(Connectivity *connectivity,
+                                    Array<int> *triangleWantRefine,
+                                    Array<int> *vertexTriangleList,
+                                    int maxTriPerVert,
+                                    Array<int> *triangleTarget,
+                                    Array<real3> *vertexState);
+template void
+Coarsen::Remove<real4, CL_CART_EULER>(Connectivity *connectivity,
+                                      Array<int> *triangleWantRefine,
+                                      Array<int> *vertexTriangleList,
+                                      int maxTriPerVert,
+                                      Array<int> *triangleTarget,
+                                      Array<real4> *vertexState);
 
 }

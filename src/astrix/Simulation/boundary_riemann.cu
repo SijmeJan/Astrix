@@ -143,6 +143,7 @@ implemented!
 \param iG1 1/(Ratio of specific heats - 1)*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devSetRiemannBoundaries(int nVertex, realNeq *pState,
                         const real2 *pVc, const int *pVbf,
@@ -165,7 +166,8 @@ boundary conditions. Note that this is specific for the 2D Riemann problem
 implemented!*/
 //######################################################################
 
-void Simulation::SetRiemannBoundaries()
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::SetRiemannBoundaries()
 {
   int nVertex = mesh->GetNVertex();
 
@@ -181,11 +183,11 @@ void Simulation::SetRiemannBoundaries()
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devSetRiemannBoundaries,
+                                       devSetRiemannBoundaries<realNeq, CL>,
                                        (size_t) 0, 0);
 
     // Execute kernel...
-    devSetRiemannBoundaries<<<nBlocks, nThreads>>>
+    devSetRiemannBoundaries<realNeq, CL><<<nBlocks, nThreads>>>
       (nVertex, pState, pVc, pVbf,
        simulationTime, 1.0/(G - 1.0));
 
@@ -198,5 +200,14 @@ void Simulation::SetRiemannBoundaries()
                                1.0/(G - 1.0));
   }
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::SetRiemannBoundaries();
+template void Simulation<real, CL_BURGERS>::SetRiemannBoundaries();
+template void Simulation<real3, CL_CART_ISO>::SetRiemannBoundaries();
+template void Simulation<real4, CL_CART_EULER>::SetRiemannBoundaries();
 
 }  // namespace astrix

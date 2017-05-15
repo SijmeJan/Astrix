@@ -105,6 +105,7 @@ void FlagLimitVertex(const int v, real *pState, real *pStateOld,
 \param G1 Ratio of specific heats - 1*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devFlagLimit(const int nVertex, realNeq *pState, realNeq *pStateOld,
              int *pVertexLimitFlag, const real G1)
@@ -125,7 +126,8 @@ devFlagLimit(const int nVertex, realNeq *pState, realNeq *pStateOld,
   \param *vertexLimitFlag Pointer to Array of flags indicating whether change in state is small (0) or too big (1) (output)*/
 //######################################################################
 
-void Simulation::FlagLimit(Array<int> *vertexLimitFlag)
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::FlagLimit(Array<int> *vertexLimitFlag)
 {
   // Total number of vertices in Mesh
   int nVertex = mesh->GetNVertex();
@@ -146,11 +148,11 @@ void Simulation::FlagLimit(Array<int> *vertexLimitFlag)
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devFlagLimit,
+                                       devFlagLimit<realNeq, CL>,
                                        (size_t) 0, 0);
 
     // Execute kernel...
-    devFlagLimit<<<nBlocks, nThreads>>>
+    devFlagLimit<realNeq, CL><<<nBlocks, nThreads>>>
       (nVertex, state, stateOld, pVertexLimitFlag, G - 1.0);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -159,5 +161,18 @@ void Simulation::FlagLimit(Array<int> *vertexLimitFlag)
       FlagLimitVertex(v, state, stateOld, pVertexLimitFlag, G - 1.0);
   }
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void
+Simulation<real, CL_ADVECT>::FlagLimit(Array<int> *vertexLimitFlag);
+template void
+Simulation<real, CL_BURGERS>::FlagLimit(Array<int> *vertexLimitFlag);
+template void
+Simulation<real3, CL_CART_ISO>::FlagLimit(Array<int> *vertexLimitFlag);
+template void
+Simulation<real4, CL_CART_EULER>::FlagLimit(Array<int> *vertexLimitFlag);
 
 }  // namespace astrix

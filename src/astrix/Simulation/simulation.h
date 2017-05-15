@@ -15,7 +15,6 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #ifndef ASTRIX_SIMULATION_H
 #define ASTRIX_SIMULATION_H
 
-#define BURGERS -1
 #define CONTOUR
 
 namespace astrix {
@@ -28,6 +27,7 @@ class SimulationParameter;
 //! Simulation: class containing simulation
 /*! This is the basic class needed to run an Astrix simulation.  */
 
+template <class realNeq, ConservationLaw CL>
 class Simulation
 {
  public:
@@ -160,7 +160,7 @@ class Simulation
   //! Calculate shock sensor for BX scheme
   void CalcShockSensor();
   //! Find minimum and maximum velocity in domain
-  void FindMinMaxVelocity(real& minVel, real& maxVel);
+  real2 FindMinMaxVelocity();
 
   //! Refine mesh
   void Refine();
@@ -172,16 +172,6 @@ class Simulation
   //! In state vector, replace pressure with total energy
   void ReplacePressureWithEnergy();
 
-  //! Calculate total mass in domain
-  //real TotalMass();
-  //! Calculate total kinetic energy in domain
-  //real2 KineticEnergy();
-  //! Calculate total thermal energy in domain
-  //real ThermalEnergy();
-  //! Calculate total potential energy in domain
-  //real PotentialEnergy();
-  //! Calculate total energy in domain
-  //real TotalEnergy();
   //! Calculate L1 density error
   real DensityError();
 };

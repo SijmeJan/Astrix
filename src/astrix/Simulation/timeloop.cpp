@@ -36,7 +36,8 @@ amount of wall clock hours.
   \param maxWallClockHours Maximum amount of wall clock hours to run for.*/
 //#########################################################################
 
-void Simulation::Run(real maxWallClockHours)
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::Run(real maxWallClockHours)
 {
   int warning = 0;
   time_t startTime = time(NULL);
@@ -131,7 +132,8 @@ void Simulation::Run(real maxWallClockHours)
   state. */
 //#########################################################################
 
-void Simulation::DoTimeStep()
+template <class TTT, ConservationLaw CL>
+void Simulation<TTT, CL>::DoTimeStep()
 {
   //auto start = std::chrono::high_resolution_clock::now();
   //std::cout << "Mass: " << TotalMass() - 4.0 << " ";
@@ -210,17 +212,15 @@ void Simulation::DoTimeStep()
   if (problemDef == PROBLEM_CYL ||
       problemDef == PROBLEM_SOD ||
       problemDef == PROBLEM_BLAST)
-    //||
-    //(problemDef == PROBLEM_SOURCE && N_EQUATION > 1))
     ReflectingBoundaries(dt);
 
-  if ((problemDef == PROBLEM_SOURCE && N_EQUATION > 1) ||
+  if ((problemDef == PROBLEM_SOURCE && CL != CL_ADVECT) ||
       problemDef == PROBLEM_RIEMANN)
     SetSymmetricBoundaries();
 
   // Nonreflecting boundaries
   if (problemDef == PROBLEM_VORTEX ||
-      (problemDef == PROBLEM_SOURCE && N_EQUATION == 1))
+      (problemDef == PROBLEM_SOURCE && CL == CL_ADVECT))
     SetNonReflectingBoundaries();
 
   if (simulationParameter->integrationOrder == 2) {
@@ -285,17 +285,15 @@ void Simulation::DoTimeStep()
     if (problemDef == PROBLEM_CYL ||
         problemDef == PROBLEM_SOD ||
         problemDef == PROBLEM_BLAST)
-      //||
-      //(problemDef == PROBLEM_SOURCE && N_EQUATION > 1))
       ReflectingBoundaries(dt);
 
-    if ((problemDef == PROBLEM_SOURCE && N_EQUATION > 1) ||
+    if ((problemDef == PROBLEM_SOURCE && CL != CL_ADVECT) ||
         problemDef == PROBLEM_RIEMANN)
       SetSymmetricBoundaries();
 
     // Nonreflecting boundaries
     if (problemDef == PROBLEM_VORTEX ||
-        (problemDef == PROBLEM_SOURCE && N_EQUATION == 1))
+        (problemDef == PROBLEM_SOURCE && CL == CL_ADVECT))
       SetNonReflectingBoundaries();
   }
 
@@ -338,5 +336,14 @@ void Simulation::DoTimeStep()
 
   delete nvtxHydro;
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::Run(real maxWallClockHours);
+template void Simulation<real, CL_BURGERS>::Run(real maxWallClockHours);
+template void Simulation<real3, CL_CART_ISO>::Run(real maxWallClockHours);
+template void Simulation<real4, CL_CART_EULER>::Run(real maxWallClockHours);
 
 }  // namespace astrix

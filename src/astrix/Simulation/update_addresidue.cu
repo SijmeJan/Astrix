@@ -596,6 +596,7 @@ void AddResidueSingle(int n, const int3* __restrict__ pTv,
 \param setToMinMaxFlag Flag to use maximum or minimum in blend parameter*/
 //######################################################################
 
+template<class realNeq, ConservationLaw CL>
 __global__ void
 devAddResidue(int nTriangle, const int3* __restrict__ pTv, const real3 *pTl,
               const real *pVarea, real *pShock,
@@ -624,7 +625,8 @@ devAddResidue(int nTriangle, const int3* __restrict__ pTv, const real3 *pTl,
 \param dt Time step*/
 //######################################################################
 
-void Simulation::AddResidue(real dt)
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::AddResidue(real dt)
 {
 #ifdef TIME_ASTRIX
   cudaEvent_t start, stop;
@@ -662,14 +664,14 @@ void Simulation::AddResidue(real dt)
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devAddResidue,
+                                       devAddResidue<realNeq, CL>,
                                        (size_t) 0, 0);
 
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     // Execute kernel...
-    devAddResidue<<<nBlocks, nThreads>>>
+    devAddResidue<realNeq, CL><<<nBlocks, nThreads>>>
       (nTriangle, pTv, triL, vertArea, pShock, state, pTresTot,
        pTresN0, pTresN1, pTresN2, pTresLDA0, pTresLDA1, pTresLDA2,
        dt, nVertex, intScheme, preferMinMaxBlend);
@@ -699,5 +701,14 @@ void Simulation::AddResidue(real dt)
   WriteProfileFile("AddResidual.prof2", nTriangle, elapsedTime, cudaFlag);
 #endif
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void Simulation<real, CL_ADVECT>::AddResidue(real dt);
+template void Simulation<real, CL_BURGERS>::AddResidue(real dt);
+template void Simulation<real3, CL_CART_ISO>::AddResidue(real dt);
+template void Simulation<real4, CL_CART_EULER>::AddResidue(real dt);
 
 }  // namespace astrix

@@ -79,11 +79,12 @@ devFillWantRefine(int nTriangle, real *pErrorEstimate,
 \param specificHeatRatio Ratio of specific heats*/
 // #########################################################################
 
+template<class realNeq, ConservationLaw CL>
 void Mesh::FillWantRefine(Array<realNeq> *vertexState, real specificHeatRatio)
 {
   int nTriangle = connectivity->triangleVertices->GetSize();
 
-  CalcErrorEstimate(vertexState, specificHeatRatio);
+  CalcErrorEstimate<realNeq, CL>(vertexState, specificHeatRatio);
   real *pErrorEstimate = triangleErrorEstimate->GetPointer();
   int *pWantRefine = triangleWantRefine->GetPointer();
 
@@ -108,5 +109,22 @@ void Mesh::FillWantRefine(Array<realNeq> *vertexState, real specificHeatRatio)
       FillWantRefineSingle(i, pErrorEstimate, maxError, minError, pWantRefine);
   }
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void
+Mesh::FillWantRefine<real, CL_ADVECT>(Array<real> *vertexState,
+                                      real specificHeatRatio);
+template void
+Mesh::FillWantRefine<real, CL_BURGERS>(Array<real> *vertexState,
+                                     real specificHeatRatio);
+template void
+Mesh::FillWantRefine<real3, CL_CART_ISO>(Array<real3> *vertexState,
+                                     real specificHeatRatio);
+template void
+Mesh::FillWantRefine<real4, CL_CART_EULER>(Array<real4> *vertexState,
+                                           real specificHeatRatio);
 
 }  // namespace astrix

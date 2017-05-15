@@ -38,18 +38,19 @@ namespace astrix {
   \param restartNumber Number of saved file to restore from*/
 //#########################################################################
 
-Simulation::Simulation(int _verboseLevel,
-                       int _debugLevel,
-                       char *fileName,
-                       Device *_device,
-                       int restartNumber)
+template <class realNeq, ConservationLaw CL>
+Simulation<realNeq, CL>::Simulation(int _verboseLevel,
+                                int _debugLevel,
+                                char *fileName,
+                                Device *_device,
+                                int restartNumber)
 {
   std::cout << "Setting up Astrix simulation using parameter file \'"
             << fileName << "\'" << std::endl;
 
   simulationParameter = new SimulationParameter;
   try {
-    simulationParameter->ReadFromFile(fileName);
+    simulationParameter->ReadFromFile(fileName, CL);
   }
   catch (...) {
     std::cout << "Reading " << fileName << " failed!" << std::endl;
@@ -123,7 +124,8 @@ Simulation::Simulation(int _verboseLevel,
 // Destructor for simulation object
 // #########################################################################
 
-Simulation::~Simulation()
+template <class realNeq, ConservationLaw CL>
+Simulation<realNeq, CL>::~Simulation()
 {
   delete vertexState;
   delete vertexStateOld;
@@ -147,7 +149,8 @@ Simulation::~Simulation()
   \param restartNumber Number of save file to restore from*/
 // #########################################################################
 
-void Simulation::Init(int restartNumber)
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::Init(int restartNumber)
 {
   int nVertex = mesh->GetNVertex();
   int nTriangle = mesh->GetNTriangle();
@@ -221,5 +224,37 @@ void Simulation::Init(int restartNumber)
       (real) (1073741824) << " Gb" << std::endl;
   }
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template Simulation<real, CL_ADVECT>::Simulation(int _verboseLevel,
+                                                 int _debugLevel,
+                                                 char *fileName,
+                                                 Device *_device,
+                                                 int restartNumber);
+template Simulation<real, CL_BURGERS>::Simulation(int _verboseLevel,
+                                                  int _debugLevel,
+                                                  char *fileName,
+                                                  Device *_device,
+                                                  int restartNumber);
+template Simulation<real3, CL_CART_ISO>::Simulation(int _verboseLevel,
+                                                    int _debugLevel,
+                                                    char *fileName,
+                                                    Device *_device,
+                                                    int restartNumber);
+template Simulation<real4, CL_CART_EULER>::Simulation(int _verboseLevel,
+                                                      int _debugLevel,
+                                                      char *fileName,
+                                                      Device *_device,
+                                                      int restartNumber);
+
+//##############################################################################
+
+template Simulation<real, CL_ADVECT>::~Simulation();
+template Simulation<real, CL_BURGERS>::~Simulation();
+template Simulation<real3, CL_CART_ISO>::~Simulation();
+template Simulation<real4, CL_CART_EULER>::~Simulation();
 
 }  // namespace astrix
