@@ -128,16 +128,23 @@ int main(int argc, char *argv[])
               << " [-v verboseLevel]"
               << " [-D debugLevel]"
               << " [-r restartNumber]"
+              << " [-cl conservationLaw]"
               << " filename"
               << std::endl;
-    std::cout << "-d               : run on GPU device" << std::endl;
-    std::cout << "-v verboseLevel  : amount of output to stdout (0 - 2)"
+    std::cout << "-d                  : run on GPU device" << std::endl;
+    std::cout << "-v verboseLevel     : amount of output to stdout (0 - 2)"
               << std::endl;
-    std::cout << "-D debugLevel    : amount of extra checks for debugging"
+    std::cout << "-D debugLevel       : amount of extra checks for debugging"
               << std::endl;
-    std::cout << "-r restartNumber : try to restart from previous dump"
+    std::cout << "-r restartNumber    : try to restart from previous dump"
               << std::endl;
-    std::cout << "filename         : input file name" << std::endl;
+    std::cout << "-cl conservationLaw : use different conservation law. Can be"
+              << std::endl
+              << "                      either \"advect\", \"burgers\" "
+              << std::endl
+              << "                      \"cart_iso\" or \"cart_euler\" "
+              << std::endl;
+    std::cout << "filename            : input file name" << std::endl;
 
     return 1;
   }
