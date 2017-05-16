@@ -373,11 +373,11 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   }
 
   if (problemDef == PROBLEM_SOURCE) {
-    real rhoBot = 2.0;
-    real rhoTop = 1.0;
+    real rhoBot = 1.0;
+    real rhoTop = 2.0;
     real Ly = 1.0;
     dens = rhoBot + 0.5*(rhoTop - rhoBot)*(vertY + Ly)/Ly;
-    momx = 1.0*dens;
+    momx = 1.0e-10;
     momy = 0.0;
     real pres = 1.0 - 0.1*(0.5*(rhoTop + rhoBot)*vertY +
                            0.25*vertY*vertY*(rhoTop - rhoBot)/Ly);
@@ -616,8 +616,8 @@ void Simulation<realNeq, CL>::SetInitial(real time)
     // Add KH eigenvector
     if (p == PROBLEM_KH)
       KHAddEigenVector();
-    //if (p == PROBLEM_SOURCE && CL == CL_CART_EULER)
-    //RTAddEigenVector();
+    if (p == PROBLEM_SOURCE && CL == CL_CART_EULER)
+      RTAddEigenVector();
   }
   catch (...) {
     std::cout << "Warning: reading eigenvector file failed!" << std::endl;
