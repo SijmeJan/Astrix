@@ -73,7 +73,7 @@ void AddEigenVectorSingleRT(unsigned int i, const real2 *pVc, real4 *pState,
   real pRj = pres[jj].x + (y - yRT[jj])*(pres[jj + 1].x - pres[jj].x)/dyRT;
   real pIj = pres[jj].y + (y - yRT[jj])*(pres[jj + 1].y - pres[jj].y)/dyRT;
 
-  real amp = 0.0;//1.0e-4;
+  real amp = 1.0e-4;
 
   // Background state
   real d0 = pState[i].x;
@@ -93,28 +93,6 @@ void AddEigenVectorSingleRT(unsigned int i, const real2 *pVc, real4 *pState,
   real pr = p0 + amp*(pRj*cos(f) - pIj*sin(f));
   pState[i].w = 0.5*(Sq(pState[i].y) + Sq(pState[i].z))/pState[i].x +
     pState[i].x*pVp[i] + pr/G1;
-}
-
-__host__ __device__
-void AddEigenVectorSingleRT(unsigned int i, const real2 *pVc, real3 *pState,
-                            real *pVp,
-                            real2 *dens, real2 *velx, real2 *vely, real2 *pres,
-                            real kxRT, real *yRT,
-                            real miny, real maxy, real G, real G1,
-                            real time, real omega2)
-{
-  // Dummy function; no eigenvector to add if solving isothermal equation
-}
-
-__host__ __device__
-void AddEigenVectorSingleRT(unsigned int i, const real2 *pVc, real *pState,
-                            real *pVp,
-                            real2 *dens, real2 *velx, real2 *vely, real2 *pres,
-                            real kxRT, real *yRT,
-                            real miny, real maxy, real G, real G1,
-                            real time, real omega2)
-{
-  // Dummy function; no eigenvector to add if solving scalar equation
 }
 
 //######################################################################
@@ -188,9 +166,6 @@ void Simulation<realNeq, CL>::RTAddEigenVector()
   real omega2 = 0.0;
   RT >> omega2;
 
-  //std::cout << omega2 << " " << 2.0*M_PI/sqrt(omega2) << std::endl;
-  //int qq; std::cin >> qq;
-
   // Create arrays of correct size on host
   Array<real> *yRT = new Array<real>(1, 0, nRT);
   // Real and imaginary parts, so real2
@@ -255,7 +230,7 @@ void Simulation<realNeq, CL>::RTAddEigenVector()
                                        devAddEigenVectorRT<realNeq, CL>,
                                        (size_t) 0, 0);
 
-    devAddEigenVectorRT<<<nBlocks, nThreads>>>
+    devAddEigenVectorRT<realNeq, CL><<<nBlocks, nThreads>>>
       (nVertex, pVc, pState, pVp, pDens, pVelx, pVely, pPres,
        kxRT, pyRT, miny, maxy, G, G - 1.0, simulationTime, omega2);
 
@@ -274,5 +249,11 @@ void Simulation<realNeq, CL>::RTAddEigenVector()
   delete vely;
   delete pres;
 }
+
+//##############################################################################
+// Instantiate
+//##############################################################################
+
+template void Simulation<real4, CL_CART_EULER>::RTAddEigenVector();
 
 }  // namespace astrix
