@@ -66,9 +66,120 @@ print(args.directory)
 direc = os.path.abspath(args.directory)
 
 with PdfPages('testsuite.pdf') as pdf:
-    plt.figure(figsize=(5, 5))
+    # Linear advection equation "vortex"
+    plt.figure(figsize=(10, 20))
     plt.rcParams.update({'axes.labelsize': 'large'})
     plt.rc('font', family='serif')
+
+    plt.subplot(4,1,1)
+    plt.gca().set_aspect('equal')
+    with cd(args.directory + 'run/scalar/advect/vortex'):
+        pf.ChangeParameter('./astrix.in', [['integrationScheme', 'N'],
+                                           ['integrationOrder', '1']])
+        subprocess.call([direc + "/bin/astrix", "-cl", "advect", "astrix.in"])
+        DensPlot2D(10, Px = 2.0, Py = 1.0)
+        #TriPlot(10, Px = 1.0, Py = 1.0)
+        plt.title('Linear advection N1')
+        plt.xlabel('x')
+        plt.ylabel('y')
+        CleanUp()
+    plt.subplot(4,1,2)
+    plt.gca().set_aspect('equal')
+    with cd(args.directory + 'run/scalar/advect/vortex'):
+        pf.ChangeParameter('./astrix.in', [['integrationScheme', 'LDA'],
+                                           ['integrationOrder', '2']])
+        subprocess.call([direc + "/bin/astrix", "-cl", "advect", "astrix.in"])
+        DensPlot2D(10, Px = 2.0, Py = 1.0)
+        #TriPlot(10, Px = 1.0, Py = 1.0)
+        plt.title('Linear advection LDA2')
+        plt.xlabel('x')
+        plt.ylabel('y')
+        CleanUp()
+    plt.subplot(4,1,3)
+    plt.gca().set_aspect('equal')
+    with cd(args.directory + 'run/scalar/advect/vortex'):
+        pf.ChangeParameter('./astrix.in', [['integrationScheme', 'LDA'],
+                                           ['integrationOrder', '2'],
+                                           ['selectiveLumpFlag', '1']])
+        subprocess.call([direc + "/bin/astrix", "-cl", "advect", "astrix.in"])
+        DensPlot2D(10, Px = 2.0, Py = 1.0)
+        #TriPlot(10, Px = 1.0, Py = 1.0)
+        plt.title('Linear advection LDA2 SL')
+        plt.xlabel('x')
+        plt.ylabel('y')
+        CleanUp()
+    plt.subplot(4,1,4)
+    plt.gca().set_aspect('equal')
+    with cd(args.directory + 'run/scalar/advect/vortex'):
+        pf.ChangeParameter('./astrix.in', [['integrationScheme', 'B'],
+                                           ['integrationOrder', '2'],
+                                           ['selectiveLumpFlag', '0']])
+        subprocess.call([direc + "/bin/astrix", "-cl", "advect", "astrix.in"])
+        DensPlot2D(10, Px = 2.0, Py = 1.0)
+        #TriPlot(10, Px = 1.0, Py = 1.0)
+        plt.title('Linear advection B2')
+        plt.xlabel('x')
+        plt.ylabel('y')
+        CleanUp()
+
+    pdf.savefig()  # saves the current figure into a pdf page
+    plt.close()
+
+
+    # Riemann problem Burgers equation
+    plt.figure(figsize=(10, 10))
+    plt.rcParams.update({'axes.labelsize': 'large'})
+    plt.rc('font', family='serif')
+
+    plt.subplot(2,2,1)
+    with cd(args.directory + 'run/scalar/burgers/riemann'):
+        pf.ChangeParameter('./astrix.in', [['integrationScheme', 'N'],
+                                           ['integrationOrder', '1']])
+        subprocess.call([direc + "/bin/astrix", "-cl", "burgers", "astrix.in"])
+        DensPlot2D(10, Px = 1.0, Py = 1.0)
+        #TriPlot(10, Px = 1.0, Py = 1.0)
+        plt.title('Riemann problem Burgers N1')
+        plt.xlabel('x')
+        plt.ylabel('y')
+        CleanUp()
+    plt.subplot(2,2,2)
+    with cd(args.directory + 'run/scalar/burgers/riemann'):
+        pf.ChangeParameter('./astrix.in', [['integrationScheme', 'LDA'],
+                                           ['integrationOrder', '2']])
+        subprocess.call([direc + "/bin/astrix", "-cl", "burgers", "astrix.in"])
+        DensPlot2D(10, Px = 1.0, Py = 1.0)
+        #TriPlot(10, Px = 1.0, Py = 1.0)
+        plt.title('Riemann problem Burgers LDA2')
+        plt.xlabel('x')
+        plt.ylabel('y')
+        CleanUp()
+    plt.subplot(2,2,3)
+    with cd(args.directory + 'run/scalar/burgers/riemann'):
+        pf.ChangeParameter('./astrix.in', [['integrationScheme', 'B'],
+                                           ['integrationOrder', '2']])
+        subprocess.call([direc + "/bin/astrix", "-cl", "burgers", "astrix.in"])
+        DensPlot2D(10, Px = 1.0, Py = 1.0)
+        #TriPlot(10, Px = 1.0, Py = 1.0)
+        plt.title('Riemann problem Burgers B2')
+        plt.xlabel('x')
+        plt.ylabel('y')
+        CleanUp()
+    plt.subplot(2,2,4)
+    with cd(args.directory + 'run/scalar/burgers/riemann'):
+        pf.ChangeParameter('./astrix.in', [['integrationScheme', 'BX'],
+                                           ['integrationOrder', '2']])
+        subprocess.call([direc + "/bin/astrix", "-cl", "burgers", "astrix.in"])
+        DensPlot2D(10, Px = 1.0, Py = 1.0)
+        #TriPlot(10, Px = 1.0, Py = 1.0)
+        plt.title('Riemann problem Burgers BX2')
+        plt.xlabel('x')
+        plt.ylabel('y')
+        CleanUp()
+
+    pdf.savefig()  # saves the current figure into a pdf page
+    plt.close()
+
+
 
     # Sod shock tube test
     with cd(args.directory + 'run/euler/sod'):
