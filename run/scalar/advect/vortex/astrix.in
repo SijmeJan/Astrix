@@ -20,13 +20,13 @@ specificHeatRatio       1.4     # Ratio of specific heats
 # Mesh parameters
 ###############################################################################
 
-equivalentPointsX       8       # Base resolution
+equivalentPointsX       32      # Base resolution
 minX                    0.0     # Left x boundary
-maxX                    1.0     # Right x boundary
+maxX                    2.0     # Right x boundary
 minY                    0.0     # Bottom y boundary
 maxY                    1.0     # Top y boundary
-periodicFlagX           1       # Flag to create periodic domain in x
-periodicFlagY           1       # Flag to create periodic domain in y
+periodicFlagX           0       # Flag to create periodic domain in x
+periodicFlagY           0       # Flag to create periodic domain in y
 adaptiveMeshFlag        0       # Flag to use adaptive mesh
 maxRefineFactor         1       # Factor above base resolution to refine
 nStepSkipRefine         1       # Time steps without refining
