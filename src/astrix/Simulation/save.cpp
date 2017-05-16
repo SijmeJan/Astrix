@@ -423,7 +423,7 @@ void Simulation<realNeq, CL>::RestoreFine()
 
   inFile.close();
   outFile.close();
-  if (!inFile || !outFile) {
+  if (!outFile) {
     std::cout << "Error updating simulation.dat, aborting restart!"
               << " " << !inFile << " " << !outFile << std::endl;
     throw std::runtime_error("");
