@@ -23,65 +23,59 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../Common/cudaLow.h"
 #include "../Common/inlineMath.h"
 #include "./Param/simulationparameter.h"
+#include "../Common/state.h"
 
 namespace astrix {
 
 //##############################################################################
+/*! \brief L1 density error at vertex \a i
+
+\param i Vertex to consider
+\param *pVarea Pointer to vertex areas (Voronoi cells)
+\param *pState Pointer to current state at vertices
+\param *pStateExact Pointer to exact solution at vertices
+\param *E Pointer to L1 error (output)*/
 //##############################################################################
 
+template<class realNeq, ConservationLaw CL>
 __host__ __device__
 void DensityErrorSingle(unsigned int i, const real *pVarea,
-                        const real2 *pVc,
-                        real4 *pState, real4 *pStateOld, real *E)
+                        realNeq *pState, realNeq *pStateExact, real *E)
 {
-  real d = pState[i].x;
-  real d0 = pStateOld[i].x;
-
-  E[i] = pVarea[i]*std::abs(d - d0);
-}
-
-__host__ __device__
-void DensityErrorSingle(unsigned int i, const real *pVarea,
-                        const real2 *pVc,
-                        real3 *pState, real3 *pStateOld, real *E)
-{
-  real d = pState[i].x;
-  real d0 = pStateOld[i].x;
-
-  E[i] = pVarea[i]*std::abs(d - d0);
-}
-
-__host__ __device__
-void DensityErrorSingle(unsigned int i, const real *pVarea,
-                        const real2 *pVc,
-                        real *pState, real *pStateOld, real *E)
-{
-  real d = pState[i];
-  real d0 = pStateOld[i];
+  real d = state::GetDensity<realNeq, CL>(pState[i]);
+  real d0 = state::GetDensity<realNeq, CL>(pStateExact[i]);
 
   E[i] = pVarea[i]*std::abs(d - d0);
 }
 
 //######################################################################
+/*! \brief Kernel calculating L1 density errors
+
+\param i Vertex to consider
+\param nVertex Total number of vertices in Mesh
+\param *pVarea Pointer to vertex areas (Voronoi cells)
+\param *pState Pointer to current state at vertices
+\param *pStateExact Pointer to exact solution at vertices
+\param *E Pointer to L1 error (output)*/
 //######################################################################
 
 template<class realNeq, ConservationLaw CL>
 __global__ void
 devDensityError(unsigned int nVertex, const real *pVarea,
-                const real2 *pVc,
-                realNeq *pState, realNeq *pStateOld, real *E)
+                realNeq *pState, realNeq *pStateExact, real *E)
 {
   // n = vertex number
   unsigned int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nVertex) {
-    DensityErrorSingle(n, pVarea, pVc, pState, pStateOld, E);
+    DensityErrorSingle<realNeq, CL>(n, pVarea, pState, pStateExact, E);
 
     n += blockDim.x*gridDim.x;
   }
 }
 
 //######################################################################
+/*! Returns L1 density error. */
 //######################################################################
 
 template <class realNeq, ConservationLaw CL>
@@ -94,11 +88,10 @@ real Simulation<realNeq, CL>::DensityError()
 
   unsigned int nVertex = mesh->GetNVertex();
 
-  realNeq *pState = vertexState->GetPointer();
-  realNeq *pStateOld = vertexStateOld->GetPointer();
+  realNeq *pStateExact = vertexState->GetPointer();
+  realNeq *pState = vertexStateOld->GetPointer();
 
   const real *pVarea = mesh->VertexAreaData();
-  const real2 *pVc = mesh->VertexCoordinatesData();
 
   Array<real> *E = new Array<real>(1, cudaFlag, nVertex);
   real *pE = E->GetPointer();
@@ -113,19 +106,20 @@ real Simulation<realNeq, CL>::DensityError()
                                        (size_t) 0, 0);
 
     devDensityError<realNeq, CL><<<nBlocks, nThreads>>>
-      (nVertex, pVarea, pVc, pState, pStateOld, pE);
+      (nVertex, pVarea, pState, pStateExact, pE);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (unsigned int n = 0; n < nVertex; n++)
-      DensityErrorSingle(n, pVarea, pVc, pState, pStateOld, pE);
+      DensityErrorSingle<realNeq, CL>(n, pVarea, pState, pStateExact, pE);
   }
 
   real e = E->Sum()/mesh->GetTotalArea();
 
   delete E;
 
+  // Put current state back where it belongs
   vertexState->SetEqual(vertexStateOld);
 
   return e;
