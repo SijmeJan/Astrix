@@ -4,14 +4,17 @@ Running Astrix
 Command line options
 -------------------------------
 
-Issuing ``astrix`` gives::
+Issueing ``astrix`` gives::
 
-    Usage: astrix [-d] [-v verboseLevel] [-D debugLevel] [-r restartNumber] filename
-    -d                       : run on GPU device
-    -v verboseLevel  : amount of output to stdout (0 - 2)
-    -D debugLevel    : amount of extra checks for debugging
-    -r restartNumber : try to restart from previous dump
-    filename              : input file name
+    Usage: astrix [-d] [-v verboseLevel] [-D debugLevel] [-r restartNumber] [-cl conservationLaw] filename
+    -d                  : run on GPU device
+    -v verboseLevel     : amount of output to stdout (0 - 2)
+    -D debugLevel       : amount of extra checks for debugging
+    -r restartNumber    : try to restart from previous dump
+    -cl conservationLaw : use different conservation law. Can be
+                          either "advect", "burgers"
+                          "cart_iso" or "cart_euler"
+    filename            : input file name
 
 Test problems
 -------------------------------
@@ -26,6 +29,12 @@ A few test problems for the Euler equations are supplied in the ``Astrix/run/eul
 * ``noh/`` : The Noh test problem.
 * ``riemann/`` : Two-dimensional Riemann problem.
 * ``sod/`` : A one-dimensional shock tube.
+* ``source/`` : Rayleigh-Taylor instability.
 * ``vortex/`` : Isentropic vortex test.
 
-In addition, some scalar equation tests can be found in ``Astrix/run/scalar``.
+In addition, some scalar equation tests can be found in
+``Astrix/run/scalar``. A suite of test problems can be run by
+entering, in the ``Astrix`` directory::
+  python python/astrix/testsuite.py ./
+which will generate a pdf document with outputs from most test
+problems.

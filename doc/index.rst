@@ -16,6 +16,7 @@ Contents:
    :maxdepth: 2
 
    self
+   changelog
    install
    example
    create
