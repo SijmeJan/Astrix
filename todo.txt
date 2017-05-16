@@ -1,8 +1,10 @@
-comment diagnostics.cu, state.h
+merge to 1.1
+
 test RT
+move error estimates to Simulation
 
 new parallel flip selection test?
-adjust makefile register use / double prec ?
+adjust makefile register use?
 
 conservation during edge flipping
 vertex removal
