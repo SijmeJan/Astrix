@@ -11,7 +11,7 @@ Version 1.1
 * Support for isothermal hydrodynamics
 * Symmetry boundaries
 * Limit LDA contribution if change too much
-
+* Various bug fixes in Mesh generation
 
 Version 1.0.1
 ------------------------------
