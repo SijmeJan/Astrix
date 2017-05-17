@@ -452,8 +452,8 @@ void Mesh::ConstructBoundaries()
   //-----------------------------------------------------------------
 
   // All triangles can be refined in principle
-  triangleWantRefine->SetSize(nTriangle);
-  triangleWantRefine->SetToValue(1);
+  //triangleWantRefine->SetSize(nTriangle);
+  //triangleWantRefine->SetToValue(1);
 
   Array<int> *vertexOrder = new Array<int>(1, cudaFlag, (unsigned int) 4);
   vertexOrder->SetToSeries();

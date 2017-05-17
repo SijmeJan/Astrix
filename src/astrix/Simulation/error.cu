@@ -18,10 +18,11 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include "../Common/definitions.h"
 #include "../Array/array.h"
-#include "./mesh.h"
+#include "../Mesh/mesh.h"
 #include "../Common/atomic.h"
 #include "../Common/cudaLow.h"
-#include "./Connectivity/connectivity.h"
+#include "./simulation.h"
+#include "./Param/simulationparameter.h"
 
 namespace astrix {
 
@@ -47,9 +48,10 @@ For a single triangle, calculate triangle-based operator (for the internal energ
 
 __host__ __device__
 void CalcOperatorEnergySingle(int i, int nVertex, int nTriangle,
-                              int3 *pTv, real G, real3 *triL,
-                              real2 *pTn1, real2 *pTn2, real2 *pTn3,
-                              real *pVertexArea, real4 *state,
+                              const int3 *pTv, real G, const real3 *triL,
+                              const real2 *pTn1, const real2 *pTn2,
+                              const real2 *pTn3,
+                              const real *pVertexArea, real4 *state,
                               real *pVertexOperator,
                               real *pTriangleOperator)
 {
@@ -144,9 +146,10 @@ void CalcOperatorEnergySingle(int i, int nVertex, int nTriangle,
 
 __host__ __device__
 void CalcOperatorEnergySingle(int i, int nVertex, int nTriangle,
-                              int3 *pTv, real G, real3 *triL,
-                              real2 *pTn1, real2 *pTn2, real2 *pTn3,
-                              real *pVertexArea, real3 *state,
+                              const int3 *pTv, real G, const real3 *triL,
+                              const real2 *pTn1, const real2 *pTn2,
+                              const real2 *pTn3,
+                              const real *pVertexArea, real3 *state,
                               real *pVertexOperator,
                               real *pTriangleOperator)
 {
@@ -155,9 +158,10 @@ void CalcOperatorEnergySingle(int i, int nVertex, int nTriangle,
 
 __host__ __device__
 void CalcOperatorEnergySingle(int i, int nVertex, int nTriangle,
-                              int3 *pTv, real G, real3 *triL,
-                              real2 *pTn1, real2 *pTn2, real2 *pTn3,
-                              real *pVertexArea, real *state,
+                              const int3 *pTv, real G, const real3 *triL,
+                              const real2 *pTn1, const real2 *pTn2,
+                              const real2 *pTn3,
+                              const real *pVertexArea, real *state,
                               real *pVertexOperator,
                               real *pTriangleOperator)
 {
@@ -228,7 +232,7 @@ For a single triangle, calculate the estimated local truncation error based on t
 //##############################################################################
 
 __host__ __device__
-void CalcErrorEstimateSingle(int i, int nVertex, int3 *pTv,
+void CalcErrorEstimateSingle(int i, int nVertex, const int3 *pTv,
                              real *pVertexOperator,
                              real *pTriangleOperator,
                              real *pErrorEstimate)
@@ -274,9 +278,9 @@ Kernel calculating triangle-based and vertex-based operators for the internal en
 template<class realNeq, ConservationLaw CL>
 __global__ void
 devCalcOperatorEnergy(int nVertex, int nTriangle,
-                      int3 *pTv, real G, real3 *triL,
-                      real2 *pTn1, real2 *pTn2, real2 *pTn3,
-                      real *pVertexArea, realNeq *state,
+                      const int3 *pTv, real G, const real3 *triL,
+                      const real2 *pTn1, const real2 *pTn2, const real2 *pTn3,
+                      const real *pVertexArea, realNeq *state,
                       real *pVertexOperator,
                       real *pTriangleOperator)
 {
@@ -306,7 +310,7 @@ Kernel calculating estimated local truncation error from triangle-based and vert
 // #########################################################################
 
 __global__ void
-devCalcErrorEstimate(int nTriangle, int nVertex, int3 *pTv,
+devCalcErrorEstimate(int nTriangle, int nVertex, const int3 *pTv,
                      real *pVertexOperator,
                      real *pTriangleOperator,
                      real *pErrorEstimate)
@@ -330,39 +334,38 @@ devCalcErrorEstimate(int nTriangle, int nVertex, int3 *pTv,
 //##############################################################################
 
 template<class realNeq, ConservationLaw CL>
-void Mesh::CalcErrorEstimate(Array<realNeq> *vertexState, real G)
+void Simulation<realNeq, CL>::CalcErrorEstimate()
 {
-  const real zero = (real) 0.0;
-
-  int nTriangle = connectivity->triangleVertices->GetSize();
-  int nVertex = connectivity->vertexCoordinates->GetSize();
+  int nTriangle = mesh->GetNTriangle();
+  int nVertex = mesh->GetNVertex();
 
   // Triangle vertex indices
-  int3 *pTv = connectivity->triangleVertices->GetPointer();
+  const int3 *pTv = mesh->TriangleVerticesData();
 
   // Inward pointing edge normals
-  real2 *pTn1 = triangleEdgeNormals->GetPointer(0);
-  real2 *pTn2 = triangleEdgeNormals->GetPointer(1);
-  real2 *pTn3 = triangleEdgeNormals->GetPointer(2);
+  const real2 *pTn1 = mesh->TriangleEdgeNormalsData(0);
+  const real2 *pTn2 = mesh->TriangleEdgeNormalsData(1);
+  const real2 *pTn3 = mesh->TriangleEdgeNormalsData(2);
 
   // Edge lengths
-  real3 *triL = triangleEdgeLength->GetPointer();
+  const real3 *pTl = mesh->TriangleEdgeLengthData();
 
   // Voronoi cell area
-  real *pVertexArea = connectivity->vertexArea->GetPointer();
+  const real *pVertexArea = mesh->VertexAreaData();
 
   // State at vertices
   realNeq *state = vertexState->GetPointer();
+  real G = simulationParameter->specificHeatRatio;
 
   // Truncation error estimate
   triangleErrorEstimate->SetSize(nTriangle);
-  triangleErrorEstimate->SetToValue(zero);
+  triangleErrorEstimate->SetToValue((real) 0.0);
   real *pErrorEstimate = triangleErrorEstimate->GetPointer();
 
   // Vertex-based operator
   Array<real> *vertexOperator =
     new Array<real>(1, cudaFlag, (unsigned int) nVertex);
-  vertexOperator->SetToValue(zero);
+  vertexOperator->SetToValue((real) 0.0);
   real *pVertexOperator = vertexOperator->GetPointer();
 
   // Triangle-based operator
@@ -381,7 +384,7 @@ void Mesh::CalcErrorEstimate(Array<realNeq> *vertexState, real G)
                                        (size_t) 0, 0);
 
     devCalcOperatorEnergy<realNeq, CL><<<nBlocks, nThreads>>>
-      (nVertex, nTriangle, pTv, G, triL,
+      (nVertex, nTriangle, pTv, G, pTl,
        pTn1, pTn2, pTn3,
        pVertexArea, state,
        pVertexOperator, pTriangleOperator);
@@ -390,7 +393,7 @@ void Mesh::CalcErrorEstimate(Array<realNeq> *vertexState, real G)
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int i = 0; i < nTriangle; i++)
-      CalcOperatorEnergySingle(i, nVertex, nTriangle, pTv, G, triL,
+      CalcOperatorEnergySingle(i, nVertex, nTriangle, pTv, G, pTl,
                                pTn1, pTn2, pTn3,
                                pVertexArea, state,
                                pVertexOperator, pTriangleOperator);
@@ -428,18 +431,9 @@ void Mesh::CalcErrorEstimate(Array<realNeq> *vertexState, real G)
 // Instantiate
 //##############################################################################
 
-template void
-Mesh::CalcErrorEstimate<real, CL_ADVECT>(Array<real> *vertexState,
-                                         real G);
-template void
-Mesh::CalcErrorEstimate<real, CL_BURGERS>(Array<real> *vertexState,
-                                          real G);
-template void
-Mesh::CalcErrorEstimate<real3, CL_CART_ISO>(Array<real3> *vertexState,
-                                            real G);
-template void
-Mesh::CalcErrorEstimate<real4, CL_CART_EULER>(Array<real4> *vertexState,
-                                              real G);
-
+template void Simulation<real, CL_ADVECT>::CalcErrorEstimate();
+template void Simulation<real, CL_BURGERS>::CalcErrorEstimate();
+template void Simulation<real3, CL_CART_ISO>::CalcErrorEstimate();
+template void Simulation<real4, CL_CART_EULER>::CalcErrorEstimate();
 
 }  // namespace astrix

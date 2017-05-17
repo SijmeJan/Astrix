@@ -88,6 +88,11 @@ class Simulation
   //! Source contribution to residual
   Array <realNeq> *triangleResidueSource;
 
+  //! Estimate of discretization error
+  Array <real> *triangleErrorEstimate;
+  //! Flag whether triangle needs to be refined
+  Array <int> *triangleWantRefine;
+
   //! Set up the simulation
   void Init(int restartNumber);
 
@@ -166,6 +171,11 @@ class Simulation
   void Refine();
   //! Coarsen mesh
   void Coarsen(int maxCycle);
+
+  //! Calculate estimate of discretization error
+  void CalcErrorEstimate();
+  //! Check which triangles want refining based of state
+  void FillWantRefine();
 
   //! In state vector, replace total energy with pressure
   void ReplaceEnergyWithPressure();

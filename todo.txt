@@ -1,4 +1,4 @@
-merge to 1.1
+Mesh only needs to know about realNeq, not CL
 
 test RT
 move error estimates to Simulation

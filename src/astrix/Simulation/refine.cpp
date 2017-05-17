@@ -39,7 +39,8 @@ void Simulation<realNeq, CL>::Refine()
   real G = simulationParameter->specificHeatRatio;
 
   try {
-    ret = mesh->ImproveQuality<realNeq, CL>(vertexState, G, nTimeStep);
+    ret = mesh->ImproveQuality<realNeq, CL>(vertexState, G, nTimeStep,
+                                            triangleWantRefine);
   }
   catch (...) {
     std::cout << "Error refining mesh" << std::endl;
@@ -60,7 +61,8 @@ void Simulation<realNeq, CL>::Refine()
 
     while (ret > 0) {
       try {
-        ret = mesh->ImproveQuality<realNeq, CL>(vertexState, G, nTimeStep);
+        ret = mesh->ImproveQuality<realNeq, CL>(vertexState, G, nTimeStep,
+                                                triangleWantRefine);
       }
       catch (...) {
         std::cout << "Error refining mesh" << std::endl;
@@ -111,7 +113,8 @@ void Simulation<realNeq, CL>::Coarsen(int maxCycle)
   real G = simulationParameter->specificHeatRatio;
 
   while (finishedFlag == 0) {
-    if (mesh->RemoveVertices<realNeq, CL>(vertexState, G, nTimeStep) == 0)
+    if (mesh->RemoveVertices<realNeq, CL>(vertexState, G, nTimeStep,
+                                          triangleWantRefine) == 0)
       finishedFlag = 1;
     nCycle++;
     if (nCycle >= maxCycle && maxCycle >= 0)

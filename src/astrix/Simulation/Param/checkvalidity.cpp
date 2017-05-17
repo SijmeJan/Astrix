@@ -94,6 +94,10 @@ void SimulationParameter::CheckValidity(ConservationLaw CL)
     std::cout << "Invalid value for specificHeatRatio" << std::endl;
     throw std::runtime_error("");
   }
+  if (minError > maxError) {
+    std::cout << "Need minError < maxError!" << std::endl;
+    throw std::runtime_error("");
+  }
 }
 
 }  // namespace astrix

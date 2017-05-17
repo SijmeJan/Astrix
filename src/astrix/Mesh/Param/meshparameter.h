@@ -56,10 +56,6 @@ class MeshParameter
   int nStepSkipRefine;
   //! Number of time steps without checking if coarsening is needed
   int nStepSkipCoarsen;
-  //! If discretization error smaller than minError, coarsen Mesh
-  real minError;
-  //! If discretization error larger than maxError, refine Mesh
-  real maxError;
 
   //! Triangle size for initial Mesh (derived from \a equivalentPointsX)
   real baseResolution;

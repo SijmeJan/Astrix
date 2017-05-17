@@ -63,10 +63,8 @@ Mesh::Mesh(int meshVerboseLevel, int meshDebugLevel, int meshCudaFlag,
   // Define arrays
   vertexBoundaryFlag = new Array<int>(1, cudaFlag);
 
-  triangleWantRefine = new Array<int>(1, cudaFlag);
   triangleEdgeNormals = new Array<real2>(3, cudaFlag);
   triangleEdgeLength = new Array<real3>(1, cudaFlag);
-  triangleErrorEstimate = new Array<real>(1, cudaFlag);
 
   try {
     Init(fileName, restartNumber);
@@ -77,10 +75,8 @@ Mesh::Mesh(int meshVerboseLevel, int meshDebugLevel, int meshCudaFlag,
     // Clean up; destructor won't be called
     delete vertexBoundaryFlag;
 
-    delete triangleWantRefine;
     delete triangleEdgeNormals;
     delete triangleEdgeLength;
-    delete triangleErrorEstimate;
 
     delete predicates;
     delete morton;
@@ -102,10 +98,8 @@ Mesh::~Mesh()
 {
   delete vertexBoundaryFlag;
 
-  delete triangleWantRefine;
   delete triangleEdgeNormals;
   delete triangleEdgeLength;
-  delete triangleErrorEstimate;
 
   delete predicates;
   delete morton;
@@ -180,7 +174,7 @@ void Mesh::Init(const char *fileName, int restartNumber)
 
       try {
         // Refine mesh to base resolution
-        ImproveQuality<real, CL_ADVECT>((Array<real> *)0, 0.0, 0);
+        ImproveQuality<real, CL_ADVECT>((Array<real> *)0, 0.0, 0, 0);
       }
       catch (...) {
         std::cout << "Error refining initial mesh" << std::endl;
@@ -320,18 +314,14 @@ void Mesh::Transform()
 
   if (cudaFlag == 1) {
     vertexBoundaryFlag->TransformToHost();
-    triangleWantRefine->TransformToHost();
     triangleEdgeNormals->TransformToHost();
     triangleEdgeLength->TransformToHost();
-    triangleErrorEstimate->TransformToHost();
 
     cudaFlag = 0;
   } else {
     vertexBoundaryFlag->TransformToDevice();
-    triangleWantRefine->TransformToDevice();
     triangleEdgeNormals->TransformToDevice();
     triangleEdgeLength->TransformToDevice();
-    triangleErrorEstimate->TransformToDevice();
 
     cudaFlag = 1;
   }

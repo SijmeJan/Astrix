@@ -86,10 +86,6 @@ void MeshParameter::CheckValidity()
     std::cout << "Invalid value for nStepSkipCoarsen" << std::endl;
     throw std::runtime_error("");
   }
-  if (minError > maxError) {
-    std::cout << "Need minError < maxError!" << std::endl;
-    throw std::runtime_error("");
-  }
   if (qualityBound < 1.0 ||
       std::isinf(qualityBound) ||
       std::isnan(qualityBound)) {

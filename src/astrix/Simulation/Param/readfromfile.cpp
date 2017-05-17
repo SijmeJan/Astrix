@@ -140,6 +140,17 @@ void SimulationParameter::ReadFromFile(const char *fileName,
           secondWord.find_first_not_of("0123456789-.e") == std::string::npos)
         specificHeatRatio = atof(secondWord.c_str());
     }
+    if (firstWord == "minError") {
+      if (!secondWord.empty() &&
+          secondWord.find_first_not_of("0123456789.-e") == std::string::npos)
+        minError = atof(secondWord.c_str());
+    }
+    if (firstWord == "maxError") {
+      if (!secondWord.empty() &&
+          secondWord.find_first_not_of("0123456789.-e") == std::string::npos)
+        maxError = atof(secondWord.c_str());
+    }
+
   }
 
   inFile.close();

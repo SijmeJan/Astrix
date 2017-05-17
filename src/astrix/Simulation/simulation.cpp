@@ -93,6 +93,9 @@ Simulation<realNeq, CL>::Simulation(int _verboseLevel,
   triangleShockSensor = new Array<real>(1, cudaFlag);
   triangleResidueSource  = new Array<realNeq>(1, cudaFlag);
 
+  triangleWantRefine = new Array<int>(1, cudaFlag);
+  triangleErrorEstimate = new Array<real>(1, cudaFlag);
+
   try {
     // Initialize simulation
     Init(restartNumber);
@@ -112,6 +115,9 @@ Simulation<realNeq, CL>::Simulation(int _verboseLevel,
     delete triangleResidueTotal;
     delete triangleShockSensor;
     delete triangleResidueSource;
+
+    delete triangleWantRefine;
+    delete triangleErrorEstimate;
 
     delete mesh;
     delete simulationParameter;
@@ -138,6 +144,9 @@ Simulation<realNeq, CL>::~Simulation()
   delete triangleResidueTotal;
   delete triangleShockSensor;
   delete triangleResidueSource;
+
+  delete triangleWantRefine;
+  delete triangleErrorEstimate;
 
   delete mesh;
   delete simulationParameter;

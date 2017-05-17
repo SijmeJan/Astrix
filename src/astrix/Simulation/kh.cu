@@ -94,30 +94,19 @@ void AddEigenVectorSingleKH(unsigned int i, const real2 *pVc, real4 *pState,
 }
 
 __host__ __device__
-<<<<<<< HEAD
-void AddEigenVectorSingle(unsigned int i, const real2 *pVc, real3 *pState,
-                          real *dR, real*dI,
-                          real *uR, real *uI,
-                          real *vR, real *vI,
-                          real dyKH, real kxKH, real *yKH,
-                          real miny, real maxy, real G, real G1)
+void AddEigenVectorSingleKH(unsigned int i, const real2 *pVc, real3 *pState,
+                            real2 *dens, real2 *velx, real2 *vely,
+                            real kxKH, real *yKH,
+                            real miny, real maxy, real G, real G1)
 {
   // Dummy function; no eigenvector to add if solving isothermal equation
 }
 
 __host__ __device__
-void AddEigenVectorSingle(unsigned int i, const real2 *pVc, real *pState,
-                          real *dR, real*dI,
-                          real *uR, real *uI,
-                          real *vR, real *vI,
-                          real dyKH, real kxKH, real *yKH,
-                          real miny, real maxy, real G, real G1)
-=======
 void AddEigenVectorSingleKH(unsigned int i, const real2 *pVc, real *pState,
                             real2 *dens, real2 *velx, real2 *vely,
                             real kxKH, real *yKH,
                             real miny, real maxy, real G, real G1)
->>>>>>> 9e30a2a2194e7bee9d03e3bcd4e5291b727c9504
 {
   // Dummy function; no eigenvector to add if solving scalar equation
 }
@@ -235,12 +224,12 @@ void Simulation<realNeq, CL>::KHAddEigenVector()
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devAddEigenVector<realNeq, CL>,
+                                       devAddEigenVectorKH<realNeq, CL>,
                                        (size_t) 0, 0);
 
-    devAddEigenVector<realNeq, CL><<<nBlocks, nThreads>>>
-      (nVertex, pVc, pState, pdR, pdI, puR, puI, pvR, pvI,
-       pyKH[1] - pyKH[0], kxKH, pyKH, miny, maxy, G, G - 1.0);
+    devAddEigenVectorKH<realNeq, CL><<<nBlocks, nThreads>>>
+      (nVertex, pVc, pState, pDens, pVelx, pVely, kxKH, pyKH,
+       miny, maxy, G, G - 1.0);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );

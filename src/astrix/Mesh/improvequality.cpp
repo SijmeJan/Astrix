@@ -40,7 +40,8 @@ namespace astrix {
 
 template<class realNeq, ConservationLaw CL>
 int Mesh::ImproveQuality(Array<realNeq> *vertexState,
-                         real specificHeatRatio, int nTimeStep)
+                         real specificHeatRatio, int nTimeStep,
+                         Array<int> *triangleWantRefine)
 {
   if (nTimeStep % meshParameter->nStepSkipRefine != 0) return 0;
 
@@ -52,8 +53,8 @@ int Mesh::ImproveQuality(Array<realNeq> *vertexState,
 
   // Flag triangles if refinement is needed
   if (vertexState != 0) {
-    triangleWantRefine->SetSize(nTriangle);
-    FillWantRefine<realNeq, CL>(vertexState, specificHeatRatio);
+    //triangleWantRefine->SetSize(nTriangle);
+    //FillWantRefine<realNeq, CL>(vertexState, specificHeatRatio);
 
     nAdded = refine->ImproveQuality<realNeq, CL>(connectivity,
                                                  meshParameter,
@@ -139,18 +140,22 @@ int Mesh::ImproveQuality(Array<realNeq> *vertexState,
 template int
 Mesh::ImproveQuality<real, CL_ADVECT>(Array<real> *vertexState,
                                       real specificHeatRatio,
-                                      int nTimeStep);
+                                      int nTimeStep,
+                                      Array<int> *triangleWantRefine);
 template int
 Mesh::ImproveQuality<real, CL_BURGERS>(Array<real> *vertexState,
                                        real specificHeatRatio,
-                                       int nTimeStep);
+                                       int nTimeStep,
+                                       Array<int> *triangleWantRefine);
 template int
 Mesh::ImproveQuality<real3, CL_CART_ISO>(Array<real3> *vertexState,
                                          real specificHeatRatio,
-                                         int nTimeStep);
+                                         int nTimeStep,
+                                         Array<int> *triangleWantRefine);
 template int
 Mesh::ImproveQuality<real4, CL_CART_EULER>(Array<real4> *vertexState,
                                            real specificHeatRatio,
-                                           int nTimeStep);
+                                           int nTimeStep,
+                                           Array<int> *triangleWantRefine);
 
 }  // namespace astrix

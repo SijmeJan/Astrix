@@ -123,16 +123,6 @@ void MeshParameter::ReadFromFile(const char *fileName)
           secondWord.find_first_not_of("0123456789") == std::string::npos)
         nStepSkipCoarsen = atof(secondWord.c_str());
     }
-    if (firstWord == "minError") {
-      if (!secondWord.empty() &&
-          secondWord.find_first_not_of("0123456789.-e") == std::string::npos)
-        minError = atof(secondWord.c_str());
-    }
-    if (firstWord == "maxError") {
-      if (!secondWord.empty() &&
-          secondWord.find_first_not_of("0123456789.-e") == std::string::npos)
-        maxError = atof(secondWord.c_str());
-    }
     if (firstWord == "qualityBound") {
       if (!secondWord.empty() &&
           secondWord.find_first_not_of("0123456789.-e") == std::string::npos)

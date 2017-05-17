@@ -48,12 +48,14 @@ class Mesh
   template<class realNeq, ConservationLaw CL>
   int ImproveQuality(Array<realNeq> *vertexState,
                      real specificHeatRatio,
-                     int nTimeStep);
+                     int nTimeStep,
+                     Array<int> *triangleWantRefine);
   //! Coarsen mesh
   template<class realNeq, ConservationLaw CL>
   int RemoveVertices(Array<realNeq> *vertexState,
                      real specificHeatRatio,
-                     int nTimeStep);
+                     int nTimeStep,
+                     Array<int> *triangleWantRefine);
 
   //! Save mesh to disk
   void Save(int nSave);
@@ -129,13 +131,13 @@ class Mesh
   Array <int> *vertexBoundaryFlag;
 
   //! Flag whether triangle needs to be refined
-  Array <int> *triangleWantRefine;
+  //Array <int> *triangleWantRefine;
   //! Normal vector to triangle edges (normalized)
   Array <real2> *triangleEdgeNormals;
   //! Triangle edge lengths
   Array <real3> *triangleEdgeLength;
   //! Estimate of discretization error
-  Array <real> *triangleErrorEstimate;
+  //Array <real> *triangleErrorEstimate;
 
   // Runtime flags
 
@@ -171,11 +173,11 @@ class Mesh
   // Functions for adaptive Mesh
 
   //! Calculate estimate of discretization error
-  template<class realNeq, ConservationLaw CL>
-  void CalcErrorEstimate(Array<realNeq> *vertexState, real G);
+  //template<class realNeq, ConservationLaw CL>
+  //void CalcErrorEstimate(Array<realNeq> *vertexState, real G);
   //! Check which triangles want refining based of state
-  template<class realNeq, ConservationLaw CL>
-  void FillWantRefine(Array<realNeq> *vertexState, real specificHeatRatio);
+  //template<class realNeq, ConservationLaw CL>
+  //void FillWantRefine(Array<realNeq> *vertexState, real specificHeatRatio);
 
   // Debugging functions
 

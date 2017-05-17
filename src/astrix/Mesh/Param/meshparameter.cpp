@@ -42,8 +42,6 @@ MeshParameter::MeshParameter()
   qualityBound = 0.0;
   nStepSkipRefine = -1;
   nStepSkipCoarsen = -1;
-  maxError = 1.0;
-  minError = 0.5;
   structuredFlag = 0;
 
   baseResolution = -1.0;

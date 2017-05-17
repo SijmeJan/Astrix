@@ -61,6 +61,11 @@ class SimulationParameter
   //! Flag whether do output VTK files
   int writeVTK;
 
+  //! If discretization error smaller than minError, coarsen Mesh
+  real minError;
+  //! If discretization error larger than maxError, refine Mesh
+  real maxError;
+
   //! Read in data from file
   void ReadFromFile(const char *fileName, ConservationLaw CL);
 

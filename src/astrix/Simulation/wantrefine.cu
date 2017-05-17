@@ -17,10 +17,10 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include "../Common/definitions.h"
 #include "../Array/array.h"
-#include "./mesh.h"
+#include "../Mesh/mesh.h"
 #include "../Common/cudaLow.h"
-#include "./Param/meshparameter.h"
-#include "./Connectivity/connectivity.h"
+#include "./simulation.h"
+#include "./Param/simulationParameter.h"
 
 namespace astrix {
 
@@ -80,16 +80,16 @@ devFillWantRefine(int nTriangle, real *pErrorEstimate,
 // #########################################################################
 
 template<class realNeq, ConservationLaw CL>
-void Mesh::FillWantRefine(Array<realNeq> *vertexState, real specificHeatRatio)
+void Simulation<realNeq, CL>::FillWantRefine()
 {
-  int nTriangle = connectivity->triangleVertices->GetSize();
+  int nTriangle = mesh->GetNTriangle();
 
-  CalcErrorEstimate<realNeq, CL>(vertexState, specificHeatRatio);
+  CalcErrorEstimate();
   real *pErrorEstimate = triangleErrorEstimate->GetPointer();
   int *pWantRefine = triangleWantRefine->GetPointer();
 
-  real minError = meshParameter->minError;
-  real maxError = meshParameter->maxError;
+  real minError = simulationParameter->minError;
+  real maxError = simulationParameter->maxError;
 
   if (cudaFlag == 1) {
     int nBlocks = 128;
@@ -114,17 +114,9 @@ void Mesh::FillWantRefine(Array<realNeq> *vertexState, real specificHeatRatio)
 // Instantiate
 //##############################################################################
 
-template void
-Mesh::FillWantRefine<real, CL_ADVECT>(Array<real> *vertexState,
-                                      real specificHeatRatio);
-template void
-Mesh::FillWantRefine<real, CL_BURGERS>(Array<real> *vertexState,
-                                     real specificHeatRatio);
-template void
-Mesh::FillWantRefine<real3, CL_CART_ISO>(Array<real3> *vertexState,
-                                     real specificHeatRatio);
-template void
-Mesh::FillWantRefine<real4, CL_CART_EULER>(Array<real4> *vertexState,
-                                           real specificHeatRatio);
+template void Simulation<real, CL_ADVECT>::FillWantRefine();
+template void Simulation<real, CL_BURGERS>::FillWantRefine();
+template void Simulation<real3, CL_CART_ISO>::FillWantRefine();
+template void Simulation<real4, CL_CART_EULER>::FillWantRefine();
 
 }  // namespace astrix

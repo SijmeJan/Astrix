@@ -44,6 +44,8 @@ SimulationParameter::SimulationParameter()
   specificHeatRatio = -1.0;
   CFLnumber = -1.0;
   preferMinMaxBlend = 2;
+  minError = 0.0;
+  maxError = -1.0;
 }
 
 //#########################################################################
