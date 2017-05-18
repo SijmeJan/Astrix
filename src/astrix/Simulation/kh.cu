@@ -73,18 +73,25 @@ void AddEigenVectorSingleKH(unsigned int i, const real2 *pVc, real4 *pState,
   real vRj = vely[jj].x + (y - yKH[jj])*(vely[jj + 1].x - vely[jj].x)/dyKH;
   real vIj = vely[jj].y + (y - yKH[jj])*(vely[jj + 1].y - vely[jj].y)/dyKH;
 
-  //real dRj = dR[jj] + (y - yKH[jj])*(dR[jj + 1] - dR[jj])/dyKH;
-  //real dIj = dI[jj] + (y - yKH[jj])*(dI[jj + 1] - dI[jj])/dyKH;
-  //real uRj = uR[jj] + (y - yKH[jj])*(uR[jj + 1] - uR[jj])/dyKH;
-  //real uIj = uI[jj] + (y - yKH[jj])*(uI[jj + 1] - uI[jj])/dyKH;
-  //real vRj = vR[jj] + (y - yKH[jj])*(vR[jj + 1] - vR[jj])/dyKH;
-  //real vIj = vI[jj] + (y - yKH[jj])*(vI[jj + 1] - vI[jj])/dyKH;
-
   real d0 = pState[i].x;
   real a0 = pState[i].y;
   real b0 = pState[i].z;
   real e0 = pState[i].w;
   real p0 = G1*(e0 - 0.5*(a0*a0 + b0*b0)/d0);
+  /*
+#ifndef __CUDA_ARCH__
+  std::cout << "x = " << x
+            << " y = " << y
+            << " a0 = " << a0
+            << " b0 = " << b0
+            << " uRj = " << uRj
+            << " uIj = " << uIj
+            << " vRj = " << vRj
+            << " vIj = " << vIj
+            << std::endl;
+  int qq; std::cin >> qq;
+#endif
+  */
 
   pState[i].x = d0 + dRj*cos(2.0*M_PI*kxKH*x) - dIj*sin(2.0*M_PI*kxKH*x);
   pState[i].y = a0 + d0*uRj*cos(2.0*M_PI*kxKH*x) - d0*uIj*sin(2.0*M_PI*kxKH*x);
@@ -187,8 +194,8 @@ void Simulation<realNeq, CL>::KHAddEigenVector()
   for (int j = 1; j < nKH - 1; j++)
     KH >> pyKH[j]
        >> pDens[j].x >> pDens[j].y
-       >> pVelx[j].x >> pDens[j].y
-       >> pVely[j].x >> pDens[j].y;
+       >> pVelx[j].x >> pVelx[j].y
+       >> pVely[j].x >> pVely[j].y;
 
   KH.close();
 
