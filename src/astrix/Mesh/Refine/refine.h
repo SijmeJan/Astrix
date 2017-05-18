@@ -34,14 +34,13 @@ class Refine
   ~Refine();
 
   //! Add vertices to Mesh until quality constraints met
-  template<class realNeq, ConservationLaw CL>
+  template<class realNeq>
     int ImproveQuality(Connectivity * const connectivity,
                        const MeshParameter *meshParameter,
                        const Predicates *predicates,
                        Morton * const morton,
                        Delaunay * const delaunay,
                        Array<realNeq> * const vertexState,
-                       const real specificHeatRatio,
                        Array<int> * const triangleWantRefine);
 
   //! Add list of vertices to Mesh
@@ -101,27 +100,25 @@ class Refine
   int FlagSegment(Connectivity * const connectivity,
                   Array<unsigned int> * const onSegmentFlagScan);
   //! Insert new vertices into Mesh
-  template<class realNeq, ConservationLaw CL>
+  template<class realNeq>
     void InsertVertices(Connectivity * const connectivity,
                         const MeshParameter *meshParameter,
                         const Predicates *predicates,
                         Array<realNeq> * const vertexState,
                         Array<int> * const triangleWantRefine);
   //! Interpolate state at new vertices
-  template<class realNeq, ConservationLaw CL>
+  template<class realNeq>
     void InterpolateState(Connectivity * const connectivity,
                           const MeshParameter *meshParameter,
                           Array<realNeq> * const vertexState,
-                          Array<int> * const triangleWantRefine,
-                          const real specificHeatRatio);
+                          Array<int> * const triangleWantRefine);
   //! Split any additional segments
-  template<class realNeq, ConservationLaw CL>
+  template<class realNeq>
     void SplitSegment(Connectivity * const connectivity,
                       const MeshParameter *meshParameter,
                       const Predicates *predicates,
                       Array<realNeq> * const vertexState,
                       Array<int> * const triangleWantRefine,
-                      const real specificHeatRatio,
                       const int nTriangleOld);
   //! Test whether any new vertices encroach a segment
   void TestEncroach(Connectivity * const connectivity,

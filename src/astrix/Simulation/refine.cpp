@@ -35,12 +35,9 @@ void Simulation<realNeq, CL>::Refine()
 {
   int ret = 0;
 
-  // Ratio of specific heats
-  real G = simulationParameter->specificHeatRatio;
-
   try {
-    ret = mesh->ImproveQuality<realNeq, CL>(vertexState, G, nTimeStep,
-                                            triangleWantRefine);
+    ret = mesh->ImproveQuality<realNeq>(vertexState, nTimeStep,
+                                        triangleWantRefine);
   }
   catch (...) {
     std::cout << "Error refining mesh" << std::endl;
@@ -61,8 +58,8 @@ void Simulation<realNeq, CL>::Refine()
 
     while (ret > 0) {
       try {
-        ret = mesh->ImproveQuality<realNeq, CL>(vertexState, G, nTimeStep,
-                                                triangleWantRefine);
+        ret = mesh->ImproveQuality<realNeq>(vertexState, nTimeStep,
+                                            triangleWantRefine);
       }
       catch (...) {
         std::cout << "Error refining mesh" << std::endl;

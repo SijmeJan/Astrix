@@ -45,9 +45,8 @@ class Mesh
   ~Mesh();
 
   //! Refine mesh
-  template<class realNeq, ConservationLaw CL>
+  template<class realNeq>
   int ImproveQuality(Array<realNeq> *vertexState,
-                     real specificHeatRatio,
                      int nTimeStep,
                      Array<int> *triangleWantRefine);
   //! Coarsen mesh
@@ -130,14 +129,10 @@ class Mesh
   //! Flag whether vertex is part of boundary
   Array <int> *vertexBoundaryFlag;
 
-  //! Flag whether triangle needs to be refined
-  //Array <int> *triangleWantRefine;
   //! Normal vector to triangle edges (normalized)
   Array <real2> *triangleEdgeNormals;
   //! Triangle edge lengths
   Array <real3> *triangleEdgeLength;
-  //! Estimate of discretization error
-  //Array <real> *triangleErrorEstimate;
 
   // Runtime flags
 
@@ -169,15 +164,6 @@ class Mesh
 
   //! Create structured mesh
   void CreateStructuredMesh();
-
-  // Functions for adaptive Mesh
-
-  //! Calculate estimate of discretization error
-  //template<class realNeq, ConservationLaw CL>
-  //void CalcErrorEstimate(Array<realNeq> *vertexState, real G);
-  //! Check which triangles want refining based of state
-  //template<class realNeq, ConservationLaw CL>
-  //void FillWantRefine(Array<realNeq> *vertexState, real specificHeatRatio);
 
   // Debugging functions
 

@@ -34,34 +34,24 @@ Use linear interpolation to determine state at new vertex.
 \param t Triangle into which to insert point (x, y)
 \param e Edge onto which to insert point (x, y)
 \param indexInVertexArray Index of vertex to insert
-\param *dens Pointer to density
-\param *momx Pointer to x-momentum
-\param *momy Pointer to y-momentum
-\param *ener Pointer to energy
-\param *tv1 Pointer to first vertex of triangle
-\param *tv2 Pointer to second vertex of triangle
-\param *tv3 Pointer to third vertex of triangle
-\param *et1 Pointer to first triangle neighbouring edge
-\param *et2 Pointer to second triangle neighbouring edge
-\param *pVertX Pointer to x-coordinates of vertices
-\param *pVertY Pointer to y-coordinates of vertices
+\param *state Pointer to state vector
+\param *pTv Pointer to triangle vertices
+\param *pEt Pointer to edge triangles
+\param *pVc Pointer to vertex coordinates
 \param x x-coordinate of point to insert
 \param y y-coordinate of point to insert
 \param *wantRefine Pointer to array of flags specifying if triangle needs to be refined. Set to zero for all inserted points.
-\param G Ratio of specific heats
 \param nVertex Total number of vertices in Mesh
 \param Px Periodic domain size x
-\param Py Periodic domain size y
-\param *pred Pointer to initialised Predicates object
-\param *pParam Pointer to initialised Predicates parameter vector*/
+\param Py Periodic domain size y*/
 //######################################################################
 
-template<class realNeq, ConservationLaw CL>
+template<class realNeq>
 __host__ __device__
 void InterpolateSingle(int t, int e, int indexInVertexArray, realNeq *state,
                        int3 *pTv, int2 *pEt, real2 *pVc,
                        real x, real y,
-                       int *wantRefine, real G,
+                       int *wantRefine,
                        int nVertex, real Px, real Py)
 {
   const real half  = (real) 0.5;
@@ -109,32 +99,24 @@ Use linear interpolation to determine state at new vertices.
 \param nRefine Total number of points to add
 \param *pTriangleAdd Pointer to array of triangles into which to insert points
 \param *pEdgeAdd Pointer to array of edges onto which to insert points
-\param *dens Pointer to density
-\param *momx Pointer to x-momentum
-\param *momy Pointer to y-momentum
-\param *ener Pointer to energy
+\param *state Pointer to state vector
 \param nVertex Total number of vertices in Mesh
-\param *refineX x-coordinates of points to insert
-\param *refineY y-coordinates of points to insert
-\param *pVertX Pointer to x-coordinates of vertices
-\param *pVertY Pointer to y-coordinates of vertices
-\param *tv1 Pointer to first vertex of triangle
-\param *tv2 Pointer to second vertex of triangle
-\param *tv3 Pointer to third vertex of triangle
-\param *et1 Pointer to first triangle neighbouring edge
-\param *et2 Pointer to second triangle neighbouring edge
+\param nTriangle Total number of triangles in Mesh
+\param *pVcAdd Pointer to vertex coordinates to add
+\param *pVc Pointer to vertex coordinates
+\param *pTv Pointer to triangle vertices
+\param *pEt Pointer to edge triangles
 \param *wantRefine Pointer to array of flags specifying if triangle needs to be refined. Set to zero for all inserted points.
-\param G Ratio of specific heats
 \param Px Periodic domain size x
 \param Py Periodic domain size y*/
 //######################################################################
 
-template<class realNeq, ConservationLaw CL>
+template<class realNeq>
 __global__ void
 devInterpolateState(int nRefine, int *pElementAdd, realNeq *state,
                     int nVertex, int nTriangle, real2 *pVcAdd,
                     real2 *pVc, int3 *pTv, int2 *pEt,
-                    int *wantRefine, real G, real Px, real Py)
+                    int *wantRefine, real Px, real Py)
 {
   int i = blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -146,10 +128,10 @@ devInterpolateState(int nRefine, int *pElementAdd, realNeq *state,
       t = -1;
     }
 
-    InterpolateSingle<realNeq, CL>(t, e, i + nVertex, state,
-                                   pTv, pEt, pVc,
-                                   pVcAdd[i].x, pVcAdd[i].y, wantRefine, G,
-                                   nVertex, Px, Py);
+    InterpolateSingle<realNeq>(t, e, i + nVertex, state,
+                               pTv, pEt, pVc,
+                               pVcAdd[i].x, pVcAdd[i].y, wantRefine,
+                               nVertex, Px, Py);
 
     i += blockDim.x*gridDim.x;
   }
@@ -158,16 +140,17 @@ devInterpolateState(int nRefine, int *pElementAdd, realNeq *state,
 //######################################################################
 /*! Use linear interpolation to give newly inserted vertices a state
 
+\param *connectivity Pointer to connectivity
+\param *meshParameter Pointer to mesh parameters
 \param *vertexState Pointer to Array containing state vector
-\param specificHeatRatio Ratio of specific heats*/
+\param *triangleWantRefine Pointer to array indicating which triangles are to be refined*/
 //######################################################################
 
-template<class realNeq, ConservationLaw CL>
+template<class realNeq>
 void Refine::InterpolateState(Connectivity * const connectivity,
                               const MeshParameter *meshParameter,
                               Array<realNeq> * const vertexState,
-                              Array<int> * const triangleWantRefine,
-                              const real specificHeatRatio)
+                              Array<int> * const triangleWantRefine)
 {
   int nTriangle = connectivity->triangleVertices->GetSize();
   int nVertex = connectivity->vertexCoordinates->GetSize();
@@ -195,13 +178,13 @@ void Refine::InterpolateState(Connectivity * const connectivity,
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devInterpolateState<realNeq, CL>,
+                                       devInterpolateState<realNeq>,
                                        (size_t) 0, 0);
 
-    devInterpolateState<realNeq, CL><<<nBlocks, nThreads>>>
+    devInterpolateState<realNeq><<<nBlocks, nThreads>>>
       (nRefine, pElementAdd, state,
        nVertex, nTriangle, pVcAdd, pVc, pTv, pEt,
-       pWantRefine, specificHeatRatio, Px, Py);
+       pWantRefine, Px, Py);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -214,10 +197,9 @@ void Refine::InterpolateState(Connectivity * const connectivity,
         t = -1;
       }
 
-      InterpolateSingle<realNeq, CL>(t, e, n + nVertex, state,
-                                     pTv, pEt, pVc, pVcAdd[n].x, pVcAdd[n].y,
-                                     pWantRefine, specificHeatRatio,
-                                     nVertex, Px, Py);
+      InterpolateSingle<realNeq>(t, e, n + nVertex, state,
+                                 pTv, pEt, pVc, pVcAdd[n].x, pVcAdd[n].y,
+                                 pWantRefine, nVertex, Px, Py);
     }
   }
 }
@@ -227,32 +209,19 @@ void Refine::InterpolateState(Connectivity * const connectivity,
 //##############################################################################
 
 template void
-Refine::InterpolateState<real,
-                         CL_ADVECT>(Connectivity * const connectivity,
-                                    const MeshParameter *meshParameter,
-                                    Array<real> * const vertexState,
-                                    Array<int> * const triangleWantRefine,
-                                    const real specificHeatRatio);
+Refine::InterpolateState<real>(Connectivity * const connectivity,
+                               const MeshParameter *meshParameter,
+                               Array<real> * const vertexState,
+                               Array<int> * const triangleWantRefine);
 template void
-Refine::InterpolateState<real,
-                         CL_BURGERS>(Connectivity * const connectivity,
-                                     const MeshParameter *meshParameter,
-                                     Array<real> * const vertexState,
-                                     Array<int> * const triangleWantRefine,
-                                     const real specificHeatRatio);
+Refine::InterpolateState<real3>(Connectivity * const connectivity,
+                                const MeshParameter *meshParameter,
+                                Array<real3> * const vertexState,
+                                Array<int> * const triangleWantRefine);
 template void
-Refine::InterpolateState<real3,
-                         CL_CART_ISO>(Connectivity * const connectivity,
-                                      const MeshParameter *meshParameter,
-                                      Array<real3> * const vertexState,
-                                      Array<int> * const triangleWantRefine,
-                                      const real specificHeatRatio);
-template void
-Refine::InterpolateState<real4,
-                         CL_CART_EULER>(Connectivity * const connectivity,
-                                        const MeshParameter *meshParameter,
-                                        Array<real4> * const vertexState,
-                                        Array<int> * const triangleWantRefine,
-                                        const real specificHeatRatio);
+Refine::InterpolateState<real4>(Connectivity * const connectivity,
+                                const MeshParameter *meshParameter,
+                                Array<real4> * const vertexState,
+                                Array<int> * const triangleWantRefine);
 
 }  // namespace astrix

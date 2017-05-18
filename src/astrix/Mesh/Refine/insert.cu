@@ -610,7 +610,7 @@ devInsertVertices(int nRefine, int *pElementAdd,
   \param *vertexState Pointer to Array containing state vector. We use this to distinguish whether we are creating a new Mesh (\a vertexState=0) meaning all triangles can be refined always, or whether we are in the middle of a simulation in which case no newly created triangles can be refined in the next step before we have computed the new truncation error.*/
 //######################################################################
 
-template<class realNeq, ConservationLaw CL>
+template<class realNeq>
 void Refine::InsertVertices(Connectivity * const connectivity,
                             const MeshParameter *meshParameter,
                             const Predicates *predicates,
@@ -755,32 +755,22 @@ void Refine::InsertVertices(Connectivity * const connectivity,
 //##############################################################################
 
 template void
-Refine::InsertVertices<real,
-                       CL_ADVECT>(Connectivity * const connectivity,
-                                  const MeshParameter *meshParameter,
-                                  const Predicates *predicates,
-                                  Array<real> * const vertexState,
-                                  Array<int> * const triangleWantRefine);
+Refine::InsertVertices<real>(Connectivity * const connectivity,
+                             const MeshParameter *meshParameter,
+                             const Predicates *predicates,
+                             Array<real> * const vertexState,
+                             Array<int> * const triangleWantRefine);
 template void
-Refine::InsertVertices<real,
-                       CL_BURGERS>(Connectivity * const connectivity,
-                                   const MeshParameter *meshParameter,
-                                   const Predicates *predicates,
-                                   Array<real> * const vertexState,
-                                   Array<int> * const triangleWantRefine);
+Refine::InsertVertices<real3>(Connectivity * const connectivity,
+                              const MeshParameter *meshParameter,
+                              const Predicates *predicates,
+                              Array<real3> * const vertexState,
+                              Array<int> * const triangleWantRefine);
 template void
-Refine::InsertVertices<real3,
-                       CL_CART_ISO>(Connectivity * const connectivity,
-                                    const MeshParameter *meshParameter,
-                                    const Predicates *predicates,
-                                    Array<real3> * const vertexState,
-                                    Array<int> * const triangleWantRefine);
-template void
-Refine::InsertVertices<real4,
-                       CL_CART_EULER>(Connectivity * const connectivity,
-                                      const MeshParameter *meshParameter,
-                                      const Predicates *predicates,
-                                      Array<real4> * const vertexState,
-                                      Array<int> * const triangleWantRefine);
+Refine::InsertVertices<real4>(Connectivity * const connectivity,
+                              const MeshParameter *meshParameter,
+                              const Predicates *predicates,
+                              Array<real4> * const vertexState,
+                              Array<int> * const triangleWantRefine);
 
 }  // namespace astrix

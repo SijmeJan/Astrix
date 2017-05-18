@@ -35,7 +35,7 @@ namespace astrix {
 \param maxCycle Maximum number of cycles. If <= 0, cycle until all edges are Delaunay*/
 //#########################################################################
 
-template<class realNeq, ConservationLaw CL>
+template<class realNeq>
 void Delaunay::MakeDelaunay(Connectivity * const connectivity,
                             Array<realNeq> * const vertexState,
                             const Predicates *predicates,
@@ -101,8 +101,8 @@ void Delaunay::MakeDelaunay(Connectivity * const connectivity,
 
       // Adjust state for conservation
       if (vertexState != 0)
-        AdjustState<realNeq, CL>(connectivity, vertexState, predicates,
-                                 meshParameter, nNonDel);
+        AdjustState<realNeq>(connectivity, vertexState, predicates,
+                             meshParameter, nNonDel);
 
       delete nvtxTemp;
       nvtxTemp = new nvtxEvent("Flip", 5);
@@ -132,44 +132,31 @@ void Delaunay::MakeDelaunay(Connectivity * const connectivity,
 //##############################################################################
 
 template void
-Delaunay::MakeDelaunay<real,
-                       CL_ADVECT>(Connectivity * const connectivity,
-                                  Array<real> * const vertexState,
-                                  const Predicates *predicates,
-                                  const MeshParameter *meshParameter,
-                                  const int maxCycle,
-                                  Array<int> * const edgeNeedsChecking,
-                                  const int nEdgeCheck,
-                                  const int flopFlag);
+Delaunay::MakeDelaunay<real>(Connectivity * const connectivity,
+                             Array<real> * const vertexState,
+                             const Predicates *predicates,
+                             const MeshParameter *meshParameter,
+                             const int maxCycle,
+                             Array<int> * const edgeNeedsChecking,
+                             const int nEdgeCheck,
+                             const int flopFlag);
 template void
-Delaunay::MakeDelaunay<real,
-                       CL_BURGERS>(Connectivity * const connectivity,
-                                   Array<real> * const vertexState,
-                                   const Predicates *predicates,
-                                   const MeshParameter *meshParameter,
-                                   const int maxCycle,
-                                   Array<int> * const edgeNeedsChecking,
-                                   const int nEdgeCheck,
-                                   const int flopFlag);
+Delaunay::MakeDelaunay<real3>(Connectivity * const connectivity,
+                              Array<real3> * const vertexState,
+                              const Predicates *predicates,
+                              const MeshParameter *meshParameter,
+                              const int maxCycle,
+                              Array<int> * const edgeNeedsChecking,
+                              const int nEdgeCheck,
+                              const int flopFlag);
 template void
-Delaunay::MakeDelaunay<real3,
-                       CL_CART_ISO>(Connectivity * const connectivity,
-                                    Array<real3> * const vertexState,
-                                    const Predicates *predicates,
-                                    const MeshParameter *meshParameter,
-                                    const int maxCycle,
-                                    Array<int> * const edgeNeedsChecking,
-                                    const int nEdgeCheck,
-                                    const int flopFlag);
-template void
-Delaunay::MakeDelaunay<real4,
-                       CL_CART_EULER>(Connectivity * const connectivity,
-                                      Array<real4> * const vertexState,
-                                      const Predicates *predicates,
-                                      const MeshParameter *meshParameter,
-                                      const int maxCycle,
-                                      Array<int> * const edgeNeedsChecking,
-                                      const int nEdgeCheck,
-                                      const int flopFlag);
+Delaunay::MakeDelaunay<real4>(Connectivity * const connectivity,
+                              Array<real4> * const vertexState,
+                              const Predicates *predicates,
+                              const MeshParameter *meshParameter,
+                              const int maxCycle,
+                              Array<int> * const edgeNeedsChecking,
+                              const int nEdgeCheck,
+                              const int flopFlag);
 
 }  // namespace astrix

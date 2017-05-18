@@ -181,9 +181,9 @@ int Coarsen::RemoveVertices(Connectivity *connectivity,
         delete vertexTriangleList;
         delete triangleTarget;
 
-        delaunay->MakeDelaunay<realNeq, CL>(connectivity, vertexState,
-                                            predicates, meshParameter, 0,
-                                            0, 0, 0);
+        delaunay->MakeDelaunay<realNeq>(connectivity, vertexState,
+                                        predicates, meshParameter, 0,
+                                        0, 0, 0);
 
         removedVerticesFlag = 1;
       }

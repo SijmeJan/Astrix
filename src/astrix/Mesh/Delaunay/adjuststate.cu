@@ -233,7 +233,7 @@ void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
 \param *pState Pointer to state vector*/
 //######################################################################
 
-template<class realNeq, ConservationLaw CL>
+template<class realNeq>
 __global__ void
 devAdjustState(int nNonDel, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
                int nVertex, real2 *pVc, real *pVarea,
@@ -262,7 +262,7 @@ devAdjustState(int nNonDel, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
 \param nNonDel Number of edges to be flipped*/
 //######################################################################
 
-template<class realNeq, ConservationLaw CL>
+template<class realNeq>
 void Delaunay::AdjustState(Connectivity * const connectivity,
                            Array<realNeq> * const vertexState,
                            const Predicates *predicates,
@@ -294,10 +294,10 @@ void Delaunay::AdjustState(Connectivity * const connectivity,
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devAdjustState<realNeq, CL>,
+                                       devAdjustState<realNeq>,
                                        (size_t) 0, 0);
 
-    devAdjustState<realNeq, CL><<<nBlocks, nThreads>>>
+    devAdjustState<realNeq><<<nBlocks, nThreads>>>
       (nNonDel, pEnd, pTv, pTe, pEt, nVertex, pVc, pVarea,
        predicates, pParam, Px, Py, pState);
 
@@ -315,27 +315,21 @@ void Delaunay::AdjustState(Connectivity * const connectivity,
 //##############################################################################
 
 template void
-Delaunay::AdjustState<real, CL_ADVECT>(Connectivity * const connectivity,
-                                       Array<real> * const vertexState,
-                                       const Predicates *predicates,
-                                       const MeshParameter *meshParameter,
-                                       const int nNonDel);
+Delaunay::AdjustState<real>(Connectivity * const connectivity,
+                            Array<real> * const vertexState,
+                            const Predicates *predicates,
+                            const MeshParameter *meshParameter,
+                            const int nNonDel);
 template void
-Delaunay::AdjustState<real, CL_BURGERS>(Connectivity * const connectivity,
-                                        Array<real> * const vertexState,
-                                        const Predicates *predicates,
-                                        const MeshParameter *meshParameter,
-                                        const int nNonDel);
+Delaunay::AdjustState<real3>(Connectivity * const connectivity,
+                             Array<real3> * const vertexState,
+                             const Predicates *predicates,
+                             const MeshParameter *meshParameter,
+                             const int nNonDel);
 template void
-Delaunay::AdjustState<real3, CL_CART_ISO>(Connectivity * const connectivity,
-                                          Array<real3> * const vertexState,
-                                          const Predicates *predicates,
-                                          const MeshParameter *meshParameter,
-                                          const int nNonDel);
-template void
-Delaunay::AdjustState<real4, CL_CART_EULER>(Connectivity * const connectivity,
-                                            Array<real4> * const vertexState,
-                                            const Predicates *predicates,
-                                            const MeshParameter *meshParameter,
-                                            const int nNonDel);
+Delaunay::AdjustState<real4>(Connectivity * const connectivity,
+                             Array<real4> * const vertexState,
+                             const Predicates *predicates,
+                             const MeshParameter *meshParameter,
+                             const int nNonDel);
 }  // namespace astrix

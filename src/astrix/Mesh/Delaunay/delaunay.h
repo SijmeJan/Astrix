@@ -34,7 +34,7 @@ class Delaunay
   ~Delaunay();
 
   //! Turn Mesh into Delaunay nesh
-  template<class realNeq, ConservationLaw CL>
+  template<class realNeq>
     void MakeDelaunay(Connectivity * const connectivity,
                       Array<realNeq> * const vertexState,
                       const Predicates *predicates,
@@ -87,7 +87,7 @@ class Delaunay
                   Array<int> * const edgeNeedsChecking,
                   const int nEdgeCheck);
   //! Adjust state in order to remain conservative
-  template<class realNeq, ConservationLaw CL>
+  template<class realNeq>
     void AdjustState(Connectivity * const connectivity,
                      Array<realNeq> * const vertexState,
                      const Predicates *predicates,

@@ -41,14 +41,13 @@ namespace astrix {
 \param *triangleWantRefine Pointer to flags if triangle needs to be refined based on current state. Only used when t > 0; otherwise it needs to be 0.*/
 //#########################################################################
 
-template<class realNeq, ConservationLaw CL>
+template<class realNeq>
 int Refine::ImproveQuality(Connectivity * const connectivity,
                            const MeshParameter *meshParameter,
                            const Predicates *predicates,
                            Morton * const morton,
                            Delaunay * const delaunay,
                            Array<realNeq> * const vertexState,
-                           const real specificHeatRatio,
                            Array<int> * const triangleWantRefine)
 {
   nvtxEvent *nvtxRefine = new nvtxEvent("Refine", 1);
@@ -64,8 +63,8 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
   real maxFracAddedMorton = 0.07;
 
   // Maintain Delaunay triangulation
-  delaunay->MakeDelaunay<realNeq, CL>(connectivity, vertexState,
-                                      predicates, meshParameter, 0, 0, 0, 0);
+  delaunay->MakeDelaunay<realNeq>(connectivity, vertexState,
+                                  predicates, meshParameter, 0, 0, 0, 0);
 
   while (!finished) {
     if (verboseLevel > 1)
@@ -132,11 +131,10 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
 
         // If necessary, interpolate state
         if (vertexState != 0)
-          InterpolateState<realNeq, CL>(connectivity,
-                                        meshParameter,
-                                        vertexState,
-                                        triangleWantRefine,
-                                        specificHeatRatio);
+          InterpolateState<realNeq>(connectivity,
+                                    meshParameter,
+                                    vertexState,
+                                    triangleWantRefine);
 
         if (verboseLevel > 2)
           std::cout << "Add periodic..." << std::endl;
@@ -149,8 +147,8 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
 
         // Insert new vertices into Mesh
         int nTriangleOld = connectivity->triangleVertices->GetSize();
-        InsertVertices<realNeq, CL>(connectivity, meshParameter, predicates,
-                                    vertexState, triangleWantRefine);
+        InsertVertices<realNeq>(connectivity, meshParameter, predicates,
+                                vertexState, triangleWantRefine);
 
         // Output memory usage to stdout
         if (verboseLevel > 1) {
@@ -186,9 +184,9 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
 
         // Check if any of the points inserted on a segment encroach
         // a second segment; if so, split this second segment.
-        SplitSegment<realNeq, CL>(connectivity, meshParameter, predicates,
-                                  vertexState, triangleWantRefine,
-                                  specificHeatRatio, nTriangleOld);
+        SplitSegment<realNeq>(connectivity, meshParameter, predicates,
+                              vertexState, triangleWantRefine,
+                              nTriangleOld);
 
 
         int nEdgeCheck = edgeNeedsChecking->RemoveValue(-1);
@@ -197,9 +195,9 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
           std::cout << "Delaunay..." << std::endl;
 
         // Maintain Delaunay triangulation
-        delaunay->MakeDelaunay<realNeq, CL>(connectivity, vertexState,
-                                            predicates, meshParameter, 0,
-                                            edgeNeedsChecking, nEdgeCheck, 0);
+        delaunay->MakeDelaunay<realNeq>(connectivity, vertexState,
+                                        predicates, meshParameter, 0,
+                                        edgeNeedsChecking, nEdgeCheck, 0);
 
         if (verboseLevel > 2)
           std::cout << "Morton..." << std::endl;
@@ -208,9 +206,9 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
         int nVertex = connectivity->vertexCoordinates->GetSize();
         real fracAdded = (real) nAddedSinceMorton/(real) nVertex;
         if (debugLevel < 10 && fracAdded > maxFracAddedMorton) {
-          morton->Order<realNeq, CL>(connectivity,
-                                     triangleWantRefine,
-                                     vertexState);
+          morton->Order<realNeq>(connectivity,
+                                 triangleWantRefine,
+                                 vertexState);
           nAddedSinceMorton = 0;
         }
       }
@@ -221,7 +219,7 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
 
   // Final Morton ordering
   if (debugLevel >= 10 || nAddedSinceMorton > 0)
-    morton->Order<realNeq, CL>(connectivity, triangleWantRefine, vertexState);
+    morton->Order<realNeq>(connectivity, triangleWantRefine, vertexState);
 
   if (verboseLevel > 1)
     std::cout << std::endl
@@ -238,44 +236,28 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
 //##############################################################################
 
 template int
-Refine::ImproveQuality<real,
-                       CL_ADVECT>(Connectivity * const connectivity,
-                                  const MeshParameter *meshParameter,
-                                  const Predicates *predicates,
-                                  Morton * const morton,
-                                  Delaunay * const delaunay,
-                                  Array<real> * const vertexState,
-                                  const real specificHeatRatio,
-                                  Array<int> * const triangleWantRefine);
+Refine::ImproveQuality<real>(Connectivity * const connectivity,
+                             const MeshParameter *meshParameter,
+                             const Predicates *predicates,
+                             Morton * const morton,
+                             Delaunay * const delaunay,
+                             Array<real> * const vertexState,
+                             Array<int> * const triangleWantRefine);
 template int
-Refine::ImproveQuality<real,
-                       CL_BURGERS>(Connectivity * const connectivity,
-                                   const MeshParameter *meshParameter,
-                                   const Predicates *predicates,
-                                   Morton * const morton,
-                                   Delaunay * const delaunay,
-                                   Array<real> * const vertexState,
-                                   const real specificHeatRatio,
-                                   Array<int> * const triangleWantRefine);
+Refine::ImproveQuality<real3>(Connectivity * const connectivity,
+                              const MeshParameter *meshParameter,
+                              const Predicates *predicates,
+                              Morton * const morton,
+                              Delaunay * const delaunay,
+                              Array<real3> * const vertexState,
+                              Array<int> * const triangleWantRefine);
 template int
-Refine::ImproveQuality<real3,
-                       CL_CART_ISO>(Connectivity * const connectivity,
-                                    const MeshParameter *meshParameter,
-                                    const Predicates *predicates,
-                                    Morton * const morton,
-                                    Delaunay * const delaunay,
-                                    Array<real3> * const vertexState,
-                                    const real specificHeatRatio,
-                                    Array<int> * const triangleWantRefine);
-template int
-Refine::ImproveQuality<real4,
-                       CL_CART_EULER>(Connectivity * const connectivity,
-                                      const MeshParameter *meshParameter,
-                                      const Predicates *predicates,
-                                      Morton * const morton,
-                                      Delaunay * const delaunay,
-                                      Array<real4> * const vertexState,
-                                      const real specificHeatRatio,
-                                      Array<int> * const triangleWantRefine);
+Refine::ImproveQuality<real4>(Connectivity * const connectivity,
+                              const MeshParameter *meshParameter,
+                              const Predicates *predicates,
+                              Morton * const morton,
+                              Delaunay * const delaunay,
+                              Array<real4> * const vertexState,
+                              Array<int> * const triangleWantRefine);
 
 }  // namespace astrix

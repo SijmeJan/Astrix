@@ -33,7 +33,7 @@ class Morton
   ~Morton();
 
   //! Reorder Arrays for maximum locality
-  template<class realNeq, ConservationLaw CL>
+  template<class realNeq>
     void Order(Connectivity * const connectivity,
                Array<int> * const triangleWantRefine,
                Array<realNeq> * const vertexState);
@@ -64,7 +64,7 @@ class Morton
   void CalcValues(Connectivity * const connectivity);
 
   //! Reorder vertices, adjusting triangleVertices
-  template<class realNeq, ConservationLaw CL>
+  template<class realNeq>
     void OrderVertex(Connectivity * const connectivity,
                      Array<realNeq> * const vertexState);
   //! Reorder triangles, adjusting edgeTriangles

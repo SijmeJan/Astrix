@@ -32,13 +32,12 @@ namespace astrix {
 \param specificHeatRatio Ratio of specific heats*/
 //##############################################################################
 
-template<class realNeq, ConservationLaw CL>
+template<class realNeq>
 void Refine::SplitSegment(Connectivity * const connectivity,
                           const MeshParameter *meshParameter,
                           const Predicates *predicates,
                           Array<realNeq> * const vertexState,
                           Array<int> * const triangleWantRefine,
-                          const real specificHeatRatio,
                           const int nTriangleOld)
 {
   nvtxEvent *nvtxSplitSegment = new nvtxEvent("SplitSegment", 3);
@@ -62,17 +61,6 @@ void Refine::SplitSegment(Connectivity * const connectivity,
                                              (unsigned int) nRefineGlobal);
   elementAddOld->SetEqual(elementAdd);
 
-  /*
-  if (verboseLevel > 2 && cudaFlag == 0) {
-    std::cout << std::endl << "Possibly problematic vertices:" << std::endl;
-    int *pEadd = elementAdd->GetPointer();
-    real2 *pVadd = vertexCoordinatesAdd->GetPointer();
-    for (int i = 0; i < nRefineGlobal; i++)
-      std::cout << "(" << pVadd[i].x << ", " << pVadd[i].y
-                << ") inserted on edge " << pEadd[i] - nTriangle << std::endl;
-  }
-  */
-
   // Test for encroached segments; if encroached move vertex onto segment
   TestEncroach(connectivity, meshParameter, nRefineGlobal);
 
@@ -85,18 +73,6 @@ void Refine::SplitSegment(Connectivity * const connectivity,
 
     return;
   }
-
-  /*
-  if (verboseLevel > 2 && cudaFlag == 0) {
-    std::cout << std::endl << "Problematic vertices:" << std::endl;
-    int *pEadd = elementAdd->GetPointer();
-    real2 *pVadd = vertexCoordinatesAdd->GetPointer();
-    for (int i = 0; i < nRefineGlobal; i++)
-      std::cout << "(" << pVadd[i].x << ", " << pVadd[i].y
-                << ") to be inserted on edge " << pEadd[i] - nTriangle
-                << std::endl;
-  }
-  */
 
   elementAddOld->SetEqual(elementAdd);
 
@@ -125,19 +101,18 @@ void Refine::SplitSegment(Connectivity * const connectivity,
     vertexCoordinatesAdd->SetSingleValue(X, 0);
 
     if (vertexState != 0)
-      InterpolateState<realNeq, CL>(connectivity,
-                                    meshParameter,
-                                    vertexState,
-                                    triangleWantRefine,
-                                    specificHeatRatio);
+      InterpolateState<realNeq>(connectivity,
+                                meshParameter,
+                                vertexState,
+                                triangleWantRefine);
 
     AddToPeriodic(connectivity, 1);
 
-    InsertVertices<realNeq, CL>(connectivity,
-                                meshParameter,
-                                predicates,
-                                vertexState,
-                                triangleWantRefine);
+    InsertVertices<realNeq>(connectivity,
+                            meshParameter,
+                            predicates,
+                            vertexState,
+                            triangleWantRefine);
   }
 
   delete elementAddOld;
@@ -151,36 +126,25 @@ void Refine::SplitSegment(Connectivity * const connectivity,
 //##############################################################################
 
 template void
-Refine::SplitSegment<real, CL_ADVECT>(Connectivity * const connectivity,
-                                      const MeshParameter *meshParameter,
-                                      const Predicates *predicates,
-                                      Array<real> * const vertexState,
-                                      Array<int> * const triangleWantRefine,
-                                      const real specificHeatRatio,
-                                      const int nTriangleOld);
+Refine::SplitSegment<real>(Connectivity * const connectivity,
+                           const MeshParameter *meshParameter,
+                           const Predicates *predicates,
+                           Array<real> * const vertexState,
+                           Array<int> * const triangleWantRefine,
+                           const int nTriangleOld);
 template void
-Refine::SplitSegment<real, CL_BURGERS>(Connectivity * const connectivity,
-                                       const MeshParameter *meshParameter,
-                                       const Predicates *predicates,
-                                       Array<real> * const vertexState,
-                                       Array<int> * const triangleWantRefine,
-                                       const real specificHeatRatio,
-                                       const int nTriangleOld);
+Refine::SplitSegment<real3>(Connectivity * const connectivity,
+                            const MeshParameter *meshParameter,
+                            const Predicates *predicates,
+                            Array<real3> * const vertexState,
+                            Array<int> * const triangleWantRefine,
+                            const int nTriangleOld);
 template void
-Refine::SplitSegment<real3, CL_CART_ISO>(Connectivity * const connectivity,
-                                         const MeshParameter *meshParameter,
-                                         const Predicates *predicates,
-                                         Array<real3> * const vertexState,
-                                         Array<int> * const triangleWantRefine,
-                                         const real specificHeatRatio,
-                                         const int nTriangleOld);
-template void
-Refine::SplitSegment<real4, CL_CART_EULER>(Connectivity * const connectivity,
-                                           const MeshParameter *meshParameter,
-                                           const Predicates *predicates,
-                                           Array<real4> * const vertexState,
-                                           Array<int>* const triangleWantRefine,
-                                           const real specificHeatRatio,
-                                           const int nTriangleOld);
+Refine::SplitSegment<real4>(Connectivity * const connectivity,
+                            const MeshParameter *meshParameter,
+                            const Predicates *predicates,
+                            Array<real4> * const vertexState,
+                            Array<int>* const triangleWantRefine,
+                            const int nTriangleOld);
 
 }  // namespace astrix
