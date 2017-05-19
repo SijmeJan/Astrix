@@ -69,6 +69,45 @@ T AtomicAdd(T *x, T y)
 #endif
 }
 
+template<>
+__host__ __device__
+inline double2 AtomicAdd(double2 *x, double2 y)
+{
+  double2 ret;
+
+  ret.x = AtomicAdd<double>(&(x[0].x), y.x);
+  ret.y = AtomicAdd<double>(&(x[0].y), y.y);
+
+  return ret;
+}
+
+template<>
+__host__ __device__
+inline double3 AtomicAdd(double3 *x, double3 y)
+{
+  double3 ret;
+
+  ret.x = AtomicAdd<double>(&(x[0].x), y.x);
+  ret.y = AtomicAdd<double>(&(x[0].y), y.y);
+  ret.z = AtomicAdd<double>(&(x[0].z), y.z);
+
+  return ret;
+}
+
+template<>
+__host__ __device__
+inline double4 AtomicAdd(double4 *x, double4 y)
+{
+  double4 ret;
+
+  ret.x = AtomicAdd<double>(&(x[0].x), y.x);
+  ret.y = AtomicAdd<double>(&(x[0].y), y.y);
+  ret.z = AtomicAdd<double>(&(x[0].z), y.z);
+  ret.w = AtomicAdd<double>(&(x[0].w), y.w);
+
+  return ret;
+}
+
 //######################################################################
 // Atomic max wrapper; on host do normal max
 //######################################################################
