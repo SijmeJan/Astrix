@@ -60,8 +60,7 @@ void CheckEncroachCoarsenSingle(int n, int nVertex,
                                 real Px, real Py,
                                 Predicates *predicates,
                                 real *pParam, int *pVertexTriangle,
-                                int *pVertexRemove,
-                                int *pVertexRemoveFlag)
+                                int *pVertexRemove)
 {
   real zero = (real) 0.0;
 
@@ -373,7 +372,10 @@ void CheckEncroachCoarsenSingle(int n, int nVertex,
       }
     }
 
-    if (encroachedFlag == 1) pVertexRemoveFlag[n] = 0;
+    if (encroachedFlag == 1) {
+      pVertexRemove[n] = -1;
+      pVertexTriangle[n] = -1;
+    }
   }
 }
 
@@ -405,8 +407,7 @@ __global__
 void devCheckEncroachCoarsen(int nRemove, int *pVertexRemove, int nVertex,
                              int3 *pTv, int3 *pTe, int2 *pEt, real2 *pVc,
                              real Px, real Py, Predicates *predicates,
-                             real *pParam, int *pVertexTriangle,
-                             int *pVertexRemoveFlag)
+                             real *pParam, int *pVertexTriangle)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -415,7 +416,7 @@ void devCheckEncroachCoarsen(int nRemove, int *pVertexRemove, int nVertex,
                                pTv, pTe, pEt,
                                pVc, Px, Py,
                                predicates, pParam, pVertexTriangle,
-                               pVertexRemove, pVertexRemoveFlag);
+                               pVertexRemove);
 
     n += blockDim.x*gridDim.x;
   }
@@ -427,30 +428,11 @@ void devCheckEncroachCoarsen(int nRemove, int *pVertexRemove, int nVertex,
 \param vertexRemoveFlag Pointer to output array.*/
 //#########################################################################
 
-void Coarsen::CheckEncroach(Connectivity *connectivity,
-                            Predicates *predicates,
-                            Array<int> *vertexRemoveFlag,
-                            const MeshParameter *mp)
+int Coarsen::CheckEncroach(Connectivity *connectivity,
+                           Predicates *predicates,
+                           const MeshParameter *mp)
 {
-  int transformFlag = 0;
   int nRemove = vertexRemove->GetSize();
-
-  if (transformFlag == 1) {
-    connectivity->Transform();
-    if (cudaFlag == 1) {
-      vertexRemove->TransformToHost();
-      vertexTriangle->TransformToHost();
-      vertexRemoveFlag->TransformToHost();
-
-      cudaFlag = 0;
-    } else {
-      vertexRemove->TransformToDevice();
-      vertexTriangle->TransformToDevice();
-      vertexRemoveFlag->TransformToDevice();
-
-      cudaFlag = 1;
-    }
-  }
 
   int nVertex = connectivity->vertexCoordinates->GetSize();
 
@@ -463,7 +445,6 @@ void Coarsen::CheckEncroach(Connectivity *connectivity,
 
   int *pVertexRemove = vertexRemove->GetPointer();
   int *pVertexTriangle = vertexTriangle->GetPointer();
-  int *pVertexRemoveFlag = vertexRemoveFlag->GetPointer();
 
   real Px = mp->maxx - mp->minx;
   real Py = mp->maxy - mp->miny;
@@ -480,8 +461,7 @@ void Coarsen::CheckEncroach(Connectivity *connectivity,
     devCheckEncroachCoarsen<<<nBlocks, nThreads>>>
       (nRemove, pVertexRemove, nVertex,
        pTv, pTe, pEt, pVc, Px, Py,
-       predicates, pParam, pVertexTriangle,
-       pVertexRemoveFlag);
+       predicates, pParam, pVertexTriangle);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
@@ -491,25 +471,14 @@ void Coarsen::CheckEncroach(Connectivity *connectivity,
                                  pTv, pTe, pEt, pVc,
                                  Px, Py,
                                  predicates, pParam, pVertexTriangle,
-                                 pVertexRemove, pVertexRemoveFlag);
+                                 pVertexRemove);
   }
 
-  if (transformFlag == 1) {
-    connectivity->Transform();
-    if (cudaFlag == 1) {
-      vertexRemove->TransformToHost();
-      vertexTriangle->TransformToHost();
-      vertexRemoveFlag->TransformToHost();
-
-      cudaFlag = 0;
-    } else {
-      vertexRemove->TransformToDevice();
-      vertexTriangle->TransformToDevice();
-      vertexRemoveFlag->TransformToDevice();
-
-      cudaFlag = 1;
-    }
-  }
+  nRemove = vertexRemove->RemoveValue(-1);
+  vertexTriangle->RemoveValue(-1);
+  vertexRemove->SetSize(nRemove);
+  vertexTriangle->SetSize(nRemove);
+  return nRemove;
 }
 
 }
