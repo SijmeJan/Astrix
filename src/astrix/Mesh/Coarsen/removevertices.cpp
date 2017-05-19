@@ -36,11 +36,10 @@ namespace astrix {
 \param nTimeStep Number of time steps taken so far. Used in combination with \a nStepSkipCoarsen to possibly avoid coarsening every timestep*/
 //#########################################################################
 
-template<class realNeq, ConservationLaw CL>
+template<class realNeq>
 int Coarsen::RemoveVertices(Connectivity *connectivity,
                             Predicates *predicates,
                             Array<realNeq> *vertexState,
-                            real specificHeatRatio,
                             Array<int> *triangleWantRefine,
                             const MeshParameter *meshParameter,
                             Delaunay *delaunay,
@@ -61,26 +60,16 @@ int Coarsen::RemoveVertices(Connectivity *connectivity,
   while (!finishedCoarsen) {
     if (verboseLevel > 1) std::cout << "Coarsen cycle " << nCycle;
 
+    // Reject triangles larger than half the domain size
     RejectLargeTriangles(connectivity, meshParameter, triangleWantRefine);
 
-    // For every vertex, a single triangle associated with it
     nVertex = connectivity->vertexCoordinates->GetSize();
-    vertexTriangle->SetSize(nVertex);
 
+    // For every vertex, a single triangle associated with it
     FillVertexTriangle(connectivity);
     int maxTriPerVert = MaxTriPerVert(connectivity);
 
-    Array<int> *vertexRemoveFlag =
-      new Array<int>(1, cudaFlag, nVertex);
-    // Assume all vertices can be removed
-    vertexRemoveFlag->SetToValue(1);
-
-    FlagVertexRemove(connectivity, vertexRemoveFlag, triangleWantRefine);
-
-    Array<int> *vertexRemoveFlagScan =
-      new Array<int>(1, cudaFlag, nVertex);
-    int nRemove = vertexRemoveFlag->ExclusiveScan(vertexRemoveFlagScan,
-                                                  nVertex);
+    int nRemove = FlagVertexRemove(connectivity, triangleWantRefine);
 
     if (verboseLevel > 1)
       std::cout << " nRemove: " << nRemove;
@@ -89,32 +78,13 @@ int Coarsen::RemoveVertices(Connectivity *connectivity,
       finishedCoarsen = 1;
       if (verboseLevel > 1) std::cout << std::endl;
     } else {
-      vertexRemove->SetSize(nVertex);
-      vertexRemove->SetToSeries();
-      vertexRemove->Compact(nRemove, vertexRemoveFlag,
-                            vertexRemoveFlagScan);
-      vertexTriangle->Compact(nRemove, vertexRemoveFlag,
-                              vertexRemoveFlagScan);
-
-      vertexRemoveFlag->SetSize(nRemove);
-      vertexRemoveFlag->SetToValue(1);
-
       // Check if removing vertex leads to encroached triangle
-      CheckEncroach(connectivity, predicates, vertexRemoveFlag, meshParameter);
-
-      vertexRemoveFlagScan->SetSize(nRemove);
-      nRemove = vertexRemoveFlag->ExclusiveScan(vertexRemoveFlagScan,
-                                                nRemove);
+      nRemove = CheckEncroach(connectivity, predicates, meshParameter);
 
       if (nRemove == 0) {
         finishedCoarsen = 1;
         if (verboseLevel > 1) std::cout << std::endl;
       } else {
-        vertexRemove->Compact(nRemove, vertexRemoveFlag,
-                              vertexRemoveFlagScan);
-        vertexTriangle->Compact(nRemove, vertexRemoveFlag,
-                                vertexRemoveFlagScan);
-
         if (verboseLevel > 1)
           std::cout << ", vertices to be removed: " << nRemove << ", ";
 
@@ -163,20 +133,19 @@ int Coarsen::RemoveVertices(Connectivity *connectivity,
         FindVertexNeighbours(connectivity, vertexNeighbour, triangleTarget,
                              vertexTriangleList, maxTriPerVert);
 
-        AdjustState<realNeq, CL>(connectivity, maxTriPerVert,
-                                 vertexTriangleList,
-                                 triangleTarget,
-                                 vertexState,
-                                 specificHeatRatio,
-                                 meshParameter,
-                                 vertexNeighbour);
+        AdjustState<realNeq>(connectivity, maxTriPerVert,
+                             vertexTriangleList,
+                             triangleTarget,
+                             vertexState,
+                             meshParameter,
+                             vertexNeighbour);
 
         delete vertexNeighbour;
 
         // Remove vertices from mesh
-        Remove<realNeq, CL>(connectivity, triangleWantRefine,
-                            vertexTriangleList, maxTriPerVert,
-                            triangleTarget, vertexState);
+        Remove<realNeq>(connectivity, triangleWantRefine,
+                        vertexTriangleList, maxTriPerVert,
+                        triangleTarget, vertexState);
 
         delete vertexTriangleList;
         delete triangleTarget;
@@ -187,10 +156,9 @@ int Coarsen::RemoveVertices(Connectivity *connectivity,
 
         removedVerticesFlag = 1;
       }
+
     }
 
-    delete vertexRemoveFlag;
-    delete vertexRemoveFlagScan;
 
     nCycle++;
 
@@ -199,7 +167,7 @@ int Coarsen::RemoveVertices(Connectivity *connectivity,
 
   delete nvtxCoarsen;
 
-  return nVertexOld - nVertex;
+  return nVertexOld - connectivity->vertexCoordinates->GetSize();
 }
 
 //##############################################################################
@@ -207,45 +175,28 @@ int Coarsen::RemoveVertices(Connectivity *connectivity,
 //##############################################################################
 
 template int
-Coarsen::RemoveVertices<real,
-                        CL_ADVECT>(Connectivity *connectivity,
-                                   Predicates *predicates,
-                                   Array<real> *vertexState,
-                                   real specificHeatRatio,
-                                   Array<int> *triangleWantRefine,
-                                   const MeshParameter *meshParameter,
-                                   Delaunay *delaunay,
-                                   int maxCycle);
+Coarsen::RemoveVertices<real>(Connectivity *connectivity,
+                              Predicates *predicates,
+                              Array<real> *vertexState,
+                              Array<int> *triangleWantRefine,
+                              const MeshParameter *meshParameter,
+                              Delaunay *delaunay,
+                              int maxCycle);
 template int
-Coarsen::RemoveVertices<real,
-                        CL_BURGERS>(Connectivity *connectivity,
-                                    Predicates *predicates,
-                                    Array<real> *vertexState,
-                                    real specificHeatRatio,
-                                    Array<int> *triangleWantRefine,
-                                    const MeshParameter *meshParameter,
-                                    Delaunay *delaunay,
-                                    int maxCycle);
+Coarsen::RemoveVertices<real3>(Connectivity *connectivity,
+                               Predicates *predicates,
+                               Array<real3> *vertexState,
+                               Array<int> *triangleWantRefine,
+                               const MeshParameter *meshParameter,
+                               Delaunay *delaunay,
+                               int maxCycle);
 template int
-Coarsen::RemoveVertices<real3,
-                        CL_CART_ISO>(Connectivity *connectivity,
-                                     Predicates *predicates,
-                                     Array<real3> *vertexState,
-                                     real specificHeatRatio,
-                                     Array<int> *triangleWantRefine,
-                                     const MeshParameter *meshParameter,
-                                     Delaunay *delaunay,
-                                     int maxCycle);
-template int
-Coarsen::RemoveVertices<real4,
-                        CL_CART_EULER>(Connectivity *connectivity,
-                                       Predicates *predicates,
-                                       Array<real4> *vertexState,
-                                       real specificHeatRatio,
-                                       Array<int> *triangleWantRefine,
-                                       const MeshParameter *meshParameter,
-                                       Delaunay *delaunay,
-                                       int maxCycle);
-
+Coarsen::RemoveVertices<real4>(Connectivity *connectivity,
+                               Predicates *predicates,
+                               Array<real4> *vertexState,
+                               Array<int> *triangleWantRefine,
+                               const MeshParameter *meshParameter,
+                               Delaunay *delaunay,
+                               int maxCycle);
 
 }
