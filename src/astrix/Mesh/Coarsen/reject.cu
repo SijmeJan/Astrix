@@ -34,19 +34,12 @@ namespace astrix {
 We do not want to coarsen too much: reject any triangle for coarsening that has an edge that is larger than half the domain size
 
 \param n Triangle to consider
-\param *tv1 Pointer to first vertex of triangle
-\param *tv2 Pointer to second vertex of triangle
-\param *tv3 Pointer to third vertex of triangle
+\param *pTv Pointer to triangle vertices
 \param nVertex Total number of vertices in Mesh
-\param *pVertX Pointer to x-coordinates of vertices
-\param *pVertY Pointer to y-coordinates of vertices
-\param *pred Pointer to initialised Predicates object
-\param *pParam Pointer to initialised Predicates parameter vector
-\param minx Left x boundary
-\param maxx Right x boundary
-\param miny Left y boundary
-\param maxy Right y boundary
-\param *pTriangleWantRefine Pointer to array indicating whether triangle wants refining (=1) or coarsening (=-1). If equal to -1, set to 0 if triangle too large.*/
+\param *pVc Pointer to vertex coordinates
+\param Px Domain size x
+\param Py Domain size y
+\param *pTriangleWantRefine Pointer to array indicating whether triangle wants refining (=1) or coarsening (=-1). If equal to -1, set to 0 if triangle too large*/
 //#########################################################################
 
 __host__ __device__
@@ -83,15 +76,12 @@ void RejectSingle(int n, int3 *pTv, int nVertex,
 We do not want to coarsen too much: reject any triangle for coarsening that has an edge that is larger than half the domain size
 
 \param nTriangle Total number of triangles in Mesh
-\param *tv1 Pointer to first vertex of triangle
-\param *tv2 Pointer to second vertex of triangle
-\param *tv3 Pointer to third vertex of triangle
+\param *pTv Pointer to triangle vertices
 \param nVertex Total number of vertices in Mesh
-\param *pVertX Pointer to x-coordinates of vertices
-\param *pVertY Pointer to y-coordinates of vertices
-\param Px Periodic domain size x
-\param Py Periodic domain size y
-\param *pTriangleWantRefine Pointer to array indicating whether triangle wants refining (=1) or coarsening (=-1). If equal to -1, set to 0 if triangle too large.*/
+\param *pVc Pointer to vertex coordinates
+\param Px Domain size x
+\param Py Domain size y
+\param *pTriangleWantRefine Pointer to array indicating whether triangle wants refining (=1) or coarsening (=-1). If equal to -1, set to 0 if triangle too large*/
 //#########################################################################
 
 __global__
@@ -109,7 +99,11 @@ void devReject(int nTriangle, int3 *pTv, int nVertex,
 }
 
 //#########################################################################
-/*! We do not want to coarsen too much: reject any triangle for coarsening that has an edge that is larger than half the domain size. The corresponding entry in \a triangleWantRefine is set to 0.*/
+/*! We do not want to coarsen too much: reject any triangle for coarsening that has an edge that is larger than half the domain size. The corresponding entry in \a triangleWantRefine is set to 0.
+
+\param *connectivity Pointer to Mesh connectivity data
+\param *mp Pointer to Mesh parameter object
+\param *triangleWantRefine Pointer to flags whether triangles can be coarsened. Will be modified. */
 //#########################################################################
 
 void Coarsen::RejectLargeTriangles(Connectivity *connectivity,
