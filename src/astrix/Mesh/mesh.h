@@ -50,9 +50,8 @@ class Mesh
                      int nTimeStep,
                      Array<int> *triangleWantRefine);
   //! Coarsen mesh
-  template<class realNeq, ConservationLaw CL>
+  template<class realNeq>
   int RemoveVertices(Array<realNeq> *vertexState,
-                     real specificHeatRatio,
                      int nTimeStep,
                      Array<int> *triangleWantRefine);
 
