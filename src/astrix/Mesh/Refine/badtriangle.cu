@@ -260,6 +260,10 @@ int Refine::TestTrianglesQuality(Connectivity * const connectivity,
     // Can not be ignored
     int *pWantRefine = triangleWantRefine->GetPointer();
 
+    // Adjust base resolution
+    dMax = meshParameter->baseResolution/
+      (real) (meshParameter->maxRefineFactor*meshParameter->maxRefineFactor);
+
     // Test all triangles for refinement
     if (cudaFlag == 1) {
       nvtxEvent *nvtxTemp = new nvtxEvent("CUDA", 2);
