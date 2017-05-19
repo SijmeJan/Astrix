@@ -22,6 +22,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../Mesh/mesh.h"
 #include "./simulation.h"
 #include "./Param/simulationparameter.h"
+#include "../Common/state.h"
 
 namespace astrix {
 
@@ -34,6 +35,8 @@ template <class realNeq, ConservationLaw CL>
 void Simulation<realNeq, CL>::Refine()
 {
   int ret = 0;
+
+  FillWantRefine();
 
   try {
     ret = mesh->ImproveQuality<realNeq>(vertexState, nTimeStep,
@@ -56,9 +59,12 @@ void Simulation<realNeq, CL>::Refine()
       ReplaceEnergyWithPressure();
     }
 
+
     while (ret > 0) {
+      FillWantRefine();
+
       try {
-        ret = mesh->ImproveQuality<realNeq>(vertexState, nTimeStep,
+       ret = mesh->ImproveQuality<realNeq>(vertexState, nTimeStep,
                                             triangleWantRefine);
       }
       catch (...) {
@@ -91,8 +97,11 @@ void Simulation<realNeq, CL>::Refine()
     triangleResidueTotal->SetSize(nTriangle);
     if (simulationParameter->intScheme == SCHEME_BX)
       triangleShockSensor->SetSize(nTriangle);
+    triangleResidueSource->SetSize(nTriangle);
 
     CalcPotential();
+    // Calculate source residual to make sure it contains sensible values
+    CalcSource(vertexState);
   }
 }
 
@@ -106,13 +115,15 @@ void Simulation<realNeq, CL>::Coarsen(int maxCycle)
 {
   int nCycle = 0;
   int finishedFlag = 0;
-  // Ratio of specific heats
-  real G = simulationParameter->specificHeatRatio;
+
 
   while (finishedFlag == 0) {
-    if (mesh->RemoveVertices<realNeq, CL>(vertexState, G, nTimeStep,
-                                          triangleWantRefine) == 0)
+    FillWantRefine();
+
+    if (mesh->RemoveVertices<realNeq>(vertexState, nTimeStep,
+                                      triangleWantRefine) == 0)
       finishedFlag = 1;
+
     nCycle++;
     if (nCycle >= maxCycle && maxCycle >= 0)
       finishedFlag = 1;
@@ -140,6 +151,10 @@ void Simulation<realNeq, CL>::Coarsen(int maxCycle)
   triangleResidueTotal->SetSize(nTriangle);
   if (simulationParameter->intScheme == SCHEME_BX)
     triangleShockSensor->SetSize(nTriangle);
+  triangleResidueSource->SetSize(nTriangle);
+
+  // Calculate source residual to make sure it contains sensible values
+  CalcSource(vertexState);
 }
 
 //##############################################################################
