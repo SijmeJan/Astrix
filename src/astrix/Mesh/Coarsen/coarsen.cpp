@@ -40,7 +40,6 @@ Coarsen::Coarsen(int _cudaFlag, int _debugLevel, int _verboseLevel)
   // Allocate Arrays of default size
   vertexRemove = new Array<int>(1, cudaFlag);
   vertexTriangle = new Array<int>(1, cudaFlag);
-  vertexArea = new Array<real>(1, cudaFlag);
 
   randomVector = new Array<unsigned int>(1, cudaFlag);
   if (cudaFlag == 1)
@@ -59,7 +58,6 @@ Coarsen::~Coarsen()
 {
   delete vertexRemove;
   delete vertexTriangle;
-  delete vertexArea;
 
   delete randomVector;
 }
