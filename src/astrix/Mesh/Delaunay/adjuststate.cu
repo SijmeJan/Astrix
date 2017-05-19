@@ -21,9 +21,11 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "./delaunay.h"
 #include "../triangleLow.h"
 #include "../../Common/cudaLow.h"
+#include "../../Common/helper_math.h"
 #include "../../Common/atomic.h"
 #include "../Connectivity/connectivity.h"
 #include "../Param/meshparameter.h"
+#include "../../Common/state.h"
 
 namespace astrix {
 
@@ -45,11 +47,12 @@ namespace astrix {
 \param *pState Pointer to state vector*/
 //#########################################################################
 
+template<class realNeq>
 __host__ __device__
 void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
                        int nVertex, real2 *pVc, real *pVarea,
                        const Predicates *pred, real *pParam,
-                       real Px, real Py, real4 *pState)
+                       real Px, real Py, realNeq *pState)
 {
   const real zero  = (real) 0.0;
   const real sixth = (real) (1.0/6.0);
@@ -155,64 +158,92 @@ void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
     T4 = pred->orient2d(ax, ay, dx, dy, cx, cy, pParam);
   }
 
-  real dVa = T2 - T3 - T4;
-  real dVb = T1 + T2 - T3;
-  real dVc = T1 + T2 - T4;
-  real dVd = T1 - T3 - T4;
+  // Six times change in vertex areas
+  real dVa = T3 + T4 - T2;
+  real dVb = T3 - T1 - T2;
+  real dVc = T4 - T1 - T2;
+  real dVd = T4 + T3 - T1;
 
-  real densAdjust =
-    pState[a].x*dVa + pState[b].x*dVb + pState[c].x*dVc + pState[d].x*dVd;
-  real momxAdjust =
-    pState[a].y*dVa + pState[b].y*dVb + pState[c].y*dVc + pState[d].y*dVd;
-  real momyAdjust =
-    pState[a].z*dVa + pState[b].z*dVb + pState[c].z*dVc + pState[d].z*dVd;
+  real Va = AtomicAdd(&(pVarea[a]), dVa*sixth);
+  real Vb = AtomicAdd(&(pVarea[b]), dVb*sixth);
+  real Vc = AtomicAdd(&(pVarea[c]), dVc*sixth);
+  real Vd = AtomicAdd(&(pVarea[d]), dVd*sixth);
 
-  real Va = AtomicAdd(&(pVarea[a]), -dVa*sixth);
-  real Vb = AtomicAdd(&(pVarea[b]), -dVb*sixth);
-  real Vc = AtomicAdd(&(pVarea[c]), -dVc*sixth);
-  real Vd = AtomicAdd(&(pVarea[d]), -dVd*sixth);
+  /*
+  // Keep mass at vertices constant: unstable!
+  realNeq stateAdjustA = (-dVa/(6.0*Va + dVa))*pState[a];
+  AtomicAdd(&(pState[a]), stateAdjustA);
+  realNeq stateAdjustB = (-dVb/(6.0*Vb + dVb))*pState[b];
+  AtomicAdd(&(pState[b]), stateAdjustB);
+  realNeq stateAdjustC = (-dVc/(6.0*Vc + dVc))*pState[c];
+  AtomicAdd(&(pState[c]), stateAdjustC);
+  realNeq stateAdjustD = (-dVd/(6.0*Vd + dVd))*pState[d];
+  AtomicAdd(&(pState[d]), stateAdjustD);
+  */
+  /*
+  // Adjust all states by single amount
+  realNeq stateAdjust =
+    pState[a]*dVa + pState[b]*dVb + pState[c]*dVc + pState[d]*dVd;
 
+  // Six times total volume after flip
   real denom =
-    6.0*(Va + Vb + Vc + Vd) - dVa - dVb - dVc - dVd;
-  denom = 1.0/denom;
+    6.0*(Va + Vb + Vc + Vd) + dVa + dVb + dVc + dVd;
+  denom = -1.0/denom;
 
-  // Adjust state. Note that we leave the energy (= pressure) alone.
-  densAdjust *= denom;
-  momxAdjust *= denom;
-  momyAdjust *= denom;
+  // Adjust state
+  stateAdjust *= denom;
 
-  AtomicAdd(&(pState[a].x), densAdjust);
-  AtomicAdd(&(pState[b].x), densAdjust);
-  AtomicAdd(&(pState[c].x), densAdjust);
-  AtomicAdd(&(pState[d].x), densAdjust);
+  AtomicAdd(&(pState[a]), stateAdjust);
+  AtomicAdd(&(pState[b]), stateAdjust);
+  AtomicAdd(&(pState[c]), stateAdjust);
+  AtomicAdd(&(pState[d]), stateAdjust);
+  */
 
-  AtomicAdd(&(pState[a].y), momxAdjust);
-  AtomicAdd(&(pState[b].y), momxAdjust);
-  AtomicAdd(&(pState[c].y), momxAdjust);
-  AtomicAdd(&(pState[d].y), momxAdjust);
+  // Least squares approach
+  real A1 = Va + sixth*dVa;
+  real A2 = Vb + sixth*dVb;
+  real A3 = Vc + sixth*dVc;
+  real A4 = Vd + sixth*dVd;
 
-  AtomicAdd(&(pState[a].z), momyAdjust);
-  AtomicAdd(&(pState[b].z), momyAdjust);
-  AtomicAdd(&(pState[c].z), momyAdjust);
-  AtomicAdd(&(pState[d].z), momyAdjust);
-}
+  real nm00 = A4*A4 + A1*A1;
+  real nm01 = A1*A2;
+  real nm02 = A1*A3;
+  real nm11 = A4*A4 + A2*A2;
+  real nm12 = A2*A3;
+  real nm22 = A4*A4 + A3*A3;
 
-__host__ __device__
-void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
-                       int nVertex, real2 *pVc, real *pVarea,
-                       const Predicates *pred, real *pParam,
-                       real Px, real Py, real3 *pState)
-{
-  // Dummy: not supported for three equations
-}
+  real invN00 = nm11*nm22 - nm12*nm12;
+  real invN01 = nm02*nm12 - nm01*nm22;
+  real invN02 = nm01*nm12 - nm02*nm11;
+  real invN10 = nm12*nm02 - nm01*nm22;
+  real invN11 = nm00*nm22 - nm02*nm02;
+  real invN12 = nm02*nm01 - nm00*nm12;
+  real invN20 = nm01*nm12 - nm11*nm02;
+  real invN21 = nm01*nm02 - nm00*nm12;
+  real invN22 = nm00*nm11 - nm01*nm01;
 
-__host__ __device__
-void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
-                       int nVertex, real2 *pVc, real *pVarea,
-                       const Predicates *pred, real *pParam,
-                       real Px, real Py, real *pState)
-{
-  // Dummy: not supported for one equation
+  real det = nm00*invN00 + nm01*invN10 + nm02*invN20;
+  det = -1.0/det;
+
+  realNeq dM =
+    pState[a]*dVa + pState[b]*dVb + pState[c]*dVc + pState[d]*dVd;
+
+  realNeq stateAdjustA = det*(invN00*A1 + invN01*A2 + invN02*A3)*dM;
+  realNeq stateAdjustB = det*(invN10*A1 + invN11*A2 + invN12*A3)*dM;
+  realNeq stateAdjustC = det*(invN20*A1 + invN21*A2 + invN22*A3)*dM;
+
+  real iA4 = -1.0/A4;
+  realNeq stateAdjustD =
+    (A1*iA4)*stateAdjustA +
+    (A2*iA4)*stateAdjustB +
+    (A3*iA4)*stateAdjustC +
+    iA4*dM;
+
+  AtomicAdd(&(pState[a]), stateAdjustA);
+  AtomicAdd(&(pState[b]), stateAdjustB);
+  AtomicAdd(&(pState[c]), stateAdjustC);
+  AtomicAdd(&(pState[d]), stateAdjustD);
+
 }
 
 //######################################################################
