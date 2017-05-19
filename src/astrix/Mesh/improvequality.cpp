@@ -116,7 +116,7 @@ int Mesh::ImproveQuality(Array<realNeq> *vertexState,
     minEdgeLength = std::min(minEdgeLength, lmin);
   }
 
-  std::cout << "L/lmin = " << Px/minEdgeLength << std::endl;
+  //std::cout << "L/lmin = " << Px/minEdgeLength << std::endl;
 
   if (nAdded > 0) {
     // Calculate triangle normals and areas
