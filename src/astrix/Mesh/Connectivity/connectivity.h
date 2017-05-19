@@ -52,6 +52,11 @@ class Connectivity
 
   //! Calculate area associated with vertices (Voronoi cells)
   void CalcVertexArea(real Px, real Py);
+  //! Save to disk
+  void Save(int nSave);
+  //! Read from disk
+  void ReadFromDisk(int nSave);
+
  private:
   //! Flag whether date resides on host (0) or device (1)
   int cudaFlag;
