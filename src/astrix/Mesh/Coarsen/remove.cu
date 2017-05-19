@@ -484,7 +484,7 @@ void devRemoveVertex(int nRemove, int *pVertexRemove, int *pVertexTriangleList,
 \param *vertexState Pointer to Array containing state vector */
 //#########################################################################
 
-template<class realNeq, ConservationLaw CL>
+template<class realNeq>
 void Coarsen::Remove(Connectivity *connectivity,
                      Array<int> *triangleWantRefine,
                      Array<int> *vertexTriangleList,
@@ -492,33 +492,6 @@ void Coarsen::Remove(Connectivity *connectivity,
                      Array<int> *triangleTarget,
                      Array<realNeq> *vertexState)
 {
-  int transformFlag = 0;
-
-  if (transformFlag == 1) {
-    connectivity->Transform();
-    if (cudaFlag == 1) {
-      vertexArea->TransformToHost();
-      vertexState->TransformToHost();
-
-      triangleTarget->TransformToHost();
-      vertexTriangleList->TransformToHost();
-      vertexRemove->TransformToHost();
-      triangleWantRefine->TransformToHost();
-
-      cudaFlag = 0;
-    } else {
-      vertexArea->TransformToDevice();
-      vertexState->TransformToDevice();
-
-      triangleTarget->TransformToDevice();
-      vertexTriangleList->TransformToDevice();
-      vertexRemove->TransformToDevice();
-      triangleWantRefine->TransformToDevice();
-
-      cudaFlag = 1;
-    }
-  }
-
   int nVertex = connectivity->vertexCoordinates->GetSize();
   int nTriangle = connectivity->triangleVertices->GetSize();
   int nEdge = connectivity->edgeTriangles->GetSize();
@@ -633,7 +606,6 @@ void Coarsen::Remove(Connectivity *connectivity,
   connectivity->vertexCoordinates->Compact(nvKeep, vertexKeepFlag,
                                            vertexKeepFlagScan);
   vertexState->Compact(nvKeep, vertexKeepFlag, vertexKeepFlagScan);
-  vertexArea->Compact(nvKeep, vertexKeepFlag, vertexKeepFlagScan);
   triangleWantRefine->Compact(ntKeep, triangleKeepFlag, triangleKeepFlagScan);
 
   connectivity->triangleVertices->Compact(ntKeep, triangleKeepFlag,
@@ -649,36 +621,6 @@ void Coarsen::Remove(Connectivity *connectivity,
   delete vertexKeepFlagScan;
   delete triangleKeepFlagScan;
   delete edgeKeepFlagScan;
-
-  //nVertex = nvKeep;
-  //nTriangle = ntKeep;
-  //nEdge = neKeep;
-
-  if (transformFlag == 1) {
-    connectivity->Transform();
-    if (cudaFlag == 1) {
-      vertexArea->TransformToHost();
-      vertexState->TransformToHost();
-
-      triangleTarget->TransformToHost();
-      vertexTriangleList->TransformToHost();
-      vertexRemove->TransformToHost();
-      triangleWantRefine->TransformToHost();
-
-      cudaFlag = 0;
-    } else {
-      vertexArea->TransformToDevice();
-      vertexState->TransformToDevice();
-
-      triangleTarget->TransformToDevice();
-      vertexTriangleList->TransformToDevice();
-      vertexRemove->TransformToDevice();
-      triangleWantRefine->TransformToDevice();
-
-      cudaFlag = 1;
-    }
-  }
-
 }
 
 //##############################################################################
@@ -686,32 +628,25 @@ void Coarsen::Remove(Connectivity *connectivity,
 //##############################################################################
 
 template void
-Coarsen::Remove<real, CL_ADVECT>(Connectivity *connectivity,
-                                 Array<int> *triangleWantRefine,
-                                 Array<int> *vertexTriangleList,
-                                 int maxTriPerVert,
-                                 Array<int> *triangleTarget,
-                                 Array<real> *vertexState);
+Coarsen::Remove<real>(Connectivity *connectivity,
+                      Array<int> *triangleWantRefine,
+                      Array<int> *vertexTriangleList,
+                      int maxTriPerVert,
+                      Array<int> *triangleTarget,
+                      Array<real> *vertexState);
 template void
-Coarsen::Remove<real, CL_BURGERS>(Connectivity *connectivity,
-                                  Array<int> *triangleWantRefine,
-                                  Array<int> *vertexTriangleList,
-                                  int maxTriPerVert,
-                                  Array<int> *triangleTarget,
-                                  Array<real> *vertexState);
+Coarsen::Remove<real3>(Connectivity *connectivity,
+                       Array<int> *triangleWantRefine,
+                       Array<int> *vertexTriangleList,
+                       int maxTriPerVert,
+                       Array<int> *triangleTarget,
+                       Array<real3> *vertexState);
 template void
-Coarsen::Remove<real3, CL_CART_ISO>(Connectivity *connectivity,
-                                    Array<int> *triangleWantRefine,
-                                    Array<int> *vertexTriangleList,
-                                    int maxTriPerVert,
-                                    Array<int> *triangleTarget,
-                                    Array<real3> *vertexState);
-template void
-Coarsen::Remove<real4, CL_CART_EULER>(Connectivity *connectivity,
-                                      Array<int> *triangleWantRefine,
-                                      Array<int> *vertexTriangleList,
-                                      int maxTriPerVert,
-                                      Array<int> *triangleTarget,
-                                      Array<real4> *vertexState);
+Coarsen::Remove<real4>(Connectivity *connectivity,
+                       Array<int> *triangleWantRefine,
+                       Array<int> *vertexTriangleList,
+                       int maxTriPerVert,
+                       Array<int> *triangleTarget,
+                       Array<real4> *vertexState);
 
 }
