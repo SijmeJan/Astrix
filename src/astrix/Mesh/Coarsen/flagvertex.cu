@@ -44,7 +44,7 @@ If triangle \a i is not flagged as wanting coarsening, none of its vertices can 
 __host__ __device__
 void FillVertexRemoveFlagSingle(int i, int3 *pTv,
                                 int nVertex, int *pTriangleWantRefine,
-                                int *pVertexRemoveFlag)
+                                int *pVertexRemove, int *pVertexTriangle)
 {
   // If wantRefine != -1, vertex can not be removed
   if (pTriangleWantRefine[i] != -1) {
@@ -57,10 +57,17 @@ void FillVertexRemoveFlagSingle(int i, int3 *pTv,
     while (v1 < 0) v1 += nVertex;
     while (v2 < 0) v2 += nVertex;
     while (v3 < 0) v3 += nVertex;
-
-    AtomicExch(&(pVertexRemoveFlag[v1]), 0);
-    AtomicExch(&(pVertexRemoveFlag[v2]), 0);
-    AtomicExch(&(pVertexRemoveFlag[v3]), 0);
+    /*
+    AtomicExch(&(pVertexRemove[v1]), 0);
+    AtomicExch(&(pVertexRemove[v2]), 0);
+    AtomicExch(&(pVertexRemove[v3]), 0);
+    */
+    AtomicExch(&(pVertexRemove[v1]), -1);
+    AtomicExch(&(pVertexRemove[v2]), -1);
+    AtomicExch(&(pVertexRemove[v3]), -1);
+    AtomicExch(&(pVertexTriangle[v1]), -1);
+    AtomicExch(&(pVertexTriangle[v2]), -1);
+    AtomicExch(&(pVertexTriangle[v3]), -1);
   }
 }
 
@@ -81,13 +88,14 @@ If a triangle is not flagged as wanting coarsening, none of its vertices can be 
 __global__
 void devFillVertexRemoveFlag(int nTriangle, int3 *pTv,
                              int nVertex, int *pTriangleWantRefine,
-                             int *pVertexRemoveFlag)
+                             int *pVertexRemove, int *pVertexTriangle)
 {
   int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nTriangle) {
     FillVertexRemoveFlagSingle(i, pTv, nVertex,
-                               pTriangleWantRefine, pVertexRemoveFlag);
+                               pTriangleWantRefine,
+                               pVertexRemove, pVertexTriangle);
 
     i += blockDim.x*gridDim.x;
   }
@@ -100,33 +108,19 @@ void devFillVertexRemoveFlag(int nTriangle, int3 *pTv,
 
 //#########################################################################
 
-void Coarsen::FlagVertexRemove(Connectivity *connectivity,
-                               Array<int> *vertexRemoveFlag,
-                               Array<int> *triangleWantRefine)
+int Coarsen::FlagVertexRemove(Connectivity *connectivity,
+                              Array<int> *triangleWantRefine)
 {
-  int transformFlag = 0;
-
-  if (transformFlag == 1) {
-    connectivity->Transform();
-    if (cudaFlag == 1) {
-      vertexRemoveFlag->TransformToHost();
-      triangleWantRefine->TransformToHost();
-
-      cudaFlag = 0;
-    } else {
-      vertexRemoveFlag->TransformToDevice();
-      triangleWantRefine->TransformToDevice();
-
-      cudaFlag = 1;
-    }
-  }
-
   int nVertex = connectivity->vertexCoordinates->GetSize();
   int nTriangle = connectivity->triangleVertices->GetSize();
 
   int3 *pTv = connectivity->triangleVertices->GetPointer();
 
-  int *pVertexRemoveFlag = vertexRemoveFlag->GetPointer();
+  vertexRemove->SetSize(nVertex);
+  vertexRemove->SetToSeries();
+  int *pVertexRemove = vertexRemove->GetPointer();
+  int *pVertexTriangle = vertexTriangle->GetPointer();
+
   int *pTriangleWantRefine = triangleWantRefine->GetPointer();
 
   // Flag vertices for removal
@@ -141,30 +135,21 @@ void Coarsen::FlagVertexRemove(Connectivity *connectivity,
 
     devFillVertexRemoveFlag<<<nBlocks, nThreads>>>
       (nTriangle, pTv, nVertex,
-       pTriangleWantRefine, pVertexRemoveFlag);
+       pTriangleWantRefine, pVertexRemove, pVertexTriangle);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int i = 0; i < nTriangle; i++)
       FillVertexRemoveFlagSingle(i, pTv, nVertex,
-                                 pTriangleWantRefine, pVertexRemoveFlag);
+                                 pTriangleWantRefine,
+                                 pVertexRemove, pVertexTriangle);
   }
 
-  if (transformFlag == 1) {
-    connectivity->Transform();
-    if (cudaFlag == 1) {
-      vertexRemoveFlag->TransformToHost();
-      triangleWantRefine->TransformToHost();
-
-      cudaFlag = 0;
-    } else {
-      vertexRemoveFlag->TransformToDevice();
-      triangleWantRefine->TransformToDevice();
-
-      cudaFlag = 1;
-    }
-  }
-
+  int nRemove = vertexRemove->RemoveValue(-1);
+  vertexTriangle->RemoveValue(-1);
+  vertexRemove->SetSize(nRemove);
+  vertexTriangle->SetSize(nRemove);
+  return nRemove;
 }
 
 }
