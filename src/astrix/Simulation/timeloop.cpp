@@ -132,8 +132,8 @@ void Simulation<realNeq, CL>::Run(real maxWallClockHours)
   state. */
 //#########################################################################
 
-template <class TTT, ConservationLaw CL>
-void Simulation<TTT, CL>::DoTimeStep()
+template <class realNeq, ConservationLaw CL>
+void Simulation<realNeq, CL>::DoTimeStep()
 {
   //auto start = std::chrono::high_resolution_clock::now();
   //std::cout << "Mass: " << TotalMass() - 4.0 << " ";
@@ -148,12 +148,9 @@ void Simulation<TTT, CL>::DoTimeStep()
               << "Starting time step " << nTimeStep << ", ";
 
   // Refine / coarsen mesh
-  /*
-  if (mesh->adaptiveMeshFlag == 1) {
-
+  if (mesh->IsAdaptive() == 1) {
     ReplaceEnergyWithPressure();
     Coarsen(-1);
-    std::cout << "Mass: " << TotalMass() << " ";
     try {
       Refine();
     }
@@ -164,7 +161,6 @@ void Simulation<TTT, CL>::DoTimeStep()
 
     ReplacePressureWithEnergy();
   }
-  */
 
   nvtxEvent *nvtxHydro = new nvtxEvent("Hydro", 2);
 
@@ -206,7 +202,6 @@ void Simulation<TTT, CL>::DoTimeStep()
     std::cout << "Updating state RK1 failed!" << std::endl;
     throw;
   }
-
 
   // Reflecting boundaries
   if (problemDef == PROBLEM_CYL ||
