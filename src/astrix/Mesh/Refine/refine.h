@@ -138,8 +138,6 @@ class Refine
                             const Predicates *predicates,
                             const MeshParameter *meshParameter);
 
-  void Save(int nSave, Connectivity * const connectivity);
-
 };
 
 }  // namespace astrix
