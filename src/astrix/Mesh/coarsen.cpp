@@ -36,29 +36,21 @@ namespace astrix {
 \param nTimeStep Number of time steps taken so far. Used in combination with \a nStepSkipCoarsen to possibly avoid coarsening every timestep*/
 //#########################################################################
 
-template<class realNeq, ConservationLaw CL>
+template<class realNeq>
 int Mesh::RemoveVertices(Array<realNeq> *vertexState,
-                         real specificHeatRatio, int nTimeStep,
+                         int nTimeStep,
                          Array<int> *triangleWantRefine)
 {
   // Return if skipping this time step
   if (nTimeStep % meshParameter->nStepSkipCoarsen != 0) return 0;
 
-  int nTriangle = connectivity->triangleVertices->GetSize();
-
-  //triangleWantRefine->SetSize(nTriangle);
-
-  // Flag triangles if refinement / coarsening is needed
-  //FillWantRefine<realNeq, CL>(vertexState, specificHeatRatio);
-
   int nRemove =
-    coarsen->RemoveVertices<realNeq, CL>(connectivity,
-                                         predicates,
-                                         vertexState,
-                                         specificHeatRatio,
-                                         triangleWantRefine,
-                                         meshParameter,
-                                         delaunay, 1);
+    coarsen->RemoveVertices<realNeq>(connectivity,
+                                     predicates,
+                                     vertexState,
+                                     triangleWantRefine,
+                                     meshParameter,
+                                     delaunay, 1);
 
   if (nRemove > 0) {
     CalcNormalEdge();
@@ -74,24 +66,16 @@ int Mesh::RemoveVertices(Array<realNeq> *vertexState,
 //##############################################################################
 
 template int
-Mesh::RemoveVertices<real, CL_ADVECT>(Array<real> *vertexState,
-                                      real specificHeatRatio,
-                                      int nTimeStep,
-                                      Array<int> *triangleWantRefine);
+Mesh::RemoveVertices<real>(Array<real> *vertexState,
+                           int nTimeStep,
+                           Array<int> *triangleWantRefine);
 template int
-Mesh::RemoveVertices<real, CL_BURGERS>(Array<real> *vertexState,
-                                       real specificHeatRatio,
-                                       int nTimeStep,
-                                       Array<int> *triangleWantRefine);
+Mesh::RemoveVertices<real3>(Array<real3> *vertexState,
+                            int nTimeStep,
+                            Array<int> *triangleWantRefine);
 template int
-Mesh::RemoveVertices<real3, CL_CART_ISO>(Array<real3> *vertexState,
-                                         real specificHeatRatio,
-                                         int nTimeStep,
-                                         Array<int> *triangleWantRefine);
-template int
-Mesh::RemoveVertices<real4, CL_CART_EULER>(Array<real4> *vertexState,
-                                           real specificHeatRatio,
-                                           int nTimeStep,
-                                           Array<int> *triangleWantRefine);
+Mesh::RemoveVertices<real4>(Array<real4> *vertexState,
+                            int nTimeStep,
+                            Array<int> *triangleWantRefine);
 
 }  // namespace astrix
