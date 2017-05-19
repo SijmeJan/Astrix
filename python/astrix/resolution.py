@@ -46,8 +46,8 @@ print(args.directory)
 direc = os.path.abspath(args.directory)
 
 with PdfPages('resolution.pdf') as pdf:
-    res = [8, 16, 32, 64]
-    schemes = ['N', 'LDA', 'B']
+    res = [1, 2, 4, 8, 16]
+    schemes = ['N']
     order = ['1', '2', '2']
     massMatrices = ['1']
     selectLumpFlags = ['0']
@@ -55,7 +55,7 @@ with PdfPages('resolution.pdf') as pdf:
     error = np.zeros(len(res))
     h = 2.0/np.asarray(res)
 
-    with cd(args.directory + 'run/euler/source'):
+    with cd(args.directory + 'run/scalar/advect/vortex/temp'):
         plt.figure(figsize=(7, 5))
         plt.rcParams.update({'axes.labelsize': 'large'})
         plt.rc('font', family='serif')
@@ -81,20 +81,17 @@ with PdfPages('resolution.pdf') as pdf:
                 #plt.xlim([-1,1])
                 #plt.ylim([-1,1])
 
+                #pf.ChangeParameter('./astrix.in',
+                #                   [['equivalentPointsX', str(n)]])
                 pf.ChangeParameter('./astrix.in',
-                                   [['equivalentPointsX', str(n)]])
-                subprocess.call([direc + "/bin/astrix", "astrix.in"])
+                                   [['maxRefineFactor', str(n)]])
+                subprocess.call([direc + "/bin/astrix", "-cl", "advect", "astrix.in"])
                 #DensPlot2D(10, Px=2.0, Py=2.0)
                 data = np.loadtxt('simulation.dat')
                 data = np.transpose(data)
                 t = data[0]
-                m = data[1]
-                ex = data[2]
-                ey = data[3]
-                et = data[4]
-                ep = data[5]
-                etot = data[6]
-                er = data[7]
+                er = data[1]
+                m = data[2]
 
                 #etot = ex + ey + et + ep
 
