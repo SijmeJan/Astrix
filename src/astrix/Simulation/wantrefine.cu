@@ -73,10 +73,7 @@ devFillWantRefine(int nTriangle, real *pErrorEstimate,
 }
 
 // #########################################################################
-/*! Flag triangles for refinement or coarsening based on an estimate of the local truncation error (LTE). First the LTE is computed; then we fill the Array triangleWantRefine with either 1 (triangle needs refining), -1 (triangle can be coarsened) or 0 (nothing needs to happen).
-
-\param *vertexState Pointer to Array containing state vector (density etc). Needed to compute LTE
-\param specificHeatRatio Ratio of specific heats*/
+/*! Flag triangles for refinement or coarsening based on an estimate of the local truncation error (LTE). First the LTE is computed; then we fill the Array triangleWantRefine with either 1 (triangle needs refining), -1 (triangle can be coarsened) or 0 (nothing needs to happen).*/
 // #########################################################################
 
 template<class realNeq, ConservationLaw CL>
@@ -85,6 +82,8 @@ void Simulation<realNeq, CL>::FillWantRefine()
   int nTriangle = mesh->GetNTriangle();
 
   CalcErrorEstimate();
+  triangleWantRefine->SetSize(nTriangle);
+
   real *pErrorEstimate = triangleErrorEstimate->GetPointer();
   int *pWantRefine = triangleWantRefine->GetPointer();
 
