@@ -33,11 +33,10 @@ class Coarsen
   //! Destructor; releases memory.
   ~Coarsen();
 
-  template<class realNeq, ConservationLaw CL>
+  template<class realNeq>
     int RemoveVertices(Connectivity *connectivity,
                        Predicates *predicates,
                        Array<realNeq> *vertexState,
-                       real specificHeatRatio,
                        Array<int> *triangleWantRefine,
                        const MeshParameter *meshParameter,
                        Delaunay *delaunay,
@@ -55,18 +54,14 @@ class Coarsen
   //! Every vertex has at least one triangle associated with it
   Array <int> *vertexTriangle;
   //! Vector of random numbers to insert points randomly for efficiency
-  //Array <unsigned int> *randomVector;
-  //! Area associated with vertex (Voronoi cell)
-  Array<real> *vertexArea;
   Array<unsigned int> *randomVector;
 
   //! Check if removing vertices leads to encroached segment
-  void CheckEncroach(Connectivity *connectivity,
-                     Predicates *predicates,
-                     Array<int> *vertexRemoveFlag,
-                     const MeshParameter *mp);
+  int CheckEncroach(Connectivity *connectivity,
+                    Predicates *predicates,
+                    const MeshParameter *mp);
   //! Remove vertices from mesh
-  template<class realNeq, ConservationLaw CL>
+  template<class realNeq>
     void Remove(Connectivity *connectivity,
                 Array<int> *triangleWantRefine,
                 Array<int> *vertexTriangleList,
@@ -74,22 +69,21 @@ class Coarsen
                 Array<int> *triangleTarget,
                 Array<realNeq> *vertexState);
   //! Adjust state conservatively after coarsening
-  template<class realNeq, ConservationLaw CL>
+  template<class realNeq>
     void AdjustState(Connectivity *connectivity,
                      int maxTriPerVert,
                      Array<int> *vertexTriangleList,
                      Array<int> *triangleTarget,
                      Array<realNeq> *vertexState,
-                     real G, const MeshParameter *mp,
+                     const MeshParameter *mp,
                      Array<int> *vertexNeighbour);
   //! Find single triangle for every vertex
   void FillVertexTriangle(Connectivity *connectivity);
   //! Maximum number of triangles per vertex
   int MaxTriPerVert(Connectivity *connectivity);
   //! Flag vertices for removal
-  void FlagVertexRemove(Connectivity *connectivity,
-                        Array<int> *vertexRemoveFlag,
-                        Array<int> *triangleWantRefine);
+  int FlagVertexRemove(Connectivity *connectivity,
+                       Array<int> *triangleWantRefine);
   //! Create list of triangles sharing every vertex
   void CreateVertexTriangleList(Connectivity *connectivity,
                                 Array<int> *vertexTriangleList,
@@ -121,9 +115,6 @@ class Coarsen
   //! Find set of points that can be removed in parallel
   void FindParallelDeletionSet(Connectivity *connectivity,
                                int maxTriPerVert);
-  void CalcVertexArea(Connectivity *connectivity,
-                      const MeshParameter *meshParameter);
-
 };
 
 }
