@@ -30,28 +30,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 namespace astrix {
 
 //#########################################################################
-/*! \brief  Check if removing vertex \v leads to encroached segment
-
-
-\param n Index in \a vertexRemove Array
-\param nVertex Total number of vertices in Mesh
-\param *tv1 Pointer to first vertex of triangle
-\param *tv2 Pointer to second vertex of triangle
-\param *tv3 Pointer to third vertex of triangle
-\param *te1 Pointer to first edge of triangle
-\param *te2 Pointer to second edge of triangle
-\param *te3 Pointer to third edge of triangle
-\param *et1 Pointer to first triangle neighbouring edge
-\param *et2 Pointer to second triangle neighbouring edge
-\param *pVertX Pointer to x-coordinates of vertices
-\param *pVertY Pointer to y-coordinates of vertices
-\param Px Periodic domain size x
-\param Py Periodic domain size y
-\param *predicates Pointer to initialised Predicates object
-\param *pParam Pointer to initialised Predicates parameter vector
-\param *pVertexTriangle Pointer to list of triangles containing *pVertexRemove[]
-\param *pVertexRemove List of vertices to be removed
-\param *pVertexRemoveFlag Flag whether vertex can be removed. Initially every entry should be 1, and is set to zero if removing vertex would lead to encroached segment*/
+/*! \brief  Check if removing vertex \v leads to encroached segment*/
 //#########################################################################
 
 __host__ __device__
@@ -60,7 +39,7 @@ void CheckEncroachCoarsenSingle(int n, int nVertex,
                                 real Px, real Py,
                                 Predicates *predicates,
                                 real *pParam, int *pVertexTriangle,
-                                int *pVertexRemove)
+                                int *pVertexRemove, int *pTriangleTarget)
 {
   real zero = (real) 0.0;
 
@@ -375,6 +354,7 @@ void CheckEncroachCoarsenSingle(int n, int nVertex,
     if (encroachedFlag == 1) {
       pVertexRemove[n] = -1;
       pVertexTriangle[n] = -1;
+      pTriangleTarget[n] = -1;
     }
   }
 }
@@ -407,7 +387,8 @@ __global__
 void devCheckEncroachCoarsen(int nRemove, int *pVertexRemove, int nVertex,
                              int3 *pTv, int3 *pTe, int2 *pEt, real2 *pVc,
                              real Px, real Py, Predicates *predicates,
-                             real *pParam, int *pVertexTriangle)
+                             real *pParam, int *pVertexTriangle,
+                             int *pTriangleTarget)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -416,7 +397,7 @@ void devCheckEncroachCoarsen(int nRemove, int *pVertexRemove, int nVertex,
                                pTv, pTe, pEt,
                                pVc, Px, Py,
                                predicates, pParam, pVertexTriangle,
-                               pVertexRemove);
+                               pVertexRemove, pTriangleTarget);
 
     n += blockDim.x*gridDim.x;
   }
@@ -445,6 +426,7 @@ int Coarsen::CheckEncroach(Connectivity *connectivity,
 
   int *pVertexRemove = vertexRemove->GetPointer();
   int *pVertexTriangle = vertexTriangle->GetPointer();
+  int *pTriangleTarget = triangleTarget->GetPointer();
 
   real Px = mp->maxx - mp->minx;
   real Py = mp->maxy - mp->miny;
@@ -461,7 +443,7 @@ int Coarsen::CheckEncroach(Connectivity *connectivity,
     devCheckEncroachCoarsen<<<nBlocks, nThreads>>>
       (nRemove, pVertexRemove, nVertex,
        pTv, pTe, pEt, pVc, Px, Py,
-       predicates, pParam, pVertexTriangle);
+       predicates, pParam, pVertexTriangle, pTriangleTarget);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
@@ -471,13 +453,15 @@ int Coarsen::CheckEncroach(Connectivity *connectivity,
                                  pTv, pTe, pEt, pVc,
                                  Px, Py,
                                  predicates, pParam, pVertexTriangle,
-                                 pVertexRemove);
+                                 pVertexRemove, pTriangleTarget);
   }
 
   nRemove = vertexRemove->RemoveValue(-1);
   vertexTriangle->RemoveValue(-1);
+  triangleTarget->RemoveValue(-1);
   vertexRemove->SetSize(nRemove);
   vertexTriangle->SetSize(nRemove);
+  triangleTarget->SetSize(nRemove);
   return nRemove;
 }
 
