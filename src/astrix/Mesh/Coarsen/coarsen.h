@@ -53,8 +53,11 @@ class Coarsen
   Array <int> *vertexRemove;
   //! Every vertex has at least one triangle associated with it
   Array <int> *vertexTriangle;
+  //! Target triangle for collapse
+  Array <int> *triangleTarget;
   //! Vector of random numbers to insert points randomly for efficiency
-  Array<unsigned int> *randomVector;
+  Array<unsigned int> *randomUnique;
+  Array<int> *edgeNeedsChecking;
 
   //! Check if removing vertices leads to encroached segment
   int CheckEncroach(Connectivity *connectivity,
@@ -64,19 +67,12 @@ class Coarsen
   template<class realNeq>
     void Remove(Connectivity *connectivity,
                 Array<int> *triangleWantRefine,
-                Array<int> *vertexTriangleList,
-                int maxTriPerVert,
-                Array<int> *triangleTarget,
                 Array<realNeq> *vertexState);
   //! Adjust state conservatively after coarsening
   template<class realNeq>
     void AdjustState(Connectivity *connectivity,
-                     int maxTriPerVert,
-                     Array<int> *vertexTriangleList,
-                     Array<int> *triangleTarget,
                      Array<realNeq> *vertexState,
-                     const MeshParameter *mp,
-                     Array<int> *vertexNeighbour);
+                     const MeshParameter *mp);
   //! Find single triangle for every vertex
   void FillVertexTriangle(Connectivity *connectivity);
   //! Maximum number of triangles per vertex
@@ -84,37 +80,23 @@ class Coarsen
   //! Flag vertices for removal
   int FlagVertexRemove(Connectivity *connectivity,
                        Array<int> *triangleWantRefine);
-  //! Create list of triangles sharing every vertex
-  void CreateVertexTriangleList(Connectivity *connectivity,
-                                Array<int> *vertexTriangleList,
-                                int maxTriPerVert);
   //! Find allowed 'target' triangles for vertex removal
-  void FindAllowedTargetTriangles(Connectivity *connectivity,
-                                  Predicates *predicates,
-                                  Array<int> *vertexTriangleAllowed,
-                                  Array<int> *vertexTriangleList,
-                                  int maxTriPerVert,
-                                  const MeshParameter *mp);
-  //! Find 'target' triangles for vertex removal
-  void FindTargetTriangles(Connectivity *connectivity,
-                           Array<int> *triangleWantRefine,
-                           Array<int> *triangleTarget,
-                           Array<int> *vertexTriangleAllowed,
-                           Array<int> *vertexTriangleList,
-                           int maxTriPerVert);
-  //! Find vertices neighbouring vertex
-  void FindVertexNeighbours(Connectivity *connectivity,
-                            Array<int> *vertexNeighbour,
-                            Array<int> *triangleTarget,
-                            Array<int> *vertexTriangleList,
-                            int maxTriPerVert);
+  int FindAllowedTargetTriangles(Connectivity *connectivity,
+                                 Predicates *predicates,
+                                 const MeshParameter *mp);
   //! Reject triangles that are too large for removal
   void RejectLargeTriangles(Connectivity *connectivity,
                             const MeshParameter *mp,
                             Array<int> *triangleWantRefine);
   //! Find set of points that can be removed in parallel
-  void FindParallelDeletionSet(Connectivity *connectivity,
-                               int maxTriPerVert);
+  void FindParallelDeletionSet(Connectivity *connectivity);
+
+  void LockTriangles(Connectivity *connectivity,
+                     Array<int> *triangleLock);
+  void FindIndependent(Connectivity *connectivity,
+                       Array<int> *triangleLock,
+                       Array<int> *uniqueFlag);
+
 };
 
 }
