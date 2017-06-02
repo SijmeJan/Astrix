@@ -25,51 +25,35 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../../Common/cudaLow.h"
 #include "../Connectivity/connectivity.h"
 #include "../Param/meshparameter.h"
+#include "../../Common/state.h"
 
 namespace astrix {
 
 //#########################################################################
 /*! \brief Adjust state when removing vertex \a vRemove
 
-\param vRemove Vertex that will be removed
-\param *vTri Pointer to triangles sharing vertex
-\param maxTriPerVert Maximum number of triangles sharing any vertex
-\param *tv1 Pointer to first vertex of triangle
-\param *tv2 Pointer to second vertex of triangle
-\param *tv3 Pointer to third vertex of triangle
-\param *te1 Pointer to first edge of triangle
-\param *te2 Pointer to second edge of triangle
-\param *te3 Pointer to third edge of triangle
-\param *et1 Pointer to first triangle neighbouring edge
-\param *et2 Pointer to second triangle neighbouring edge
+\param vRemove Vertex to be removed
+\param *pTv Pointer to triangle vertices
+\param *pTe Pointer to triangle edges
+\param *pEt Pointer to edge triangles
 \param *pVertexArea Pointer to vertex areas (Voronoi cells)
 \param nVertex Total number of vertices in Mesh
-\param *pVertX Pointer to x-coordinates of vertices
-\param *pVertY Pointer to y-coordinates of vertices
+\param *pVc Pointer to vertex coordinates
 \param Px Periodic domain size x
 \param Py Periodic domain size y
-\param tTarget Target triangle containing vertex to move vRemove onto
-\param *dens Pointer to density at vertices
-\param *momx Pointer to x-momentum at vertices
-\param *momy Pointer to y-momentum at vertices
-\param *ener Pointer to energy density at vertices
-\param G Ration of specific heats
-\param *vNeighbour Pointer to array of neighbouring vertices*/
+\param tTarget Target triangle containing vertex to collapse \a vRemove onto
+\param *state Pointer to state vector*/
 //#########################################################################
 
 template<class realNeq>
 __host__ __device__
-void AdjustStateCoarsenSingle(int vRemove, int *vTri, const int maxTriPerVert,
+void AdjustStateCoarsenSingle(int vRemove, int tStart,
                               int3 *pTv, int3 *pTe, int2 *pEt,
                               real *pVertexArea,
                               int nVertex, real2 *pVc,
                               real Px, real Py, int tTarget,
-                              realNeq *state,
-                              int *vNeighbour) {
-  const real zero  = (real) 0.0;
-
-  if (tTarget == -1) return;
-
+                              realNeq *state)
+{
   // Find target vertex (vertex to move vRemove onto)
   int a = pTv[tTarget].x;
   int b = pTv[tTarget].y;
@@ -81,8 +65,7 @@ void AdjustStateCoarsenSingle(int vRemove, int *vTri, const int maxTriPerVert,
                          nVertex, Px, Py,
                          ax, bx, cx, ay, by, cy);
 
-  // Translate triangle
-  // pERIODIC
+  // Translate target triangle to same side as vRemove
   TranslateTriangleToVertex(vRemove, Px, Py,
                             nVertex, a, b, c, ax, ay, bx, by, cx, cy);
 
@@ -93,7 +76,7 @@ void AdjustStateCoarsenSingle(int vRemove, int *vTri, const int maxTriPerVert,
   while (b < 0) b += nVertex;
   while (c < 0) c += nVertex;
 
-  real vTarget = -1;
+  int vTarget = -1;
   if (a == vRemove) {
     vTarget = b;
     int e = pTe[tTarget].z;
@@ -129,136 +112,173 @@ void AdjustStateCoarsenSingle(int vRemove, int *vTri, const int maxTriPerVert,
 
   // Total Voronoi volume all neighbours + vRemove (x6)
   real totalVolume = 6.0*pVertexArea[vRemove];
-  for (int i = 0; i < maxTriPerVert; i++) {
-    if (vNeighbour[i] != -1) {
-      int uniqueFlag = 1;
-      for (int j = 0; j < i; j++)
-        uniqueFlag *= (vNeighbour[i] != vNeighbour[j]);
+  // State change for all neighbouring vertices
+  realNeq dState = totalVolume*(state[vRemove] - state[vTarget]);
 
-      if (uniqueFlag == 1)
-        totalVolume += 6.0*pVertexArea[vNeighbour[i]];
+  // Calculate totalVolume
+  int t = tStart;
+  int finished = 0;
+  while (!finished) {
+    // Edge to cross to next triangle
+    int eCross = -1;
+
+    int a = pTv[t].x;
+    int b = pTv[t].y;
+    int c = pTv[t].z;
+
+    while (a >= nVertex) a -= nVertex;
+    while (b >= nVertex) b -= nVertex;
+    while (c >= nVertex) c -= nVertex;
+    while (a < 0) a += nVertex;
+    while (b < 0) b += nVertex;
+    while (c < 0) c += nVertex;
+
+    // Neighbour vertex
+    int v = -1;
+    if (a == vRemove) {
+      v = b;
+      eCross = pTe[t].x;
     }
+    if (b == vRemove) {
+      v = c;
+      eCross = pTe[t].y;
+    }
+    if (c == vRemove) {
+      v = a;
+      eCross = pTe[t].z;
+    }
+
+    totalVolume += 6.0*pVertexArea[v];
+
+    int tNext = pEt[eCross].x;
+    if (tNext == t) tNext = pEt[eCross].y;
+    t = tNext;
+
+    if (t == tStart || t == -1) finished = 1;
   }
 
-  /*
-  real dens = state[vRemove].x;
-  real momx = state[vRemove].y;
-  real momy = state[vRemove].z;
+  real denominator = 1.0/totalVolume;
 
-  real dDens = 6.0*pVertexArea[vRemove]*dens;
-  real dMomx = 6.0*pVertexArea[vRemove]*momx;
-  real dMomy = 6.0*pVertexArea[vRemove]*momy;
-  */
+  // Calculate dState
+  t = tStart;
+  finished = 0;
+  while (!finished) {
+    // Edge to cross to next triangle
+    int eCross = -1;
 
-  realNeq stateOld = state[vRemove];
-  realNeq dState = 6.0*pVertexArea[vRemove]*stateOld;
+    int a = pTv[t].x;
+    int b = pTv[t].y;
+    int c = pTv[t].z;
 
-  real denominator = totalVolume - 6.0*pVertexArea[vRemove];
+    real ax, bx, cx, ay, by, cy;
+    GetTriangleCoordinates(pVc, a, b, c,
+                           nVertex, Px, Py,
+                           ax, bx, cx, ay, by, cy);
 
-  for (int i = 0; i < maxTriPerVert; i++) {
-    // Change of Voronoi volume
-    real dV = zero;
+    // Translate triangle to same side as vRemove
+    TranslateTriangleToVertex(vRemove, Px, Py, nVertex,
+                              a, b, c, ax, ay, bx, by, cx, cy);
 
-    if (vNeighbour[i] != -1) {
-      int uniqueFlag = 1;
-      for (int j = 0; j < i; j++)
-        uniqueFlag *= (vNeighbour[i] != vNeighbour[j]);
+    // Twice triangle area before removal
+    real vBefore = (ax - cx)*(by - cy) - (ay - cy)*(bx - cx);
 
-      if (uniqueFlag == 1) {
-        for (int j = 0; j < maxTriPerVert; j++) {
-          int t1 = vTri[j];
+    while (a >= nVertex) a -= nVertex;
+    while (b >= nVertex) b -= nVertex;
+    while (c >= nVertex) c -= nVertex;
+    while (a < 0) a += nVertex;
+    while (b < 0) b += nVertex;
+    while (c < 0) c += nVertex;
 
-          if (t1 != -1) {
-            int a = pTv[t1].x;
-            int b = pTv[t1].y;
-            int c = pTv[t1].z;
-
-            real ax, bx, cx, ay, by, cy;
-            GetTriangleCoordinates(pVc, a, b, c,
-                                   nVertex, Px, Py,
-                                   ax, bx, cx, ay, by, cy);
-
-            // Replace vRemove by vTarget
-
-            // Translate triangle
-            // pERIODIC
-            TranslateTriangleToVertex(vRemove, Px, Py, nVertex,
-                                      a, b, c, ax, ay, bx, by, cx, cy);
-
-            while (a >= nVertex) a -= nVertex;
-            while (b >= nVertex) b -= nVertex;
-            while (c >= nVertex) c -= nVertex;
-            while (a < 0) a += nVertex;
-            while (b < 0) b += nVertex;
-            while (c < 0) c += nVertex;
-
-            // Triangle surface before removal
-            real vBefore = (ax - cx)*(by - cy) - (ay - cy)*(bx - cx);
-
-
-            if (a == vRemove) {
-              ax = xTarget;
-              ay = yTarget;
-            }
-            if (b == vRemove) {
-              bx = xTarget;
-              by = yTarget;
-            }
-            if (c == vRemove) {
-              cx = xTarget;
-              cy = yTarget;
-            }
-
-            // Triangle surface after removal
-            real vAfter = (ax - cx)*(by - cy) - (ay - cy)*(bx - cx);
-
-            if (a == vNeighbour[i] || b == vNeighbour[i] ||
-                c == vNeighbour[i]) {
-              dV += vBefore - vAfter;
-            } else {
-              if (vNeighbour[i] == vTarget) dV -= vAfter;
-            }
-          }
-        }
-
-        /*
-        real dens = state[vNeighbour[i]].x;
-        real momx = state[vNeighbour[i]].y;
-        real momy = state[vNeighbour[i]].z;
-
-        dDens += dV*dens;
-        dMomx += dV*momx;
-        dMomy += dV*momy;
-        */
-
-        realNeq stateNeighbour = state[vNeighbour[i]];
-        dState = dState + dV*stateNeighbour;
-
-        pVertexArea[vNeighbour[i]] -= dV/6.0;
-      }
+    if (a == vRemove) {
+      eCross = pTe[t].x;
+    }
+    if (b == vRemove) {
+      eCross = pTe[t].y;
+    }
+    if (c == vRemove) {
+      eCross = pTe[t].z;
     }
 
-    denominator -= dV;
+    if (a == vRemove) {
+      ax = xTarget;
+      ay = yTarget;
+    }
+    if (b == vRemove) {
+      bx = xTarget;
+      by = yTarget;
+    }
+    if (c == vRemove) {
+      cx = xTarget;
+      cy = yTarget;
+    }
+
+    // Twice triangle area after removal
+    real vAfter = (ax - cx)*(by - cy) - (ay - cy)*(bx - cx);
+
+    // Change in (twice) triangle area
+    real dV = vAfter - vBefore;
+
+    if (a != vRemove) {
+      dState -= dV*state[a];
+      // Need to keep this up to date for Delaunay adjustState
+      pVertexArea[a] += dV/6.0;
+    }
+    if (b != vRemove) {
+      dState -= dV*state[b];
+      // Need to keep this up to date for Delaunay adjustState
+      pVertexArea[b] += dV/6.0;
+    }
+    if (c != vRemove) {
+      dState -= dV*state[c];
+      // Need to keep this up to date for Delaunay adjustState
+      pVertexArea[c] += dV/6.0;
+    }
+
+    int tNext = pEt[eCross].x;
+    if (tNext == t) tNext = pEt[eCross].y;
+    t = tNext;
+
+    if (t == tStart || t == -1) finished = 1;
   }
 
-  denominator = 1.0/denominator;
+  pVertexArea[vTarget] += pVertexArea[vRemove];
 
-  for (int i = 0; i < maxTriPerVert; i++) {
-    if (vNeighbour[i] != -1) {
-      int uniqueFlag = 1;
-      for (int j = 0; j < i; j++)
-        uniqueFlag *= (vNeighbour[i] != vNeighbour[j]);
 
-      if (uniqueFlag == 1) {
-        /*
-        state[vNeighbour[i]].x += dDens*denominator;
-        state[vNeighbour[i]].y += dMomx*denominator;
-        state[vNeighbour[i]].z += dMomy*denominator;
-        */
-        state[vNeighbour[i]] = state[vNeighbour[i]] + denominator*dState;
+  t = tStart;
+  finished = 0;
+  while (!finished) {
+    // Edge to cross to next triangle
+    int eCross = -1;
 
-      }
+    int a = pTv[t].x;
+    int b = pTv[t].y;
+    int c = pTv[t].z;
+
+    while (a >= nVertex) a -= nVertex;
+    while (b >= nVertex) b -= nVertex;
+    while (c >= nVertex) c -= nVertex;
+    while (a < 0) a += nVertex;
+    while (b < 0) b += nVertex;
+    while (c < 0) c += nVertex;
+
+    if (a == vRemove) {
+      state[b] = state[b] + denominator*dState;
+      eCross = pTe[t].x;
     }
+    if (b == vRemove) {
+      state[c] = state[c] + denominator*dState;
+      eCross = pTe[t].y;
+    }
+    if (c == vRemove) {
+      state[a] = state[a] + denominator*dState;
+      eCross = pTe[t].z;
+    }
+
+    int tNext = pEt[eCross].x;
+    if (tNext == t) tNext = pEt[eCross].y;
+    t = tNext;
+
+    if (t == tStart || t == -1) finished = 1;
   }
 }
 
@@ -267,51 +287,35 @@ void AdjustStateCoarsenSingle(int vRemove, int *vTri, const int maxTriPerVert,
 
 \param nRemove Number of vertices that will be removed
 \param *pVertexRemove Pointer to array of vertices to be removed
-\param *pVertexTriangleList Pointer to triangles sharing vertex
-\param maxTriPerVert Maximum number of triangles sharing any vertex
-\param *tv1 Pointer to first vertex of triangle
-\param *tv2 Pointer to second vertex of triangle
-\param *tv3 Pointer to third vertex of triangle
-\param *te1 Pointer to first edge of triangle
-\param *te2 Pointer to second edge of triangle
-\param *te3 Pointer to third edge of triangle
-\param *et1 Pointer to first triangle neighbouring edge
-\param *et2 Pointer to second triangle neighbouring edge
+\param *pTv Pointer to triangle vertices
+\param *pTe Pointer to triangle edges
+\param *pEt Pointer to edge triangles
 \param *pVertexArea Pointer to vertex areas (Voronoi cells)
 \param nVertex Total number of vertices in Mesh
-\param *pVertX Pointer to x-coordinates of vertices
-\param *pVertY Pointer to y-coordinates of vertices
+\param *pVc Pointer to vertex coordinates
 \param Px Periodic domain size x
 \param Py Periodic domain size y
-\param *triangleTarget Pointer to array of target triangles containing vertex to move vRemove onto
-\param *dens Pointer to density at vertices
-\param *momx Pointer to x-momentum at vertices
-\param *momy Pointer to y-momentum at vertices
-\param *ener Pointer to energy density at vertices
-\param G Ration of specific heats
-\param *pVertexNeighbour Pointer to array of neighbouring vertices*/
+\param *pTriangleTarget Pointer to array of target triangles containing vertex to move \a vRemove onto
+\param *state Pointer to state vector*/
 //#########################################################################
 
 template<class realNeq>
 __global__
 void devAdjustStateCoarsen(int nRemove, int *pVertexRemove,
-                           int *pVertexTriangleList, int maxTriPerVert,
+                           int *pVertexTriangle,
                            int3 *pTv, int3 *pTe, int2 *pEt,
                            real *pVertexArea, int nVertex,
-                           real2 *pVc,
-                           real Px, real Py, int *pTriangleTarget,
-                           realNeq *state,
-                           int *pVertexNeighbour)
+                           real2 *pVc, real Px, real Py,
+                           int *pTriangleTarget, realNeq *state)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nRemove) {
     AdjustStateCoarsenSingle(pVertexRemove[n],
-                             &(pVertexTriangleList[n*maxTriPerVert]),
-                             maxTriPerVert, pTv, pTe, pEt,
+                             pVertexTriangle[n],
+                             pTv, pTe, pEt,
                              pVertexArea, nVertex, pVc,
-                             Px, Py, pTriangleTarget[n], state,
-                             &(pVertexNeighbour[n*maxTriPerVert]));
+                             Px, Py, pTriangleTarget[n], state);
 
     n += blockDim.x*gridDim.x;
   }
@@ -320,32 +324,23 @@ void devAdjustStateCoarsen(int nRemove, int *pVertexRemove,
 //#########################################################################
 /*! Adjust state when removing vertices in order to conserve mass, momentum and energy.
 
-\param maxTriPerVert Maximum number of triangles sharing single vertex
-\param *vertexTriangleList Pointer to Array list of triangles sharing vertex
+\param *connectivity Pointer to Mesh Connectivity
 \param *triangleTarget Pointer to Array containing triangle targets
 \param *vertexState Pointer to state vector at vertices
-\param G ratio of specific heats
-\param *vertexNeighbour Pointer to Array containing indices of neighbouring vertices */
+\param *mp Pointer to Mesh Parameters*/
 //#########################################################################
 
 template<class realNeq>
 void Coarsen::AdjustState(Connectivity *connectivity,
-                          int maxTriPerVert,
-                          Array<int> *vertexTriangleList,
-                          Array<int> *triangleTarget,
                           Array<realNeq> *vertexState,
-                          const MeshParameter *mp,
-                          Array<int> *vertexNeighbour)
+                          const MeshParameter *mp)
 {
   real Px = mp->maxx - mp->minx;
   real Py = mp->maxy - mp->miny;
 
-  connectivity->CalcVertexArea(Px, Py);
-
   int *pVertexRemove = vertexRemove->GetPointer();
-  int *pVertexTriangleList = vertexTriangleList->GetPointer();
   int *pTriangleTarget = triangleTarget->GetPointer();
-  int *pVertexNeighbour = vertexNeighbour->GetPointer();
+  int *pVertexTriangle = vertexTriangle->GetPointer();
   real *pVertexArea = connectivity->vertexArea->GetPointer();
 
   realNeq *state = vertexState->GetPointer();
@@ -369,52 +364,38 @@ void Coarsen::AdjustState(Connectivity *connectivity,
                                        (size_t) 0, 0);
 
     devAdjustStateCoarsen<realNeq><<<nBlocks, nThreads>>>
-      (nRemove, pVertexRemove, pVertexTriangleList,
-       maxTriPerVert, pTv, pTe, pEt,
+      (nRemove, pVertexRemove, pVertexTriangle,
+       pTv, pTe, pEt,
        pVertexArea, nVertex, pVc,
-       Px, Py, pTriangleTarget, state,
-       pVertexNeighbour);
+       Px, Py, pTriangleTarget, state);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int n = 0; n < nRemove; n++)
       AdjustStateCoarsenSingle(pVertexRemove[n],
-                               &(pVertexTriangleList[n*maxTriPerVert]),
-                               maxTriPerVert, pTv, pTe, pEt,
+                               pVertexTriangle[n],
+                               pTv, pTe, pEt,
                                pVertexArea, nVertex, pVc,
-                               Px, Py, pTriangleTarget[n], state,
-                               &(pVertexNeighbour[n*maxTriPerVert]));
+                               Px, Py, pTriangleTarget[n], state);
   }
 
 }
 
-//##############################################################################
+//#############################################################################
 // Instantiate
-//##############################################################################
+//#############################################################################
 
 template void
 Coarsen::AdjustState<real>(Connectivity *connectivity,
-                           int maxTriPerVert,
-                           Array<int> *vertexTriangleList,
-                           Array<int> *triangleTarget,
                            Array<real> *vertexState,
-                           const MeshParameter *mp,
-                           Array<int> *vertexNeighbour);
+                           const MeshParameter *mp);
 template void
 Coarsen::AdjustState<real3>(Connectivity *connectivity,
-                            int maxTriPerVert,
-                            Array<int> *vertexTriangleList,
-                            Array<int> *triangleTarget,
                             Array<real3> *vertexState,
-                            const MeshParameter *mp,
-                            Array<int> *vertexNeighbour);
+                            const MeshParameter *mp);
 template void
 Coarsen::AdjustState<real4>(Connectivity *connectivity,
-                            int maxTriPerVert,
-                            Array<int> *vertexTriangleList,
-                            Array<int> *triangleTarget,
                             Array<real4> *vertexState,
-                            const MeshParameter *mp,
-                            Array<int> *vertexNeighbour);
+                            const MeshParameter *mp);
 
 }
