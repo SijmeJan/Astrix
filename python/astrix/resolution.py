@@ -47,8 +47,9 @@ direc = os.path.abspath(args.directory)
 
 with PdfPages('resolution.pdf') as pdf:
     res = [1, 2, 4, 8, 16]
-    schemes = ['N']
-    order = ['1', '2', '2']
+    #res = [32, 64, 128, 256, 512]
+    schemes = ['LDA']
+    order = ['2', '2', '2']
     massMatrices = ['1']
     selectLumpFlags = ['0']
 
