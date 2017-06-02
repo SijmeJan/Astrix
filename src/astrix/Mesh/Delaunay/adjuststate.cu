@@ -164,6 +164,7 @@ void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
   real dVc = T4 - T1 - T2;
   real dVd = T4 + T3 - T1;
 
+  // Update vertex areas
   real Va = AtomicAdd(&(pVarea[a]), dVa*sixth);
   real Vb = AtomicAdd(&(pVarea[b]), dVb*sixth);
   real Vc = AtomicAdd(&(pVarea[c]), dVc*sixth);
@@ -199,6 +200,7 @@ void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
   AtomicAdd(&(pState[d]), stateAdjust);
   */
 
+  /*
   // Least squares approach
   real A1 = Va + sixth*dVa;
   real A2 = Vb + sixth*dVb;
@@ -238,6 +240,27 @@ void AdjustStateSingle(int i, int *pEnd, int3 *pTv, int3 *pTe, int2 *pEt,
     (A2*iA4)*stateAdjustB +
     (A3*iA4)*stateAdjustC +
     iA4*dM;
+
+  AtomicAdd(&(pState[a]), stateAdjustA);
+  AtomicAdd(&(pState[b]), stateAdjustB);
+  AtomicAdd(&(pState[c]), stateAdjustC);
+  AtomicAdd(&(pState[d]), stateAdjustD);
+  */
+
+  // Erase deviations
+  real A1 = Va + sixth*dVa;
+  real A2 = Vb + sixth*dVb;
+  real A3 = Vc + sixth*dVc;
+  real A4 = Vd + sixth*dVd;
+
+  realNeq M =
+    pState[a]*Va + pState[b]*Vb + pState[c]*Vc + pState[d]*Vd;
+  realNeq newState = M/(A1 + A2 + A3 + A4);
+
+  realNeq stateAdjustA = newState - pState[a];
+  realNeq stateAdjustB = newState - pState[b];
+  realNeq stateAdjustC = newState - pState[c];
+  realNeq stateAdjustD = newState - pState[d];
 
   AtomicAdd(&(pState[a]), stateAdjustA);
   AtomicAdd(&(pState[b]), stateAdjustB);
