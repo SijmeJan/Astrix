@@ -108,6 +108,45 @@ inline double4 AtomicAdd(double4 *x, double4 y)
   return ret;
 }
 
+template<>
+__host__ __device__
+inline float2 AtomicAdd(float2 *x, float2 y)
+{
+  float2 ret;
+
+  ret.x = AtomicAdd<float>(&(x[0].x), y.x);
+  ret.y = AtomicAdd<float>(&(x[0].y), y.y);
+
+  return ret;
+}
+
+template<>
+__host__ __device__
+inline float3 AtomicAdd(float3 *x, float3 y)
+{
+  float3 ret;
+
+  ret.x = AtomicAdd<float>(&(x[0].x), y.x);
+  ret.y = AtomicAdd<float>(&(x[0].y), y.y);
+  ret.z = AtomicAdd<float>(&(x[0].z), y.z);
+
+  return ret;
+}
+
+template<>
+__host__ __device__
+inline float4 AtomicAdd(float4 *x, float4 y)
+{
+  float4 ret;
+
+  ret.x = AtomicAdd<float>(&(x[0].x), y.x);
+  ret.y = AtomicAdd<float>(&(x[0].y), y.y);
+  ret.z = AtomicAdd<float>(&(x[0].z), y.z);
+  ret.w = AtomicAdd<float>(&(x[0].w), y.w);
+
+  return ret;
+}
+
 //######################################################################
 // Atomic max wrapper; on host do normal max
 //######################################################################
