@@ -30,16 +30,18 @@ namespace astrix {
 //#########################################################################
 /*! \brief Set triangle \a n as the triangle for its vertices
 
-  For every vertex we want to know one triangle sharing it and put the result in \a *pVertexTriangle. Here, we consider triangle \a n and set it as the \a vertexTriangle for its vertices using atomic operations.
+  For every vertex we want to know one triangle sharing it and put the result in \a *pVertexTriangle. Here, we consider triangle \a n and set it as the \a vertexTriangle for its vertices using atomic operations. If the vertex is part of a segment, we make sure we can walk around the vertex in clockwise direction.
 
 \param n Index of triangle to consider
 \param *pTv Pointer to triangle vertices
+\param *pTe Pointer to triangle edges
+\param *pEt Pointer to edge triangles
 \param nVertex Total number of vertices in Mesh
 \param *pVertexTriangle Pointer to output array*/
 //#########################################################################
 
 __host__ __device__
-void FillVertexTriangleSingle(int n, int3 *pTv,
+void FillVertexTriangleSingle(int n, int3 *pTv, int3 *pTe, int2 *pEt,
                               int nVertex, int *pVertexTriangle)
 {
   int a = pTv[n].x;
@@ -52,37 +54,56 @@ void FillVertexTriangleSingle(int n, int3 *pTv,
   while (b < 0) b += nVertex;
   while (c < 0) c += nVertex;
 
+  int e1 = pTe[n].x;
+  int e2 = pTe[n].y;
+  int e3 = pTe[n].z;
+
+  if (pEt[e3].x == -1 || pEt[e3].y == -1)
+    AtomicExch(&(pVertexTriangle[a]), n);
+  if (pEt[e1].x == -1 || pEt[e1].y == -1)
+    AtomicExch(&(pVertexTriangle[b]), n);
+  if (pEt[e2].x == -1 || pEt[e2].y == -1)
+    AtomicExch(&(pVertexTriangle[c]), n);
+
+  AtomicCAS(&(pVertexTriangle[a]), -1, n);
+  AtomicCAS(&(pVertexTriangle[b]), -1, n);
+  AtomicCAS(&(pVertexTriangle[c]), -1, n);
+
+  /*
   AtomicExch(&(pVertexTriangle[a]), n);
   AtomicExch(&(pVertexTriangle[b]), n);
   AtomicExch(&(pVertexTriangle[c]), n);
+  */
 }
 
 //#########################################################################
 /*! \brief Kernel setting \a vertexTriangle for all vertices
 
-  For every vertex we want to know one triangle sharing it and put the result in \a *pVertexTriangle. Here, we loop through all triangles and set it as the \a vertexTriangle for its vertices using atomic operations. Then \a pVertexTriangle will contain the triangle that has last written to it.
+  For every vertex we want to know one triangle sharing it and put the result in \a *pVertexTriangle. Here, we loop through all triangles and set it as the \a vertexTriangle for its vertices using atomic operations. Then \a pVertexTriangle will contain the triangle that has last written to it. If the vertex is part of a segment, we make sure we can walk around the vertex in clockwise direction.
 
 \param nTriangle Total number of triangles in Mesh
 \param *pTv Pointer to triangle vertices
+\param *pTe Pointer to triangle edges
+\param *pEt Pointer to edge triangles
 \param nVertex Total number of vertices in Mesh
 \param *pVertexTriangle Pointer to output array*/
 //#########################################################################
 
 __global__
-void devFillVertexTriangle(int nTriangle, int3 *pTv,
+void devFillVertexTriangle(int nTriangle, int3 *pTv, int3 *pTe, int2 *pEt,
                            int nVertex, int *pVertexTriangle)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nTriangle) {
-    FillVertexTriangleSingle(n, pTv, nVertex, pVertexTriangle);
+    FillVertexTriangleSingle(n, pTv, pTe, pEt, nVertex, pVertexTriangle);
 
     n += blockDim.x*gridDim.x;
   }
 }
 
 //#########################################################################
-/*! For every vertex we want to know one triangle sharing it, and put the result in \a vertexTriangle. Here, we loop through all triangles and set it as the \a vertexTriangle for its vertices using atomic operations. Then \a vertexTriangle will contain the triangle that has last written to it.
+/*! For every vertex we want to know one triangle sharing it, and put the result in \a vertexTriangle. Here, we loop through all triangles and set it as the \a vertexTriangle for its vertices using atomic operations. Then \a vertexTriangle will contain the triangle that has last written to it. If the vertex is part of a segment, we make sure we can walk around the vertex in clockwise direction.
 
 \param *connectivity Pointer to Mesh connectivity data*/
 //#########################################################################
@@ -93,8 +114,11 @@ void Coarsen::FillVertexTriangle(Connectivity *connectivity)
   int nTriangle = connectivity->triangleVertices->GetSize();
 
   int3 *pTv = connectivity->triangleVertices->GetPointer();
+  int3 *pTe = connectivity->triangleEdges->GetPointer();
+  int2 *pEt = connectivity->edgeTriangles->GetPointer();
 
   vertexTriangle->SetSize(nVertex);
+  vertexTriangle->SetToValue(-1);
   int *pVertexTriangle = vertexTriangle->GetPointer();
 
   if (cudaFlag == 1) {
@@ -107,13 +131,14 @@ void Coarsen::FillVertexTriangle(Connectivity *connectivity)
                                        (size_t) 0, 0);
 
     devFillVertexTriangle<<<nBlocks, nThreads>>>
-      (nTriangle, pTv, nVertex, pVertexTriangle);
+      (nTriangle, pTv, pTe, pEt, nVertex, pVertexTriangle);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int n = 0; n < nTriangle; n++)
-      FillVertexTriangleSingle(n, pTv, nVertex, pVertexTriangle);
+      FillVertexTriangleSingle(n, pTv, pTe, pEt, nVertex, pVertexTriangle);
   }
+
 
 }
 
