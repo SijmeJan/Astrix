@@ -19,6 +19,24 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 namespace astrix {
 
 //##############################################################################
+/*! Given the edge lengths of a triangle, compute its area using Heron's formula
+
+\param l1 Edge length 1
+\param l2 Edge length 2
+\param l3 Edge length 3*/
+//##############################################################################
+
+__host__ __device__ inline
+real TriangleAreaFromSides(real l1, real l2, real l3)
+{
+  // semiperimeter
+  real s = (real) 0.5*(l1 + l2 + l3);
+
+  // Return area through Heron's formula
+  return sqrt(s*(s - l1)*(s - l2)*(s - l3));
+}
+
+//##############################################################################
 /*! Assume that \a b and \a f are periodic variants of each other, so that they are a distance of \a dx and/or \a dy apart. Now move vertex (\a x, \a y) over that same distance so that it is in the same part of the domain as \a b.
 
 \param b Vertex index to move to
