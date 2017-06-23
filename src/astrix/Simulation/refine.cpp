@@ -120,9 +120,15 @@ void Simulation<realNeq, CL>::Coarsen(int maxCycle)
   while (finishedFlag == 0) {
     FillWantRefine();
 
-    if (mesh->RemoveVertices<realNeq>(vertexState, nTimeStep,
-                                      triangleWantRefine) == 0)
-      finishedFlag = 1;
+    try {
+      if (mesh->RemoveVertices<realNeq>(vertexState, nTimeStep,
+                                        triangleWantRefine) == 0)
+        finishedFlag = 1;
+    }
+    catch (...) {
+      std::cout << "Error in coarsening step" << std::endl;
+      throw;
+    }
 
     nCycle++;
     if (nCycle >= maxCycle && maxCycle >= 0)
