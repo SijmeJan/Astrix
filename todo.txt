@@ -1,13 +1,12 @@
-Mesh only needs to know about realNeq, not CL
+comment Coarsen
+comment triangleLow.h
+comment connectivity
 
 test RT
-move error estimates to Simulation
 
 new parallel flip selection test?
 adjust makefile register use?
 
-conservation during edge flipping
-vertex removal
 3D mesh
 3D residual distribution
 individual time steps
