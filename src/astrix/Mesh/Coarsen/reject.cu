@@ -31,7 +31,7 @@ namespace astrix {
 //#########################################################################
 /*! \brief Reject triangles that are too large for coarsening
 
-We do not want to coarsen too much: reject any triangle for coarsening that has an edge that is larger than half the domain size
+We do not want to coarsen too much: reject any triangle for coarsening that has an edge that is larger than half the domain size.
 
 \param n Triangle to consider
 \param *pTv Pointer to triangle vertices
@@ -65,9 +65,8 @@ void RejectSingle(int n, int3 *pTv, int nVertex,
   real maxEdgeLength = sqrt(max(l1, max(l2, l3)));
   real minDomainSize = min(Px, Py);
 
-  if (maxEdgeLength > half*minDomainSize) {
+  if (maxEdgeLength > half*minDomainSize)
     pTriangleWantRefine[n] = 0;
-  }
 }
 
 //#########################################################################
@@ -85,8 +84,8 @@ We do not want to coarsen too much: reject any triangle for coarsening that has 
 //#########################################################################
 
 __global__
-void devReject(int nTriangle, int3 *pTv, int nVertex,
-               real2 *pVc, real Px, real Py,
+void devReject(int nTriangle, int3 *pTv,
+               int nVertex, real2 *pVc, real Px, real Py,
                int *pTriangleWantRefine)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
