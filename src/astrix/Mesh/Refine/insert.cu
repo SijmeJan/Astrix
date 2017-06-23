@@ -72,15 +72,6 @@ void InsertVertex(int n, int t, int e, int nVertex, int nEdge,
   // PERIODIC
   int translateVertex = 0;
 
-#ifndef __CUDA_ARCH__
-  if (t == -1 && e == -1) {
-    std::cout << std::endl
-              << "Error in InsertVertex: no triangle or edge found"
-              << std::endl;
-    int qq; std::cin >> qq;
-  }
-#endif
-
   // Insert vertex inside triangle t
   if (t != -1) {
     if (periodicFlagX) {
@@ -293,19 +284,8 @@ void InsertVertex(int n, int t, int e, int nVertex, int nEdge,
           }
         }
 
-        if (B - F != C - E) {
-#ifndef __CUDA_ARCH__
-          std::cout << "Not sure what to do inserting on edge " << e
-                    << std::endl;
-          std::cout << "t1: " << tv11 << " " << tv21 << " " << tv31
-                    << std::endl;
-          std::cout << "t2: " << tv12 << " " << tv22 << " " << tv32
-                    << std::endl;
-          std::cout << "Vertex: " << i + translateVertex << std::endl;
-          std::cout << "A1: " << A1 << ", A2: " << A2 << std::endl;
-          int qq; std::cin >> qq;
-#endif
-        }
+        // Something is wrong is this is not true
+        assert(B - F == C - E);
       }
 
       if (e == te11) {
