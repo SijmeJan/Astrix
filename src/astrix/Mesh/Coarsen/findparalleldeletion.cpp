@@ -35,30 +35,22 @@ void Coarsen::FindParallelDeletionSet(Connectivity *connectivity)
 {
   // Number of triangles and number of insertion points
   unsigned int nTriangle = connectivity->triangleVertices->GetSize();
-  unsigned int nRemove = vertexRemove->GetSize();
+  unsigned int nRemove = edgeCollapseList->GetSize();
 
   Array <int> *triangleLock = new Array<int>(1, cudaFlag, nTriangle);
-  Array <int> *uniqueFlag = new Array<int>(1, cudaFlag, nRemove);
-  Array <int> *uniqueFlagScan = new Array<int>(1, cudaFlag, nRemove);
 
   LockTriangles(connectivity, triangleLock);
 
   // Select cavities that are independent
-  FindIndependent(connectivity, triangleLock, uniqueFlag);
+  FindIndependent(connectivity, triangleLock);
 
-  // Compact arrays to new nRefine
-  nRemove = uniqueFlag->ExclusiveScan(uniqueFlagScan, nRemove);
-  vertexRemove->Compact(nRemove, uniqueFlag, uniqueFlagScan);
-  vertexTriangle->Compact(nRemove, uniqueFlag, uniqueFlagScan);
-  triangleTarget->Compact(nRemove, uniqueFlag, uniqueFlagScan);
+  nRemove = edgeCollapseList->RemoveValue(-1);
+  edgeCollapseList->SetSize(nRemove);
 
   // Flag edges to be checked for Delaunay-hood later
-  //FlagEdgesForChecking(connectivity, predicates, meshParameter);
+  FlagEdges(connectivity);
 
   delete triangleLock;
-
-  delete uniqueFlag;
-  delete uniqueFlagScan;
 }
 
 }
