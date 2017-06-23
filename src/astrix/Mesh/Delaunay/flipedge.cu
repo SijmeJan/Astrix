@@ -13,6 +13,7 @@ Astrix is distributed in the hope that it will be useful, but WITHOUT ANY WARRAN
 
 You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
+#include <cassert>
 #include <iostream>
 
 #include "../../Common/definitions.h"
@@ -90,16 +91,10 @@ void FlipSingleEdge(int i, int *pEnd, int3 *pTv, int3 *pTe,
 
   int makeValidFlag = 1;
 
-  // PERIODIC
-  if (abs(b - f) == abs(c - e)) {
-    a -= (b - f);
-    d += (b - f);
-  } else {
-#ifndef __CUDA_ARCH__
-    std::cout << "Not sure what to do with edge " << edge << std::endl;
-    int qq; std::cin >> qq;
-#endif
-  }
+  // If this fails, something is wrong...
+  assert(abs(b - f) == abs(c - e));
+  a -= (b - f);
+  d += (b - f);
 
   if (c1 == 1) pTv[t1].x = a;
   if (c1 == 2) pTv[t1].y = a;
