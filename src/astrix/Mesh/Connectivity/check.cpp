@@ -15,17 +15,21 @@ You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 
 #include <cuda_runtime_api.h>
+#include <cmath>
 #include <iostream>
+#include <stdexcept>
 
 #include "../../Common/definitions.h"
 #include "../../Array/array.h"
 #include "./connectivity.h"
+#include "../Param/meshparameter.h"
+#include "../triangleLow.h"
+#include "../Predicates/predicates.h"
 
 namespace astrix {
 
 //#########################################################################
-/*! Check if the neighbouring triangles of every edge \a e do have \a e as an edge. This is done on the host
-*/
+/*! Check if the neighbouring triangles of every edge \a e do have \a e as an edge. This is done on the host. An exception is thrown if an invalid edge is detected.*/
 //#########################################################################
 
 void Connectivity::CheckEdgeTriangles()
@@ -51,7 +55,11 @@ void Connectivity::CheckEdgeTriangles()
         std::cout << "Edge " << i << " has neighbouring triangle "
                   << t1 << " but triangle " << t1 << " does not have an edge "
                   << i << std::endl;
-        int qq; std::cin >> qq;
+
+        std::cout << "Dumping mesh with save index 999" << std::endl;
+        Save(999);
+
+        throw std::runtime_error("");
       }
     }
 
@@ -64,11 +72,125 @@ void Connectivity::CheckEdgeTriangles()
         std::cout << "Edge " << i << " has neighbouring triangle "
                   << t2 << " but triangle " << t2 << " does not have an edge "
                   << i << std::endl;
-        int qq; std::cin >> qq;
+
+        std::cout << "Dumping mesh with save index 999" << std::endl;
+        Save(999);
+
+        throw std::runtime_error("");
       }
     }
   }
 }
 
+//#########################################################################
+/*! Check all triangles for negative areas. If a negative area is detected an exception is thrown.
+
+\param *mp Pointer to MeshParameter object*/
+//#########################################################################
+
+void Connectivity::CheckTriangleAreas(Predicates *predicates,
+                                      const MeshParameter *mp)
+{
+  // Copy data to host if necessary
+  if (cudaFlag == 1) CopyToHost();
+
+  int3 *pTv = triangleVertices->GetHostPointer();
+  real2 *pVc = vertexCoordinates->GetHostPointer();
+
+  int nVertex = vertexCoordinates->GetSize();
+  int nTriangle = triangleVertices->GetSize();
+
+  real Px = mp->maxx - mp->minx;
+  real Py = mp->maxy - mp->miny;
+
+  real *pParam = predicates->GetParamPointer(0);
+
+  for (int i = 0; i < nTriangle; i++) {
+    int a = pTv[i].x;
+    int b = pTv[i].y;
+    int c = pTv[i].z;
+
+    real ax, bx, cx, ay, by, cy;
+    GetTriangleCoordinates(pVc, a, b, c,
+                           nVertex, Px, Py,
+                           ax, bx, cx, ay, by, cy);
+
+    //real area = (ax - cx)*(by - cy) - (ay - cy)*(bx - cx);
+    real area = predicates->orient2d(ax, ay, bx, by, cx, cy, pParam);
+
+    if (area <= 0.0) {
+      std::cout << "Triangle " << i << " with vertices "
+                << a << " " << b << " " << c << " has negative area "
+                << area << std::endl;
+      std::cout << "Dumping mesh with save index 999" << std::endl;
+      Save(999);
+
+      throw std::runtime_error("");
+   }
+  }
+}
+
+//#########################################################################
+/*! Check for encroached segments
+
+\param *mp Pointer to MeshParameter object*/
+//#########################################################################
+
+void Connectivity::CheckEncroach(const MeshParameter *mp)
+{
+  // Copy data to host if necessary
+  if (cudaFlag == 1) CopyToHost();
+
+  int3 *pTv = triangleVertices->GetHostPointer();
+  real2 *pVc = vertexCoordinates->GetHostPointer();
+  int3 *pTe = triangleEdges->GetHostPointer();
+  int2 *pEt = edgeTriangles->GetHostPointer();
+
+  int nVertex = vertexCoordinates->GetSize();
+  int nEdge = edgeTriangles->GetSize();
+
+  real Px = mp->maxx - mp->minx;
+  real Py = mp->maxy - mp->miny;
+
+  for (int i = 0; i < nEdge; i++) {
+    int t1 = pEt[i].x;
+    int t2 = pEt[i].y;
+
+    int t = -1;
+    if (t2 == -1) t = t1;
+    if (t1 == -1) t = t2;
+
+    if (t != -1) {
+      int a = pTv[t].x;
+      int b = pTv[t].y;
+      int c = pTv[t].z;
+
+      real ax, bx, cx, ay, by, cy;
+      GetTriangleCoordinates(pVc, a, b, c,
+                             nVertex, Px, Py,
+                             ax, bx, cx, ay, by, cy);
+
+      // Is edge between a and b encroached by c?
+      real dot1 = (ax - cx)*(bx - cx) + (ay - cy)*(by - cy);
+      // Is edge between b and c encroached by a?
+      real dot2 = (bx - ax)*(cx - ax) + (by - ay)*(cy - ay);
+      // Is edge between a and c encroached by b?
+      real dot3 = (cx - bx)*(ax - bx) + (cy - by)*(ay - by);
+
+      int3 E = pTe[t];
+
+      if ((E.x == i && dot1 < 0.0) ||
+          (E.y == i && dot2 < 0.0) ||
+          (E.z == i && dot3 < 0.0)) {
+        std::cout << "Edge " << i << " is an encroached segment! "
+                  << std::endl;
+        std::cout << "Dumping mesh with save index 999" << std::endl;
+        Save(999);
+
+        throw std::runtime_error("");
+      }
+    }
+  }
+}
 
 }  // namespace astrix
