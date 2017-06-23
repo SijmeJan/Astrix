@@ -150,7 +150,15 @@ void Simulation<realNeq, CL>::DoTimeStep()
   // Refine / coarsen mesh
   if (mesh->IsAdaptive() == 1) {
     ReplaceEnergyWithPressure();
-    Coarsen(-1);
+
+    try {
+      Coarsen(-1);
+    }
+    catch (...) {
+      std::cout << "Error coarsening in DoTimeStep()" << std::endl;
+      throw;
+    }
+
     try {
       Refine();
     }
