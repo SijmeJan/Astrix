@@ -44,13 +44,19 @@ int Mesh::RemoveVertices(Array<realNeq> *vertexState,
   // Return if skipping this time step
   if (nTimeStep % meshParameter->nStepSkipCoarsen != 0) return 0;
 
-  int nRemove =
-    coarsen->RemoveVertices<realNeq>(connectivity,
-                                     predicates,
-                                     vertexState,
-                                     triangleWantRefine,
-                                     meshParameter,
-                                     delaunay, 1);
+  int nRemove = 0;
+  try {
+    nRemove = coarsen->RemoveVertices<realNeq>(connectivity,
+                                               predicates,
+                                               vertexState,
+                                               triangleWantRefine,
+                                               meshParameter,
+                                               delaunay, 1);
+  }
+  catch (...) {
+    std::cout << "Error coarsening Mesh" << std::endl;
+    throw;
+  }
 
   if (nRemove > 0) {
     CalcNormalEdge();
