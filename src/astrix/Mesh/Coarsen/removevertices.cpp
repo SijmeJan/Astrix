@@ -45,7 +45,25 @@ int Coarsen::RemoveVertices(Connectivity *connectivity,
   if (verboseLevel > 1)
     std::cout << "Coarsening mesh..." << std::endl;
 
+  //real areaBefore = 0.0;
+  // Check if Mesh is valid
+  if (debugLevel > 0) {
+    connectivity->Save(900);
+    try {
+      connectivity->CheckEdgeTriangles();
+      connectivity->CheckTriangleAreas(predicates, meshParameter);
+      connectivity->CheckEncroach(meshParameter);
+    }
+    catch (...) {
+      std::cout << "Invalid mesh at start of coarsening step, exiting"
+                << std::endl;
+      throw;
+    }
+  }
+
   int nVertexOld = connectivity->vertexCoordinates->GetSize();
+
+  edgeCoordinates->SetSize(connectivity->edgeTriangles->GetSize());
 
   int nCycle = 0;
   int finishedCoarsen = 0;
@@ -56,38 +74,10 @@ int Coarsen::RemoveVertices(Connectivity *connectivity,
   while (!finishedCoarsen) {
     if (verboseLevel > 1) std::cout << "Coarsen cycle " << nCycle;
 
-    // For every vertex, a single triangle associated with it
-    FillVertexTriangle(connectivity);
+    FillEdgeCollapseList(connectivity, triangleWantRefine);
+    TestEdgeCollapse(connectivity, predicates, meshParameter);
 
-    // List of vertices to be removed based on truncation error
-    int nRemove = FlagVertexRemove(connectivity, triangleWantRefine);
-
-    if (verboseLevel > 1)
-      std::cout << " nRemove: " << nRemove;
-
-    // If nothing left to remove, we are done
-    if (nRemove == 0) {
-      finishedCoarsen = 1;
-      if (verboseLevel > 1) std::cout << std::endl;
-      break;
-    }
-
-    // Find target triangles for collapse, maintaining triangle quality
-    nRemove = FindAllowedTargetTriangles(connectivity, predicates,
-                                         meshParameter);
-
-    if (verboseLevel > 1)
-      std::cout << ", after q-check: " << nRemove;
-
-    // If no valid points left, we are done
-    if (nRemove == 0) {
-      finishedCoarsen = 1;
-      if (verboseLevel > 1) std::cout << std::endl;
-      break;
-    }
-
-    // Check if removing vertex leads to encroached triangle
-    nRemove = CheckEncroach(connectivity, predicates, meshParameter);
+    int nRemove = edgeCollapseList->GetSize();
 
     // If no valid points left, we are done
     if (nRemove == 0) {
@@ -99,19 +89,18 @@ int Coarsen::RemoveVertices(Connectivity *connectivity,
     if (verboseLevel > 1)
       std::cout << ", vertices to be removed: " << nRemove << ", ";
 
+
     // Find list of vertices that can be removed in parallel
     FindParallelDeletionSet(connectivity);
-    nRemove = vertexRemove->GetSize();
+    nRemove = edgeCollapseList->GetSize();
 
     if (verboseLevel > 1)
       std::cout << "in parallel: " << nRemove << std::endl;
 
     // Should not happen
-    if (debugLevel > 0) {
-      if (nRemove == 0) {
-        std::cout << "Error!" << std::endl;
-        int qq; std::cin >>qq;
-      }
+    if (nRemove == 0) {
+      std::cout << "No vertices to remove in parallel, exiting" << std::endl;
+      throw std::runtime_error("");
     }
 
     // Adjust state for conservation
@@ -122,6 +111,19 @@ int Coarsen::RemoveVertices(Connectivity *connectivity,
     // Remove vertices from mesh
     Remove<realNeq>(connectivity, triangleWantRefine, vertexState);
 
+    if (debugLevel > 0) {
+      connectivity->Save(901);
+      try {
+        connectivity->CheckEdgeTriangles();
+        connectivity->CheckTriangleAreas(predicates, meshParameter);
+      }
+      catch (...) {
+        std::cout << "Invalid mesh after removing vertices, exiting"
+                  << std::endl;
+        throw;
+      }
+    }
+
     int nEdgeCheck = edgeNeedsChecking->RemoveValue(-1);
 
     // Maintain Delaunay triangulation
@@ -130,11 +132,28 @@ int Coarsen::RemoveVertices(Connectivity *connectivity,
                                     edgeNeedsChecking, nEdgeCheck, 0);
 
     nCycle++;
-
     if (nCycle >= maxCycle) finishedCoarsen = 1;
   }
 
+  // Check validity of Mesh after coarsening
+  if (debugLevel > 0) {
+    connectivity->Save(902);
+    try {
+      connectivity->CheckEdgeTriangles();
+      connectivity->CheckTriangleAreas(predicates, meshParameter);
+      connectivity->CheckEncroach(meshParameter);
+    }
+    catch (...) {
+      std::cout << "Invalid mesh at end of coarsening step, exiting"
+                << std::endl;
+      throw;
+    }
+  }
+
   delete nvtxCoarsen;
+
+  //std::cout << "Hallo" << std::endl;
+  //int qq; std::cin >>qq;
 
   return nVertexOld - connectivity->vertexCoordinates->GetSize();
 }
