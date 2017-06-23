@@ -33,6 +33,7 @@ class Coarsen
   //! Destructor; releases memory.
   ~Coarsen();
 
+  //! Remove vertices from Mesh, maintaining quality
   template<class realNeq>
     int RemoveVertices(Connectivity *connectivity,
                        Predicates *predicates,
@@ -47,22 +48,17 @@ class Coarsen
   int cudaFlag;
   //! Level of extra checks
   int debugLevel;
+  //! Level of screen output
   int verboseLevel;
 
-  //! Indices of vertices to be removed
-  Array <int> *vertexRemove;
-  //! Every vertex has at least one triangle associated with it
-  Array <int> *vertexTriangle;
-  //! Target triangle for collapse
-  Array <int> *triangleTarget;
   //! Vector of random numbers to insert points randomly for efficiency
   Array<unsigned int> *randomUnique;
+  //! Flag whether edge needs to be checked for Delaunay-hood
   Array<int> *edgeNeedsChecking;
 
-  //! Check if removing vertices leads to encroached segment
-  int CheckEncroach(Connectivity *connectivity,
-                    Predicates *predicates,
-                    const MeshParameter *mp);
+  Array<int> *edgeCollapseList;
+  Array<real2> *edgeCoordinates;
+
   //! Remove vertices from mesh
   template<class realNeq>
     void Remove(Connectivity *connectivity,
@@ -73,30 +69,26 @@ class Coarsen
     void AdjustState(Connectivity *connectivity,
                      Array<realNeq> *vertexState,
                      const MeshParameter *mp);
-  //! Find single triangle for every vertex
-  void FillVertexTriangle(Connectivity *connectivity);
-  //! Maximum number of triangles per vertex
-  int MaxTriPerVert(Connectivity *connectivity);
-  //! Flag vertices for removal
-  int FlagVertexRemove(Connectivity *connectivity,
-                       Array<int> *triangleWantRefine);
-  //! Find allowed 'target' triangles for vertex removal
-  int FindAllowedTargetTriangles(Connectivity *connectivity,
-                                 Predicates *predicates,
-                                 const MeshParameter *mp);
   //! Reject triangles that are too large for removal
   void RejectLargeTriangles(Connectivity *connectivity,
                             const MeshParameter *mp,
                             Array<int> *triangleWantRefine);
   //! Find set of points that can be removed in parallel
   void FindParallelDeletionSet(Connectivity *connectivity);
-
+  //! Lock 'cavities' of deletion points
   void LockTriangles(Connectivity *connectivity,
                      Array<int> *triangleLock);
+  //! Find independent 'cavities' of deletion points
   void FindIndependent(Connectivity *connectivity,
-                       Array<int> *triangleLock,
-                       Array<int> *uniqueFlag);
+                       Array<int> *triangleLock);
+  void FlagEdges(Connectivity *connectivity);
 
+
+  void FillEdgeCollapseList(Connectivity *connectivity,
+                            Array<int> *triangleWantRefine);
+  void TestEdgeCollapse(Connectivity *connectivity,
+                        Predicates *predicates,
+                        const MeshParameter *mp);
 };
 
 }
