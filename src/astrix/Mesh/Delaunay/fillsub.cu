@@ -42,15 +42,6 @@ void FillTriangleSubstituteSingle(int i, int *pEnd, int *pTsub, int2 *pEt)
   int t1 = pEt[e].x;
   int t2 = pEt[e].y;
 
-#ifndef __CUDA_ARCH__
-  if (t1 < 0 || t2 < 0) {
-    std::cout << "Error: trying to flip edge " << e
-              << ", which does not have two triangles "
-              << t1 << " " << t2 << std::endl;
-    int qq; std::cin >> qq;
-  }
-#endif
-
   pTsub[t1] = t2;
   pTsub[t2] = t1;
 }
