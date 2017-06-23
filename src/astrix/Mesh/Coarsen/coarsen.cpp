@@ -38,10 +38,9 @@ Coarsen::Coarsen(int _cudaFlag, int _debugLevel, int _verboseLevel)
   verboseLevel = _verboseLevel;
 
   // Allocate Arrays of default size
-  vertexRemove = new Array<int>(1, cudaFlag);
-  vertexTriangle = new Array<int>(1, cudaFlag);
-  triangleTarget = new Array<int>(1, cudaFlag);
   edgeNeedsChecking = new Array<int>(1, cudaFlag);
+  edgeCollapseList = new Array<int>(1, cudaFlag);
+  edgeCoordinates = new Array<real2>(1, cudaFlag);
 
   randomUnique = new Array<unsigned int>(1, cudaFlag, 10000000);
   randomUnique->SetToSeries();
@@ -54,10 +53,9 @@ Coarsen::Coarsen(int _cudaFlag, int _debugLevel, int _verboseLevel)
 
 Coarsen::~Coarsen()
 {
-  delete vertexRemove;
-  delete vertexTriangle;
-  delete triangleTarget;
   delete edgeNeedsChecking;
+  delete edgeCollapseList;
+  delete edgeCoordinates;
 
   delete randomUnique;
 }
