@@ -125,58 +125,11 @@ void Mesh::CheckEdgeLength(real maxEdgeLength)
       std::cout << "Vertices: " << pTv[i].x << " (" << a << ") "
                 << pTv[i].y << " (" << b << ") "
                 << pTv[i].z << " (" << c << ")" << std::endl;
-      int qq; std::cin >> qq;
-    }
-  }
-}
 
-//#########################################################################
-// Check if all triangles are legal
-//#########################################################################
+      std::cout << "Dumping mesh with save index 999" << std::endl;
+      connectivity->Save(999);
 
-void Mesh::CheckLegalTriangle()
-{
-  if (cudaFlag == 1) connectivity->CopyToHost();
-
-  const real zero  = (real) 0.0;
-
-  real2 *pVc = connectivity->vertexCoordinates->GetHostPointer();
-  int3 *pTv = connectivity->triangleVertices->GetHostPointer();
-
-  real *pParam = predicates->GetParamPointer(0);
-
-  real Px = meshParameter->maxx - meshParameter->minx;
-  real Py = meshParameter->maxy - meshParameter->miny;
-
-  int nTriangle = connectivity->triangleVertices->GetSize();
-  int nVertex = connectivity->vertexCoordinates->GetSize();
-
-  for (int i = 0; i < nTriangle; i++) {
-    int a = pTv[i].x;
-    int b = pTv[i].y;
-    int c = pTv[i].z;
-
-    real ax, bx, cx, ay, by, cy;
-    GetTriangleCoordinates(pVc, a, b, c, nVertex, Px, Py,
-                           ax, bx, cx, ay, by, cy);
-    real orient = predicates->orient2d(ax, ay, bx, by, cx, cy, pParam);
-    if (orient <= zero) {
-      std::cout << "Triangle " << i << " is illegal: "
-                << orient << std::endl;
-      std::cout << "Coordinates: " << ax << " " << ay << " "
-                << bx << " " << by << " "
-                << cx << " " << cy << std::endl;
-      while (a >= nVertex) a -= nVertex;
-      while (b >= nVertex) b -= nVertex;
-      while (c >= nVertex) c -= nVertex;
-      while (a < 0) a += nVertex;
-      while (b < 0) b += nVertex;
-      while (c < 0) c += nVertex;
-
-      std::cout << "Vertices: " << pTv[i].x << " (" << a << ") "
-                << pTv[i].y << " (" << b << ") "
-                << pTv[i].z << " (" << c << ")" << std::endl;
-      int qq; std::cin >> qq;
+      throw std::runtime_error("");
     }
   }
 }
@@ -215,16 +168,6 @@ void Mesh::OutputStat()
                            Ax, Bx, Cx, Ay, By, Cy);
 
     real area = 0.5*((Ax - Cx)*(By - Cy) - (Ay - Cy)*(Bx - Cx));
-
-    if (area < 0.0) {
-      std::cout << "Triangle " << i << " has negative area!" << std::endl;
-      std::cout << "Vertices: " << A << " " << B << " " << C
-                << std::endl;
-      std::cout << "Coordinates: (" << Ax << ", " << Ay << "), ("
-                << Bx << ", " << By << "), (" << Cx << ", " << Cy << ")"
-                << std::endl;
-      int qq; std::cin >> qq;
-    }
 
     real a = sqrt((Bx - Cx)*(Bx - Cx) + (By - Cy)*(By - Cy));
     real b = sqrt((Ax - Cx)*(Ax - Cx) + (Ay - Cy)*(Ay - Cy));
@@ -355,8 +298,11 @@ void Mesh::CheckEncroachSlow()
                     << " with x = " << x << ", y = " << y
                     << " encroaches upon segment in triangle " << t
                     << std::endl;
-          Save(999);
-          int qq; std::cin >> qq;
+
+          std::cout << "Dumping mesh with save index 999" << std::endl;
+          connectivity->Save(999);
+
+          throw std::runtime_error("");
         }
       }
     }
