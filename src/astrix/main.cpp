@@ -30,6 +30,8 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 
 int main(int argc, char *argv[])
 {
+  std::cout << "Welcome to Astrix!" << std::endl;
+
   // Parse command line arguments
   int verboseLevel = 0;                  // How much screen output
   int debugLevel = 0;                    // Level of debugging
@@ -148,9 +150,6 @@ int main(int argc, char *argv[])
 
     return 1;
   }
-
-  std::cout << "Welcome to Astrix!" << std::endl;
-
 
   // Initialise CUDA device
   astrix::Device *device;
