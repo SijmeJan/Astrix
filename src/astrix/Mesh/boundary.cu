@@ -513,7 +513,8 @@ void Mesh::ConstructBoundaries()
                                  vertexExtra,
                                  vertexExtraOrder);
 
-    std::cout << "Added " << nAdded << " extra vertices" << std::endl;
+    if (verboseLevel > 0)
+      std::cout << "Added " << nAdded << " extra vertices" << std::endl;
 
     delete vertexExtra;
     delete vertexExtraOrder;
