@@ -21,6 +21,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../../Common/cudaLow.h"
 #include "../Connectivity/connectivity.h"
 #include "../../Common/atomic.h"
+#include "../triangleLow.h"
 
 namespace astrix {
 
@@ -28,91 +29,51 @@ namespace astrix {
 //#########################################################################
 
 __host__ __device__
-void LockTrianglesSingle(int vRemove, int tStart,
-                         int3 *pTv, int3 *pTe, int2 *pEt,
-                         int nVertex, int tTarget,
+void LockTrianglesSingle(int3 *pTv, int3 *pTe, int2 *pEt,
+                         int eTarget,
                          int randomInt,
                          int *pTriangleLock)
 {
-  int t = tStart;
-  int tPrev = -1;
-  int finished = 0;
-  while (!finished) {
-    // Edge to cross to next triangle
-    int eCross = -1;
+  // Find neighbouring triangle
+  int2 tCollapse = pEt[eTarget];
+  if (tCollapse.x == -1) {
+    tCollapse.x = tCollapse.y;
+    tCollapse.y = -1;
+  }
 
-    int a = pTv[t].x;
-    int b = pTv[t].y;
-    int c = pTv[t].z;
+  int eCross = eTarget;                 // Current edge to cross
+  int t = tCollapse.x;                  // Current triangle
+  int isSegment = (tCollapse.y == -1);  // Flag if eTarget is segment
 
-    while (a >= nVertex) a -= nVertex;
-    while (b >= nVertex) b -= nVertex;
-    while (c >= nVertex) c -= nVertex;
-    while (a < 0) a += nVertex;
-    while (b < 0) b += nVertex;
-    while (c < 0) c += nVertex;
-
-    int3 E = pTe[t];
-    // Edge on boundary of 'cavity'
-    int eBound = -1;
-    if (a == vRemove) {
-      eCross = E.x;
-      eBound = E.y;
-    }
-    if (b == vRemove) {
-      eCross = E.y;
-      eBound = E.z;
-    }
-    if (c == vRemove) {
-      eCross = E.z;
-      eBound = E.x;
-    }
-
+  while (1) {
     // Set pTiC to maximum of pTiC and pRandom
     int old = AtomicMax(&(pTriangleLock[t]), randomInt);
     // Stop if old pTic[t] was larger
-    if (old > randomInt) finished = 1;
+    if (old > randomInt) break;
 
-    // Lock two extra triangles
-    if ((t == tTarget || tPrev == tTarget) && finished == 0) {
-      int t1 = pEt[eBound].x;
-      if (t1 == t) t1 = pEt[eBound].y;
+    int3 E = pTe[t];
 
-      if (t1 != -1) {
-        // Set pTiC to maximum of pTiC and pRandom
-        int old = AtomicMax(&(pTriangleLock[t1]), randomInt);
-        // Stop if old pTic[t] was larger
-        if (old > randomInt) finished = 1;
-      }
-    }
+    // Update t, eCross
+    WalkAroundEdge(eTarget, isSegment, t, eCross, E, pTe, pEt);
 
-    tPrev = t;
-    int tNext = pEt[eCross].x;
-    if (tNext == t) tNext = pEt[eCross].y;
-    t = tNext;
-
-    if (t == tStart || t == -1) finished = 1;
+    // Done if we reach first triangle
+    if (t == tCollapse.x) break;
   }
+
 }
 
 //#########################################################################
 //#########################################################################
 
 __global__ void
-devLockTriangles(int nRemove,
-                 int *pVertexRemove, int *pVertexTriangle,
-                 int3 *pTv, int3 *pTe, int2 *pEt,
-                 int nVertex, int *pTriangleTarget,
-                 unsigned int *pRandom, int *pTriangleLock)
+devLockTriangles(int nRemove, int3 *pTv, int3 *pTe, int2 *pEt,
+                 int *pEdgeTarget, unsigned int *pRandom, int *pTriangleLock)
 {
   unsigned int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nRemove) {
-    LockTrianglesSingle(pVertexRemove[i],
-                        pVertexTriangle[i],
-                        pTv, pTe, pEt,
-                        nVertex, pTriangleTarget[i],
-                        pRandom[i], pTriangleLock);
+    LockTrianglesSingle(pTv, pTe, pEt,
+                        pEdgeTarget[i], pRandom[i], pTriangleLock);
 
     i += gridDim.x*blockDim.x;
   }
@@ -126,14 +87,9 @@ void Coarsen::LockTriangles(Connectivity *connectivity,
 {
   triangleLock->SetToValue(-1);
 
-  int nRemove = vertexRemove->GetSize();
-  int nVertex = connectivity->vertexCoordinates->GetSize();
-  int nTriangle = connectivity->triangleVertices->GetSize();
+  int nRemove = edgeCollapseList->GetSize();
 
-  int *pVertexRemove = vertexRemove->GetPointer();
-  int *pTriangleTarget = triangleTarget->GetPointer();
-  int *pVertexTriangle = vertexTriangle->GetPointer();
-
+  int *pEdgeCollapseList = edgeCollapseList->GetPointer();
   int *pTriangleLock = triangleLock->GetPointer();
 
   int3 *pTv = connectivity->triangleVertices->GetPointer();
@@ -154,20 +110,13 @@ void Coarsen::LockTriangles(Connectivity *connectivity,
                                        (size_t) 0, 0);
 
     devLockTriangles<<<nBlocks, nThreads>>>
-      (nRemove, pVertexRemove,
-       pVertexTriangle,
-       pTv, pTe, pEt,
-       nVertex, pTriangleTarget,
-       pRandom, pTriangleLock);
+      (nRemove, pTv, pTe, pEt, pEdgeCollapseList, pRandom, pTriangleLock);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int n = 0; n < nRemove; n++)
-      LockTrianglesSingle(pVertexRemove[n],
-                          pVertexTriangle[n],
-                          pTv, pTe, pEt,
-                          nVertex, pTriangleTarget[n],
-                          pRandom[n], pTriangleLock);
+      LockTrianglesSingle(pTv, pTe, pEt,
+                          pEdgeCollapseList[n], pRandom[n], pTriangleLock);
   }
 
 }
