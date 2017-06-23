@@ -19,6 +19,8 @@ namespace astrix {
 
 // Forward declaration
 template <class T> class Array;
+class MeshParameter;
+class Predicates;
 
 //! Class containing Mesh data structure
 /*! Class containing coordinates and connectivity of Mesh; data needed by all Mesh-related classes. The class is essentially data-only, plus a few functions to move data between host and device. All data members are public, which can be unsafe. It is assumed that at the end of any function modifying the Mesh, the Connectivity represents a valid triangulation (not necessarily Delaunay), and that the sizes of the Arrays are properly set, i.e. the size of \a vertexCoordinates is the number of vertices, the size of both \a triangleVertices and \a triangleEdges equals the number of triangles, and the size of \a edgeTriangles equals the number of edges.*/
@@ -48,7 +50,12 @@ class Connectivity
   //! Copy data to device
   void CopyToDevice();
 
+  //! Check if edgeTriangles and triangleEdges are consistent
   void CheckEdgeTriangles();
+  //! Check if all triangles have a positive surface area
+  void CheckTriangleAreas(Predicates *predicates,
+                          const MeshParameter *mp);
+  void CheckEncroach(const MeshParameter *mp);
 
   //! Calculate area associated with vertices (Voronoi cells)
   void CalcVertexArea(real Px, real Py);
