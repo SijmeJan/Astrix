@@ -154,7 +154,7 @@ void Delaunay::EdgeRepair(Connectivity * const connectivity,
 
   int *pTsub = triangleSubstitute->GetPointer();
 
-  if (edgeNeedsChecking == 0) {
+  //if (edgeNeedsChecking == 0) {
     if (cudaFlag == 1) {
       int nBlocks = 128;
       int nThreads = 128;
@@ -191,6 +191,7 @@ void Delaunay::EdgeRepair(Connectivity * const connectivity,
   gpuErrchk( cudaEventElapsedTime(&elapsedTime, start, stop) );
   WriteProfileFile("EdgeRepair.prof", nEdge, elapsedTime, cudaFlag);
 #endif
+  /*
   } else {
     int *pEnC = edgeNeedsChecking->GetPointer();
 
@@ -231,6 +232,7 @@ void Delaunay::EdgeRepair(Connectivity * const connectivity,
     WriteProfileFile("EdgeRepair.prof", nEdgeCheck, elapsedTime, cudaFlag);
 #endif
   }
+  */
 }
 
 }  // namespace astrix
