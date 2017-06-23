@@ -33,6 +33,7 @@ namespace astrix {
 /*! \brief Adjust state when removing vertex \a vRemove
 
 \param vRemove Vertex to be removed
+\param tStart Starting triangle to walk around \a vRemove
 \param *pTv Pointer to triangle vertices
 \param *pTe Pointer to triangle edges
 \param *pEt Pointer to edge triangles
@@ -47,239 +48,287 @@ namespace astrix {
 
 template<class realNeq>
 __host__ __device__
-void AdjustStateCoarsenSingle(int vRemove, int tStart,
-                              int3 *pTv, int3 *pTe, int2 *pEt,
+void AdjustStateCoarsenSingle(int3 *pTv, int3 *pTe, int2 *pEt,
                               real *pVertexArea,
                               int nVertex, real2 *pVc,
-                              real Px, real Py, int tTarget,
-                              realNeq *state)
+                              real Px, real Py, int eTarget,
+                              real2 *pEdgeCoordinates,
+                              realNeq *pState)
 {
-  // Find target vertex (vertex to move vRemove onto)
-  int a = pTv[tTarget].x;
-  int b = pTv[tTarget].y;
-  int c = pTv[tTarget].z;
+  real oneThird = 1.0/3.0;
 
-  // Find target vertex coordinates
-  real ax, bx, cx, ay, by, cy;
-  GetTriangleCoordinates(pVc, a, b, c,
-                         nVertex, Px, Py,
-                         ax, bx, cx, ay, by, cy);
+  int2 tCollapse;
+  int3 V, E;
+  int v1, v2;
+  GetEdgeVertices(eTarget, pTv, pTe, pEt, tCollapse, V, E, v1, v2);
+  while (v1 >= nVertex) v1 -= nVertex;
+  while (v2 >= nVertex) v2 -= nVertex;
+  while (v1 < 0) v1 += nVertex;
+  while (v2 < 0) v2 += nVertex;
 
-  // Translate target triangle to same side as vRemove
-  TranslateTriangleToVertex(vRemove, Px, Py,
-                            nVertex, a, b, c, ax, ay, bx, by, cx, cy);
+  real xTarget = pEdgeCoordinates[eTarget].x;
+  real yTarget = pEdgeCoordinates[eTarget].y;
 
-  while (a >= nVertex) a -= nVertex;
-  while (b >= nVertex) b -= nVertex;
-  while (c >= nVertex) c -= nVertex;
-  while (a < 0) a += nVertex;
-  while (b < 0) b += nVertex;
-  while (c < 0) c += nVertex;
+#ifndef __CUDA_ARCH__
+  int printFlag = 0;
+  //if (eTarget == 18723) printFlag = 1;
+  if (printFlag == 1)
+    std::cout << "Adjusting state for collapse of edge " << eTarget
+              << " with vertices " << v1 << " and " << v2
+              << " to new coordinates x = " << xTarget << ", y = "
+              << yTarget << std::endl;
+#endif
 
-  int vTarget = -1;
-  if (a == vRemove) {
-    vTarget = b;
-    int e = pTe[tTarget].z;
-    int t1 = pEt[e].x;
-    int t2 = pEt[e].y;
-    if (t1 == -1 || t2 == -1) vTarget = c;
+  int eCross = eTarget;                 // Current edge to cross
+  int t = tCollapse.x;                  // Current triangle
+  int isSegment = (tCollapse.y == -1);  // Flag if eTarget is segment
+
+  real totalVolume = pVertexArea[v2];   // Total volume around edge
+  if (isSegment)
+    totalVolume += pVertexArea[v1];
+  real newVolume = 0.0;                 // Volume of new vertex
+
+  // Change in state for all neighbouring vertices
+  realNeq dState =
+    pVertexArea[v1]*pState[v1] +
+    pVertexArea[v2]*pState[v2];
+
+  //real totalMassBefore =
+  //  pVertexArea[v2]*state::GetDensity<realNeq, CL_ADVECT>(pState[v2]);
+  //if (isSegment)
+  //  totalMassBefore +=
+  //    pVertexArea[v1]*state::GetDensity<realNeq, CL_ADVECT>(pState[v1]);
+
+#ifndef __CUDA_ARCH__
+  if (printFlag == 1) {
+    std::cout << "  Vertex " << v2
+              << ", area " << pVertexArea[v2]
+              << ", U " << state::GetDensity<realNeq, CL_ADVECT>(pState[v2])
+              << std::endl;
+    if (isSegment)
+      std::cout << "  Vertex " << v1
+                << ", area " << pVertexArea[v1]
+                << ", U " << state::GetDensity<realNeq, CL_ADVECT>(pState[v1])
+                << std::endl;
   }
-  if (b == vRemove) {
-    vTarget = c;
-    int e = pTe[tTarget].x;
-    int t1 = pEt[e].x;
-    int t2 = pEt[e].y;
-    if (t1 == -1 || t2 == -1) vTarget = a;
-  }
-  if (c == vRemove) {
-    vTarget = a;
-    int e = pTe[tTarget].y;
-    int t1 = pEt[e].x;
-    int t2 = pEt[e].y;
-    if (t1 == -1 || t2 == -1) vTarget = b;
-  }
+#endif
 
-  real xTarget = ax;
-  real yTarget = ay;
-  if (b == vTarget) {
-    xTarget = bx;
-    yTarget = by;
-  }
-  if (c == vTarget) {
-    xTarget = cx;
-    yTarget = cy;
-  }
 
-  // Total Voronoi volume all neighbours + vRemove (x6)
-  real totalVolume = 6.0*pVertexArea[vRemove];
-  // State change for all neighbouring vertices
-  realNeq dState = totalVolume*(state[vRemove] - state[vTarget]);
-
-  // Calculate totalVolume
-  int t = tStart;
-  int finished = 0;
-  while (!finished) {
-    // Edge to cross to next triangle
-    int eCross = -1;
-
-    int a = pTv[t].x;
-    int b = pTv[t].y;
-    int c = pTv[t].z;
-
-    while (a >= nVertex) a -= nVertex;
-    while (b >= nVertex) b -= nVertex;
-    while (c >= nVertex) c -= nVertex;
-    while (a < 0) a += nVertex;
-    while (b < 0) b += nVertex;
-    while (c < 0) c += nVertex;
-
-    // Neighbour vertex
-    int v = -1;
-    if (a == vRemove) {
-      v = b;
-      eCross = pTe[t].x;
-    }
-    if (b == vRemove) {
-      v = c;
-      eCross = pTe[t].y;
-    }
-    if (c == vRemove) {
-      v = a;
-      eCross = pTe[t].z;
-    }
-
-    totalVolume += 6.0*pVertexArea[v];
-
-    int tNext = pEt[eCross].x;
-    if (tNext == t) tNext = pEt[eCross].y;
-    t = tNext;
-
-    if (t == tStart || t == -1) finished = 1;
-  }
-
-  real denominator = 1.0/totalVolume;
-
-  // Calculate dState
-  t = tStart;
-  finished = 0;
-  while (!finished) {
-    // Edge to cross to next triangle
-    int eCross = -1;
-
-    int a = pTv[t].x;
-    int b = pTv[t].y;
-    int c = pTv[t].z;
-
+  while (1) {
     real ax, bx, cx, ay, by, cy;
-    GetTriangleCoordinates(pVc, a, b, c,
+    GetTriangleCoordinates(pVc, V.x, V.y, V.z,
                            nVertex, Px, Py,
                            ax, bx, cx, ay, by, cy);
 
-    // Translate triangle to same side as vRemove
-    TranslateTriangleToVertex(vRemove, Px, Py, nVertex,
-                              a, b, c, ax, ay, bx, by, cx, cy);
-
-    // Twice triangle area before removal
+    // Twice triangle area before collapse
     real vBefore = (ax - cx)*(by - cy) - (ay - cy)*(bx - cx);
 
-    while (a >= nVertex) a -= nVertex;
-    while (b >= nVertex) b -= nVertex;
-    while (c >= nVertex) c -= nVertex;
-    while (a < 0) a += nVertex;
-    while (b < 0) b += nVertex;
-    while (c < 0) c += nVertex;
-
-    if (a == vRemove) {
-      eCross = pTe[t].x;
-    }
-    if (b == vRemove) {
-      eCross = pTe[t].y;
-    }
-    if (c == vRemove) {
-      eCross = pTe[t].z;
-    }
-
-    if (a == vRemove) {
+    // Replace vertices with new positions
+    if (V.x == v1 || V.x == v2) {
       ax = xTarget;
       ay = yTarget;
     }
-    if (b == vRemove) {
+    if (V.y == v1 || V.y == v2) {
       bx = xTarget;
       by = yTarget;
     }
-    if (c == vRemove) {
+    if (V.z == v1 || V.z == v2) {
       cx = xTarget;
       cy = yTarget;
     }
 
-    // Twice triangle area after removal
+    // Twice triangle area after collapse
     real vAfter = (ax - cx)*(by - cy) - (ay - cy)*(bx - cx);
+    // Change in triangle area due to collapse
+    real dArea = (real) 0.5*(vAfter - vBefore);
 
-    // Change in (twice) triangle area
-    real dV = vAfter - vBefore;
+    // Contribution to volume of new vertex
+    newVolume += oneThird*(real)0.5*vAfter;
 
-    if (a != vRemove) {
-      dState -= dV*state[a];
-      // Need to keep this up to date for Delaunay adjustState
-      pVertexArea[a] += dV/6.0;
+    if (V.x != v1 && V.x != v2)
+      dState -= oneThird*dArea*pState[V.x];
+    if (V.y != v1 && V.y != v2)
+      dState -= oneThird*dArea*pState[V.y];
+    if (V.z != v1 && V.z != v2)
+      dState -= oneThird*dArea*pState[V.z];
+
+    // Update t, eCross
+    WalkAroundEdge(eTarget, isSegment, t, eCross, E, pTe, pEt);
+
+    E = pTe[t];
+    V = pTv[t];
+
+    if (pEt[eCross].x == -1 || pEt[eCross].y == -1) {
+      int e = NextEdgeCounterClockwise(eCross, E);
+      int v = VertexNotPartOfEdge(e, V, E);
+
+      totalVolume += pVertexArea[v];
+      //totalMassBefore +=
+      //  pVertexArea[v]*state::GetDensity<realNeq, CL_ADVECT>(pState[v]);
+#ifndef __CUDA_ARCH__
+      if (printFlag == 1) {
+        std::cout << "  Vertex " << v
+                  << ", area " << pVertexArea[v]
+                  << ", U " << state::GetDensity<realNeq, CL_ADVECT>(pState[v])
+                  << ", triangle " << t
+                  << std::endl;
+      }
+#endif
     }
-    if (b != vRemove) {
-      dState -= dV*state[b];
-      // Need to keep this up to date for Delaunay adjustState
-      pVertexArea[b] += dV/6.0;
-    }
-    if (c != vRemove) {
-      dState -= dV*state[c];
-      // Need to keep this up to date for Delaunay adjustState
-      pVertexArea[c] += dV/6.0;
-    }
 
-    int tNext = pEt[eCross].x;
-    if (tNext == t) tNext = pEt[eCross].y;
-    t = tNext;
+    // Done if we reach first triangle
+    if (t == tCollapse.x) break;
 
-    if (t == tStart || t == -1) finished = 1;
+    int v = VertexNotPartOfEdge(eCross, V, E);
+    totalVolume += pVertexArea[v];
+    //totalMassBefore +=
+    //  pVertexArea[v]*state::GetDensity<realNeq, CL_ADVECT>(pState[v]);
+
+#ifndef __CUDA_ARCH__
+    if (printFlag == 1) {
+      std::cout << "  Vertex " << v
+                << ", area " << pVertexArea[v]
+                << ", U " << state::GetDensity<realNeq, CL_ADVECT>(pState[v])
+                << ", triangle " << t
+                << std::endl;
+    }
+#endif
+
   }
 
-  pVertexArea[vTarget] += pVertexArea[vRemove];
+  realNeq stateNew = pState[v1];
+  dState = (dState - newVolume*stateNew)/totalVolume;
+
+  eCross = eTarget;                 // Current edge to cross
+  t = tCollapse.x;                  // Current triangle
+  E = pTe[t];
+  V = pTv[t];
 
 
-  t = tStart;
-  finished = 0;
-  while (!finished) {
-    // Edge to cross to next triangle
-    int eCross = -1;
-
-    int a = pTv[t].x;
-    int b = pTv[t].y;
-    int c = pTv[t].z;
-
-    while (a >= nVertex) a -= nVertex;
-    while (b >= nVertex) b -= nVertex;
-    while (c >= nVertex) c -= nVertex;
-    while (a < 0) a += nVertex;
-    while (b < 0) b += nVertex;
-    while (c < 0) c += nVertex;
-
-    if (a == vRemove) {
-      state[b] = state[b] + denominator*dState;
-      eCross = pTe[t].x;
+#ifndef __CUDA_ARCH__
+    if (printFlag == 1) {
+      std::cout << "  Vertex " << v1
+                << ", area " << newVolume
+                << ", U " << state::GetDensity<realNeq, CL_ADVECT>(stateNew)
+                << std::endl;
     }
-    if (b == vRemove) {
-      state[c] = state[c] + denominator*dState;
-      eCross = pTe[t].y;
+#endif
+
+  while (1) {
+    real ax, bx, cx, ay, by, cy;
+    GetTriangleCoordinates(pVc, V.x, V.y, V.z,
+                           nVertex, Px, Py,
+                           ax, bx, cx, ay, by, cy);
+
+    // Twice triangle area before collapse
+    real vBefore = (ax - cx)*(by - cy) - (ay - cy)*(bx - cx);
+
+    // Replace vertices with new positions
+    if (V.x == v1 || V.x == v2) {
+      ax = xTarget;
+      ay = yTarget;
     }
-    if (c == vRemove) {
-      state[a] = state[a] + denominator*dState;
-      eCross = pTe[t].z;
+    if (V.y == v1 || V.y == v2) {
+      bx = xTarget;
+      by = yTarget;
+    }
+    if (V.z == v1 || V.z == v2) {
+      cx = xTarget;
+      cy = yTarget;
     }
 
-    int tNext = pEt[eCross].x;
-    if (tNext == t) tNext = pEt[eCross].y;
-    t = tNext;
+    // Twice triangle area after collapse
+    real vAfter = (ax - cx)*(by - cy) - (ay - cy)*(bx - cx);
+    // Change in triangle area due to collapse
+    real dArea = (real) 0.5*(vAfter - vBefore);
 
-    if (t == tStart || t == -1) finished = 1;
+    // Update vertex areas (needed to do Delaunay adjuststate later)
+    pVertexArea[V.x] += oneThird*dArea;
+    pVertexArea[V.y] += oneThird*dArea;
+    pVertexArea[V.z] += oneThird*dArea;
+
+    // Update t, eCross
+    WalkAroundEdge(eTarget, isSegment, t, eCross, E, pTe, pEt);
+
+    E = pTe[t];
+    V = pTv[t];
+
+    if (pEt[eCross].x == -1 || pEt[eCross].y == -1) {
+      int e = NextEdgeCounterClockwise(eCross, E);
+      int v = VertexNotPartOfEdge(e, V, E);
+
+      pState[v] += dState;
+    }
+
+    // Done if we reach first triangle
+    if (t == tCollapse.x) break;
+
+    int v = VertexNotPartOfEdge(eCross, V, E);
+    pState[v] += dState;
   }
+
+  // Not sure which one is going to be deleted, so set both
+  pState[v1] = stateNew + dState;
+  pState[v2] = stateNew + dState;
+  pVertexArea[v1] = newVolume;
+  pVertexArea[v2] = newVolume;
+
+  /*
+  eCross = eTarget;                 // Current edge to cross
+  t = tCollapse.x;                  // Current triangle
+  E = pTe[t];
+  V = pTv[t];
+  real totalMassAfter = 0.0;
+  real totalVolumeAfter = 0.0;
+  if (isSegment) {
+    totalMassAfter =
+      pVertexArea[v2]*state::GetDensity<realNeq, CL_ADVECT>(pState[v2]);
+    totalVolumeAfter = pVertexArea[v2];
+  }
+
+  while (1) {
+    // Update t, eCross
+    WalkAroundEdge(eTarget, isSegment, t, eCross, E, pTe, pEt);
+
+    E = pTe[t];
+    V = pTv[t];
+
+    if (pEt[eCross].x == -1 || pEt[eCross].y == -1) {
+      int e = NextEdgeCounterClockwise(eCross, E);
+      int v = VertexNotPartOfEdge(e, V, E);
+
+      totalVolumeAfter += pVertexArea[v];
+      totalMassAfter +=
+        pVertexArea[v]*state::GetDensity<realNeq, CL_ADVECT>(pState[v]);
+    }
+
+    // Done if we reach first triangle
+    if (t == tCollapse.x) break;
+
+    int v = VertexNotPartOfEdge(eCross, V, E);
+    totalMassAfter +=
+      pVertexArea[v]*state::GetDensity<realNeq, CL_ADVECT>(pState[v]);
+    totalVolumeAfter += pVertexArea[v];
+  }
+
+#ifndef __CUDA_ARCH__
+  if (std::abs(totalMassBefore - totalMassAfter) > 1.0e-10) {
+    std::cout << "Error adjusting state for collapse of edge "
+              << eTarget << " with triangles "
+              << tCollapse.x << " and " << tCollapse.y << std::endl;
+    std::cout << "Total mass: " << totalMassBefore << " "
+              << totalMassAfter << std::endl;
+    std::cout << "Total volume: " << totalVolume << " "
+              << totalVolumeAfter << std::endl;
+    int qq; std::cin >> qq;
+  }
+
+  if (printFlag == 1) {
+    int qq; std::cin >> qq;
+  }
+
+#endif
+  */
 }
 
 //#########################################################################
@@ -287,6 +336,7 @@ void AdjustStateCoarsenSingle(int vRemove, int tStart,
 
 \param nRemove Number of vertices that will be removed
 \param *pVertexRemove Pointer to array of vertices to be removed
+\param *pVertexTriangle Pointer to array of vertex triangles
 \param *pTv Pointer to triangle vertices
 \param *pTe Pointer to triangle edges
 \param *pEt Pointer to edge triangles
@@ -301,21 +351,21 @@ void AdjustStateCoarsenSingle(int vRemove, int tStart,
 
 template<class realNeq>
 __global__
-void devAdjustStateCoarsen(int nRemove, int *pVertexRemove,
-                           int *pVertexTriangle,
+void devAdjustStateCoarsen(int nRemove,
                            int3 *pTv, int3 *pTe, int2 *pEt,
                            real *pVertexArea, int nVertex,
                            real2 *pVc, real Px, real Py,
-                           int *pTriangleTarget, realNeq *state)
+                           int *pEdgeTarget,
+                           real2 *pEdgeCoordinates,
+                           realNeq *state)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nRemove) {
-    AdjustStateCoarsenSingle(pVertexRemove[n],
-                             pVertexTriangle[n],
-                             pTv, pTe, pEt,
+    AdjustStateCoarsenSingle(pTv, pTe, pEt,
                              pVertexArea, nVertex, pVc,
-                             Px, Py, pTriangleTarget[n], state);
+                             Px, Py, pEdgeTarget[n], pEdgeCoordinates,
+                             state);
 
     n += blockDim.x*gridDim.x;
   }
@@ -325,7 +375,6 @@ void devAdjustStateCoarsen(int nRemove, int *pVertexRemove,
 /*! Adjust state when removing vertices in order to conserve mass, momentum and energy.
 
 \param *connectivity Pointer to Mesh Connectivity
-\param *triangleTarget Pointer to Array containing triangle targets
 \param *vertexState Pointer to state vector at vertices
 \param *mp Pointer to Mesh Parameters*/
 //#########################################################################
@@ -338,10 +387,9 @@ void Coarsen::AdjustState(Connectivity *connectivity,
   real Px = mp->maxx - mp->minx;
   real Py = mp->maxy - mp->miny;
 
-  int *pVertexRemove = vertexRemove->GetPointer();
-  int *pTriangleTarget = triangleTarget->GetPointer();
-  int *pVertexTriangle = vertexTriangle->GetPointer();
+  int *pEdgeCollapseList = edgeCollapseList->GetPointer();
   real *pVertexArea = connectivity->vertexArea->GetPointer();
+  real2 *pEdgeCoordinates = edgeCoordinates->GetPointer();
 
   realNeq *state = vertexState->GetPointer();
 
@@ -350,7 +398,7 @@ void Coarsen::AdjustState(Connectivity *connectivity,
   int3 *pTe = connectivity->triangleEdges->GetPointer();
   int2 *pEt = connectivity->edgeTriangles->GetPointer();
 
-  int nRemove = vertexRemove->GetSize();
+  int nRemove = edgeCollapseList->GetSize();
   int nVertex = connectivity->vertexCoordinates->GetSize();
 
   // Adjust state
@@ -364,19 +412,18 @@ void Coarsen::AdjustState(Connectivity *connectivity,
                                        (size_t) 0, 0);
 
     devAdjustStateCoarsen<realNeq><<<nBlocks, nThreads>>>
-      (nRemove, pVertexRemove, pVertexTriangle,
-       pTv, pTe, pEt,
+      (nRemove, pTv, pTe, pEt,
        pVertexArea, nVertex, pVc,
-       Px, Py, pTriangleTarget, state);
+       Px, Py, pEdgeCollapseList, pEdgeCoordinates, state);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int n = 0; n < nRemove; n++)
-      AdjustStateCoarsenSingle(pVertexRemove[n],
-                               pVertexTriangle[n],
-                               pTv, pTe, pEt,
+      AdjustStateCoarsenSingle(pTv, pTe, pEt,
                                pVertexArea, nVertex, pVc,
-                               Px, Py, pTriangleTarget[n], state);
+                               Px, Py, pEdgeCollapseList[n],
+                               pEdgeCoordinates,
+                               state);
   }
 
 }
@@ -398,4 +445,4 @@ Coarsen::AdjustState<real4>(Connectivity *connectivity,
                             Array<real4> *vertexState,
                             const MeshParameter *mp);
 
-}
+}  // namespace astrix
