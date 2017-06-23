@@ -18,6 +18,17 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace astrix {
 
+__host__ __device__ inline
+int VertexNotPartOfEdge(const int e, const int3 V, const int3 E)
+{
+  int ret = -1;
+  if (e == E.x) ret = V.z;
+  if (e == E.y) ret = V.x;
+  if (e == E.z) ret = V.y;
+
+  return ret;
+}
+
 //##############################################################################
 /*! Given the edge lengths of a triangle, compute its area using Heron's formula
 
@@ -298,6 +309,319 @@ void GetTriangleCoordinatesSingle(const real2* __restrict__ pVc,
   ax = pVc[a].x + dxa;
   ay = pVc[a].y + dya;
 }
+
+//######################################################################
+/*! Find vertices belonging to edge \a e.
+
+Find vertices belonging to edge \a e, knowing it is part of triangle \a t with edges \a E and vertice \a V. Find the vertices \a a and \a b belonging to edge \a e in counterclockwise order as seen from \a t. Both \a a and \a b are output.
+
+\param e Edge to find vertices for
+\param *pTv Pointer to triangle vertices
+\param t Triangle that \a e is part of
+\param V Vertices of \a t
+\param E Edges of \a t
+\param a Place to store first vertex of \a e
+\param b Place to store second vertex of \a e*/
+//######################################################################
+
+__host__ __device__ inline
+void GetEdgeVertices(const int e, const int t, const int3 V,
+                     const int3 E, int& a, int& b)
+{
+  if (e == E.x) {
+    a = V.x;
+    b = V.y;
+  }
+  if (e == E.y) {
+    a = V.y;
+    b = V.z;
+  }
+  if (e == E.z) {
+    a = V.z;
+    b = V.x;
+  }
+}
+
+//######################################################################
+/*! Find vertices belonging to edge \a e.
+
+Find vertices belonging to edge \a e, knowing it is part of triangle \a t with edges \a E. Find the vertices \a a and \a b belonging to edge \a e in counterclockwise order as seen from \a t. Both \a a and \a b are output.
+
+\param e Edge to find vertices for
+\param *pTv Pointer to triangle vertices
+\param t Triangle that \a e is part of
+\param V Place to store output vertices
+\param E Edges of \a t
+\param a Place to store first vertex of \a e
+\param b Place to store second vertex of \a e*/
+//######################################################################
+
+__host__ __device__ inline
+void GetEdgeVertices(const int e,
+                     const int3* __restrict__ pTv,
+                     const int t, int3& V, const int3 E, int& a, int& b)
+{
+  V = pTv[t];
+  GetEdgeVertices(e, t, V, E, a, b);
+}
+
+//######################################################################
+/*! Find vertices belonging to edge \a e.
+
+Find vertices belonging to edge \a e, knowing it is part of triangle \a t. First, determine the edges of this triangle \a E, then find the vertices \a a and \a b belonging to edge \a e in counterclockwise order as seen from \a t. Both \a E and \a a and \a b are output.
+
+\param e Edge to find vertices for
+\param *pTv Pointer to triangle vertices
+\param *pTe Pointer to triangle edges
+\param t Triangle that \a e is part of
+\param V Place to store output vertices
+\param E Place to store output edges
+\param a Place to store first vertex of \a e
+\param b Place to store second vertex of \a e*/
+//######################################################################
+
+__host__ __device__ inline
+void GetEdgeVertices(const int e,
+                     const int3* __restrict__ pTv,
+                     const int3* __restrict__ pTe,
+                     const int t, int3& V, int3& E, int& a, int& b)
+{
+  // Edges of triangle
+  E = pTe[t];
+
+  GetEdgeVertices(e, pTv, t, V, E, a, b);
+}
+
+//######################################################################
+/*! Find vertices belonging to edge \a e.
+
+Find vertices belonging to edge \a e. First, find a triangle \a t neighbouring \a e, then determine the edges of this triangle \a E, and finally find the vertices \a a and \a b belonging to edge \a e in counterclockwise order as seen from \a t. Both \a t, \a E and \a a and \a b are output.
+
+\param e Edge to find vertices for
+\param *pTv Pointer to triangle vertices
+\param *pTe Pointer to triangle edges
+\param *pEt Pointer to edge triangles
+\param t Place to store output triangle
+\param E Place to store outpud edges
+\param a Place to store first vertex of \a e
+\param b Place to store second vertex of \a e*/
+//######################################################################
+
+__host__ __device__ inline
+void GetEdgeVertices(const int e,
+                     const int3* __restrict__ pTv,
+                     const int3* __restrict__ pTe,
+                     const int2* __restrict__ pEt,
+                     int2& tCollapse, int3& V, int3& E, int& a, int& b)
+{
+  // Find neighbouring triangle
+  tCollapse = pEt[e];
+  if (tCollapse.x == -1) {
+    tCollapse.x = tCollapse.y;
+    tCollapse.y = -1;
+  }
+
+  GetEdgeVertices(e, pTv, pTe, tCollapse.x, V, E, a, b);
+}
+
+__host__ __device__ inline
+int OtherNeighbouringTriangle(const int t, const int2 T)
+{
+  int ret = T.x;
+  if (ret == t) ret = T.y;
+  return ret;
+}
+
+__host__ __device__ inline
+int NextEdgeCounterClockwise(const int e, const int3 E)
+{
+  if (e == E.x) return E.y;
+  if (e == E.y) return E.z;
+  if (e == E.z) return E.x;
+  return -1;
+}
+
+__host__ __device__ inline
+int NextEdgeClockwise(const int e, const int3 E)
+{
+  if (e == E.x) return E.z;
+  if (e == E.y) return E.x;
+  if (e == E.z) return E.y;
+  return -1;
+}
+
+//#########################################################################
+/*! Move counterclockwise from edge \a eStart until we hit a segment, the index of which is returned. If no segment is found, return -1.
+
+\param eStart Edge to start from
+\param tStart Triangle to start from
+\param *pTv Pointer to triangle vertices
+\param *pTe Pointer to triangle edges
+\param *pEt Pointer to edge triangles*/
+//#########################################################################
+
+__host__ __device__ inline
+int FindSegmentCounterClockOld(int eStart, int& tStart, int3& E,
+                               int3 *pTv, int3 *pTe, int2 *pEt)
+{
+  int t = pEt[eStart].x;
+  if (t == tStart) t = pEt[eStart].y;
+  if (t == -1) return eStart;
+
+  // Edge that was crossed last; move counterclockwise from here
+  int eCrossed = eStart;
+  // Edge to cross next
+  int eCross = -1;
+
+  tStart = t;
+
+  int finished = 0;
+  while (!finished){
+    // Edges of current triangle
+    E = pTe[t];
+    //int e1 = pTe[t].x;
+    //int e2 = pTe[t].y;
+    //int e3 = pTe[t].z;
+
+    // Find edge to cross next (counterclockwise)
+    if (eCrossed == E.x) eCross = E.z;
+    if (eCrossed == E.y) eCross = E.x;
+    if (eCrossed == E.z) eCross = E.y;
+
+    // Triangle to move into
+    int tNext = pEt[eCross].x;
+    if (tNext == t) tNext = pEt[eCross].y;
+
+    // Done if eCross is a segment
+    if (tNext == -1 || tNext == tStart) {
+      finished = 1;
+      // If no segment found, return -1
+      if (tNext == tStart) eCross = -1;
+    } else {
+      // Otherwise, continue...
+      t = tNext;
+      eCrossed = eCross;
+    }
+  }
+
+  // Return segment
+  //eStart = eCross;
+  tStart = t;
+  return eCross;
+}
+
+
+//#########################################################################
+/*! Move counterclockwise from edge \a eStart until we hit a segment, the index of which is returned. If no segment is found, return -1.
+
+\param eStart Edge to start from
+\param t Triangle to start from (will be updated!)
+\param E Edges for triangle \a t (will be updated!)
+\param *pTv Pointer to triangle vertices
+\param *pTe Pointer to triangle edges
+\param *pEt Pointer to edge triangles*/
+//#########################################################################
+
+__host__ __device__ inline
+int FindSegmentCounterClock(int eStart, int& t, int3& E,
+                            int3 *pTe, int2 *pEt)
+{
+  int eCross = eStart;   // Starting on this edge
+  int tStart = t;        // Starting in this triangle
+
+  while (1) {
+    eCross = NextEdgeClockwise(eCross, E);
+
+    // Triangle to move into
+    t = OtherNeighbouringTriangle(t, pEt[eCross]);
+
+    // Done if eCross is a segment or back at beginning
+    if (t == -1 || t == tStart) {
+      // If no segment found, return -1
+      if (t == tStart) eCross = -1;
+      if (t == -1)
+        t = OtherNeighbouringTriangle(t, pEt[eCross]);
+      break;
+    }
+
+    // Edges of current triangle
+    E = pTe[t];
+  }
+
+  // Return segment
+  return eCross;
+}
+
+//#########################################################################
+/*! Move counterclockwise from edge \a eStart until we hit a segment, the index of which is returned. If no segment is found, return -1.
+
+\param eStart Edge to start from
+\param t Triangle to start from (will be updated!)
+\param E Edges for triangle \a t (will be updated!)
+\param *pTv Pointer to triangle vertices
+\param *pTe Pointer to triangle edges
+\param *pEt Pointer to edge triangles*/
+//#########################################################################
+
+__host__ __device__ inline
+int FindSegmentClock(int eStart, int& t, int3& E,
+                     int3 *pTe, int2 *pEt)
+{
+  int eCross = eStart;   // Starting on this edge
+  int tStart = t;        // Starting in this triangle
+
+  while (1) {
+    eCross = NextEdgeCounterClockwise(eCross, E);
+
+    // Triangle to move into
+    t = OtherNeighbouringTriangle(t, pEt[eCross]);
+
+    // Done if eCross is a segment or back at beginning
+    if (t == -1 || t == tStart) {
+      // If no segment found, return -1
+      if (t == tStart) eCross = -1;
+      if (t == -1)
+        t = OtherNeighbouringTriangle(t, pEt[eCross]);
+      break;
+    }
+
+    // Edges of current triangle
+    E = pTe[t];
+  }
+
+  // Return segment
+  return eCross;
+}
+
+//#########################################################################
+//#########################################################################
+
+__host__ __device__ inline
+void WalkAroundEdge(const int eTest,
+                    const int isSegment,
+                    int& t, int& eCross, int3 E,
+                    int3 *pTe, int2 *pEt)
+{
+  // Edge to cross into next triangle
+  eCross = NextEdgeCounterClockwise(eCross, E);
+  if (eCross == eTest)
+    eCross = NextEdgeCounterClockwise(eCross, E);
+
+  // Move into next triangle
+  t = OtherNeighbouringTriangle(t, pEt[eCross]);
+
+  if (t == -1) {
+    t = OtherNeighbouringTriangle(t, pEt[eCross]);
+
+    // Go counterclockwise to find another segment to continue
+    eCross = FindSegmentCounterClock(eCross, t, E, pTe, pEt);
+
+    // If moving along segment, repeat so that we can continue clockwise
+    if (isSegment)
+      eCross = FindSegmentCounterClock(eCross, t, E, pTe, pEt);
+  }
+}
+
 
 }  // namespace astrix
 
