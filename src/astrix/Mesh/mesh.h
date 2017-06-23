@@ -172,8 +172,6 @@ class Mesh
   real MaximumEdgeLength();
   //! Check if any vertex encroaches upon segment (slow, used for debugging)
   void CheckEncroachSlow();
-  //! Check if all triangles are legal (used for debugging)
-  void CheckLegalTriangle();
   //! Check if any edge is larger than \a maxEdgeLength
   void CheckEdgeLength(real maxEdgeLength);
 };
