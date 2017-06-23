@@ -369,7 +369,6 @@ void Refine::FlagEdgesForChecking(Connectivity * const connectivity,
   // Flag all edges for checking if problems were encountered
   if (warningFlag > 0) {
     std::cout << "Warning: going to check all edges for Delaunay-hood because of problem in determining insertion cavities!" << std::endl;
-    int qq; std::cin >> qq;
     edgeNeedsChecking->SetToSeries();
   }
 
