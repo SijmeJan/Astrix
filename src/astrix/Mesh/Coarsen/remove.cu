@@ -212,13 +212,36 @@ void devAdjustTriangle(int nTriangle, int3 *pTv, int3 *pTe, int nVertex,
 //#########################################################################
 
 __host__ __device__
-void RemoveVertex(int vRemove, int tStart,
-                  int3 *pTv, int3 *pTe, int2 *pEt,
+void RemoveVertex(int3 *pTv, int3 *pTe, int2 *pEt, real2 *pVc,
                   int *vKeep, int *tKeep, int *eKeep,
-                  int nVertex, int tTarget,
-                  int *pEdgeNeedsChecking)
+                  int nVertex, int eTarget,
+                  int *pEdgeNeedsChecking, real2 *pEdgeCoordinates)
 {
-  int t1 = tTarget;
+
+  int2 tCollapse;
+  int3 V, E;
+  int v1, v2;
+  GetEdgeVertices(eTarget, pTv, pTe, pEt,
+                  tCollapse, V, E, v1, v2);
+
+  int t1 = tCollapse.x;
+  int t2 = tCollapse.y;
+
+  int vOrigin = v1;
+  int vTarget = v2;
+  int vRemove = v1;
+  while (vRemove >= nVertex) vRemove -= nVertex;
+  while (vRemove < 0) vRemove += nVertex;
+
+#ifndef __CUDA_ARCH__
+  int printFlag = 0;
+  if (printFlag == 1) {
+    std::cout << "Removing vertex " << vRemove << " along edge "
+              << eTarget << std::endl;
+  }
+#endif
+
+  E = pTe[t1];
 
   int a = pTv[t1].x;
   int b = pTv[t1].y;
@@ -230,65 +253,9 @@ void RemoveVertex(int vRemove, int tStart,
   while (b < 0) b += nVertex;
   while (c < 0) c += nVertex;
 
-  // Move vRemove onto vTarget
-  int vTarget = -1;
-  int vOrigin = -1;
-
-  // Edge to move vRemove along
-  int e1 = -1;
-  // Other two edges of triangle
-  int e2 = -1, e4 = -1;
-
-  int E1 = pTe[t1].x;
-  int E2 = pTe[t1].y;
-  int E3 = pTe[t1].z;
-
-  if (a == vRemove) {
-    vOrigin = pTv[t1].x;
-    vTarget = pTv[t1].y;
-    e1 = E1;
-    e2 = E3;
-    e4 = E2;
-    int t1 = pEt[E3].x;
-    int t2 = pEt[E3].y;
-
-    if (t1 == -1 || t2 == -1) {
-      vTarget = pTv[t1].z;
-      e1 = E3;
-      e2 = E1;
-      e4 = E2;
-    }
-  }
-  if (b == vRemove) {
-    vOrigin = pTv[t1].y;
-    vTarget = pTv[t1].z;
-    e1 = E2;
-    e2 = E1;
-    e4 = E3;
-    int t1 = pEt[E1].x;
-    int t2 = pEt[E1].y;
-    if (t1 == -1 || t2 == -1) {
-      vTarget = pTv[t1].x;
-      e1 = E1;
-      e2 = E2;
-      e4 = E3;
-    }
-  }
-  if (c == vRemove) {
-    vOrigin = pTv[t1].z;
-    vTarget = pTv[t1].x;
-    e1 = E3;
-    e2 = E2;
-    e4 = E1;
-    int t1 = pEt[E2].x;
-    int t2 = pEt[E2].y;
-    if (t1 == -1 || t2 == -1) {
-      vTarget = pTv[t1].y;
-      e1 = E2;
-      e2 = E3;
-      e4 = E1;
-    }
-  }
+  int e1 = eTarget;
+  int e2 = NextEdgeClockwise(e1, E);
+  int e4 = NextEdgeCounterClockwise(e1, E);
 
   // pERIODIC
   int translateFlagOrigin = 0;
@@ -312,57 +279,43 @@ void RemoveVertex(int vRemove, int tStart,
 
   int translateFlag = (translateFlagTarget - translateFlagOrigin)*nVertex;
 
+  // NEW
+  pVc[vTarget] = pEdgeCoordinates[eTarget];
+
   // t1 and t2 are neighbours to e1
 
-  int t11 = pEt[e1].x;
-  int t21 = pEt[e1].y;
-
-  int t2 = t11;
-  if (t2 == t1) t2 = t21;
-
-  int t12 = pEt[e2].x;
-  int t22 = pEt[e2].y;
-
-  int t3 = t12;
-  if (t3 == t1) t3 = t22;
+  // t3 is neighbour of t1 through edge e2
+  int2 T = pEt[e2];
+  int t3 = OtherNeighbouringTriangle(t1, T);
 
   int e3 = -1;
   int e5 = -1;
   int t4 = -1;
 
-  E1 = pTe[t2].x;
-  E2 = pTe[t2].y;
-  E3 = pTe[t2].z;
-
   if (t2 != -1) {
-    if (e1 == E1) {
-      e3 = E2;
-      e5 = E3;
-    }
-    if (e1 == E2) {
-      e3 = E3;
-      e5 = E1;
-    }
-    if (e1 == E3) {
-      e3 = E1;
-      e5 = E2;
-    }
+    int3 E = pTe[t2];
+    e3 = NextEdgeCounterClockwise(e1, E);
+    e5 = NextEdgeClockwise(e1, E);
 
-    int t13 = pEt[e3].x;
-    int t23 = pEt[e3].y;
-
-    t4 = t13;
-    if (t4 == t2) t4 = t23;
+    // t4 is neighbour of t2 through edge e3
+    int2 T = pEt[e3];
+    t4 = OtherNeighbouringTriangle(t2, T);
   }
 
-  int t = tStart;
+
+  int t = t1;
+  FindSegmentCounterClock(eTarget, t, E, pTe, pEt);
+
   int finished = 0;
   // If we try to cross this edge we are done
   int eFinal = -1;
   while (!finished) {
-    int a = pTv[t].x;
-    int b = pTv[t].y;
-    int c = pTv[t].z;
+    int3 E = pTe[t];
+    int3 V = pTv[t];
+
+    int a = V.x;
+    int b = V.y;
+    int c = V.z;
 
     while (a >= nVertex) a -= nVertex;
     while (b >= nVertex) b -= nVertex;
@@ -374,71 +327,64 @@ void RemoveVertex(int vRemove, int tStart,
     // Determine next triangle to visit
     int eCross = -1;
     if (a == vRemove) {
-      eCross = pTe[t].x;
-      if (eFinal == -1) eFinal = pTe[t].z;
+      eCross = E.x;
+      if (eFinal == -1) eFinal = E.z;
     }
     if (b == vRemove) {
-      eCross = pTe[t].y;
-      if (eFinal == -1) eFinal = pTe[t].x;
+      eCross = E.y;
+      if (eFinal == -1) eFinal = E.x;
     }
     if (c == vRemove) {
-      eCross = pTe[t].z;
-      if (eFinal == -1) eFinal = pTe[t].y;
+      eCross = E.z;
+      if (eFinal == -1) eFinal = E.y;
     }
     int tNext = pEt[eCross].x;
     if (tNext == t) tNext = pEt[eCross].y;
 
     if (a == vRemove)
-      pTv[t].x = vTarget + pTv[t].x - a + translateFlag;
+      V.x = vTarget + V.x - a + translateFlag;
     if (b == vRemove)
-      pTv[t].y = vTarget + pTv[t].y - b + translateFlag;
+      V.y = vTarget + V.y - b + translateFlag;
     if (c == vRemove)
-      pTv[t].z = vTarget + pTv[t].z - c + translateFlag;
+      V.z = vTarget + V.z - c + translateFlag;
 
-    MakeValidIndices(pTv[t].x, pTv[t].y, pTv[t].z, nVertex);
+    MakeValidIndices(V.x, V.y, V.z, nVertex);
 
     // Replace e2 with e4
-    if (pTe[t].x == e2) pTe[t].x = e4;
-    if (pTe[t].y == e2) pTe[t].y = e4;
-    if (pTe[t].z == e2) pTe[t].z = e4;
+    if (E.x == e2) E.x = e4;
+    if (E.y == e2) E.y = e4;
+    if (E.z == e2) E.z = e4;
 
     // Replace e3 with e5
-    if (pTe[t].x == e3) pTe[t].x = e5;
-    if (pTe[t].y == e3) pTe[t].y = e5;
-    if (pTe[t].z == e3) pTe[t].z = e5;
+    if (E.x == e3) E.x = e5;
+    if (E.y == e3) E.y = e5;
+    if (E.z == e3) E.z = e5;
 
-    int e1 = pTe[t].x;
-    int e2 = pTe[t].y;
-    int e3 = pTe[t].z;
-
-    // Flag edges for checking for Delaunay-hood later
-    if (t != t1 && t != t2) {
-      pEdgeNeedsChecking[e1] = e1;
-      pEdgeNeedsChecking[e2] = e2;
-      pEdgeNeedsChecking[e3] = e3;
-    }
+    int2 T1 = pEt[E.x];
+    int2 T2 = pEt[E.y];
+    int2 T3 = pEt[E.z];
 
     // Replace t2 with t4
-    int e = e1;
-    if (pEt[e].x == t2) pEt[e].x = t4;
-    if (pEt[e].y == t2) pEt[e].y = t4;
-    e = e2;
-    if (pEt[e].x == t2) pEt[e].x = t4;
-    if (pEt[e].y == t2) pEt[e].y = t4;
-    e = e3;
-    if (pEt[e].x == t2) pEt[e].x = t4;
-    if (pEt[e].y == t2) pEt[e].y = t4;
+    if (T1.x == t2) T1.x = t4;
+    if (T1.y == t2) T1.y = t4;
+    if (T2.x == t2) T2.x = t4;
+    if (T2.y == t2) T2.y = t4;
+    if (T3.x == t2) T3.x = t4;
+    if (T3.y == t2) T3.y = t4;
 
     // Replace t1 with t3
-    e = e1;
-    if (pEt[e].x == t1) pEt[e].x = t3;
-    if (pEt[e].y == t1) pEt[e].y = t3;
-    e = e2;
-    if (pEt[e].x == t1) pEt[e].x = t3;
-    if (pEt[e].y == t1) pEt[e].y = t3;
-    e = e3;
-    if (pEt[e].x == t1) pEt[e].x = t3;
-    if (pEt[e].y == t1) pEt[e].y = t3;
+    if (T1.x == t1) T1.x = t3;
+    if (T1.y == t1) T1.y = t3;
+    if (T2.x == t1) T2.x = t3;
+    if (T2.y == t1) T2.y = t3;
+    if (T3.x == t1) T3.x = t3;
+    if (T3.y == t1) T3.y = t3;
+
+    pTv[t] = V;
+    pTe[t] = E;
+    pEt[E.x] = T1;
+    pEt[E.y] = T2;
+    pEt[E.z] = T3;
 
     // Move into next triangle
     t = tNext;
@@ -479,19 +425,21 @@ void RemoveVertex(int vRemove, int tStart,
 //#########################################################################
 
 __global__
-void devRemoveVertex(int nRemove, int *pVertexRemove,
-                     int3 *pTv, int3 *pTe, int2 *pEt,
+void devRemoveVertex(int nRemove,
+                     int3 *pTv, int3 *pTe, int2 *pEt, real2 *pVc,
                      int *pVertexKeepFlag, int *pTriangleKeepFlag,
-                     int *pEdgeKeepFlag, int nVertex, int *pTriangleTarget,
-                     int *pVertexTriangle, int *pEdgeNeedsChecking)
+                     int *pEdgeKeepFlag, int nVertex,
+                     int *pEdgeTarget,
+                     int *pEdgeNeedsChecking,
+                     real2 *pEdgeCoordinates)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nRemove) {
-    RemoveVertex(pVertexRemove[n], pVertexTriangle[n],
-                 pTv, pTe, pEt,
+    RemoveVertex(pTv, pTe, pEt, pVc,
                  pVertexKeepFlag, pTriangleKeepFlag, pEdgeKeepFlag,
-                 nVertex, pTriangleTarget[n], pEdgeNeedsChecking);
+                 nVertex, pEdgeTarget[n],
+                 pEdgeNeedsChecking, pEdgeCoordinates);
 
     n += blockDim.x*gridDim.x;
   }
@@ -515,19 +463,17 @@ void Coarsen::Remove(Connectivity *connectivity,
   int nTriangle = connectivity->triangleVertices->GetSize();
   int nEdge = connectivity->edgeTriangles->GetSize();
 
-  edgeNeedsChecking->SetSize(nEdge);
-  edgeNeedsChecking->SetToValue(-1);
   int *pEdgeNeedsChecking = edgeNeedsChecking->GetPointer();
 
   int3 *pTv = connectivity->triangleVertices->GetPointer();
   int3 *pTe = connectivity->triangleEdges->GetPointer();
   int2 *pEt = connectivity->edgeTriangles->GetPointer();
+  real2 *pVc = connectivity->vertexCoordinates->GetPointer();
 
-  int *pVertexRemove = vertexRemove->GetPointer();
-  int *pVertexTriangle = vertexTriangle->GetPointer();
-  int *pTriangleTarget = triangleTarget->GetPointer();
+  int *pEdgeCollapseList = edgeCollapseList->GetPointer();
+  real2 *pEdgeCoordinates = edgeCoordinates->GetPointer();
 
-  int nRemove = vertexRemove->GetSize();
+  int nRemove = edgeCollapseList->GetSize();
 
   Array<int> *vertexKeepFlag =
     new Array<int>(1, cudaFlag, (unsigned int) nVertex);
@@ -553,18 +499,18 @@ void Coarsen::Remove(Connectivity *connectivity,
                                        (size_t) 0, 0);
 
     devRemoveVertex<<<nBlocks, nThreads>>>
-      (nRemove, pVertexRemove,
-       pTv, pTe, pEt,
+      (nRemove, pTv, pTe, pEt, pVc,
        pVertexKeepFlag, pTriangleKeepFlag, pEdgeKeepFlag,
-       nVertex, pTriangleTarget, pVertexTriangle, pEdgeNeedsChecking);
+       nVertex, pEdgeCollapseList,
+       pEdgeNeedsChecking, pEdgeCoordinates);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int n = 0; n < nRemove; n++)
-      RemoveVertex(pVertexRemove[n], pVertexTriangle[n],
-                   pTv, pTe, pEt,
+      RemoveVertex(pTv, pTe, pEt, pVc,
                    pVertexKeepFlag, pTriangleKeepFlag, pEdgeKeepFlag,
-                   nVertex, pTriangleTarget[n], pEdgeNeedsChecking);
+                   nVertex, pEdgeCollapseList[n],
+                   pEdgeNeedsChecking, pEdgeCoordinates);
   }
 
   Array<int> *vertexKeepFlagScan =
@@ -625,6 +571,8 @@ void Coarsen::Remove(Connectivity *connectivity,
 
   connectivity->vertexCoordinates->Compact(nvKeep, vertexKeepFlag,
                                            vertexKeepFlagScan);
+  connectivity->vertexArea->Compact(nvKeep, vertexKeepFlag,
+                                    vertexKeepFlagScan);
   vertexState->Compact(nvKeep, vertexKeepFlag, vertexKeepFlagScan);
   triangleWantRefine->Compact(ntKeep, triangleKeepFlag, triangleKeepFlagScan);
 
@@ -635,6 +583,7 @@ void Coarsen::Remove(Connectivity *connectivity,
   connectivity->edgeTriangles->Compact(neKeep, edgeKeepFlag, edgeKeepFlagScan);
 
   edgeNeedsChecking->Compact(neKeep, edgeKeepFlag, edgeKeepFlagScan);
+  pEdgeNeedsChecking = edgeNeedsChecking->GetPointer();
 
   // Adjust edgeNeedsChecking
   if (cudaFlag == 1) {
