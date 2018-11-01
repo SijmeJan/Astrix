@@ -1,5 +1,5 @@
+periodic Coarsen
 comment Coarsen
-comment triangleLow.h
 comment connectivity
 
 test RT
