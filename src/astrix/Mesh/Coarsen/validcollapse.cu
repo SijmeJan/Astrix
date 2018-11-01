@@ -79,6 +79,12 @@ int2 MinMaxAlpha(int N, int eTest, int3 *pTv, int3 *pTe, int2 *pEt,
   // Find vertices belonging to eTest
   GetEdgeVertices(eTest, pTv, pTe, pEt, tCollapse, V, E, v1, v2);
 
+  // For now: reject edge if stretched across boundary
+  if (v1 < 0 || v1 >= nVertex || v2 < 0 || v2 >= nVertex) {
+    ret.x = 1;
+    ret.y = -1;
+  }
+
   int eCross = eTest;                   // Current edge to cross
   int t = tCollapse.x;                  // Current triangle
   int isSegment = (tCollapse.y == -1);  // Flag if eTest is segment
@@ -156,10 +162,15 @@ int2 MinMaxAlpha(int N, int eTest, int3 *pTv, int3 *pTe, int2 *pEt,
 
   // One vertex is on segment
   if (isSegment != 1) {
+    int a = NormalizeVertex(v1, nVertex);
+    int b = NormalizeVertex(v2, nVertex);
+    int A = NormalizeVertex(vs1, nVertex);
+    int B = NormalizeVertex(vs2, nVertex);
+
     // v2 is on segment, v1 is not
-    if (vs1 == v2 || vs2 == v2) ret.x = N - 1;
+    if (A == b || B == b) ret.x = N - 1;
     // v1 is on segment, v2 is not
-    if (vs1 == v1 || vs2 == v1) ret.y = 1;
+    if (A == a || B == a) ret.y = 1;
 
 #ifndef __CUDA_ARCH__
     if (printFlag == 1)
@@ -175,6 +186,10 @@ int2 MinMaxAlpha(int N, int eTest, int3 *pTv, int3 *pTe, int2 *pEt,
   GetTriangleCoordinatesSingle(pVc, vs1, nVertex, Px, Py, vs1x, vs1y);
   real vs2x, vs2y;
   GetTriangleCoordinatesSingle(pVc, vs2, nVertex, Px, Py, vs2x, vs2y);
+
+  // vs1 corresponds to v2
+  TranslateVertexToVertex(v2, vs1, Px, Py, nVertex, vs1x, vs1y);
+  TranslateVertexToVertex(v2, vs1, Px, Py, nVertex, vs2x, vs2y);
 
   // Needed for encroachment checking later
   cSegment1.x = vs2x;
@@ -195,6 +210,10 @@ int2 MinMaxAlpha(int N, int eTest, int3 *pTv, int3 *pTe, int2 *pEt,
 
   GetTriangleCoordinatesSingle(pVc, vs1, nVertex, Px, Py, vs1x, vs1y);
   GetTriangleCoordinatesSingle(pVc, vs2, nVertex, Px, Py, vs2x, vs2y);
+
+  // vs2 corresponds to v1
+  TranslateVertexToVertex(v1, vs2, Px, Py, nVertex, vs1x, vs1y);
+  TranslateVertexToVertex(v1, vs2, Px, Py, nVertex, vs2x, vs2y);
 
   // Needed for encroachment checking later
   cSegment2.x = vs1x;
@@ -301,16 +320,27 @@ void TestEdgeCollapseSingle(int n, int3 *pTv, int3 *pTe, int2 *pEt,
         GetTriangleCoordinates(pVc, V.x, V.y, V.z,
                                nVertex, Px, Py, ax, bx, cx, ay, by, cy);
 
+        int a = NormalizeVertex(v1, nVertex);
+        int b = NormalizeVertex(v2, nVertex);
+        int3 A = NormalizeVertex(V, nVertex);
+
+        // Triangle has either v1 or v2 as a vertex
+        int vCommon = v1;
+        if (A.x == b || A.y == b || A.z == b) vCommon = v2;
+
+        TranslateTriangleToVertex(vCommon, Px, Py, nVertex, V.x, V.y, V.z,
+                                  ax, ay, bx, by, cx, cy);
+
         // Replace vertices
-        if (V.x == v1 || V.x == v2) {
+        if (A.x == a || A.x == b) {
           ax = xTarget;
           ay = yTarget;
         }
-        if (V.y == v1 || V.y == v2) {
+        if (A.y == a || A.y == b) {
           bx = xTarget;
           by = yTarget;
         }
-        if (V.z == v1 || V.z == v2) {
+        if (A.z == a || A.z == b) {
           cx = xTarget;
           cy = yTarget;
         }
@@ -335,6 +365,9 @@ void TestEdgeCollapseSingle(int n, int3 *pTv, int3 *pTe, int2 *pEt,
           int a = VertexNotPartOfEdge(eCross, V, E);
           real ax, ay;
           GetTriangleCoordinatesSingle(pVc, a, nVertex, Px, Py, ax, ay);
+
+          TranslateTriangleToVertex(vCommon, Px, Py, nVertex, V.x, V.y, V.z,
+                                    ax, ay, bx, by, cx, cy);
 
           real dot1 =
             (cSegment1.x - ax)*(xTarget - ax) +
@@ -374,6 +407,9 @@ void TestEdgeCollapseSingle(int n, int3 *pTv, int3 *pTe, int2 *pEt,
               real ax, ay, bx, by;
               GetTriangleCoordinatesSingle(pVc, a, nVertex, Px, Py, ax, ay);
               GetTriangleCoordinatesSingle(pVc, b, nVertex, Px, Py, bx, by);
+
+              TranslateTriangleToVertex(vCommon, Px, Py, nVertex, V.x, V.y, V.z,
+                                        ax, ay, bx, by, cx, cy);
 
               real dot =
                 (bx - xTarget)*(ax - xTarget) +
