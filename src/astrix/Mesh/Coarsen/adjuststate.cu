@@ -113,6 +113,8 @@ void AdjustStateCoarsenSingle(int3 *pTv, int3 *pTe, int2 *pEt,
   }
 #endif
 
+  int a = NormalizeVertex(v1, nVertex);
+  int b = NormalizeVertex(v2, nVertex);
 
   while (1) {
     real ax, bx, cx, ay, by, cy;
@@ -120,19 +122,26 @@ void AdjustStateCoarsenSingle(int3 *pTv, int3 *pTe, int2 *pEt,
                            nVertex, Px, Py,
                            ax, bx, cx, ay, by, cy);
 
+    int3 A = NormalizeVertex(V, nVertex);
+    int vCommon = v1;
+    if (A.x == b || A.y == b || A.z == b) vCommon = v2;
+
+    TranslateTriangleToVertex(vCommon, Px, Py, nVertex, V.x, V.y, V.z,
+                              ax, ay, bx, by, cx, cy);
+
     // Twice triangle area before collapse
     real vBefore = (ax - cx)*(by - cy) - (ay - cy)*(bx - cx);
 
     // Replace vertices with new positions
-    if (V.x == v1 || V.x == v2) {
+    if (A.x == a || A.x == b) {
       ax = xTarget;
       ay = yTarget;
     }
-    if (V.y == v1 || V.y == v2) {
+    if (A.y == a || A.y == b) {
       bx = xTarget;
       by = yTarget;
     }
-    if (V.z == v1 || V.z == v2) {
+    if (A.z == a || A.z == b) {
       cx = xTarget;
       cy = yTarget;
     }
@@ -145,12 +154,12 @@ void AdjustStateCoarsenSingle(int3 *pTv, int3 *pTe, int2 *pEt,
     // Contribution to volume of new vertex
     newVolume += oneThird*(real)0.5*vAfter;
 
-    if (V.x != v1 && V.x != v2)
-      dState -= oneThird*dArea*pState[V.x];
-    if (V.y != v1 && V.y != v2)
-      dState -= oneThird*dArea*pState[V.y];
-    if (V.z != v1 && V.z != v2)
-      dState -= oneThird*dArea*pState[V.z];
+    if (A.x != a && A.x != b)
+      dState -= oneThird*dArea*pState[A.x];
+    if (A.y != a && A.y != b)
+      dState -= oneThird*dArea*pState[A.y];
+    if (A.z != a && A.z != b)
+      dState -= oneThird*dArea*pState[A.z];
 
     // Update t, eCross
     WalkAroundEdge(eTarget, isSegment, t, eCross, E, pTe, pEt);
@@ -161,6 +170,7 @@ void AdjustStateCoarsenSingle(int3 *pTv, int3 *pTe, int2 *pEt,
     if (pEt[eCross].x == -1 || pEt[eCross].y == -1) {
       int e = NextEdgeCounterClockwise(eCross, E);
       int v = VertexNotPartOfEdge(e, V, E);
+      v = NormalizeVertex(v, nVertex);
 
       totalVolume += pVertexArea[v];
       //totalMassBefore +=
@@ -180,6 +190,7 @@ void AdjustStateCoarsenSingle(int3 *pTv, int3 *pTe, int2 *pEt,
     if (t == tCollapse.x) break;
 
     int v = VertexNotPartOfEdge(eCross, V, E);
+    v = NormalizeVertex(v, nVertex);
     totalVolume += pVertexArea[v];
     //totalMassBefore +=
     //  pVertexArea[v]*state::GetDensity<realNeq, CL_ADVECT>(pState[v]);
@@ -196,7 +207,7 @@ void AdjustStateCoarsenSingle(int3 *pTv, int3 *pTe, int2 *pEt,
 
   }
 
-  realNeq stateNew = pState[v1];
+  realNeq stateNew = pState[a];
   dState = (dState - newVolume*stateNew)/totalVolume;
 
   eCross = eTarget;                 // Current edge to cross
@@ -220,19 +231,26 @@ void AdjustStateCoarsenSingle(int3 *pTv, int3 *pTe, int2 *pEt,
                            nVertex, Px, Py,
                            ax, bx, cx, ay, by, cy);
 
+    int3 A = NormalizeVertex(V, nVertex);
+    int vCommon = v1;
+    if (A.x == b || A.y == b || A.z == b) vCommon = v2;
+
+    TranslateTriangleToVertex(vCommon, Px, Py, nVertex, V.x, V.y, V.z,
+                              ax, ay, bx, by, cx, cy);
+
     // Twice triangle area before collapse
     real vBefore = (ax - cx)*(by - cy) - (ay - cy)*(bx - cx);
 
     // Replace vertices with new positions
-    if (V.x == v1 || V.x == v2) {
+    if (A.x == a || A.x == b) {
       ax = xTarget;
       ay = yTarget;
     }
-    if (V.y == v1 || V.y == v2) {
+    if (A.y == a || A.y == b) {
       bx = xTarget;
       by = yTarget;
     }
-    if (V.z == v1 || V.z == v2) {
+    if (A.z == a || A.z == b) {
       cx = xTarget;
       cy = yTarget;
     }
@@ -243,9 +261,9 @@ void AdjustStateCoarsenSingle(int3 *pTv, int3 *pTe, int2 *pEt,
     real dArea = (real) 0.5*(vAfter - vBefore);
 
     // Update vertex areas (needed to do Delaunay adjuststate later)
-    pVertexArea[V.x] += oneThird*dArea;
-    pVertexArea[V.y] += oneThird*dArea;
-    pVertexArea[V.z] += oneThird*dArea;
+    pVertexArea[A.x] += oneThird*dArea;
+    pVertexArea[A.y] += oneThird*dArea;
+    pVertexArea[A.z] += oneThird*dArea;
 
     // Update t, eCross
     WalkAroundEdge(eTarget, isSegment, t, eCross, E, pTe, pEt);
@@ -256,6 +274,7 @@ void AdjustStateCoarsenSingle(int3 *pTv, int3 *pTe, int2 *pEt,
     if (pEt[eCross].x == -1 || pEt[eCross].y == -1) {
       int e = NextEdgeCounterClockwise(eCross, E);
       int v = VertexNotPartOfEdge(e, V, E);
+      v = NormalizeVertex(v, nVertex);
 
       pState[v] += dState;
     }
@@ -264,14 +283,15 @@ void AdjustStateCoarsenSingle(int3 *pTv, int3 *pTe, int2 *pEt,
     if (t == tCollapse.x) break;
 
     int v = VertexNotPartOfEdge(eCross, V, E);
+    v = NormalizeVertex(v, nVertex);
     pState[v] += dState;
   }
 
   // Not sure which one is going to be deleted, so set both
-  pState[v1] = stateNew + dState;
-  pState[v2] = stateNew + dState;
-  pVertexArea[v1] = newVolume;
-  pVertexArea[v2] = newVolume;
+  pState[a] = stateNew + dState;
+  pState[b] = stateNew + dState;
+  pVertexArea[a] = newVolume;
+  pVertexArea[b] = newVolume;
 
   /*
   eCross = eTarget;                 // Current edge to cross
