@@ -317,17 +317,17 @@ void TestEncroachSingle(int i, int *pElementAdd, real2 *pVcAdd,
         if (a != vCheckOrig && b != vCheckOrig && c != vCheckOrig) {
           int N = nVertex;
           if (a > 3*N || b > 3*N || c > 3*N)
-            y = pVcAdd[i].y - Py;
-          if (a < -N || b < -N || c < -N)
             y = pVcAdd[i].y + Py;
+          if (a < -N || b < -N || c < -N)
+            y = pVcAdd[i].y - Py;
           if ((a >= N && a < 2*N) || a >= 4*N || (a < -N && a >= -2*N) ||
               (b >= N && b < 2*N) || b >= 4*N || (b < -N && b >= -2*N) ||
               (c >= N && c < 2*N) || c >= 4*N || (c < -N && c >= -2*N))
-            x = pVcAdd[i].x - Px;
+            x = pVcAdd[i].x + Px;
           if ((a >= 2*N && a < 3*N) || (a < 0 && a >= -N) || a < -3*N ||
               (b >= 2*N && b < 3*N) || (b < 0 && b >= -N) || b < -3*N ||
               (c >= 2*N && c < 3*N) || (c < 0 && c >= -N) || c < -3*N)
-            x = pVcAdd[i].x + Px;
+            x = pVcAdd[i].x - Px;
         }
 
         int e1 = pTe[t].x;
