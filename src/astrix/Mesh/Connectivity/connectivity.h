@@ -53,7 +53,7 @@ class Connectivity
   //! Check if edgeTriangles and triangleEdges are consistent
   void CheckEdgeTriangles();
   //! Check if all triangles have a positive surface area
-  void CheckTriangleAreas(Predicates *predicates,
+  void CheckTriangleAreas(const Predicates *predicates,
                           const MeshParameter *mp);
   void CheckEncroach(const MeshParameter *mp);
 
