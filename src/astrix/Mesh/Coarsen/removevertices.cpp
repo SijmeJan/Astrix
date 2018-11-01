@@ -45,7 +45,6 @@ int Coarsen::RemoveVertices(Connectivity *connectivity,
   if (verboseLevel > 1)
     std::cout << "Coarsening mesh..." << std::endl;
 
-  //real areaBefore = 0.0;
   // Check if Mesh is valid
   if (debugLevel > 0) {
     connectivity->Save(900);
@@ -74,7 +73,10 @@ int Coarsen::RemoveVertices(Connectivity *connectivity,
   while (!finishedCoarsen) {
     if (verboseLevel > 1) std::cout << "Coarsen cycle " << nCycle;
 
+    // Fill edgeCollapseList based on triangleWantRefine
     FillEdgeCollapseList(connectivity, triangleWantRefine);
+
+    // Check which edges can be collapsed
     TestEdgeCollapse(connectivity, predicates, meshParameter);
 
     int nRemove = edgeCollapseList->GetSize();
@@ -88,7 +90,6 @@ int Coarsen::RemoveVertices(Connectivity *connectivity,
 
     if (verboseLevel > 1)
       std::cout << ", vertices to be removed: " << nRemove << ", ";
-
 
     // Find list of vertices that can be removed in parallel
     FindParallelDeletionSet(connectivity);
@@ -151,9 +152,6 @@ int Coarsen::RemoveVertices(Connectivity *connectivity,
   }
 
   delete nvtxCoarsen;
-
-  //std::cout << "Hallo" << std::endl;
-  //int qq; std::cin >>qq;
 
   return nVertexOld - connectivity->vertexCoordinates->GetSize();
 }
