@@ -77,7 +77,7 @@ endif
 
 # Standard compiler and linker flags
 NVCCFLAGS   := -m${OS_SIZE} -O3
-CCFLAGS     := -Wall -Wno-unused-private-field
+CCFLAGS     := -Wall -Wno-unused-private-field -Wno-unused-function
 NVCCLDFLAGS :=
 LDFLAGS     := -lnvToolsExt -rpath $(LIB_PATH)
 
