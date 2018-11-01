@@ -57,7 +57,7 @@ Mesh::Mesh(int meshVerboseLevel, int meshDebugLevel, int meshCudaFlag,
   predicates = new Predicates(device);
   morton = new Morton(cudaFlag);
   delaunay = new Delaunay(cudaFlag, debugLevel);
-  refine = new Refine(cudaFlag, debugLevel, verboseLevel);
+  refine = new Refine(cudaFlag, 1, verboseLevel);
   coarsen = new Coarsen(cudaFlag, 1, verboseLevel);
 
   // Define arrays
