@@ -279,7 +279,7 @@ void RemoveVertex(int3 *pTv, int3 *pTe, int2 *pEt, real2 *pVc,
 
   int translateFlag = (translateFlagTarget - translateFlagOrigin)*nVertex;
 
-  // NEW
+  // Coordinates of new vertex
   pVc[vTarget] = pEdgeCoordinates[eTarget];
 
   // t1 and t2 are neighbours to e1
