@@ -88,7 +88,7 @@ void Connectivity::CheckEdgeTriangles()
 \param *mp Pointer to MeshParameter object*/
 //#########################################################################
 
-void Connectivity::CheckTriangleAreas(Predicates *predicates,
+void Connectivity::CheckTriangleAreas(const Predicates *predicates,
                                       const MeshParameter *mp)
 {
   // Copy data to host if necessary
