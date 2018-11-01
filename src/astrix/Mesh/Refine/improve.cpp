@@ -70,8 +70,20 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
     if (verboseLevel > 1)
       std::cout << "Refine cycle " << ncycle;
 
-    if (debugLevel > 0)
-      connectivity->Save(ncycle);
+    // Check if Mesh is valid
+    if (debugLevel > 0) {
+      connectivity->Save(900);
+      try {
+        connectivity->CheckEdgeTriangles();
+        connectivity->CheckTriangleAreas(predicates, meshParameter);
+        connectivity->CheckEncroach(meshParameter);
+      }
+      catch (...) {
+        std::cout << "Invalid mesh at start of refine cycle, exiting"
+                  << std::endl;
+        throw;
+      }
+    }
 
     if (verboseLevel > 2)
       std::cout << std::endl << "Testing triangles..." << std::endl;
@@ -188,6 +200,20 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
                               vertexState, triangleWantRefine,
                               nTriangleOld);
 
+        // Check if Mesh is valid
+        if (debugLevel > 0) {
+          connectivity->Save(901);
+          try {
+            connectivity->CheckEdgeTriangles();
+            connectivity->CheckTriangleAreas(predicates, meshParameter);
+            connectivity->CheckEncroach(meshParameter);
+          }
+          catch (...) {
+            std::cout << "Invalid mesh after insertion, exiting"
+                      << std::endl;
+            throw;
+          }
+        }
 
         int nEdgeCheck = edgeNeedsChecking->RemoveValue(-1);
 
@@ -198,6 +224,21 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
         delaunay->MakeDelaunay<realNeq>(connectivity, vertexState,
                                         predicates, meshParameter, 0,
                                         edgeNeedsChecking, nEdgeCheck, 0);
+
+        // Check if Mesh is valid
+        if (debugLevel > 0) {
+          connectivity->Save(902);
+          try {
+            connectivity->CheckEdgeTriangles();
+            connectivity->CheckTriangleAreas(predicates, meshParameter);
+            connectivity->CheckEncroach(meshParameter);
+          }
+          catch (...) {
+            std::cout << "Invalid mesh after Delaunay, exiting"
+                      << std::endl;
+            throw;
+          }
+        }
 
         if (verboseLevel > 2)
           std::cout << "Morton..." << std::endl;
