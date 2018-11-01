@@ -18,6 +18,50 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace astrix {
 
+//##############################################################################
+/*! Normalize vertex index \a so that the 0 < return value < \a N
+
+\param a Vertex index to normalize
+\param N Total number of vertices in Mesh*/
+//##############################################################################
+
+__host__ __device__ inline
+int NormalizeVertex(int a, const int N)
+{
+  while (a >= N) a -= N;
+  while (a < 0) a += N;
+
+  return a;
+}
+
+//##############################################################################
+/*! Normalize vertex indices \a V so that the 0 < return value < \a N
+
+\param V Vertex indices to normalize
+\param N Total number of vertices in Mesh*/
+//##############################################################################
+
+__host__ __device__ inline
+int3 NormalizeVertex(int3 V, const int N)
+{
+  while (V.x >= N) V.x -= N;
+  while (V.x < 0) V.x += N;
+  while (V.y >= N) V.y -= N;
+  while (V.y < 0) V.y += N;
+  while (V.z >= N) V.z -= N;
+  while (V.z < 0) V.z += N;
+
+  return V;
+}
+
+//##############################################################################
+/*! Return triangle vertex not part of edge \a e. Returns -1 if \a e not part of triangle.
+
+\param e Edge to consider
+\param V Vertices of triangle
+\param E Edges of triangle*/
+//##############################################################################
+
 __host__ __device__ inline
 int VertexNotPartOfEdge(const int e, const int3 V, const int3 E)
 {
@@ -64,9 +108,9 @@ void TranslateVertexToVertex(const int b, const int f,
                              const real dx, const real dy, const int N,
                              real& x, real& y)
 {
-  if (b - f == 4*N || b - f == 1*N || b - f == -2*N) x += dx;
-  if (b - f == 2*N || b - f == -1*N || b - f == -4*N) x -= dx;
-  if (b - f == 4*N || b - f == 3*N || b - f == 2*N) y += dy;
+  if (b - f == 4*N  || b - f == 1*N  || b - f == -2*N) x += dx;
+  if (b - f == 2*N  || b - f == -1*N || b - f == -4*N) x -= dx;
+  if (b - f == 4*N  || b - f == 3*N  || b - f == 2*N)  y += dy;
   if (b - f == -2*N || b - f == -3*N || b - f == -4*N) y -= dy;
 }
 
@@ -234,8 +278,7 @@ void MakeValidIndices(int& a, int& b, int& c, const int N)
 //######################################################################
 /*! Find coordinates of triangle. This is non-trivial in the case of a periodic domain.
 
-\param *pVertX Pointer to x-coordinates of vertices
-\param *pVertY Pointer to y-coordinates of vertices
+\param *pVc Pointer to vertex coordinates
 \param a Triangle's first vertex
 \param b Triangle's second vertex
 \param c Triangle's third vertex
@@ -283,8 +326,7 @@ void GetTriangleCoordinates(const real2* __restrict__ pVc,
 //######################################################################
 /*! Find coordinates of a single vertex of a triangle. This is non-trivial in the case of a periodic domain.
 
-\param *pVertX Pointer to x-coordinates of vertices
-\param *pVertY Pointer to y-coordinates of vertices
+\param *pVc Pointer to vertex coordinates
 \param a Triangle vertex
 \param nVertex Total number of vertices in Mesh
 \param Px Periodic domain size x
@@ -316,7 +358,6 @@ void GetTriangleCoordinatesSingle(const real2* __restrict__ pVc,
 Find vertices belonging to edge \a e, knowing it is part of triangle \a t with edges \a E and vertice \a V. Find the vertices \a a and \a b belonging to edge \a e in counterclockwise order as seen from \a t. Both \a a and \a b are output.
 
 \param e Edge to find vertices for
-\param *pTv Pointer to triangle vertices
 \param t Triangle that \a e is part of
 \param V Vertices of \a t
 \param E Edges of \a t
@@ -424,6 +465,13 @@ void GetEdgeVertices(const int e,
   GetEdgeVertices(e, pTv, pTe, tCollapse.x, V, E, a, b);
 }
 
+//######################################################################
+/*! Return triangle in \a T that is not \a t. Usually \a T is a pair of triangles next to an edge.
+
+\param t Triangle we do not want
+\param T Pair of triangles, one of which is \a t*/
+//######################################################################
+
 __host__ __device__ inline
 int OtherNeighbouringTriangle(const int t, const int2 T)
 {
@@ -431,6 +479,13 @@ int OtherNeighbouringTriangle(const int t, const int2 T)
   if (ret == t) ret = T.y;
   return ret;
 }
+
+//######################################################################
+/*! Return edge of triangle in counterclockwise direction from edge \a e.
+
+\param e Edge to consider
+\param E Edges of triangle*/
+//######################################################################
 
 __host__ __device__ inline
 int NextEdgeCounterClockwise(const int e, const int3 E)
@@ -441,6 +496,13 @@ int NextEdgeCounterClockwise(const int e, const int3 E)
   return -1;
 }
 
+//######################################################################
+/*! Return edge of triangle in clockwise direction from edge \a e.
+
+\param e Edge to consider
+\param E Edges of triangle*/
+//######################################################################
+
 __host__ __device__ inline
 int NextEdgeClockwise(const int e, const int3 E)
 {
@@ -449,67 +511,6 @@ int NextEdgeClockwise(const int e, const int3 E)
   if (e == E.z) return E.y;
   return -1;
 }
-
-//#########################################################################
-/*! Move counterclockwise from edge \a eStart until we hit a segment, the index of which is returned. If no segment is found, return -1.
-
-\param eStart Edge to start from
-\param tStart Triangle to start from
-\param *pTv Pointer to triangle vertices
-\param *pTe Pointer to triangle edges
-\param *pEt Pointer to edge triangles*/
-//#########################################################################
-
-__host__ __device__ inline
-int FindSegmentCounterClockOld(int eStart, int& tStart, int3& E,
-                               int3 *pTv, int3 *pTe, int2 *pEt)
-{
-  int t = pEt[eStart].x;
-  if (t == tStart) t = pEt[eStart].y;
-  if (t == -1) return eStart;
-
-  // Edge that was crossed last; move counterclockwise from here
-  int eCrossed = eStart;
-  // Edge to cross next
-  int eCross = -1;
-
-  tStart = t;
-
-  int finished = 0;
-  while (!finished){
-    // Edges of current triangle
-    E = pTe[t];
-    //int e1 = pTe[t].x;
-    //int e2 = pTe[t].y;
-    //int e3 = pTe[t].z;
-
-    // Find edge to cross next (counterclockwise)
-    if (eCrossed == E.x) eCross = E.z;
-    if (eCrossed == E.y) eCross = E.x;
-    if (eCrossed == E.z) eCross = E.y;
-
-    // Triangle to move into
-    int tNext = pEt[eCross].x;
-    if (tNext == t) tNext = pEt[eCross].y;
-
-    // Done if eCross is a segment
-    if (tNext == -1 || tNext == tStart) {
-      finished = 1;
-      // If no segment found, return -1
-      if (tNext == tStart) eCross = -1;
-    } else {
-      // Otherwise, continue...
-      t = tNext;
-      eCrossed = eCross;
-    }
-  }
-
-  // Return segment
-  //eStart = eCross;
-  tStart = t;
-  return eCross;
-}
-
 
 //#########################################################################
 /*! Move counterclockwise from edge \a eStart until we hit a segment, the index of which is returned. If no segment is found, return -1.
@@ -594,6 +595,15 @@ int FindSegmentClock(int eStart, int& t, int3& E,
 }
 
 //#########################################################################
+/*! Walk around, visiting all triangles surrounding edge \a eTest. Triangle \a t and edge crossed \a eCross will be updated.
+
+\param eTest Edge to walk around
+\param isSegment Flag whether \a eTest is a segment
+\param t Current triangle, will be updated
+\param eCross Edge crossed, will be updated
+\param E Edges of current triangle
+\param *pTe Pointer to triangle edges
+\param *pEt Pointer to edge triangles*/
 //#########################################################################
 
 __host__ __device__ inline
