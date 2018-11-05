@@ -45,6 +45,7 @@ namespace astrix {
                           PROBLEM_VORTEX,    /*!< Isentropic vortex*/
                           PROBLEM_NOH,       /*!< Noh test problem*/
                           PROBLEM_SOURCE,    /*!< Source problem*/
+                          PROBLEM_GAUSS,     /*!< Advection pulse*/
   };
 
   //! Integration schemes
