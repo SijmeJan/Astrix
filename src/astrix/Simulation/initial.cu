@@ -72,6 +72,24 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   real momy = zero;
   real ener = zero;
 
+  if (problemDef == PROBLEM_GAUSS) {
+    real x = vertX;
+    real y = vertY;
+
+    real X_VELOCITY = 2.0, pres = 100.0;
+    real CENTRE = 0.2;
+    real S,W,RHO_0 = 10.0,RHO_PULSE = 50.0;
+
+    S = abs(CENTRE - x);
+    W = 0.1;
+
+    dens = RHO_PULSE*exp(-S*S/(W*W)) + RHO_0*(1.0-exp(-S*S/(W*W)));
+    momx = dens*X_VELOCITY;
+    momy = dens*0.0000000001;
+
+    ener = half*(Sq(momx) + Sq(momy))/dens + pres/(G - one);
+  }
+
   if (problemDef == PROBLEM_LINEAR) {
     real amp = (real) 1.0e-4;
     real k = two*M_PI;
