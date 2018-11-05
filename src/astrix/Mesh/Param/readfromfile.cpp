@@ -62,6 +62,7 @@ void MeshParameter::ReadFromFile(const char *fileName)
       if (secondWord == "VORTEX") problemDef = PROBLEM_VORTEX;
       if (secondWord == "NOH") problemDef = PROBLEM_NOH;
       if (secondWord == "SOURCE") problemDef = PROBLEM_SOURCE;
+      if (secondWord == "GAUSS") problemDef = PROBLEM_GAUSS;
     }
 
     // Equivalent no of points x-direction (check if number)
@@ -133,6 +134,15 @@ void MeshParameter::ReadFromFile(const char *fileName)
           secondWord.find_first_not_of("012") == std::string::npos)
         structuredFlag = atof(secondWord.c_str());
     }
+    if (firstWord == "vertexInputFile") {
+      if (!secondWord.empty()) {
+        vertexInputFile = secondWord;
+        std::cout<< "Warning: creating mesh from vertices in file "
+                 << vertexInputFile << ". Mesh quality not guaranteed."
+                 << std::endl;
+      }
+    }
+
   }
 
   inFile.close();
