@@ -98,6 +98,14 @@ void MeshParameter::CheckValidity()
     std::cout << "Invalid value for structuredFlag" << std::endl;
     throw std::runtime_error("");
   }
+  if (structuredFlag != 0 && !vertexInputFile.empty()) {
+    std::cout <<
+      "Can not use a structured mesh in combination with a vertex input file"
+              << std::endl;
+    throw std::runtime_error("");
+  }
+
+
 }
 
 }  // namespace astrix
