@@ -172,13 +172,47 @@ void Mesh::Init(const char *fileName, int restartNumber)
         throw;
       }
 
-      try {
-        // Refine mesh to base resolution
-        ImproveQuality<real>((Array<real> *)0, 0, 0);
-      }
-      catch (...) {
-        std::cout << "Error refining initial mesh" << std::endl;
-        throw;
+      // If vertex list available...
+      if (!meshParameter->vertexInputFile.empty()) {
+        // Read vertex coordinates into Array
+        Array <real> *temp;
+        try {
+          temp = new Array <real> (meshParameter->vertexInputFile);
+        }
+        catch (...) {
+          throw;
+        }
+
+        // Need array to be 2D
+        if (temp->GetDimension() != 2) {
+          std::cout << "Error: vertex input file should have 2 columns"
+                    << std::endl;
+          throw std::runtime_error("");
+        }
+
+        // Convert to real2
+        Array <real2> *vertexCoordinatesToAdd = new Array <real2>;
+        temp->MakeIntrinsic2D(vertexCoordinatesToAdd);
+        delete temp;
+
+        // Add vertices into mesh
+        refine->AddVertices(connectivity,
+                            meshParameter,
+                            predicates,
+                            delaunay,
+                            vertexCoordinatesToAdd,
+                            0);
+
+        delete vertexCoordinatesToAdd;
+      } else {
+        try {
+          // Refine mesh to base resolution
+          ImproveQuality<real>((Array<real> *)0, 0, 0);
+        }
+        catch (...) {
+          std::cout << "Error refining initial mesh" << std::endl;
+          throw;
+        }
       }
     }
   } else {
