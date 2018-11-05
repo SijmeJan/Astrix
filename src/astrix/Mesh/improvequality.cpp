@@ -34,8 +34,8 @@ namespace astrix {
 /*! Refine Delaunay mesh, depending on the state vector (i.e. density, momentum, etc). If \a *vertexState != 0, we first calculate an estimate of the discretization error and flag triangles to be refined; otherwise, all triangles can be refined, necessary for example when building the mesh for the first time. It returns the number of vertices added.
 
 \param *vertexState Pointer to state vector at vertices
-\param specificHeatRatio Ratio of specific heats
-\param nTimeStep Number of time steps taken so far. Used in combination with \a nStepSkipRefine to possibly avoid refining every timestep*/
+\param nTimeStep Number of time steps taken so far. Used in combination with \a nStepSkipRefine to possibly avoid refining every timestep
+\param *triangleWantRefine Pointer to Array of flags whether triangles need to be refined*/
 //#########################################################################
 
 template<class realNeq>
@@ -53,6 +53,7 @@ int Mesh::ImproveQuality(Array<realNeq> *vertexState,
 
   // Flag triangles if refinement is needed
   if (vertexState != 0) {
+    // We are in the middle of a simulation: refine flagged triangles
     nAdded = refine->ImproveQuality<realNeq>(connectivity,
                                              meshParameter,
                                              predicates,
@@ -62,6 +63,7 @@ int Mesh::ImproveQuality(Array<realNeq> *vertexState,
                                              triangleWantRefine);
   } else {
     try {
+      // Start of simulation
       nAdded = refine->ImproveQuality<realNeq>(connectivity,
                                                meshParameter,
                                                predicates,
