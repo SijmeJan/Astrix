@@ -111,6 +111,20 @@ int Refine::AddVertices(Connectivity * const connectivity,
       std::cout << ", added so far: " << nAdded << std::endl;
   }
 
+  // Check if Mesh is valid
+  if (debugLevel > 0) {
+    connectivity->Save(901);
+    try {
+      connectivity->CheckEdgeTriangles();
+      connectivity->CheckTriangleAreas(predicates, meshParameter);
+    }
+    catch (...) {
+      std::cout << "Invalid mesh after adding vertices"
+                << std::endl;
+      throw;
+    }
+  }
+
   delete vertexOrderInsert;
   delete vertexOrderTotal;
 
