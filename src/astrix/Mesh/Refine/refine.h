@@ -48,7 +48,7 @@ class Refine
                   const MeshParameter *meshParameter,
                   const Predicates *predicates,
                   Delaunay * const delaunay,
-                  Array<real2> * const vertexBoundaryCoordinates,
+                  Array<real2> * const vertexCoordinatesToAdd,
                   Array<int> * const vertexOrder);
 
  private:
