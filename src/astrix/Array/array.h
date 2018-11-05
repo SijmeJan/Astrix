@@ -51,6 +51,10 @@ template <class T> class Array
     \param _dynArrayStep Increase physical size of array in these steps*/
   Array(unsigned int _nDims, int _cudaFlag,
         unsigned int _size, int _dynArrayStep);
+  //! Construct Array from ASCII file
+  /*! Construct Array from ASCII file. Dimensions are determined from file.
+    \param inputFile Name of inputfile*/
+  Array(std::string inputFile);
 
   //! Destructor, releases allocated memory
   /*! Destroy Array object, releasing both host and device memory*/
@@ -128,6 +132,10 @@ template <class T> class Array
 
   //! Add value to all entries from startIndex to endIndex
   void AddValue(T value, unsigned int startIndex, unsigned int endIndex);
+
+  //! Create float2/double2 array from 2D float/double array
+  template <class S>
+    void MakeIntrinsic2D(Array<S> *result);
 
   //! Sort array, together with \a arrayB
   void Sort(Array<T> *arrayB);
