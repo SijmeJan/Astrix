@@ -15,6 +15,8 @@ You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include "./array.h"
 #include "../Common/cudaLow.h"
@@ -126,6 +128,84 @@ Array<T>::Array(unsigned int _nDims, int _cudaFlag,
 }
 
 //#########################################################################
+// Construct from input ASCII file
+//#########################################################################
+
+template <class T>
+Array<T>::Array(std::string inputFile)
+{
+  // Open input file
+  std::ifstream inFile(inputFile);
+  if (!inFile) {
+    std::cout << "Error opening file " << inputFile << std::endl;
+    throw std::runtime_error("");
+  }
+
+  // Count lines and columns in file
+  std::string line;
+  int nLines = 0;
+  nDims = 0;
+  while (getline(inFile, line)) {
+    std::string word;
+    std::istringstream iss(line);
+
+    int nColumns = 0;
+    while (iss >> word) nColumns++;
+
+    if (nDims == 0) {
+      // Set number of dimensions according to first line of file
+      nDims = nColumns;
+    } else {
+      // Check if number of columns is constant
+      if (nColumns != nDims) {
+        std::cout << "Error: number of columns in input ASCII file "
+                  << inputFile << " must be constant" << std::endl;
+        throw std::runtime_error("");
+      }
+    }
+
+    nLines++;
+  }
+  inFile.close();
+
+  dynArrayStep = 128;
+
+  cudaFlag = 0;
+  hostVec = 0;
+  deviceVec = 0;
+  size = nLines;
+  realSize = ((size + dynArrayStep)/dynArrayStep)*dynArrayStep;
+
+  // Allocate memory
+  hostVec = (T *)malloc(nDims*realSize*sizeof(T));
+  memAllocatedHost += nDims*realSize*sizeof(T);
+
+  // Re-open input file
+  inFile.open(inputFile);
+  if (!inFile) {
+    std::cout << "Error opening file " << inputFile << std::endl;
+    throw std::runtime_error("");
+  }
+
+  // Set array values
+  nLines = 0;
+  while (getline(inFile, line)) {
+    std::string word;
+    std::istringstream iss(line);
+
+    for (int n = 0; n < nDims; n++) {
+      iss >> word;
+      T value = (T) atof(word.c_str());
+      SetSingleValue(value, nLines, n);
+    }
+
+    nLines++;
+  }
+
+  inFile.close();
+}
+
+//#########################################################################
 // Destructor
 //#########################################################################
 
@@ -157,6 +237,7 @@ template Array<double>::Array(unsigned int _nDims,
                               int _cudaFlag,
                               unsigned int _size,
                               int _dynArrayStep);
+template Array<double>::Array(std::string inputFile);
 template Array<double>::~Array();
 
 //#############################################################################
@@ -213,6 +294,7 @@ template Array<float>::Array(unsigned int _nDims,
                              int _cudaFlag,
                              unsigned int _size,
                              int _dynArrayStep);
+template Array<float>::Array(std::string inputFile);
 template Array<float>::~Array();
 
 //#############################################################################
