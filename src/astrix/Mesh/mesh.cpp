@@ -203,6 +203,11 @@ void Mesh::Init(const char *fileName, int restartNumber)
                             vertexCoordinatesToAdd,
                             0);
 
+        // Calculate triangle normals and areas
+        CalcNormalEdge();
+        connectivity->CalcVertexArea(GetPx(), GetPy());
+        FindBoundaryVertices();
+
         delete vertexCoordinatesToAdd;
       } else {
         try {
