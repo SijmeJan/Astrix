@@ -33,7 +33,7 @@ namespace astrix {
 \param *meshParameter Pointer to Mesh parameters, read from input file
 \param *predicates Exact geometric predicates
 \param *delaunay Pointer to Delaunay object, used to maintain Delaunay triangulation
-\param *vertexBoundaryCoordinates Pointer to coordinates of vertices to be added
+\param *vertexCoordinatesToAdd Pointer to coordinates of vertices to be added
 \param *vertexOrder Output: the order in which vertices were inserted.*/
 //#########################################################################
 
@@ -41,34 +41,34 @@ int Refine::AddVertices(Connectivity * const connectivity,
                         const MeshParameter *meshParameter,
                         const Predicates *predicates,
                         Delaunay * const delaunay,
-                        Array<real2> * const vertexBoundaryCoordinates,
+                        Array<real2> * const vertexCoordinatesToAdd,
                         Array<int> * const vertexOrder)
 {
   nvtxEvent *nvtxRefine = new nvtxEvent("Refine", 1);
 
-  // Going to add all boundary vertices
-  int nRefine = vertexBoundaryCoordinates->GetSize();
+  // Going to add all vertices
+  int nToAdd = vertexCoordinatesToAdd->GetSize();
   if (verboseLevel > 1)
-    std::cout << "Going to add " << nRefine << " vertices" << std::endl;
+    std::cout << "Going to add " << nToAdd << " vertices" << std::endl;
 
   int nAdded = 0;
 
   Array<int> *vertexOrderInsert = new Array<int>(1, cudaFlag);
-  Array<int> *vertexBoundaryOrder =
-    new Array<int>(1, cudaFlag, (unsigned int) nRefine);
-  vertexBoundaryOrder->SetToSeries();
-  vertexBoundaryOrder->AddValue(4, 0, nRefine);
+  Array<int> *vertexOrderTotal =
+    new Array<int>(1, cudaFlag, (unsigned int) nToAdd);
+  vertexOrderTotal->SetToSeries();
+  vertexOrderTotal->AddValue(4, 0, nToAdd);
 
   // While there are still points to add
-  while (nRefine > 0) {
-    vertexOrderInsert->SetSize(nRefine);
-    vertexOrderInsert->SetEqual(vertexBoundaryOrder);
+  while (nToAdd > 0) {
+    vertexOrderInsert->SetSize(nToAdd);
+    vertexOrderInsert->SetEqual(vertexOrderTotal);
 
-    elementAdd->SetSize(nRefine);
-    vertexCoordinatesAdd->SetSize(nRefine);
-    vertexCoordinatesAdd->SetEqual(vertexBoundaryCoordinates);
+    elementAdd->SetSize(nToAdd);
+    vertexCoordinatesAdd->SetSize(nToAdd);
+    vertexCoordinatesAdd->SetEqual(vertexCoordinatesToAdd);
 
-    badTriangles->SetSize(nRefine);
+    badTriangles->SetSize(nToAdd);
     badTriangles->SetToValue(-1);
 
     // Find triangles for all new vertices
@@ -82,25 +82,26 @@ int Refine::AddVertices(Connectivity * const connectivity,
 
     // Find unique triangle set
     FindParallelInsertionSet(connectivity,
-                             vertexBoundaryOrder,
+                             vertexOrderTotal,
                              vertexOrderInsert,
-                             vertexBoundaryCoordinates,
+                             vertexCoordinatesToAdd,
                              predicates, meshParameter);
 
     // Add inserted vertices to vertexOrder
-    vertexOrder->Concat(vertexOrderInsert);
+    if (vertexOrder != 0)
+      vertexOrder->Concat(vertexOrderInsert);
 
-    nRefine = elementAdd->GetSize();
-    nAdded += nRefine;
+    nToAdd = elementAdd->GetSize();
+    nAdded += nToAdd;
 
-    AddToPeriodic(connectivity, nRefine);
+    AddToPeriodic(connectivity, nToAdd);
 
     // Insert vertices into Mesh
     InsertVertices<real>(connectivity,
                          meshParameter,
                          predicates, (Array<real> *) 0, 0);
 
-    nRefine = vertexBoundaryCoordinates->GetSize();
+    nToAdd = vertexCoordinatesToAdd->GetSize();
 
     // Maintain Delaunay triangulation
     delaunay->MakeDelaunay<real>(connectivity, 0, predicates,
@@ -111,7 +112,7 @@ int Refine::AddVertices(Connectivity * const connectivity,
   }
 
   delete vertexOrderInsert;
-  delete vertexBoundaryOrder;
+  delete vertexOrderTotal;
 
   delete nvtxRefine;
 
