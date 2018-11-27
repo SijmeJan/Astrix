@@ -163,6 +163,8 @@ template void Simulation<real, CL_BURGERS>::
 FlagUnphysical(Array<int> *vertexUnphysicalFlag);
 template void Simulation<real3, CL_CART_ISO>::
 FlagUnphysical(Array<int> *vertexUnphysicalFlag);
+template void Simulation<real3, CL_CYL_ISO>::
+FlagUnphysical(Array<int> *vertexUnphysicalFlag);
 template void Simulation<real4, CL_CART_EULER>::
 FlagUnphysical(Array<int> *vertexUnphysicalFlag);
 
