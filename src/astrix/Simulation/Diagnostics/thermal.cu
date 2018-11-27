@@ -132,6 +132,10 @@ real Diagnostics<real3, CL_CART_ISO>::ThermalEnergy(Array<real3> *state,
                                                     Array<real> *pot,
                                                     Mesh *mesh);
 template
+real Diagnostics<real3, CL_CYL_ISO>::ThermalEnergy(Array<real3> *state,
+                                                   Array<real> *pot,
+                                                   Mesh *mesh);
+template
 real Diagnostics<real4, CL_CART_EULER>::ThermalEnergy(Array<real4> *state,
                                                       Array<real> *pot,
                                                       Mesh *mesh);
