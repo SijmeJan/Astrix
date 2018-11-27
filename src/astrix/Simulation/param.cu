@@ -186,6 +186,8 @@ Simulation<real, CL_BURGERS>::CalculateParameterVector(int useOldFlag);
 template void
 Simulation<real3, CL_CART_ISO>::CalculateParameterVector(int useOldFlag);
 template void
+Simulation<real3, CL_CYL_ISO>::CalculateParameterVector(int useOldFlag);
+template void
 Simulation<real4, CL_CART_EULER>::CalculateParameterVector(int useOldFlag);
 
 }  // namespace astrix
