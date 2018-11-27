@@ -20,7 +20,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../Mesh/mesh.h"
 #include "../Common/cudaLow.h"
 #include "./simulation.h"
-#include "./Param/simulationParameter.h"
+#include "./Param/simulationparameter.h"
 
 namespace astrix {
 
@@ -116,6 +116,7 @@ void Simulation<realNeq, CL>::FillWantRefine()
 template void Simulation<real, CL_ADVECT>::FillWantRefine();
 template void Simulation<real, CL_BURGERS>::FillWantRefine();
 template void Simulation<real3, CL_CART_ISO>::FillWantRefine();
+template void Simulation<real3, CL_CYL_ISO>::FillWantRefine();
 template void Simulation<real4, CL_CART_EULER>::FillWantRefine();
 
 }  // namespace astrix
