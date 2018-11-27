@@ -100,6 +100,8 @@ class Mesh
   const real2* TriangleEdgeNormalsData(int dim);
   //! Return triangle edge length data
   const real3* TriangleEdgeLengthData();
+  //! Return triangle average X data
+  const real* TriangleAverageXData();
 
   //! Return edge triangles data
   const int2* EdgeTrianglesData();
@@ -133,6 +135,9 @@ class Mesh
   //! Triangle edge lengths
   Array <real3> *triangleEdgeLength;
 
+  //! Average x coordinate triangle (needed in cylindrical geometry)
+  Array <real> *triangleAverageX;
+
   // Runtime flags
 
   //! Flag whether running on CUDA device
@@ -155,7 +160,7 @@ class Mesh
   void FindBoundaryVertices();
 
   //! Construct mesh boundaries
-  void ConstructBoundaries();
+  void ConstructBoundaries(Array<real2> *vertexBoundaryCoordinates);
   //! Make initial mesh periodic
   void MakePeriodic();
   //! Remove redundant triangles from initial mesh
@@ -174,6 +179,10 @@ class Mesh
   void CheckEncroachSlow();
   //! Check if any edge is larger than \a maxEdgeLength
   void CheckEdgeLength(real maxEdgeLength);
+
+  //! Find convex hull of set of points
+  Array<real2>* ConvexHull(Array<real2> *pointCoordinates);
+
 };
 
 }  // namespace astrix
