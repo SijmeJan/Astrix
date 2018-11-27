@@ -72,6 +72,11 @@ class Simulation
   Array <realNeq> *vertexStateOld;
   //! Gravitational potential at vertex
   Array <real> *vertexPotential;
+  //! Sound speed at vertex
+  Array <real> *vertexSoundSpeed;
+  //! Source term at vertex
+  Array <realNeq> *vertexSource;
+
   //! Difference state vector at vertex
   Array <realNeq> *vertexStateDiff;
   //! Roe parameter vector
@@ -115,7 +120,7 @@ class Simulation
   void DoTimeStep();
 
   //! Set initial conditions according to problemSpec.
-  void SetInitial(real time);
+  void SetInitial(real time, int boundaryFlag);
 
   //! Calculate gravitational potential
   void CalcPotential();
