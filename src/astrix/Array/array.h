@@ -132,6 +132,8 @@ template <class T> class Array
 
   //! Add value to all entries from startIndex to endIndex
   void AddValue(T value, unsigned int startIndex, unsigned int endIndex);
+  //! Multiply entries from startIndex to endIndex by value
+  void MultiplyValue(T value, unsigned int startIndex, unsigned int endIndex);
 
   //! Create float2/double2 array from 2D float/double array
   template <class S>
@@ -145,6 +147,8 @@ template <class T> class Array
   //! Create index array for sorting dimension N
   template<class S>
     void SortByKey(Array<S> *indexArray, unsigned int N);
+  //! Sort array (float2/double2) in counterclockwise order around origin  template<class S>
+  void SortCounterClock(T origin);
 
   //! Perform exclusive scan
   T ExclusiveScan(Array<T> *result);
@@ -179,6 +183,7 @@ template <class T> class Array
     S MinimumComb(int N);
   template <class S>
     S MaximumComb(int N);
+  unsigned int MaximumCombIndex(int N);
 
   //! Return sum of elements
   T Sum();
@@ -197,6 +202,8 @@ template <class T> class Array
   //! Remove entries equal to \a value from Array
   int RemoveValue(T value);
   int RemoveValue(T value, int maxIndex);
+  //! Remove range of entries
+  void Remove(int start, int end);
 
   template<class S>
     int SelectLargerThan(T value, Array<S> *A);
