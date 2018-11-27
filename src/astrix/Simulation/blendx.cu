@@ -314,6 +314,7 @@ void Simulation<realNeq, CL>::CalcShockSensor()
 template void Simulation<real, CL_ADVECT>::CalcShockSensor();
 template void Simulation<real, CL_BURGERS>::CalcShockSensor();
 template void Simulation<real3, CL_CART_ISO>::CalcShockSensor();
+template void Simulation<real3, CL_CYL_ISO>::CalcShockSensor();
 template void Simulation<real4, CL_CART_EULER>::CalcShockSensor();
 
 }  // namespace astrix
