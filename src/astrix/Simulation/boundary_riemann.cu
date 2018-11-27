@@ -208,6 +208,7 @@ void Simulation<realNeq, CL>::SetRiemannBoundaries()
 template void Simulation<real, CL_ADVECT>::SetRiemannBoundaries();
 template void Simulation<real, CL_BURGERS>::SetRiemannBoundaries();
 template void Simulation<real3, CL_CART_ISO>::SetRiemannBoundaries();
+template void Simulation<real3, CL_CYL_ISO>::SetRiemannBoundaries();
 template void Simulation<real4, CL_CART_EULER>::SetRiemannBoundaries();
 
 }  // namespace astrix
