@@ -440,6 +440,7 @@ void Simulation<realNeq, CL>::RestoreFine()
 template void Simulation<real, CL_ADVECT>::Save();
 template void Simulation<real, CL_BURGERS>::Save();
 template void Simulation<real3, CL_CART_ISO>::Save();
+template void Simulation<real3, CL_CYL_ISO>::Save();
 template void Simulation<real4, CL_CART_EULER>::Save();
 
 //##############################################################################
@@ -447,6 +448,7 @@ template void Simulation<real4, CL_CART_EULER>::Save();
 template void Simulation<real, CL_ADVECT>::Restore(int nRestore);
 template void Simulation<real, CL_BURGERS>::Restore(int nRestore);
 template void Simulation<real3, CL_CART_ISO>::Restore(int nRestore);
+template void Simulation<real3, CL_CYL_ISO>::Restore(int nRestore);
 template void Simulation<real4, CL_CART_EULER>::Restore(int nRestore);
 
 //##############################################################################
@@ -454,6 +456,7 @@ template void Simulation<real4, CL_CART_EULER>::Restore(int nRestore);
 template void Simulation<real, CL_ADVECT>::FineGrainSave();
 template void Simulation<real, CL_BURGERS>::FineGrainSave();
 template void Simulation<real3, CL_CART_ISO>::FineGrainSave();
+template void Simulation<real3, CL_CYL_ISO>::FineGrainSave();
 template void Simulation<real4, CL_CART_EULER>::FineGrainSave();
 
 //##############################################################################
@@ -461,6 +464,7 @@ template void Simulation<real4, CL_CART_EULER>::FineGrainSave();
 template void Simulation<real, CL_ADVECT>::RestoreFine();
 template void Simulation<real, CL_BURGERS>::RestoreFine();
 template void Simulation<real3, CL_CART_ISO>::RestoreFine();
+template void Simulation<real3, CL_CYL_ISO>::RestoreFine();
 template void Simulation<real4, CL_CART_EULER>::RestoreFine();
 
 }  // namespace astrix
