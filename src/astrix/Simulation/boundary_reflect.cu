@@ -611,6 +611,7 @@ void Simulation<realNeq, CL>::ReflectingBoundaries(real dt)
 template void Simulation<real, CL_ADVECT>::ReflectingBoundaries(real dt);
 template void Simulation<real, CL_BURGERS>::ReflectingBoundaries(real dt);
 template void Simulation<real3, CL_CART_ISO>::ReflectingBoundaries(real dt);
+template void Simulation<real3, CL_CYL_ISO>::ReflectingBoundaries(real dt);
 template void Simulation<real4, CL_CART_EULER>::ReflectingBoundaries(real dt);
 
 }  // namespace astrix
