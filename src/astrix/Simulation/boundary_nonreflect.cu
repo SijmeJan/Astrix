@@ -112,6 +112,7 @@ void Simulation<realNeq, CL>::SetNonReflectingBoundaries()
 template void Simulation<real, CL_ADVECT>::SetNonReflectingBoundaries();
 template void Simulation<real, CL_BURGERS>::SetNonReflectingBoundaries();
 template void Simulation<real3, CL_CART_ISO>::SetNonReflectingBoundaries();
+template void Simulation<real3, CL_CYL_ISO>::SetNonReflectingBoundaries();
 template void Simulation<real4, CL_CART_EULER>::SetNonReflectingBoundaries();
 
 }  // namespace astrix
