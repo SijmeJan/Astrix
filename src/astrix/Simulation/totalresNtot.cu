@@ -22,6 +22,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../Common/cudaLow.h"
 #include "../Common/inlineMath.h"
 #include "./upwind.h"
+#include "./contour.h"
 #include "../Common/profile.h"
 #include "./Param/simulationparameter.h"
 
@@ -49,7 +50,10 @@ namespace astrix {
 \param G1 G - 1
 \param G2 G - 2
 \param iG 1/G
-\param *pVp Pointer to external potential at vertices*/
+\param *pVp Pointer to external potential at vertices
+\param *pTrad Triangle average x (needed for cylindrical geometry)
+\param *pVcs Sound speed at vertices (isothermal case)
+\param frameAngularVelocity Angular velocity coordinate frame (cylindrical geometry)*/
 //######################################################################
 
 template<ConservationLaw CL>
@@ -68,7 +72,9 @@ void CalcTotalResNtotSingle(const int n, const real dt,
                             real4 *pTresN2,
                             real4 *pTresTot,
                             int nVertex, const real G, const real G1,
-                            const real G2, const real iG, const real *pVp)
+                            const real G2, const real iG, const real *pVp,
+                            const real *pTrad, const real *pVcs,
+                            const real frameAngularVelocity)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -881,6 +887,16 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   pTresN2[n].w += half*ResN;
 }
 
+
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//-----------------------------------------------------------------------------
+// Systems of 3 equations: Cartesian and cylindrical isothermal hydrodynamics
+//-----------------------------------------------------------------------------
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
 template<ConservationLaw CL>
 __host__ __device__
 void CalcTotalResNtotSingle(const int n, const real dt,
@@ -891,7 +907,9 @@ void CalcTotalResNtotSingle(const int n, const real dt,
                             real3 *pResSource, real3 *pTresN0, real3 *pTresN1,
                             real3 *pTresN2, real3 *pTresTot, int nVertex,
                             const real G, const real G1,
-                            const real G2, const real iG, const real *pVp)
+                            const real G2, const real iG, const real *pVp,
+                            const real *pTrad, const real *pVcs,
+                            const real frameAngularVelocity)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -920,6 +938,9 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real dW20 = pDstate[v3].x;
   real dW21 = pDstate[v3].y;
   real dW22 = pDstate[v3].z;
+
+  // Average sound speed
+  real ctilde = onethird*(pVcs[v1] + pVcs[v2] + pVcs[v3]);
 
   real Tl1 = pTl[n].x;
   real Tl2 = pTl[n].y;
@@ -1004,12 +1025,20 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real Wtemp1 = ResSource1;
   real Wtemp2 = ResSource2;
 
-  // Matrix element K- + K+
-  // real kk;
-
   real utilde = Z1/Z0;
   real vtilde = Z2/Z0;
-  real ctilde = one;
+
+  // Average radius triangle
+  real r2 = one;
+  real ir2 = one;
+  real Omega = zero;
+
+  if (CL == CL_CYL_ISO) {
+    r2 = pTrad[n];
+    r2 = r2*r2;
+    ir2 = one/r2;
+    Omega = frameAngularVelocity;
+  }
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate the total residue = Sum(K*What)
@@ -1021,61 +1050,65 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real tl = tl1;
   real nx = half*tl*tnx1;
   real ny = half*tl*tny1;
-  real wtilde = utilde*nx + vtilde*ny;
+  real wtilde = utilde*nx + vtilde*ny*ir2;
 
   ResTot0 +=
+    What00*isoK00(ny, Omega) +
     What01*isoK01(nx) +
-    What02*isoK02(ny);
+    What02*isoK02(ny*ir2);
   ResTot1 +=
     What00*isoK10(nx, ctilde, wtilde, utilde) +
-    What01*isoK11(nx, wtilde, utilde) +
-    What02*isoK12(ny, utilde);
+    What01*isoK11(nx, ny, wtilde, utilde, Omega) +
+    What02*isoK12(ny*ir2, utilde);
   ResTot2 +=
-    What00*isoK20(ny, ctilde, wtilde, vtilde) +
+    What00*isoK20(r2*ny, ctilde, wtilde, vtilde) +
     What01*isoK21(nx, vtilde) +
-    What02*isoK22(ny, wtilde, vtilde);
+    What02*isoK22(ny, wtilde, vtilde, Omega);
 
   // Second direction
   tl = tl2;
   nx = half*tl*tnx2;
   ny = half*tl*tny2;
-  wtilde = utilde*nx + vtilde*ny;
+  wtilde = utilde*nx + vtilde*ny*ir2;
 
   ResTot0 +=
+    What10*isoK00(ny, Omega) +
     What11*isoK01(nx) +
-    What12*isoK02(ny);
+    What12*isoK02(ny*ir2);
   ResTot1 +=
     What10*isoK10(nx, ctilde, wtilde, utilde) +
-    What11*isoK11(nx, wtilde, utilde) +
-    What12*isoK12(ny, utilde);
+    What11*isoK11(nx, ny, wtilde, utilde, Omega) +
+    What12*isoK12(ny*ir2, utilde);
   ResTot2 +=
-    What10*isoK20(ny, ctilde, wtilde, vtilde) +
+    What10*isoK20(r2*ny, ctilde, wtilde, vtilde) +
     What11*isoK21(nx, vtilde) +
-    What12*isoK22(ny, wtilde, vtilde);
+    What12*isoK22(ny, wtilde, vtilde, Omega);
 
   // Third direction
   tl = tl3;
   nx = half*tl*tnx3;
   ny = half*tl*tny3;
-  wtilde = utilde*nx + vtilde*ny;
+  wtilde = utilde*nx + vtilde*ny*ir2;
 
   ResTot0 +=
+    What20*isoK00(ny, Omega) +
     What21*isoK01(nx) +
-    What22*isoK02(ny);
+    What22*isoK02(ny*ir2);
   pTresTot[n].x = half*ResTot0;
   ResTot1 +=
     What20*isoK10(nx, ctilde, wtilde, utilde) +
-    What21*isoK11(nx, wtilde, utilde) +
-    What22*isoK12(ny, utilde);
+    What21*isoK11(nx, ny, wtilde, utilde, Omega) +
+    What22*isoK12(ny*ir2, utilde);
   pTresTot[n].y = half*ResTot1;
   ResTot2 +=
-    What20*isoK20(ny, ctilde, wtilde, vtilde) +
+    What20*isoK20(r2*ny, ctilde, wtilde, vtilde) +
     What21*isoK21(nx, vtilde) +
-    What22*isoK22(ny, wtilde, vtilde);
+    What22*isoK22(ny, wtilde, vtilde, Omega);
   pTresTot[n].z = half*ResTot2;
 
 #else
 
+  /*
   real res0 =
     tl3*(Zv00*Zv01 + (Zv00 + Zv10)*(Zv01 + Zv11) + Zv10*Zv11)*tnx3/6.0 +
     tl3*(Zv00*Zv02 + (Zv00 + Zv10)*(Zv02 + Zv12) + Zv10*Zv12)*tny3/6.0 +
@@ -1112,6 +1145,57 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   ResTot2 -= res2;
   pTresTot[n].z = 0.5*ResTot2;
   Wtemp2 -= res2;
+  */
+
+  real res0 =
+    tl3*c_int(Zv00, Zv10, Zv01, Zv11)*tnx3 +
+    tl3*(c_int(Zv00, Zv10, Zv02, Zv12)*ir2 -
+         Omega*c_int(Zv00, Zv10, Zv00, Zv10))*tny3 +
+    tl1*c_int(Zv10, Zv20, Zv11, Zv21)*tnx1 +
+    tl1*(c_int(Zv10, Zv20, Zv12, Zv22)*ir2 -
+         Omega*c_int(Zv10, Zv20, Zv10, Zv20))*tny1 +
+    tl2*c_int(Zv20, Zv00, Zv21, Zv01)*tnx2 +
+    tl2*(c_int(Zv20, Zv00, Zv22, Zv02)*ir2 -
+         Omega*c_int(Zv20, Zv00, Zv20, Zv00))*tny2;
+  ResTot0 -= res0;
+  pTresTot[n].x = 0.5*ResTot0;
+  Wtemp0 -= res0;
+
+  real res1 =
+    tl3*(c_int(Zv01, Zv11, Zv01, Zv11) +
+         Sq(ctilde)*c_int(Zv00, Zv10, Zv00, Zv10))*tnx3 +
+    tl3*(c_int(Zv01, Zv11, Zv02, Zv12)*ir2 -
+         Omega*c_int(Zv00, Zv10, Zv01, Zv11))*tny3 +
+    tl1*(c_int(Zv11, Zv21, Zv11, Zv21) +
+         Sq(ctilde)*c_int(Zv10, Zv20, Zv10, Zv20))*tnx1 +
+    tl1*(c_int(Zv11, Zv21, Zv12, Zv22)*ir2 -
+         Omega*c_int(Zv10, Zv20, Zv11, Zv21))*tny1 +
+    tl2*(c_int(Zv21, Zv01, Zv21, Zv01) +
+         Sq(ctilde)*c_int(Zv20, Zv00, Zv20, Zv00))*tnx2 +
+    tl2*(c_int(Zv21, Zv01, Zv22, Zv02)*ir2 -
+         Omega*c_int(Zv20, Zv00, Zv21, Zv01))*tny2;
+
+  ResTot1 -= res1;
+  pTresTot[n].y = 0.5*ResTot1;
+  Wtemp1 -= res1;
+
+  real res2 =
+    tl3*c_int(Zv01, Zv11, Zv02, Zv12)*tnx3 +
+    tl3*(c_int(Zv02, Zv12, Zv02, Zv12)*ir2 +
+         Sq(ctilde)*r2*c_int(Zv00, Zv10, Zv00, Zv10) -
+         Omega*c_int(Zv00, Zv10, Zv02, Zv12))*tny3 +
+    tl1*c_int(Zv11, Zv21, Zv12, Zv22)*tnx1 +
+    tl1*(c_int(Zv12, Zv22, Zv12, Zv22)*ir2 +
+         Sq(ctilde)*r2*c_int(Zv10, Zv20, Zv10, Zv20) -
+         Omega*c_int(Zv10, Zv20, Zv12, Zv22))*tny1 +
+    tl2*c_int(Zv21, Zv01, Zv22, Zv02)*tnx2 +
+    tl2*(c_int(Zv22, Zv02, Zv22, Zv02)*ir2 +
+         Sq(ctilde)*r2*c_int(Zv20, Zv00, Zv20, Zv00) -
+         Omega*c_int(Zv20, Zv00, Zv22, Zv02))*tny2;
+
+  ResTot2 -= res2;
+  pTresTot[n].z = 0.5*ResTot2;
+  Wtemp2 -= res2;
 
 #endif
 
@@ -1129,23 +1213,26 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   nx = half*tnx1;
   ny = half*tny1;
   tl = tl1;
-  wtilde = utilde*nx + vtilde*ny;
+  wtilde = utilde*nx + vtilde*ny*ir2;
 
-  // real l1 = min(zero, wtilde + ctilde);
-  // real l2 = min(zero, wtilde - ctilde);
-  // real l3 = min(zero, wtilde);
-  real l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
-  real l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
-  real l3 = half*(wtilde - fabs(wtilde));
+  real l1 = half*(wtilde + ctilde - Omega*ny -
+                  fabs(wtilde + ctilde - Omega*ny));
+  real l2 = half*(wtilde - ctilde - Omega*ny -
+                  fabs(wtilde - ctilde - Omega*ny));
+  real l3 = half*(wtilde - Omega*ny -
+                  fabs(wtilde - Omega*ny));
 #else
   real nx = half*tnx1;
   real ny = half*tny1;
   real tl = tl1;
-  real wtilde = utilde*nx + vtilde*ny;
+  real wtilde = utilde*nx + vtilde*ny*ir2;
 
-  real l1 = -half*(wtilde + ctilde + fabs(wtilde + ctilde));
-  real l2 = -half*(wtilde - ctilde + fabs(wtilde - ctilde));
-  real l3 = -half*(wtilde + fabs(wtilde));
+  real l1 = -half*(wtilde + ctilde - Omega*ny +
+                   fabs(wtilde + ctilde - Omega*ny));
+  real l2 = -half*(wtilde - ctilde - Omega*ny +
+                   fabs(wtilde - ctilde - Omega*ny));
+  real l3 = -half*(wtilde - Omega*ny +
+                   fabs(wtilde - Omega*ny));
 #endif
 
   // Auxiliary variables
@@ -1163,7 +1250,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real nm01 = tl*km;
 
   // km[0][0][2]
-  km = isoKMP02(ny, ic, l1l2);
+  km = isoKMP02(ny*ir2, ic, l1l2);
   Wtemp0 += tl*km*What02;
   real nm02 = tl*km;
 
@@ -1178,22 +1265,22 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real nm11 = tl*km;
 
   // km[0][1][2]
-  km = isoKMP12(nx, ny, uc, l1l2l3, l1l2);
+  km = isoKMP12(nx, ny*ir2, uc, l1l2l3, l1l2);
   Wtemp1 += tl*km*What02;
   real nm12 = tl*km;
 
   // km[0][2][0]
-  km = isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2);
+  km = isoKMP20(ny*r2, ctilde, vc, wtilde, l1l2l3, l1l2);
   Wtemp2 += tl*km*What00;
   real nm20 = tl*km;
 
   // km[0][2][1]
-  km = isoKMP21(nx, ny, vc, l1l2l3, l1l2);
+  km = isoKMP21(nx, ny*r2, vc, l1l2l3, l1l2);
   Wtemp2 += tl*km*What01;
   real nm21 = tl*km;
 
   // km[0][2][2]
-  km = isoKMP22(ny, vc, l1l2l3, l1l2, l3);
+  km = isoKMP22(ny, vc*ir2, l1l2l3, l1l2, l3);
   Wtemp2 += tl*km*What02;
   real nm22 = tl*km;
 
@@ -1201,19 +1288,22 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   nx = half*tnx2;
   ny = half*tny2;
   tl = tl2;
-  wtilde = (uc*nx + vc*ny)*ctilde;
+  wtilde = (uc*nx + vc*ny*ir2)*ctilde;
 
-  // l1 = min(wtilde + ctilde, zero);
-  // l2 = min(wtilde - ctilde, zero);
-  // l3 = min(wtilde, zero);
 #ifndef CONTOUR
-  l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
-  l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
-  l3 = half*(wtilde - fabs(wtilde));
+  l1 = half*(wtilde + ctilde - Omega*ny -
+             fabs(wtilde + ctilde - Omega*ny));
+  l2 = half*(wtilde - ctilde - Omega*ny -
+             fabs(wtilde - ctilde - Omega*ny));
+  l3 = half*(wtilde - Omega*ny -
+             fabs(wtilde - Omega*ny));
 #else
-  l1 = -half*(wtilde + ctilde + fabs(wtilde + ctilde));
-  l2 = -half*(wtilde - ctilde + fabs(wtilde - ctilde));
-  l3 = -half*(wtilde + fabs(wtilde));
+  l1 = -half*(wtilde + ctilde - Omega*ny +
+              fabs(wtilde + ctilde - Omega*ny));
+  l2 = -half*(wtilde - ctilde - Omega*ny +
+              fabs(wtilde - ctilde - Omega*ny));
+  l3 = -half*(wtilde - Omega*ny +
+              fabs(wtilde - Omega*ny));
 #endif
 
   // Auxiliary variables
@@ -1231,7 +1321,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   nm01 += tl*km;
 
   // km[0][0][2]
-  km = isoKMP02(ny, ic, l1l2);
+  km = isoKMP02(ny*ir2, ic, l1l2);
   Wtemp0 += tl*km*What12;
   nm02 += tl*km;
 
@@ -1246,22 +1336,22 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   nm11 += tl*km;
 
   // km[0][1][2]
-  km = isoKMP12(nx, ny, uc, l1l2l3, l1l2);
+  km = isoKMP12(nx, ny*ir2, uc, l1l2l3, l1l2);
   Wtemp1 += tl*km*What12;
   nm12 += tl*km;
 
   // km[0][2][0]
-  km = isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2);
+  km = isoKMP20(ny*r2, ctilde, vc, wtilde, l1l2l3, l1l2);
   Wtemp2 += tl*km*What10;
   nm20 += tl*km;
 
   // km[0][2][1]
-  km = isoKMP21(nx, ny, vc, l1l2l3, l1l2);
+  km = isoKMP21(nx, ny*r2, vc, l1l2l3, l1l2);
   Wtemp2 += tl*km*What11;
   nm21 += tl*km;
 
   // km[0][2][2]
-  km = isoKMP22(ny, vc, l1l2l3, l1l2, l3);
+  km = isoKMP22(ny, vc*ir2, l1l2l3, l1l2, l3);
   Wtemp2 += tl*km*What12;
   nm22 += tl*km;
 
@@ -1269,19 +1359,22 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   nx = half*tnx3;
   ny = half*tny3;
   tl = tl3;
-  wtilde = (uc*nx + vc*ny)*ctilde;
+  wtilde = (uc*nx + vc*ny*ir2)*ctilde;
 
-  // l1 = min(wtilde + ctilde, zero);
-  // l2 = min(wtilde - ctilde, zero);
-  // l3 = min(wtilde, zero);
 #ifndef CONTOUR
-  l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
-  l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
-  l3 = half*(wtilde - fabs(wtilde));
+  l1 = half*(wtilde + ctilde - Omega*ny -
+             fabs(wtilde + ctilde - Omega*ny));
+  l2 = half*(wtilde - ctilde - Omega*ny -
+             fabs(wtilde - ctilde - Omega*ny));
+  l3 = half*(wtilde - Omega*ny -
+             fabs(wtilde - Omega*ny));
 #else
-  l1 = -half*(wtilde + ctilde + fabs(wtilde + ctilde));
-  l2 = -half*(wtilde - ctilde + fabs(wtilde - ctilde));
-  l3 = -half*(wtilde + fabs(wtilde));
+  l1 = -half*(wtilde + ctilde - Omega*ny +
+              fabs(wtilde + ctilde - Omega*ny));
+  l2 = -half*(wtilde - ctilde - Omega*ny +
+              fabs(wtilde - ctilde - Omega*ny));
+  l3 = -half*(wtilde - Omega*ny +
+              fabs(wtilde - Omega*ny));
 #endif
 
   // Auxiliary variables
@@ -1299,7 +1392,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   nm01 += tl*km;
 
   // km[0][0][2]
-  km = isoKMP02(ny, ic, l1l2);
+  km = isoKMP02(ny*ir2, ic, l1l2);
   Wtemp0 += tl*km*What22;
   nm02 += tl*km;
 
@@ -1314,22 +1407,22 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   nm11 += tl*km;
 
   // km[0][1][2]
-  km = isoKMP12(nx, ny, uc, l1l2l3, l1l2);
+  km = isoKMP12(nx, ny*ir2, uc, l1l2l3, l1l2);
   Wtemp1 += tl*km*What22;
   nm12 += tl*km;
 
   // km[0][2][0]
-  km = isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2);
+  km = isoKMP20(ny*r2, ctilde, vc, wtilde, l1l2l3, l1l2);
   Wtemp2 += tl*km*What20;
   nm20 += tl*km;
 
   // km[0][2][1]
-  km = isoKMP21(nx, ny, vc, l1l2l3, l1l2);
+  km = isoKMP21(nx, ny*r2, vc, l1l2l3, l1l2);
   Wtemp2 += tl*km*What21;
   nm21 += tl*km;
 
   // km[0][2][2]
-  km = isoKMP22(ny, vc, l1l2l3, l1l2, l3);
+  km = isoKMP22(ny, vc*ir2, l1l2l3, l1l2, l3);
   Wtemp2 += tl*km*What22;
   nm22 += tl*km;
 
@@ -1385,11 +1478,11 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   nx = half*Tnx1;
   ny = half*Tny1;
 
-  wtilde = (uc*nx + vc*ny)*ctilde;
+  wtilde = (uc*nx + vc*ny*ir2)*ctilde;
 
-  l1 = max(wtilde + ctilde, zero);
-  l2 = max(wtilde - ctilde, zero);
-  l3 = max(wtilde, zero);
+  l1 = max(wtilde + ctilde - Omega*ny, zero);
+  l2 = max(wtilde - ctilde - Omega*ny, zero);
+  l3 = max(wtilde - Omega*ny, zero);
 
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
@@ -1398,19 +1491,19 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   ResN =
     What00*isoKMP00(ic, wtilde, l1l2, l2) +
     What01*isoKMP01(nx, ic, l1l2) +
-    What02*isoKMP02(ny, ic, l1l2);
+    What02*isoKMP02(ny*ir2, ic, l1l2);
   pTresN0[n].x += half*ResN;
 
   ResN =
     What00*isoKMP10(nx, ctilde, uc, wtilde, l1l2l3, l1l2) +
     What01*isoKMP11(nx, uc, l1l2l3, l1l2, l3) +
-    What02*isoKMP12(nx, ny, uc, l1l2l3, l1l2);
+    What02*isoKMP12(nx, ny*ir2, uc, l1l2l3, l1l2);
   pTresN0[n].y += half*ResN;
 
   ResN =
-    What00*isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2) +
-    What01*isoKMP21(nx, ny, vc, l1l2l3, l1l2) +
-    What02*isoKMP22(ny, vc, l1l2l3, l1l2, l3);
+    What00*isoKMP20(ny*r2, ctilde, vc, wtilde, l1l2l3, l1l2) +
+    What01*isoKMP21(nx, ny*r2, vc, l1l2l3, l1l2) +
+    What02*isoKMP22(ny, vc*ir2, l1l2l3, l1l2, l3);
   pTresN0[n].z += half*ResN;
 
   // Second direction
@@ -1419,11 +1512,11 @@ void CalcTotalResNtotSingle(const int n, const real dt,
 
   nx = half*Tnx2;
   ny = half*Tny2;
-  wtilde = (uc*nx + vc*ny)*ctilde;
+  wtilde = (uc*nx + vc*ny*ir2)*ctilde;
 
-  l1 = max(wtilde + ctilde, zero);
-  l2 = max(wtilde - ctilde, zero);
-  l3 = max(wtilde, zero);
+  l1 = max(wtilde + ctilde - Omega*ny, zero);
+  l2 = max(wtilde - ctilde - Omega*ny, zero);
+  l3 = max(wtilde - Omega*ny, zero);
 
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
@@ -1432,19 +1525,19 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   ResN =
     What10*isoKMP00(ic, wtilde, l1l2, l2) +
     What11*isoKMP01(nx, ic, l1l2) +
-    What12*isoKMP02(ny, ic, l1l2);
+    What12*isoKMP02(ny*ir2, ic, l1l2);
   pTresN1[n].x += half*ResN;
 
   ResN =
     What10*isoKMP10(nx, ctilde, uc, wtilde, l1l2l3, l1l2) +
     What11*isoKMP11(nx, uc, l1l2l3, l1l2, l3) +
-    What12*isoKMP12(nx, ny, uc, l1l2l3, l1l2);
+    What12*isoKMP12(nx, ny*ir2, uc, l1l2l3, l1l2);
   pTresN1[n].y += half*ResN;
 
   ResN =
-    What10*isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2) +
-    What11*isoKMP21(nx, ny, vc, l1l2l3, l1l2) +
-    What12*isoKMP22(ny, vc, l1l2l3, l1l2, l3);
+    What10*isoKMP20(ny*r2, ctilde, vc, wtilde, l1l2l3, l1l2) +
+    What11*isoKMP21(nx, ny*r2, vc, l1l2l3, l1l2) +
+    What12*isoKMP22(ny, vc*ir2, l1l2l3, l1l2, l3);
   pTresN1[n].z += half*ResN;
 
   // Third direction
@@ -1453,11 +1546,11 @@ void CalcTotalResNtotSingle(const int n, const real dt,
 
   nx = half*Tnx3;
   ny = half*Tny3;
-  wtilde = (uc*nx + vc*ny)*ctilde;
+  wtilde = (uc*nx + vc*ny*ir2)*ctilde;
 
-  l1 = max(wtilde + ctilde, zero);
-  l2 = max(wtilde - ctilde, zero);
-  l3 = max(wtilde, zero);
+  l1 = max(wtilde + ctilde - Omega*ny, zero);
+  l2 = max(wtilde - ctilde - Omega*ny, zero);
+  l3 = max(wtilde - Omega*ny, zero);
 
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
@@ -1466,21 +1559,31 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   ResN =
     What20*isoKMP00(ic, wtilde, l1l2, l2) +
     What21*isoKMP01(nx, ic, l1l2) +
-    What22*isoKMP02(ny, ic, l1l2);
+    What22*isoKMP02(ny*ir2, ic, l1l2);
   pTresN2[n].x += half*ResN;
 
   ResN =
     What20*isoKMP10(nx, ctilde, uc, wtilde, l1l2l3, l1l2) +
     What21*isoKMP11(nx, uc, l1l2l3, l1l2, l3) +
-    What22*isoKMP12(nx, ny, uc, l1l2l3, l1l2);
+    What22*isoKMP12(nx, ny*ir2, uc, l1l2l3, l1l2);
   pTresN2[n].y += half*ResN;
 
   ResN =
-    What20*isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2) +
-    What21*isoKMP21(nx, ny, vc, l1l2l3, l1l2) +
-    What22*isoKMP22(ny, vc, l1l2l3, l1l2, l3);
+    What20*isoKMP20(ny*r2, ctilde, vc, wtilde, l1l2l3, l1l2) +
+    What21*isoKMP21(nx, ny*r2, vc, l1l2l3, l1l2) +
+    What22*isoKMP22(ny, vc*ir2, l1l2l3, l1l2, l3);
   pTresN2[n].z += half*ResN;
 }
+
+
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//-----------------------------------------------------------------------------
+// Systems of 1 equation: Linear advection and Burgers equation
+//-----------------------------------------------------------------------------
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 
 template<ConservationLaw CL>
 __host__ __device__
@@ -1492,7 +1595,9 @@ void CalcTotalResNtotSingle(const int n, const real dt,
                             real *pResSource, real *pTresN0, real *pTresN1,
                             real *pTresN2, real *pTresTot, int nVertex,
                             const real G, const real G1,
-                            const real G2, const real iG, const real *pVp)
+                            const real G2, const real iG, const real *pVp,
+                            const real *pTrad, const real *pVcs,
+                            const real frameAngularVelocity)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -1732,7 +1837,10 @@ void CalcTotalResNtotSingle(const int n, const real dt,
 \param G1 G - 1
 \param G2 G - 2
 \param iG 1/G
-\param *pVp Pointer to external potential at vertices*/
+\param *pVp Pointer to external potential at vertices
+\param *pTrad Triangle average x (needed for cylindrical geometry)
+\param *pVcs Sound speed at vertices (isothermal case)
+\param frameAngularVelocity Angular velocity coordinate frame (cylindrical geometry)*/
 //######################################################################
 
 template<class realNeq, ConservationLaw CL>
@@ -1744,7 +1852,9 @@ devCalcTotalResNtot(int nTriangle, real dt,
                     const real3* __restrict__  pTl, realNeq *pResSource,
                     realNeq *pTresN0, realNeq *pTresN1, realNeq *pTresN2,
                     realNeq *pTresTot, int nVertex,
-                    real G, real G1, real G2, real iG, const real *pVp)
+                    real G, real G1, real G2, real iG, const real *pVp,
+                    const real *pTrad, const real *pVcs,
+                    const real frameAngularVelocity)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -1752,7 +1862,8 @@ devCalcTotalResNtot(int nTriangle, real dt,
     CalcTotalResNtotSingle<CL>(n, dt, pTv, pVz, pDstate,
                                pTn1, pTn2, pTn3, pTl, pResSource,
                                pTresN0, pTresN1, pTresN2,
-                               pTresTot, nVertex, G, G1, G2, iG, pVp);
+                               pTresTot, nVertex, G, G1, G2, iG, pVp,
+                               pTrad, pVcs, frameAngularVelocity);
 
     // Next triangle
     n += blockDim.x*gridDim.x;
@@ -1804,6 +1915,7 @@ void Simulation<realNeq, CL>::CalcTotalResNtot(real dt)
 
   realNeq *pDstate = vertexStateDiff->GetPointer();
   real *pVp = vertexPotential->GetPointer();
+  real *pVcs = vertexSoundSpeed->GetPointer();
 
   real G = simulationParameter->specificHeatRatio;
 
@@ -1822,6 +1934,9 @@ void Simulation<realNeq, CL>::CalcTotalResNtot(real dt)
   const real2 *pTn3 = mesh->TriangleEdgeNormalsData(2);
   const real3 *pTl  = mesh->TriangleEdgeLengthData();
 
+  const real *pTrad = mesh->TriangleAverageXData();
+  real frameAngularVelocity = 0.0;
+
   if (cudaFlag == 1) {
     int nBlocks = 128;
     int nThreads = 128;
@@ -1838,7 +1953,8 @@ void Simulation<realNeq, CL>::CalcTotalResNtot(real dt)
       (nTriangle, dt, pTv, pVz, pDstate,
        pTn1, pTn2, pTn3, pTl, pResSource,
        pTresN0, pTresN1, pTresN2,
-       pTresTot, nVertex, G, G - 1.0, G - 2.0, 1.0/G, pVp);
+       pTresTot, nVertex, G, G - 1.0, G - 2.0, 1.0/G, pVp, pTrad, pVcs,
+       frameAngularVelocity);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -1855,7 +1971,8 @@ void Simulation<realNeq, CL>::CalcTotalResNtot(real dt)
                                  pTn1, pTn2, pTn3, pTl, pResSource,
                                  pTresN0, pTresN1, pTresN2,
                                  pTresTot, nVertex, G, G - 1.0, G - 2.0,
-                                 1.0/G, pVp);
+                                 1.0/G, pVp, pTrad, pVcs,
+                                 frameAngularVelocity);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -1898,6 +2015,7 @@ void Simulation<realNeq, CL>::CalcTotalResNtot(real dt)
 template void Simulation<real, CL_ADVECT>::CalcTotalResNtot(real dt);
 template void Simulation<real, CL_BURGERS>::CalcTotalResNtot(real dt);
 template void Simulation<real3, CL_CART_ISO>::CalcTotalResNtot(real dt);
+template void Simulation<real3, CL_CYL_ISO>::CalcTotalResNtot(real dt);
 template void Simulation<real4, CL_CART_EULER>::CalcTotalResNtot(real dt);
 
 }  // namespace astrix
