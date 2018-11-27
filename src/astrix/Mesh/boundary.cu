@@ -115,7 +115,8 @@ void SetVertexOuterBoundarySingle(int n, ProblemDefinition problemDef,
       problemDef == PROBLEM_LINEAR ||
       problemDef == PROBLEM_VORTEX ||
       problemDef == PROBLEM_NOH ||
-      problemDef == PROBLEM_SOURCE) {
+      problemDef == PROBLEM_SOURCE ||
+      problemDef == PROBLEM_DISC) {
     if (n == 0) {
       pVc[n].x = 0.63*(maxx - minx) + minx;
       pVc[n].y = 0.60*(maxy - miny) + miny;
@@ -281,98 +282,108 @@ devSetVertexInnerBoundary(ProblemDefinition problemDef, real2 *pVc,
 /*! Construct domain edges. For problems with a simple domain only 4 outer boundary vertices are needed. If on the other hand the outer boundary is for example a circle, all vertices on this circle need to be specified and inserted first. In addition any completely internal boundaries need to be inserted at this point as well.*/
 //#########################################################################
 
-void Mesh::ConstructBoundaries()
+void Mesh::ConstructBoundaries(Array <real2> *vertexBoundaryCoordinates)
 {
+  int fixedVerticesFlag = 0;
+  if (vertexBoundaryFlag != 0)
+    fixedVerticesFlag = 1;
+
   if (verboseLevel > 0)
     std::cout << "Constructing boundaries..." << std::endl;
-
-  // Coordinates of boundary vertices
-  Array<real2> *vertexBoundaryCoordinates = new Array<real2>(1, cudaFlag);
 
   int nVertexOuterBoundary = 0;
   int nVertexInnerBoundary = 0;
 
-  if (meshParameter->problemDef == PROBLEM_RIEMANN ||
-      meshParameter->problemDef == PROBLEM_SOD ||
-      meshParameter->problemDef == PROBLEM_BLAST ||
-      meshParameter->problemDef == PROBLEM_KH ||
-      meshParameter->problemDef == PROBLEM_LINEAR ||
-      meshParameter->problemDef == PROBLEM_VORTEX ||
-      meshParameter->problemDef == PROBLEM_NOH ||
-      meshParameter->problemDef == PROBLEM_SOURCE ||
-      meshParameter->problemDef == PROBLEM_GAUSS) {
-    nVertexOuterBoundary = 4;
+  // Coordinates of boundary vertices
+  if (vertexBoundaryCoordinates == 0) {
+    vertexBoundaryCoordinates = new Array<real2>(1, cudaFlag);
+
+    if (meshParameter->problemDef == PROBLEM_RIEMANN ||
+        meshParameter->problemDef == PROBLEM_SOD ||
+        meshParameter->problemDef == PROBLEM_BLAST ||
+        meshParameter->problemDef == PROBLEM_KH ||
+        meshParameter->problemDef == PROBLEM_LINEAR ||
+        meshParameter->problemDef == PROBLEM_VORTEX ||
+        meshParameter->problemDef == PROBLEM_NOH ||
+        meshParameter->problemDef == PROBLEM_SOURCE ||
+        meshParameter->problemDef == PROBLEM_GAUSS ||
+        meshParameter->problemDef == PROBLEM_DISC) {
+      nVertexOuterBoundary = 4;
+      nVertexInnerBoundary = 0;
+    }
+    if (meshParameter->problemDef == PROBLEM_CYL) {
+      nVertexOuterBoundary = 4;
+      nVertexInnerBoundary = 100;
+    }
+
+    // Happens if problem is not defined
+    if (nVertexOuterBoundary == 0) {
+      std::cout << "Error: no outer boundary vertices!" << std::endl;
+      throw std::runtime_error("");
+    }
+
+    vertexBoundaryCoordinates->SetSize(nVertexOuterBoundary +
+                                       nVertexInnerBoundary);
+    real2 *pVbc = vertexBoundaryCoordinates->GetPointer();
+
+    // Fill coordinates of outer boundary vertices
+    if (cudaFlag == 1) {
+      int nBlocks = 128;
+      int nThreads = 128;
+
+      // Base nThreads and nBlocks on maximum occupancy
+      cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
+                                         devSetVertexOuterBoundary,
+                                         (size_t) 0, 0);
+
+      devSetVertexOuterBoundary<<<nBlocks, nThreads>>>
+        (meshParameter->problemDef, pVbc, nVertexOuterBoundary,
+         meshParameter->periodicFlagX, meshParameter->periodicFlagY,
+         meshParameter->minx, meshParameter->maxx, meshParameter->miny,
+         meshParameter->maxy);
+
+      gpuErrchk( cudaPeekAtLastError() );
+      gpuErrchk( cudaDeviceSynchronize() );
+    } else {
+      for (int n = 0; n < nVertexOuterBoundary; n++)
+        SetVertexOuterBoundarySingle(n, meshParameter->problemDef, pVbc,
+                                     nVertexOuterBoundary,
+                                     meshParameter->periodicFlagX,
+                                     meshParameter->periodicFlagY,
+                                     meshParameter->minx,
+                                     meshParameter->maxx,
+                                     meshParameter->miny,
+                                     meshParameter->maxy);
+    }
+
+    // Fill coordinates of inner boundary
+    if (cudaFlag == 1) {
+      int nBlocks = 128;
+      int nThreads = 128;
+
+      // Base nThreads and nBlocks on maximum occupancy
+      cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
+                                         devSetVertexInnerBoundary,
+                                         (size_t) 0, 0);
+
+      devSetVertexInnerBoundary<<<nBlocks, nThreads>>>
+        (meshParameter->problemDef, pVbc,
+         nVertexInnerBoundary, nVertexOuterBoundary,
+         meshParameter->minx, meshParameter->maxx,
+         meshParameter->miny, meshParameter->maxy);
+
+      gpuErrchk( cudaPeekAtLastError() );
+      gpuErrchk( cudaDeviceSynchronize() );
+    } else {
+      for (int n = 0; n < nVertexInnerBoundary; n++)
+        SetVertexInnerBoundarySingle(n, meshParameter->problemDef, pVbc,
+                                     nVertexInnerBoundary, nVertexOuterBoundary,
+                                     meshParameter->minx, meshParameter->maxx,
+                                     meshParameter->miny, meshParameter->maxy);
+    }
+  } else {
+    nVertexOuterBoundary = vertexBoundaryCoordinates->GetSize();
     nVertexInnerBoundary = 0;
-  }
-  if (meshParameter->problemDef == PROBLEM_CYL) {
-    nVertexOuterBoundary = 4;
-    nVertexInnerBoundary = 100;
-  }
-
-  // Happens if problem is not defined
-  if (nVertexOuterBoundary == 0) {
-    std::cout << "Error: no outer boundary vertices!" << std::endl;
-    throw std::runtime_error("");
-  }
-
-  vertexBoundaryCoordinates->SetSize(nVertexOuterBoundary +
-                                     nVertexInnerBoundary);
-  real2 *pVbc = vertexBoundaryCoordinates->GetPointer();
-
-  // Fill coordinates of outer boundary vertices
-  if (cudaFlag == 1) {
-    int nBlocks = 128;
-    int nThreads = 128;
-
-    // Base nThreads and nBlocks on maximum occupancy
-    cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devSetVertexOuterBoundary,
-                                       (size_t) 0, 0);
-
-    devSetVertexOuterBoundary<<<nBlocks, nThreads>>>
-      (meshParameter->problemDef, pVbc, nVertexOuterBoundary,
-       meshParameter->periodicFlagX, meshParameter->periodicFlagY,
-       meshParameter->minx, meshParameter->maxx, meshParameter->miny,
-       meshParameter->maxy);
-
-    gpuErrchk( cudaPeekAtLastError() );
-    gpuErrchk( cudaDeviceSynchronize() );
-  } else {
-    for (int n = 0; n < nVertexOuterBoundary; n++)
-      SetVertexOuterBoundarySingle(n, meshParameter->problemDef, pVbc,
-                                   nVertexOuterBoundary,
-                                   meshParameter->periodicFlagX,
-                                   meshParameter->periodicFlagY,
-                                   meshParameter->minx,
-                                   meshParameter->maxx,
-                                   meshParameter->miny,
-                                   meshParameter->maxy);
-  }
-
-  // Fill coordinates of inner boundary
-  if (cudaFlag == 1) {
-    int nBlocks = 128;
-    int nThreads = 128;
-
-    // Base nThreads and nBlocks on maximum occupancy
-    cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devSetVertexInnerBoundary,
-                                       (size_t) 0, 0);
-
-    devSetVertexInnerBoundary<<<nBlocks, nThreads>>>
-      (meshParameter->problemDef, pVbc,
-       nVertexInnerBoundary, nVertexOuterBoundary,
-       meshParameter->minx, meshParameter->maxx,
-       meshParameter->miny, meshParameter->maxy);
-
-    gpuErrchk( cudaPeekAtLastError() );
-    gpuErrchk( cudaDeviceSynchronize() );
-  } else {
-    for (int n = 0; n < nVertexInnerBoundary; n++)
-      SetVertexInnerBoundarySingle(n, meshParameter->problemDef, pVbc,
-                                   nVertexInnerBoundary, nVertexOuterBoundary,
-                                   meshParameter->minx, meshParameter->maxx,
-                                   meshParameter->miny, meshParameter->maxy);
   }
 
   // Find minimum/maximum x and y
@@ -480,7 +491,20 @@ void Mesh::ConstructBoundaries()
   // and edges.
   //-----------------------------------------------------------------
 
+  Save(995);
+  delaunay->RecoverSegments(connectivity, predicates,
+                            meshParameter,vertexOrder);
+
+  Save(996);
   RemoveRedundant(vertexOrder, nVertexOuterBoundary);
+  Save(997);
+  delaunay->MakeDelaunay<real>(connectivity, 0,
+                               predicates, meshParameter,
+                               0,
+                               0,
+                               0,
+                               0);
+  Save(998);
   delete vertexOrder;
 
   //-----------------------------------------------------------------
@@ -492,7 +516,8 @@ void Mesh::ConstructBoundaries()
 
   // Add extra vertices to break symmetry
   if (meshParameter->periodicFlagX == 0 &&
-      meshParameter->periodicFlagY == 0) {
+      meshParameter->periodicFlagY == 0 &&
+      fixedVerticesFlag == 0) {
     Array<real2> *vertexExtra = new Array<real2>(1, cudaFlag, 2);
     Array<int> *vertexExtraOrder = new Array<int>(1, cudaFlag, 2);
 
