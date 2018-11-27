@@ -24,8 +24,10 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../Common/cudaLow.h"
 #include "../Common/inlineMath.h"
 #include "./upwind.h"
+#include "./contour.h"
 #include "../Common/profile.h"
 #include "./Param/simulationparameter.h"
+//#include "./ConservationLaws/cartIso.h"
 
 namespace astrix {
 
@@ -51,8 +53,18 @@ namespace astrix {
 \param G Ratio of specific heats
 \param G1 G - 1
 \param G2 G - 2
-\param *pVp Pointer to external potential at vertices*/
+\param *pVp Pointer to external potential at vertices
+\param *pTrad Triangle average x (needed for cylindrical geometry)
+\param *pVcs Sound speed at vertices (isothermal case)
+\param frameAngularVelocity Angular velocity coordinate frame (cylindrical geometry)*/
 //######################################################################
+
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//-----------------------------------------------------------------------------
+// Systems of 4 equations: Cartesian hydrodynamics
+//-----------------------------------------------------------------------------
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 template<ConservationLaw CL>
 __host__ __device__
@@ -63,7 +75,8 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
                         real4 *pTresN0, real4 *pTresN1, real4 *pTresN2,
                         real4 *pTresLDA0, real4 *pTresLDA1, real4 *pTresLDA2,
                         real4 *pTresTot, int nVertex, real G, real G1, real G2,
-                        real *pVp)
+                        const real *pVp, const real *pTrad, const real *pVcs,
+                        const real frameAngularVelocity, const real2 *pVc)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -973,6 +986,16 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
   pTresLDA2[n].w = half*ResLDA;
 }
 
+
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//-----------------------------------------------------------------------------
+// Systems of 3 equations: Cartesian and cylindrical isothermal hydrodynamics
+//-----------------------------------------------------------------------------
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
 template<ConservationLaw CL>
 __host__ __device__
 void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
@@ -982,7 +1005,8 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
                         real3 *pTresN0, real3 *pTresN1, real3 *pTresN2,
                         real3 *pTresLDA0, real3 *pTresLDA1, real3 *pTresLDA2,
                         real3 *pTresTot, int nVertex, real G, real G1, real G2,
-                        real *pVp)
+                        const real *pVp, const real *pTrad, const real *pVcs,
+                        const real frameAngularVelocity, const real2 *pVc)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -1012,6 +1036,9 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   real Zv21 = pVz[v3].y;
   real Zv22 = pVz[v3].z;
 
+  // Average sound speed
+  real ctilde = onethird*(pVcs[v1] + pVcs[v2] + pVcs[v3]);
+
   // Average parameter vector
   real Z0 = (Zv00 + Zv10 + Zv20)*onethird;
   real Z1 = (Zv01 + Zv11 + Zv21)*onethird;
@@ -1027,9 +1054,6 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   real What20 = two*Z0*Zv20;
   real What21 = Z1*Zv20 + Z0*Zv21;
   real What22 = Z2*Zv20 + Z0*Zv22;
-
-  // Source term residual
-  // real rhoAve  = Z0*Z0;
 
   real tl1 = pTl[n].x;
   real tl2 = pTl[n].y;
@@ -1052,70 +1076,104 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
 
   real utilde = Z1/Z0;
   real vtilde = Z2/Z0;
-  real ctilde = one;     // Sound speed is unity by assumption!
 
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate the total residue = Sum(K*What)
   // Not necessary for first-order N scheme
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  // Average radius triangle
+  real r2 = one;
+  real ir2 = one;
+  real Omega = zero;
+  real ra = one;
+  real rb = one;
+  real rc = one;
+
+  if (CL == CL_CYL_ISO) {
+    r2 = pTrad[n];
+    r2 = r2*r2;
+    ir2 = one/r2;
+    Omega = frameAngularVelocity;
+
+    // Radius vertices
+    ra = (real)3.0*pTrad[n]/(one + (one + exp(tl1*tny1))*exp(tl3*tny3));
+    rb = (real)3.0*pTrad[n]/(one + (one + exp(tl2*tny2))*exp(tl1*tny1));
+    rc = (real)3.0*pTrad[n]/(one + (one + exp(tl3*tny3))*exp(tl2*tny2));
+  }
 
 #ifndef CONTOUR
+  real tl, nx, ny, wtilde;
+
+
   // First direction
-  real tl = tl1;
-  real nx = half*tl*tnx1;
-  real ny = half*tl*tny1;
-  real wtilde = utilde*nx + vtilde*ny;
+  tl = tl1;
+  nx = half*tl*tnx1;
+  ny = half*tl*tny1;
+  wtilde = utilde*nx + vtilde*ny*ir2;
 
   ResTot0 +=
+    What00*isoK00(ny, Omega) +
     What01*isoK01(nx) +
-    What02*isoK02(ny);
+    What02*isoK02(ny*ir2);
   ResTot1 +=
     What00*isoK10(nx, ctilde, wtilde, utilde) +
-    What01*isoK11(nx, wtilde, utilde) +
-    What02*isoK12(ny, utilde);
+    What01*isoK11(nx, ny, wtilde, utilde, Omega) +
+    What02*isoK12(ny*ir2, utilde);
   ResTot2 +=
-    What00*isoK20(ny, ctilde, wtilde, vtilde) +
+    What00*isoK20(r2*ny, ctilde, wtilde, vtilde) +
     What01*isoK21(nx, vtilde) +
-    What02*isoK22(ny, wtilde, vtilde);
+    What02*isoK22(ny, wtilde, vtilde*ir2, Omega);
 
   // Second direction
   tl = tl2;
   nx = half*tl*tnx2;
   ny = half*tl*tny2;
-  wtilde = utilde*nx + vtilde*ny;
+  wtilde = utilde*nx + vtilde*ny*ir2;
 
   ResTot0 +=
+    What10*isoK00(ny, Omega) +
     What11*isoK01(nx) +
-    What12*isoK02(ny);
+    What12*isoK02(ny*ir2);
   ResTot1 +=
     What10*isoK10(nx, ctilde, wtilde, utilde) +
-    What11*isoK11(nx, wtilde, utilde) +
-    What12*isoK12(ny, utilde);
+    What11*isoK11(nx, ny, wtilde, utilde, Omega) +
+    What12*isoK12(ny*ir2, utilde);
   ResTot2 +=
-    What10*isoK20(ny, ctilde, wtilde, vtilde) +
+    What10*isoK20(r2*ny, ctilde, wtilde, vtilde) +
     What11*isoK21(nx, vtilde) +
-    What12*isoK22(ny, wtilde, vtilde);
+    What12*isoK22(ny, wtilde, vtilde*ir2, Omega);
 
   // Third direction
   tl = tl3;
   nx = half*tl*tnx3;
   ny = half*tl*tny3;
-  wtilde = utilde*nx + vtilde*ny;
+  wtilde = utilde*nx + vtilde*ny*ir2;
 
   ResTot0 +=
+    What20*isoK00(ny, Omega) +
     What21*isoK01(nx) +
-    What22*isoK02(ny);
+    What22*isoK02(ny*ir2);
   ResTot1 +=
     What20*isoK10(nx, ctilde, wtilde, utilde) +
-    What21*isoK11(nx, wtilde, utilde) +
-    What22*isoK12(ny, utilde);
+    What21*isoK11(nx, ny, wtilde, utilde, Omega) +
+    What22*isoK12(ny*ir2, utilde);
   ResTot2 +=
-    What20*isoK20(ny, ctilde, wtilde, vtilde) +
+    What20*isoK20(r2*ny, ctilde, wtilde, vtilde) +
     What21*isoK21(nx, vtilde) +
-    What22*isoK22(ny, wtilde, vtilde);
+    What22*isoK22(ny, wtilde, vtilde*ir2, Omega);
+
+  /*
+#ifndef __CUDA_ARCH__
+  std::cout << pResSource[n].y << " "
+            << ResTot1 - pResSource[n].y << std::endl;
+  int qq; std::cin >> qq;
+#endif
+  */
 
 #else
-
+  /*
   real res0 =
     tl3*(Zv00*Zv01 + (Zv00 + Zv10)*(Zv01 + Zv11) + Zv10*Zv11)*tnx3/6.0 +
     tl3*(Zv00*Zv02 + (Zv00 + Zv10)*(Zv02 + Zv12) + Zv10*Zv12)*tny3/6.0 +
@@ -1123,9 +1181,22 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
     tl1*(Zv10*Zv12 + (Zv10 + Zv20)*(Zv12 + Zv22) + Zv20*Zv22)*tny1/6.0 +
     tl2*(Zv20*Zv21 + (Zv20 + Zv00)*(Zv21 + Zv01) + Zv00*Zv01)*tnx2/6.0 +
     tl2*(Zv20*Zv22 + (Zv20 + Zv00)*(Zv22 + Zv02) + Zv00*Zv02)*tny2/6.0;
+  */
+
+  real res0 =
+    tl3*c_int(Zv00, Zv10, Zv01, Zv11)*tnx3 +
+    tl3*(c_int(Zv00, Zv10, Zv02, Zv12)/Sq(ra) -
+         Omega*c_int(Zv00, Zv10, Zv00, Zv10))*tny3 +
+    tl1*c_int(Zv10, Zv20, Zv11, Zv21)*tnx1 +
+    tl1*(c_int(Zv10, Zv20, Zv12, Zv22)/Sq(rb) -
+         Omega*c_int(Zv10, Zv20, Zv10, Zv20))*tny1 +
+    tl2*c_int(Zv20, Zv00, Zv21, Zv01)*tnx2 +
+    tl2*(c_int(Zv20, Zv00, Zv22, Zv02)/Sq(rc) -
+         Omega*c_int(Zv20, Zv00, Zv20, Zv00))*tny2;
   ResTot0 -= res0;
   pTresTot[n].x = ResTot0;
   Wtemp0 -= res0;
+  /*
   real res1 =
     tl3*(Sq(Zv01) + Sq(Zv00) + Sq(Zv01 + Zv11) + Sq(Zv00 + Zv10) +
          Sq(Zv11) + Sq(Zv10))*tnx3/6.0 +
@@ -1136,9 +1207,26 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
     tl2*(Sq(Zv01) + Sq(Zv00) + Sq(Zv01 + Zv21) + Sq(Zv00 + Zv20) +
          Sq(Zv21) + Sq(Zv20))*tnx2/6.0 +
     tl2*(Zv01*Zv02 + (Zv01 + Zv21)*(Zv02 + Zv22) + Zv21*Zv22)*tny2/6.0;
+  */
+
+  real res1 =
+    tl3*(c_int(Zv01, Zv11, Zv01, Zv11) +
+         Sq(ctilde)*c_int(Zv00, Zv10, Zv00, Zv10))*tnx3 +
+    tl3*(c_int(Zv01, Zv11, Zv02, Zv12)/Sq(ra) -
+         Omega*c_int(Zv00, Zv10, Zv01, Zv11))*tny3 +
+    tl1*(c_int(Zv11, Zv21, Zv11, Zv21) +
+         Sq(ctilde)*c_int(Zv10, Zv20, Zv10, Zv20))*tnx1 +
+    tl1*(c_int(Zv11, Zv21, Zv12, Zv22)/Sq(rb) -
+         Omega*c_int(Zv10, Zv20, Zv11, Zv21))*tny1 +
+    tl2*(c_int(Zv21, Zv01, Zv21, Zv01) +
+         Sq(ctilde)*c_int(Zv20, Zv00, Zv20, Zv00))*tnx2 +
+    tl2*(c_int(Zv21, Zv01, Zv22, Zv02)/Sq(rc) -
+         Omega*c_int(Zv20, Zv00, Zv21, Zv01))*tny2;
+
   ResTot1 -= res1;
   pTresTot[n].y = ResTot1;
   Wtemp1 -= res1;
+  /*
   real res2 =
     tl3*(Sq(Zv02) + Sq(Zv00) + Sq(Zv02 + Zv12) + Sq(Zv00 + Zv10) +
          Sq(Zv12) + Sq(Zv10))*tny3/6.0 +
@@ -1149,6 +1237,21 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
     tl2*(Sq(Zv02) + Sq(Zv00) + Sq(Zv02 + Zv22) + Sq(Zv00 + Zv20) +
          Sq(Zv22) + Sq(Zv20))*tny2/6.0 +
     tl2*(Zv01*Zv02 + (Zv01 + Zv21)*(Zv02 + Zv22) + Zv21*Zv22)*tnx2/6.0;
+  */
+  real res2 =
+    tl3*c_int(Zv01, Zv11, Zv02, Zv12)*tnx3 +
+    tl3*(c_int(Zv02, Zv12, Zv02, Zv12)/Sq(ra) +
+         Sq(ctilde*ra)*c_int(Zv00, Zv10, Zv00, Zv10) -
+         Omega*c_int(Zv00, Zv10, Zv02, Zv12))*tny3 +
+    tl1*c_int(Zv11, Zv21, Zv12, Zv22)*tnx1 +
+    tl1*(c_int(Zv12, Zv22, Zv12, Zv22)/Sq(rb) +
+         Sq(ctilde*rb)*c_int(Zv10, Zv20, Zv10, Zv20) -
+         Omega*c_int(Zv10, Zv20, Zv12, Zv22))*tny1 +
+    tl2*c_int(Zv21, Zv01, Zv22, Zv02)*tnx2 +
+    tl2*(c_int(Zv22, Zv02, Zv22, Zv02)/Sq(rc) +
+         Sq(ctilde*rc)*c_int(Zv20, Zv00, Zv20, Zv00) -
+         Omega*c_int(Zv20, Zv00, Zv22, Zv02))*tny2;
+
   ResTot2 -= res2;
   pTresTot[n].z = ResTot2;
   Wtemp2 -= res2;
@@ -1170,20 +1273,20 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   nx = tnx1;
   ny = tny1;
   tl = half*tl1;
-  wtilde = utilde*nx + vtilde*ny;
+  wtilde = utilde*nx + vtilde*ny*ir2;
 
-  real l1 = min(zero, wtilde + ctilde);
-  real l2 = min(zero, wtilde - ctilde);
-  real l3 = min(zero, wtilde);
+  real l1 = min(zero, wtilde + ctilde - Omega*ny);
+  real l2 = min(zero, wtilde - ctilde - Omega*ny);
+  real l3 = min(zero, wtilde - Omega*ny);
 #else
   real nx = tnx1;
   real ny = tny1;
   real tl = half*tl1;
-  real wtilde = utilde*nx + vtilde*ny;
+  real wtilde = utilde*nx + vtilde*ny*ir2;
 
-  real l1 = -max(zero, wtilde + ctilde);
-  real l2 = -max(zero, wtilde - ctilde);
-  real l3 = -max(zero, wtilde);
+  real l1 = -max(zero, wtilde + ctilde - Omega*ny);
+  real l2 = -max(zero, wtilde - ctilde - Omega*ny);
+  real l3 = -max(zero, wtilde - Omega*ny);
 #endif
 
   // Auxiliary variables
@@ -1201,7 +1304,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   real nm01 = tl*km;
 
   // km[0][0][2]
-  km = isoKMP02(ny, ic, l1l2);
+  km = isoKMP02(ny*ir2, ic, l1l2);
   Wtemp0 += tl*km*What02;
   real nm02 = tl*km;
 
@@ -1216,22 +1319,22 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   real nm11 = tl*km;
 
   // km[0][1][2]
-  km = isoKMP12(nx, ny, uc, l1l2l3, l1l2);
+  km = isoKMP12(nx, ny*ir2, uc, l1l2l3, l1l2);
   Wtemp1 += tl*km*What02;
   real nm12 = tl*km;
 
   // km[0][2][0]
-  km = isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2);
+  km = isoKMP20(ny*r2, ctilde, vc, wtilde, l1l2l3, l1l2);
   Wtemp2 += tl*km*What00;
   real nm20 = tl*km;
 
   // km[0][2][1]
-  km = isoKMP21(nx, ny, vc, l1l2l3, l1l2);
+  km = isoKMP21(nx, ny*r2, vc, l1l2l3, l1l2);
   Wtemp2 += tl*km*What01;
   real nm21 = tl*km;
 
   // km[0][2][2]
-  km = isoKMP22(ny, vc, l1l2l3, l1l2, l3);
+  km = isoKMP22(ny, vc*ir2, l1l2l3, l1l2, l3);
   Wtemp2 += tl*km*What02;
   real nm22 = tl*km;
 
@@ -1239,16 +1342,16 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   nx = tnx2;
   ny = tny2;
   tl = half*tl2;
-  wtilde = (uc*nx + vc*ny)*ctilde;
+  wtilde = (uc*nx + vc*ny*ir2)*ctilde;
 
 #ifndef CONTOUR
-  l1 = min(wtilde + ctilde, zero);
-  l2 = min(wtilde - ctilde, zero);
-  l3 = min(wtilde, zero);
+  l1 = min(wtilde + ctilde - Omega*ny, zero);
+  l2 = min(wtilde - ctilde - Omega*ny, zero);
+  l3 = min(wtilde - Omega*ny, zero);
 #else
-  l1 = -max(wtilde + ctilde, zero);
-  l2 = -max(wtilde - ctilde, zero);
-  l3 = -max(wtilde, zero);
+  l1 = -max(wtilde + ctilde - Omega*ny, zero);
+  l2 = -max(wtilde - ctilde - Omega*ny, zero);
+  l3 = -max(wtilde - Omega*ny, zero);
 #endif
 
   // Auxiliary variables
@@ -1266,7 +1369,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   nm01 += tl*km;
 
   // km[0][0][2]
-  km = isoKMP02(ny, ic, l1l2);
+  km = isoKMP02(ny*ir2, ic, l1l2);
   Wtemp0 += tl*km*What12;
   nm02 += tl*km;
 
@@ -1281,22 +1384,22 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   nm11 += tl*km;
 
   // km[0][1][2]
-  km = isoKMP12(nx, ny, uc, l1l2l3, l1l2);
+  km = isoKMP12(nx, ny*ir2, uc, l1l2l3, l1l2);
   Wtemp1 += tl*km*What12;
   nm12 += tl*km;
 
   // km[0][2][0]
-  km = isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2);
+  km = isoKMP20(ny*r2, ctilde, vc, wtilde, l1l2l3, l1l2);
   Wtemp2 += tl*km*What10;
   nm20 += tl*km;
 
   // km[0][2][1]
-  km = isoKMP21(nx, ny, vc, l1l2l3, l1l2);
+  km = isoKMP21(nx, ny*r2, vc, l1l2l3, l1l2);
   Wtemp2 += tl*km*What11;
   nm21 += tl*km;
 
   // km[0][2][2]
-  km = isoKMP22(ny, vc, l1l2l3, l1l2, l3);
+  km = isoKMP22(ny, vc*ir2, l1l2l3, l1l2, l3);
   Wtemp2 += tl*km*What12;
   nm22 += tl*km;
 
@@ -1304,16 +1407,16 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   nx = tnx3;
   ny = tny3;
   tl = half*tl3;
-  wtilde = (uc*nx + vc*ny)*ctilde;
+  wtilde = (uc*nx + vc*ny*ir2)*ctilde;
 
 #ifndef CONTOUR
-  l1 = min(wtilde + ctilde, zero);
-  l2 = min(wtilde - ctilde, zero);
-  l3 = min(wtilde, zero);
+  l1 = min(wtilde + ctilde - Omega*ny, zero);
+  l2 = min(wtilde - ctilde - Omega*ny, zero);
+  l3 = min(wtilde - Omega*ny, zero);
 #else
-  l1 = -max(wtilde + ctilde, zero);
-  l2 = -max(wtilde - ctilde, zero);
-  l3 = -max(wtilde, zero);
+  l1 = -max(wtilde + ctilde - Omega*ny, zero);
+  l2 = -max(wtilde - ctilde - Omega*ny, zero);
+  l3 = -max(wtilde - Omega*ny, zero);
 #endif
 
   // Auxiliary variables
@@ -1331,7 +1434,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   nm01 += tl*km;
 
   // km[0][0][2]
-  km = isoKMP02(ny, ic, l1l2);
+  km = isoKMP02(ny*ir2, ic, l1l2);
   Wtemp0 += tl*km*What22;
   nm02 += tl*km;
 
@@ -1346,22 +1449,22 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   nm11 += tl*km;
 
   // km[0][1][2]
-  km = isoKMP12(nx, ny, uc, l1l2l3, l1l2);
+  km = isoKMP12(nx, ny*ir2, uc, l1l2l3, l1l2);
   Wtemp1 += tl*km*What22;
   nm12 += tl*km;
 
   // km[0][2][0]
-  km = isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2);
+  km = isoKMP20(ny*r2, ctilde, vc, wtilde, l1l2l3, l1l2);
   Wtemp2 += tl*km*What20;
   nm20 += tl*km;
 
   // km[0][2][1]
-  km = isoKMP21(nx, ny, vc, l1l2l3, l1l2);
+  km = isoKMP21(nx, ny*r2, vc, l1l2l3, l1l2);
   Wtemp2 += tl*km*What21;
   nm21 += tl*km;
 
   // km[0][2][2]
-  km = isoKMP22(ny, vc, l1l2l3, l1l2, l3);
+  km = isoKMP22(ny, vc*ir2, l1l2l3, l1l2, l3);
   Wtemp2 += tl*km*What22;
   nm22 += tl*km;
 
@@ -1425,11 +1528,11 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   // First direction
   nx = Tnx1;
   ny = Tny1;
-  wtilde = (uc*nx + vc*ny)*ctilde;
+  wtilde = (uc*nx + vc*ny*ir2)*ctilde;
 
-  l1 = max(wtilde + ctilde, zero);
-  l2 = max(wtilde - ctilde, zero);
-  l3 = max(wtilde, zero);
+  l1 = max(wtilde + ctilde - Omega*ny, zero);
+  l2 = max(wtilde - ctilde - Omega*ny, zero);
+  l3 = max(wtilde - Omega*ny, zero);
 
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
@@ -1446,7 +1549,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   ResLDA -= kp*Wtemp1;
 
   // kp[0][0][2]
-  kp = isoKMP02(ny, ic, l1l2);
+  kp = isoKMP02(ny*ir2, ic, l1l2);
   ResN   += kp*What02;
   ResLDA -= kp*Wtemp2;
 
@@ -1464,7 +1567,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   ResLDA -= kp*Wtemp1;
 
   // kp[0][1][2]
-  kp = isoKMP12(nx, ny, uc, l1l2l3, l1l2);
+  kp = isoKMP12(nx, ny*ir2, uc, l1l2l3, l1l2);
   ResN   += kp*What02;
   ResLDA -= kp*Wtemp2;
 
@@ -1472,17 +1575,17 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   pTresLDA0[n].y = half*ResLDA;
 
   // kp[0][2][0]
-  kp = isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2);
+  kp = isoKMP20(ny*r2, ctilde, vc, wtilde, l1l2l3, l1l2);
   ResN   = kp*What00;
   ResLDA =-kp*Wtemp0;
 
   // kp[0][2][1]
-  kp = isoKMP21(nx, ny, vc, l1l2l3, l1l2);
+  kp = isoKMP21(nx, ny*r2, vc, l1l2l3, l1l2);
   ResN   += kp*What01;
   ResLDA -= kp*Wtemp1;
 
   // kp[0][2][2]
-  kp = isoKMP22(ny, vc, l1l2l3, l1l2, l3);
+  kp = isoKMP22(ny, vc*ir2, l1l2l3, l1l2, l3);
   ResN   += kp*What02;
   ResLDA -= kp*Wtemp2;
 
@@ -1492,11 +1595,11 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   // Second direction
   nx = Tnx2;
   ny = Tny2;
-  wtilde = (uc*nx + vc*ny)*ctilde;
+  wtilde = (uc*nx + vc*ny*ir2)*ctilde;
 
-  l1 = max(wtilde + ctilde, zero);
-  l2 = max(wtilde - ctilde, zero);
-  l3 = max(wtilde, zero);
+  l1 = max(wtilde + ctilde - Omega*ny, zero);
+  l2 = max(wtilde - ctilde - Omega*ny, zero);
+  l3 = max(wtilde - Omega*ny, zero);
 
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
@@ -1513,7 +1616,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   ResLDA -= kp*Wtemp1;
 
   // kp[0][0][2]
-  kp = isoKMP02(ny, ic, l1l2);
+  kp = isoKMP02(ny*ir2, ic, l1l2);
   ResN   += kp*What12;
   ResLDA -= kp*Wtemp2;
 
@@ -1531,7 +1634,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   ResLDA -= kp*Wtemp1;
 
   // kp[0][1][2]
-  kp = isoKMP12(nx, ny, uc, l1l2l3, l1l2);
+  kp = isoKMP12(nx, ny*ir2, uc, l1l2l3, l1l2);
   ResN   += kp*What12;
   ResLDA -= kp*Wtemp2;
 
@@ -1539,17 +1642,17 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   pTresLDA1[n].y = half*ResLDA;
 
   // kp[0][2][0]
-  kp = isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2);
+  kp = isoKMP20(ny*r2, ctilde, vc, wtilde, l1l2l3, l1l2);
   ResN   = kp*What10;
   ResLDA =-kp*Wtemp0;
 
   // kp[0][2][1]
-  kp = isoKMP21(nx, ny, vc, l1l2l3, l1l2);
+  kp = isoKMP21(nx, ny*r2, vc, l1l2l3, l1l2);
   ResN   += kp*What11;
   ResLDA -= kp*Wtemp1;
 
   // kp[0][2][2]
-  kp = isoKMP22(ny, vc, l1l2l3, l1l2, l3);
+  kp = isoKMP22(ny, vc*ir2, l1l2l3, l1l2, l3);
   ResN   += kp*What12;
   ResLDA -= kp*Wtemp2;
 
@@ -1559,11 +1662,11 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   // Third direction
   nx = Tnx3;
   ny = Tny3;
-  wtilde = (uc*nx + vc*ny)*ctilde;
+  wtilde = (uc*nx + vc*ny*ir2)*ctilde;
 
-  l1 = max(wtilde + ctilde, zero);
-  l2 = max(wtilde - ctilde, zero);
-  l3 = max(wtilde, zero);
+  l1 = max(wtilde + ctilde - Omega*ny, zero);
+  l2 = max(wtilde - ctilde - Omega*ny, zero);
+  l3 = max(wtilde - Omega*ny, zero);
 
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
@@ -1580,7 +1683,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   ResLDA -= kp*Wtemp1;
 
   // kp[0][0][2]
-  kp = isoKMP02(ny, ic, l1l2);
+  kp = isoKMP02(ny*ir2, ic, l1l2);
   ResN   += kp*What22;
   ResLDA -= kp*Wtemp2;
 
@@ -1598,7 +1701,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   ResLDA -= kp*Wtemp1;
 
   // kp[0][1][2]
-  kp = isoKMP12(nx, ny, uc, l1l2l3, l1l2);
+  kp = isoKMP12(nx, ny*ir2, uc, l1l2l3, l1l2);
   ResN   += kp*What22;
   ResLDA -= kp*Wtemp2;
 
@@ -1606,23 +1709,31 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   pTresLDA2[n].y = half*ResLDA;
 
   // kp[0][2][0]
-  kp = isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2);
+  kp = isoKMP20(ny*r2, ctilde, vc, wtilde, l1l2l3, l1l2);
   ResN   = kp*What20;
   ResLDA =-kp*Wtemp0;
 
   // kp[0][2][1]
-  kp = isoKMP21(nx, ny, vc, l1l2l3, l1l2);
+  kp = isoKMP21(nx, ny*r2, vc, l1l2l3, l1l2);
   ResN   += kp*What21;
   ResLDA -= kp*Wtemp1;
 
   // kp[0][2][2]
-  kp = isoKMP22(ny, vc, l1l2l3, l1l2, l3);
+  kp = isoKMP22(ny, vc*ir2, l1l2l3, l1l2, l3);
   ResN   += kp*What22;
   ResLDA -= kp*Wtemp2;
 
   pTresN2[n].z   = half*ResN;
   pTresLDA2[n].z = half*ResLDA;
 }
+
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//-----------------------------------------------------------------------------
+// Systems of 1 equation: Linear advection and Burgers equation
+//-----------------------------------------------------------------------------
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 template<ConservationLaw CL>
 __host__ __device__
@@ -1633,7 +1744,8 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
                         real *pTresN0, real *pTresN1, real *pTresN2,
                         real *pTresLDA0, real *pTresLDA1, real *pTresLDA2,
                         real *pTresTot, int nVertex, real G, real G1, real G2,
-                        real *pVp)
+                        const real *pVp, const real *pTrad, const real *pVcs,
+                        const real frameAngularVelocity, const real2 *pVc)
 {
   const real zero  = (real) 0.0;
   const real half  = (real) 0.5;
@@ -1851,7 +1963,10 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
 \param G Ratio of specific heats
 \param G1 G - 1
 \param G2 G - 2
-\param *pVp Pointer to external potential at vertices*/
+\param *pVp Pointer to external potential at vertices
+\param *pTrad Pointer to triangle average x coordinate
+\param *pVcs Sound speed at vertices (isothermal case)
+\param frameAngularVelocity Angular velocity coordinate frame (cylindrical geometry)*/
 //######################################################################
 
 template<class realNeq, ConservationLaw CL>
@@ -1862,7 +1977,8 @@ devCalcSpaceRes(int nTriangle, const int3 *pTv, realNeq *pVz,
                 realNeq *pTresN0, realNeq *pTresN1, realNeq *pTresN2,
                 realNeq *pTresLDA0, realNeq *pTresLDA1, realNeq *pTresLDA2,
                 realNeq *pTresTot, int nVertex, real G, real G1, real G2,
-                real *pVp)
+                const real *pVp, const real *pTrad, const real *pVcs,
+                const real frameAngularVelocity, const real2 *pVc)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -1871,7 +1987,8 @@ devCalcSpaceRes(int nTriangle, const int3 *pTv, realNeq *pVz,
     CalcSpaceResSingle<CL>(n, pTv, pVz, pTn1, pTn2, pTn3, pTl, pResSource,
                            pTresN0, pTresN1, pTresN2,
                            pTresLDA0, pTresLDA1, pTresLDA2,
-                           pTresTot, nVertex, G, G1, G2, pVp);
+                           pTresTot, nVertex, G, G1, G2, pVp, pTrad, pVcs,
+                           frameAngularVelocity, pVc);
 
     // Next triangle
     n += blockDim.x*gridDim.x;
@@ -1922,6 +2039,7 @@ void Simulation<realNeq, CL>::CalcResidual()
   realNeq *pResSource = triangleResidueSource->GetPointer();
   realNeq *pVz = vertexParameterVector->GetPointer();
   real *pVp = vertexPotential->GetPointer();
+  real *pVcs = vertexSoundSpeed->GetPointer();
   real G = simulationParameter->specificHeatRatio;
 
   realNeq *pTresN0 = triangleResidueN->GetPointer(0);
@@ -1942,6 +2060,11 @@ void Simulation<realNeq, CL>::CalcResidual()
 
   const real3 *pTl = mesh->TriangleEdgeLengthData();
 
+  const real *pTrad = mesh->TriangleAverageXData();
+  const real2 *pVc = mesh->VertexCoordinatesData();
+
+  real frameAngularVelocity = 0.0;
+
   if (cudaFlag == 1) {
     int nBlocks = 128;
     int nThreads = 128;
@@ -1959,7 +2082,8 @@ void Simulation<realNeq, CL>::CalcResidual()
        pTn1, pTn2, pTn3, pTl, pResSource,
        pTresN0, pTresN1, pTresN2,
        pTresLDA0, pTresLDA1, pTresLDA2,
-       pTresTot, nVertex, G, G - 1.0, G - 2.0, pVp);
+       pTresTot, nVertex, G, G - 1.0, G - 2.0, pVp, pTrad, pVcs,
+       frameAngularVelocity, pVc);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -1976,7 +2100,8 @@ void Simulation<realNeq, CL>::CalcResidual()
                              pTn1, pTn2, pTn3, pTl, pResSource,
                              pTresN0, pTresN1, pTresN2,
                              pTresLDA0, pTresLDA1, pTresLDA2,
-                             pTresTot, nVertex, G, G - 1.0, G - 2.0, pVp);
+                             pTresTot, nVertex, G, G - 1.0, G - 2.0,
+                             pVp, pTrad, pVcs, frameAngularVelocity, pVc);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -2019,6 +2144,7 @@ void Simulation<realNeq, CL>::CalcResidual()
 template void Simulation<real, CL_ADVECT>::CalcResidual();
 template void Simulation<real, CL_BURGERS>::CalcResidual();
 template void Simulation<real3, CL_CART_ISO>::CalcResidual();
+template void Simulation<real3, CL_CYL_ISO>::CalcResidual();
 template void Simulation<real4, CL_CART_EULER>::CalcResidual();
 
 }  // namespace astrix
