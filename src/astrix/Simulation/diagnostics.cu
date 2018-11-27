@@ -84,7 +84,7 @@ real Simulation<realNeq, CL>::DensityError()
   vertexStateOld->SetEqual(vertexState);
 
   // Assume this gets the correct solution into vertexState
-  SetInitial(simulationTime);
+  SetInitial(simulationTime, 0);
 
   unsigned int nVertex = mesh->GetNVertex();
 
@@ -132,6 +132,7 @@ real Simulation<realNeq, CL>::DensityError()
 template real Simulation<real, CL_ADVECT>::DensityError();
 template real Simulation<real, CL_BURGERS>::DensityError();
 template real Simulation<real3, CL_CART_ISO>::DensityError();
+template real Simulation<real3, CL_CYL_ISO>::DensityError();
 template real Simulation<real4, CL_CART_EULER>::DensityError();
 
 }  // namespace astrix
