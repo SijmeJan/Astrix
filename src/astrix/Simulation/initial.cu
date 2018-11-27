@@ -52,6 +52,7 @@ real funcBump(real t)
 \param Py Length of y domain*/
 //##############################################################################
 
+template <ConservationLaw CL>
 __host__ __device__
 void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
                       real *pVpot, real4 *state, real G, real time,
@@ -74,7 +75,7 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
 
   if (problemDef == PROBLEM_GAUSS) {
     real x = vertX;
-    real y = vertY;
+    //real y = vertY;
 
     real X_VELOCITY = 2.0, pres = 100.0;
     real CENTRE = 0.2;
@@ -449,6 +450,7 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   state[n].w = ener;
 }
 
+template <ConservationLaw CL>
 __host__ __device__
 void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
                       real *pVpot, real3 *state, real G, real time,
@@ -507,11 +509,30 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     momy = (real)2.0e-10 + dens*vy;
   }
 
+  if (problemDef == PROBLEM_DISC) {
+    real x = vertX;
+    //real y = vertY;
+
+    real k = 2.0;
+    real m = 0.0;   // soundspeed power law index
+
+    // Cylindrical radius
+    real r = exp(x);
+    real vx = (real) 1.0e-10;
+    // Angular momentum
+    real vy = 0.0; //sqrt(r + (k + 2.0*m)*0.05*0.05*pow(r, 2.0 + 2.0*m));
+
+    dens = pow(r, k);// + 0.1*exp(-Sq(r-1.0)/0.0025);
+    momx = dens*vx;
+    momy = dens*vy;
+  }
+
   state[n].x = dens;
   state[n].y = momx;
   state[n].z = momy;
 }
 
+template <ConservationLaw CL>
 __host__ __device__
 void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
                       real *pVpot, real *state, real G, real time,
@@ -557,9 +578,24 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   }
 
   if (problemDef == PROBLEM_SOURCE) {
-    //dens = 1.0;
-    real k = 2.0*M_PI;
-    dens = cos(k*(vertX + 0.0*vertY - 1.0*time))*exp(-time);
+    if (CL == CL_ADVECT) {
+      // Source = u, periodic
+      //dens = cos(2.0*M_PI*(vertX - time))*exp(time);
+
+      // Source = u, not periodic
+      //dens = exp(0.5*(vertX + time));
+
+      // Source = u^2, not periodic
+      dens = -(real) 2.0/(vertX + time + 2.0);
+    }
+    if (CL == CL_BURGERS) {
+      // Source = u
+      //dens = vertX/((real) 1.0 + exp(-time));
+      //dens = 0.5*exp(2.0*time)*(sqrt(1.0 + 4.0*vertX*exp(-2.0*time)) - 1.0);
+
+      // Source = u^2
+      dens = -((real) 1.0 + exp(vertX))/((real) 1.0 + time);
+    }
   }
 
   state[n] = dens;
@@ -580,25 +616,36 @@ template<class realNeq, ConservationLaw CL>
 __global__ void
 devSetInitial(int nVertex, const real2 *pVc, ProblemDefinition problemDef,
               real *pVertexPotential, realNeq *state,
-              real G, real time, real Px, real Py)
+              real G, real time, real Px, real Py,
+              const int *pVertexFlag, int boundaryFlag)
 {
   // n = vertex number
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nVertex) {
-    SetInitialSingle(n, pVc, problemDef, pVertexPotential, state,
-                     G, time, Px, Py);
+    // Do only specific vertices
+    int do_flag = 1;
+    if (boundaryFlag != 0)
+      if (pVertexFlag[n] == 0) do_flag = 0;
+
+    if (do_flag)
+      SetInitialSingle<CL>(n, pVc, problemDef, pVertexPotential, state,
+                           G, time, Px, Py);
 
     n += blockDim.x*gridDim.x;
   }
 }
 
 //######################################################################
-/*! Set initial conditions for all vertices based on problemSpecification*/
+/*! Set initial conditions for all vertices based on problemSpecification
+
+\param time Current simulation time, to get exact solution at this time (if available)
+*/
 //######################################################################
 
 template <class realNeq, ConservationLaw CL>
-void Simulation<realNeq, CL>::SetInitial(real time)
+void Simulation<realNeq, CL>::SetInitial(real time,
+                                         int boundaryFlag)
 {
   int nVertex = mesh->GetNVertex();
 
@@ -611,6 +658,8 @@ void Simulation<realNeq, CL>::SetInitial(real time)
   real G = simulationParameter->specificHeatRatio;
   ProblemDefinition p = simulationParameter->problemDef;
 
+  const int *pVertexFlag = mesh->VertexBoundaryFlagData();
+
   if (cudaFlag == 1) {
     int nBlocks = 128;
     int nThreads = 128;
@@ -621,13 +670,24 @@ void Simulation<realNeq, CL>::SetInitial(real time)
                                        (size_t) 0, 0);
 
     devSetInitial<realNeq, CL><<<nBlocks, nThreads>>>
-      (nVertex, pVc, p, pVertexPotential, state, G, time, Px, Py);
+      (nVertex, pVc, p, pVertexPotential, state, G, time, Px, Py,
+       pVertexFlag, boundaryFlag);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
-    for (int n = 0; n < nVertex; n++)
-      SetInitialSingle(n, pVc, p, pVertexPotential, state, G, time, Px, Py);
+    for (int n = 0; n < nVertex; n++) {
+      // Do only specific vertices
+      int do_flag = 1;
+      if (boundaryFlag != 0) {
+        if (pVertexFlag[n] == 0) do_flag = 0;
+      }
+
+      if (do_flag)
+        SetInitialSingle<CL>(n, pVc, p, pVertexPotential,
+                             state, G, time, Px, Py);
+    }
+
   }
 
   try {
@@ -648,9 +708,15 @@ void Simulation<realNeq, CL>::SetInitial(real time)
 // Instantiate
 //##############################################################################
 
-template void Simulation<real, CL_ADVECT>::SetInitial(real time);
-template void Simulation<real, CL_BURGERS>::SetInitial(real time);
-template void Simulation<real3, CL_CART_ISO>::SetInitial(real time);
-template void Simulation<real4, CL_CART_EULER>::SetInitial(real time);
+template void Simulation<real, CL_ADVECT>::SetInitial(real time,
+                                                      int boundaryFlag);
+template void Simulation<real, CL_BURGERS>::SetInitial(real time,
+                                                       int boundaryFlag);
+template void Simulation<real3, CL_CART_ISO>::SetInitial(real time,
+                                                         int boundaryFlag);
+template void Simulation<real3, CL_CYL_ISO>::SetInitial(real time,
+                                                        int boundaryFlag);
+template void Simulation<real4, CL_CART_EULER>::SetInitial(real time,
+                                                           int boundaryFlag);
 
 }  // namespace astrix
