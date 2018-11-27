@@ -122,6 +122,66 @@ int Array<T>::RemoveEvery(int start, int step, Array<S> *A)
   return newSize;
 }
 
+//############################################################################
+// Remove elements from start to end
+//############################################################################
+
+template <class T>
+void Array<T>::Remove(int start, int end)
+{
+  int sizeNew = size - (end - start);
+
+  // New physical size
+  unsigned int realSizeNew =
+    ((sizeNew + dynArrayStep)/dynArrayStep)*dynArrayStep;
+
+  T *temp;
+
+  if (cudaFlag == 1) {
+    // Manual realloc on device
+    gpuErrchk(cudaMalloc(reinterpret_cast<void**>(&temp),
+                         realSizeNew*sizeof(T)));
+
+    // Copy 0 to start to new array
+    gpuErrchk(cudaMemcpy(&(temp[0]), &(deviceVec[0]),
+                         start*sizeof(T),
+                         cudaMemcpyDeviceToDevice));
+    // Copy end to size to new array
+    gpuErrchk(cudaMemcpy(&(temp[start]), &(deviceVec[end]),
+                         (size - end)*sizeof(T),
+                         cudaMemcpyDeviceToDevice));
+
+    gpuErrchk(cudaFree(deviceVec));
+    deviceVec = temp;
+
+    int alloc = ((int)realSizeNew-(int)realSize)*(int)sizeof(T);
+    if (alloc > 0) memAllocatedDevice += alloc;
+    if (alloc < 0) memAllocatedDevice -= std::abs(alloc);
+  }
+
+  if (cudaFlag == 0) {
+    temp = (T *)malloc(realSizeNew*sizeof(T));
+
+    // Copy 0 to start to new array
+    memcpy(&(temp[0]), &(hostVec[0]), start*sizeof(T));
+
+    // Copy end to size to new array
+    memcpy(&(temp[start]), &(hostVec[end]), (size - end)*sizeof(T));
+
+
+    free(hostVec);
+    hostVec = temp;
+
+    int alloc = ((int)realSizeNew-(int)realSize)*(int)sizeof(T);
+    if (alloc > 0) memAllocatedHost += alloc;
+    if (alloc < 0) memAllocatedHost -= std::abs(alloc);
+  }
+
+
+  realSize = realSizeNew;
+  size = sizeNew;
+}
+
 //###################################################
 // Instantiate
 //###################################################
@@ -153,5 +213,8 @@ template int Array<unsigned int>::RemoveEvery(int start, int step,
 template int Array<int2>::RemoveEvery(int start, int step, Array<int3> *A);
 template int Array<float2>::RemoveEvery(int start, int step, Array<int3> *A);
 template int Array<double2>::RemoveEvery(int start, int step, Array<int3> *A);
+
+template void Array<float2>::Remove(int start, int end);
+template void Array<double2>::Remove(int start, int end);
 
 }  // namespace astrix
