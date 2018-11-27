@@ -163,4 +163,11 @@ template void Array<unsigned int>::SortByKey(Array<unsigned int> *indexArray,
 
 template void Array<unsigned int>::SortByKey(Array<int> *indexArray);
 
+//##########################################################################
+
+template void Array<unsigned int>::SortByKey(Array<float2> *indexArray);
+template void Array<unsigned int>::SortByKey(Array<double2> *indexArray);
+template void Array<float>::SortByKey(Array<float2> *indexArray);
+template void Array<double>::SortByKey(Array<double2> *indexArray);
+
 }  // namespace astrix
