@@ -41,7 +41,7 @@ int Array<T>::RemoveValue(T value)
     newSize = iter - dev_ptr;
   }
   if (cudaFlag == 0) {
-    int *iter = thrust::remove(hostVec, hostVec + size, value);
+    T *iter = thrust::remove(hostVec, hostVec + size, value);
     newSize = iter - hostVec;
   }
 
@@ -205,5 +205,6 @@ template void Array<double4>::Compact(int nKeep,
 
 template int Array<int>::RemoveValue(int value);
 template int Array<int>::RemoveValue(int value, int maxIndex);
+template int Array<unsigned int>::RemoveValue(unsigned int value);
 
 }  // namespace astrix
