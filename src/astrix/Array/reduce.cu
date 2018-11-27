@@ -215,6 +215,39 @@ S Array<T>::MinimumComb(int N)
   return result;
 }
 
+template <class T>
+unsigned int Array<T>::MaximumCombIndex(int N)
+{
+  int result;
+
+  if (cudaFlag == 1) {
+    thrust::device_ptr<T> dev_ptr(&deviceVec[0]);
+
+    //typename thrust::device_vector<T>::iterator iter;
+    thrust::device_ptr<T> iter;
+
+    if (N == 0)
+      iter = thrust::max_element(dev_ptr, dev_ptr + size, compare_x<T>());
+    if (N == 1)
+      iter = thrust::max_element(dev_ptr, dev_ptr + size, compare_y<T>());
+
+    result = thrust::distance(dev_ptr, iter);
+  }
+  if (cudaFlag == 0) {
+    //typename thrust::host_vector<T>::iterator iter;
+    T * iter;
+
+    if (N == 0)
+      iter = thrust::max_element(hostVec, hostVec + size, compare_x<T>());
+    if (N == 1)
+      iter = thrust::max_element(hostVec, hostVec + size, compare_y<T>());
+
+    result = iter - hostVec;
+  }
+
+  return result;
+}
+
 //######################################################
 // Find total sum
 //######################################################
@@ -271,5 +304,8 @@ template float Array<float2>::MaximumComb(int N);
 
 template double Array<double2>::MinimumComb(int N);
 template double Array<double2>::MaximumComb(int N);
+
+template unsigned int Array<float2>::MaximumCombIndex(int N);
+template unsigned int Array<double2>::MaximumCombIndex(int N);
 
 }  // namespace astrix
