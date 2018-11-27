@@ -25,40 +25,33 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 namespace astrix {
 
 //######################################################################
-/*! \brief Calculate external gravitational potential at vertex \a i
+/*! \brief Calculate external gravitational potential and isothermal sound speed at vertex \a i
 
 \param i Vertex to calculate gravitational potential at
 \param problemDef Problem definition
 \param *pVc Pointer to coordinates of vertices
-\param *pVpot Pointer to gravitational potential (output)*/
+\param *pVpot Pointer to gravitational potential (output)
+\param *pVcs Pointer to isothermal sound speed (output)*/
 //######################################################################
 
+template<ConservationLaw CL>
 __host__ __device__
 void CalcPotentialSingle(int i, ProblemDefinition problemDef,
-                         const real2 *pVc, real *pVpot)
+                         const real2 *pVc, real *pVpot, real *pCs)
 {
   real zero = (real) 0.0;
   real tenth = (real) 0.1;
 
   pVpot[i] = zero;
+  pCs[i] = (real) 1.0;
 
   if (problemDef == PROBLEM_SOURCE) pVpot[i] = tenth*pVc[i].y;
-  /*
-  if (problemDef == PROBLEM_SOURCE) {
-    real x = pVc[i].x;
-    real y = pVc[i].y;
 
-    real xc = 5.0;
-    real yc = 5.0;
-
-    real beta = 5.0;
-
-    real r = sqrt((x - xc)*(x - xc) +
-                  (y - yc)*(y - yc)) + (real) 1.0e-10;
-
-    pVpot[i] = -0.125*beta*beta*exp(1.0 - r*r)/(M_PI*M_PI);
+  if (CL == CL_CYL_ISO) {
+    // Constant H/r: c prop to r^{-1.5}
+    //pCs[i] = (real) 0.05;//*exp(-(real) 1.5*pVc[i].x);
+    pCs[i] = (real) 0.05*exp(-pVc[i].x);
   }
-  */
 }
 
 //######################################################################
@@ -67,18 +60,20 @@ void CalcPotentialSingle(int i, ProblemDefinition problemDef,
 \param nVertex Total number of vertices in Mesh
 \param problemDef Problem definition
 \param *pVc Pointer to coordinates of vertices
-\param *pVpot Pointer to gravitational potential (output)*/
+\param *pVpot Pointer to gravitational potential (output)
+\param *pVcs Pointer to isothermal sound speed (output)*/
 //######################################################################
 
+template<ConservationLaw CL>
 __global__ void
 devCalcPotential(int nVertex, ProblemDefinition problemDef,
-                 const real2 *pVc, real *vertPot)
+                 const real2 *pVc, real *pVpot, real *pVcs)
 {
   // n = vertex number
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nVertex) {
-    CalcPotentialSingle(n, problemDef, pVc, vertPot);
+    CalcPotentialSingle<CL>(n, problemDef, pVc, pVpot, pVcs);
 
     n += blockDim.x*gridDim.x;
   }
@@ -94,6 +89,8 @@ void Simulation<realNeq, CL>::CalcPotential()
 {
   int nVertex = mesh->GetNVertex();
   real *vertPot = vertexPotential->GetPointer();
+  real *vertCs = vertexSoundSpeed->GetPointer();
+
   const real2 *pVc = mesh->VertexCoordinatesData();
   ProblemDefinition p = simulationParameter->problemDef;
 
@@ -103,17 +100,17 @@ void Simulation<realNeq, CL>::CalcPotential()
 
     // Base nThreads and nBlocks on maximum occupancy
     cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devCalcPotential,
+                                       devCalcPotential<CL>,
                                        (size_t) 0, 0);
 
-    devCalcPotential<<<nBlocks, nThreads>>>
-      (nVertex, p, pVc, vertPot);
+    devCalcPotential<CL><<<nBlocks, nThreads>>>
+      (nVertex, p, pVc, vertPot, vertCs);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int i = 0; i < nVertex; i++)
-      CalcPotentialSingle(i, p, pVc, vertPot);
+      CalcPotentialSingle<CL>(i, p, pVc, vertPot, vertCs);
   }
 }
 
@@ -124,6 +121,7 @@ void Simulation<realNeq, CL>::CalcPotential()
 template void Simulation<real, CL_ADVECT>::CalcPotential();
 template void Simulation<real, CL_BURGERS>::CalcPotential();
 template void Simulation<real3, CL_CART_ISO>::CalcPotential();
+template void Simulation<real3, CL_CYL_ISO>::CalcPotential();
 template void Simulation<real4, CL_CART_EULER>::CalcPotential();
 
 }  // namespace astrix
