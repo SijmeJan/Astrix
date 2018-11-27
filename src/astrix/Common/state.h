@@ -44,7 +44,13 @@ namespace astrix {
       inline real GetDensity<real3, CL_CART_ISO>(real3 state) {
       return state.x;
     }
-    //! Return density from state vector in case of Euler equations
+    //! Return density from state vector in case of isothermal hydro
+    template<>
+      __host__ __device__
+      inline real GetDensity<real3, CL_CYL_ISO>(real3 state) {
+      return state.x;
+    }
+     //! Return density from state vector in case of Euler equations
     template<>
       __host__ __device__
       inline real GetDensity<real4, CL_CART_EULER>(real4 state) {
@@ -61,6 +67,12 @@ namespace astrix {
     template<>
       __host__ __device__
       inline real GetMomX<real3, CL_CART_ISO>(real3 state) {
+      return state.y;
+    }
+    //! Return x momentum from state vector in case of isothermal hydro
+    template<>
+      __host__ __device__
+      inline real GetMomX<real3, CL_CYL_ISO>(real3 state) {
       return state.y;
     }
     //! Return x momentum from state vector in case of Euler equations
@@ -80,6 +92,12 @@ namespace astrix {
     template<>
       __host__ __device__
       inline real GetMomY<real3, CL_CART_ISO>(real3 state) {
+      return state.z;
+    }
+    //! Return y momentum from state vector in case of isothermal hydro
+    template<>
+      __host__ __device__
+      inline real GetMomY<real3, CL_CYL_ISO>(real3 state) {
       return state.z;
     }
     //! Return y momentum from state vector in case of Euler equations
@@ -125,7 +143,13 @@ namespace astrix {
       inline void SetDensity<real3, CL_CART_ISO>(real3& state, real dens) {
       state.x = dens;
     }
-    //! Set density in state vector in case of Euler equations
+    //! Set density in state vector in case of isothermal hydrodynamics
+    template<>
+      __host__ __device__
+      inline void SetDensity<real3, CL_CYL_ISO>(real3& state, real dens) {
+      state.x = dens;
+    }
+     //! Set density in state vector in case of Euler equations
     template<>
       __host__ __device__
       inline void SetDensity<real4, CL_CART_EULER>(real4& state, real dens) {
@@ -140,6 +164,12 @@ namespace astrix {
     template<>
       __host__ __device__
       inline void SetMomX<real3, CL_CART_ISO>(real3& state, real momx) {
+      state.y = momx;
+    }
+    //! Set x momentum in state vector in case of isothermal hydrodynamics
+    template<>
+      __host__ __device__
+      inline void SetMomX<real3, CL_CYL_ISO>(real3& state, real momx) {
       state.y = momx;
     }
     //! Set x momentum in state vector in case of Euler equations
@@ -157,6 +187,12 @@ namespace astrix {
     template<>
       __host__ __device__
       inline void SetMomY<real3, CL_CART_ISO>(real3& state, real momy) {
+      state.z = momy;
+    }
+    //! Set y momentum in state vector in case of isothermal hydrodynamics
+    template<>
+      __host__ __device__
+      inline void SetMomY<real3, CL_CYL_ISO>(real3& state, real momy) {
       state.z = momy;
     }
     //! Set y momentum in state vector in case of Euler equations
