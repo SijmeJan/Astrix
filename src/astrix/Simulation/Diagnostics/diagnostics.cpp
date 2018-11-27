@@ -76,6 +76,10 @@ Diagnostics<real3, CL_CART_ISO>::Diagnostics(Array<real3> *state,
                                              Array<real> *pot,
                                              Mesh *mesh);
 template
+Diagnostics<real3, CL_CYL_ISO>::Diagnostics(Array<real3> *state,
+                                            Array<real> *pot,
+                                            Mesh *mesh);
+template
 Diagnostics<real4, CL_CART_EULER>::Diagnostics(Array<real4> *state,
                                                Array<real> *pot,
                                                Mesh *mesh);
@@ -85,6 +89,7 @@ Diagnostics<real4, CL_CART_EULER>::Diagnostics(Array<real4> *state,
 template Diagnostics<real, CL_ADVECT>::~Diagnostics();
 template Diagnostics<real, CL_BURGERS>::~Diagnostics();
 template Diagnostics<real3, CL_CART_ISO>::~Diagnostics();
+template Diagnostics<real3, CL_CYL_ISO>::~Diagnostics();
 template Diagnostics<real4, CL_CART_EULER>::~Diagnostics();
 
 }  // namespace astrix
