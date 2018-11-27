@@ -28,6 +28,15 @@ __host__ __device__ inline T Sq(const T a) {
 }
 
 //###################################################
+// Return cube of number
+//###################################################
+
+template<typename T>
+__host__ __device__ inline T Cb(const T a) {
+  return a*a*a;
+}
+
+//###################################################
 // Return sign of number (Sign(0) = 1)
 //###################################################
 template<typename T>
