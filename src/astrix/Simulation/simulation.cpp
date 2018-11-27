@@ -84,6 +84,8 @@ Simulation<realNeq, CL>::Simulation(int _verboseLevel,
   vertexState           = new Array<realNeq>(1, cudaFlag);
   vertexStateOld        = new Array<realNeq>(1, cudaFlag);
   vertexPotential       = new Array<real>(1, cudaFlag);
+  vertexSource          = new Array<realNeq>(1, cudaFlag);
+  vertexSoundSpeed      = new Array<real>(1, cudaFlag);
   vertexStateDiff       = new Array<realNeq>(1, cudaFlag);
   vertexParameterVector = new Array<realNeq>(1, cudaFlag);
 
@@ -107,6 +109,8 @@ Simulation<realNeq, CL>::Simulation(int _verboseLevel,
     delete vertexState;
     delete vertexStateOld;
     delete vertexPotential;
+    delete vertexSource;
+    delete vertexSoundSpeed;
     delete vertexParameterVector;
     delete vertexStateDiff;
 
@@ -126,9 +130,9 @@ Simulation<realNeq, CL>::Simulation(int _verboseLevel,
   }
 }
 
-// #########################################################################
+//#########################################################################
 // Destructor for simulation object
-// #########################################################################
+//#########################################################################
 
 template <class realNeq, ConservationLaw CL>
 Simulation<realNeq, CL>::~Simulation()
@@ -136,6 +140,8 @@ Simulation<realNeq, CL>::~Simulation()
   delete vertexState;
   delete vertexStateOld;
   delete vertexPotential;
+  delete vertexSource;
+  delete vertexSoundSpeed;
   delete vertexParameterVector;
   delete vertexStateDiff;
 
@@ -168,6 +174,8 @@ void Simulation<realNeq, CL>::Init(int restartNumber)
   vertexState->SetSize(nVertex);
   vertexStateOld->SetSize(nVertex);
   vertexPotential->SetSize(nVertex);
+  vertexSource->SetSize(nVertex);
+  vertexSoundSpeed->SetSize(nVertex);
   vertexStateDiff->SetSize(nVertex);
   vertexParameterVector->SetSize(nVertex);
 
@@ -185,7 +193,7 @@ void Simulation<realNeq, CL>::Init(int restartNumber)
     simulationTime = 0.0;
 
     // Set initial conditions
-    SetInitial(0.0);
+    SetInitial(0.0, 0);
 
     if (mesh->IsAdaptive() == 1) {
       ReplaceEnergyWithPressure();
@@ -253,6 +261,11 @@ template Simulation<real3, CL_CART_ISO>::Simulation(int _verboseLevel,
                                                     char *fileName,
                                                     Device *_device,
                                                     int restartNumber);
+template Simulation<real3, CL_CYL_ISO>::Simulation(int _verboseLevel,
+                                                   int _debugLevel,
+                                                   char *fileName,
+                                                   Device *_device,
+                                                   int restartNumber);
 template Simulation<real4, CL_CART_EULER>::Simulation(int _verboseLevel,
                                                       int _debugLevel,
                                                       char *fileName,
@@ -264,6 +277,7 @@ template Simulation<real4, CL_CART_EULER>::Simulation(int _verboseLevel,
 template Simulation<real, CL_ADVECT>::~Simulation();
 template Simulation<real, CL_BURGERS>::~Simulation();
 template Simulation<real3, CL_CART_ISO>::~Simulation();
+template Simulation<real3, CL_CYL_ISO>::~Simulation();
 template Simulation<real4, CL_CART_EULER>::~Simulation();
 
 }  // namespace astrix
