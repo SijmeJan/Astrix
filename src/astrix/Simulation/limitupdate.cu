@@ -173,6 +173,8 @@ Simulation<real, CL_BURGERS>::FlagLimit(Array<int> *vertexLimitFlag);
 template void
 Simulation<real3, CL_CART_ISO>::FlagLimit(Array<int> *vertexLimitFlag);
 template void
+Simulation<real3, CL_CYL_ISO>::FlagLimit(Array<int> *vertexLimitFlag);
+template void
 Simulation<real4, CL_CART_EULER>::FlagLimit(Array<int> *vertexLimitFlag);
 
 }  // namespace astrix
