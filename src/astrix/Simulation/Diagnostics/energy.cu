@@ -117,6 +117,9 @@ template
 real Diagnostics<real3, CL_CART_ISO>::TotalEnergy(Array<real3> *state,
                                                   Mesh *mesh);
 template
+real Diagnostics<real3, CL_CYL_ISO>::TotalEnergy(Array<real3> *state,
+                                                 Mesh *mesh);
+template
 real Diagnostics<real4, CL_CART_EULER>::TotalEnergy(Array<real4> *state,
                                                     Mesh *mesh);
 
