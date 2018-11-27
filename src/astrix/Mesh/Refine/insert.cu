@@ -54,7 +54,7 @@ namespace astrix {
 \param periodicFlagY Flag whether domain is periodic in y
 \param *pred Pointer to initialised Predicates object
 \param *pParam Pointer to initialised Predicates parameter vector
-\param *pWantRefine Pointer to array of flags whether to refine triangles. Value of the initial triangle is set to that of the new triangles (either 1 if creating a new Mesh or 0 is refining during a simulation) */
+\param *pWantRefine Pointer to array of flags whether to refine triangles. Value of the initial triangle is set to that of the new triangles (either 1 if creating a new Mesh or 0 if refining during a simulation) */
 //#########################################################################
 
 __host__ __device__
@@ -67,37 +67,28 @@ void InsertVertex(int n, int t, int e, int nVertex, int nEdge,
                   const Predicates *pred, real *pParam,
                   int *pWantRefine)
 {
+  // Index of new vertex in vertex array
   int i = n + nVertex;
 
-  // PERIODIC
+  // i + translateVertex = valid triangle vertex
   int translateVertex = 0;
 
-  // Insert vertex inside triangle t
+  // If vertex coordinates outside domain, insert periodic copy
+  if (periodicFlagX) {
+    if (x <= minx) translateVertex -= (nVertex + nvAdd);
+    if (x > maxx) translateVertex += (nVertex + nvAdd);
+  }
+  if (periodicFlagY) {
+    if (y <= miny) translateVertex -= 3*(nVertex + nvAdd);
+    if (y > maxy) translateVertex += 3*(nVertex + nvAdd);
+  }
+
+  //#########################################
+  // Case 1: Insert vertex inside triangle t
+  //#########################################
+
   if (t != -1) {
-    if (periodicFlagX) {
-      if (x <= minx) {
-        translateVertex -= (nVertex + nvAdd);
-        x += (maxx - minx);
-      }
-      if (x > maxx) {
-        translateVertex += (nVertex + nvAdd);
-        x -= (maxx - minx);
-      }
-    }
-    if (periodicFlagY) {
-      if (y <= miny) {
-        translateVertex -= 3*(nVertex + nvAdd);
-        y += (maxy - miny);
-      }
-      if (y > maxy) {
-        translateVertex += 3*(nVertex + nvAdd);
-        y -= (maxy - miny);
-      }
-    }
-
-    pVc[i].x = x;
-    pVc[i].y = y;
-
+    // Copy flag whether to refine
     if (pWantRefine != 0)
       pWantRefine[t] = pWantRefine[indexInTriangleArray];
 
@@ -105,7 +96,7 @@ void InsertVertex(int n, int t, int e, int nVertex, int nEdge,
     int b = pTv[t].y;
     int c = pTv[t].z;
 
-    // Create triangles
+    // Create 2 new triangles
     pTv[indexInTriangleArray].x = c;
     pTv[indexInTriangleArray].y = a;
     pTv[indexInTriangleArray].z = i + translateVertex;
@@ -115,6 +106,7 @@ void InsertVertex(int n, int t, int e, int nVertex, int nEdge,
     // Replace triangle t
     pTv[t].z = i + translateVertex;
 
+    // Make valid triangles in case of periodic domain
     MakeValidIndices(pTv[indexInTriangleArray].x,
                      pTv[indexInTriangleArray].y,
                      pTv[indexInTriangleArray].z,
@@ -152,23 +144,21 @@ void InsertVertex(int n, int t, int e, int nVertex, int nEdge,
     pTe[t].y = indexInEdgeArray + 1;
     pTe[t].z = indexInEdgeArray;
   } else {
-    // Insert vertex on edge e
+    //#################################
+    // Case 2: Insert vertex on edge e
+    //#################################
+
+    // Neighbouring triangles
     int t1 = pEt[e].x;
     int t2 = pEt[e].y;
 
-    if (periodicFlagX) {
-      if (x <= minx) translateVertex -= (nVertex + nvAdd);
-      if (x > maxx) translateVertex += (nVertex + nvAdd);
-    }
-    if (periodicFlagY) {
-      if (y <= miny) translateVertex -= 3*(nVertex + nvAdd);
-      if (y > maxy) translateVertex += 3*(nVertex + nvAdd);
-    }
-
     // Check if edge is segment
     if (t1 != -1 && t2 != -1) {
-      // Inserting on normal edge (not a segment)
+      //##############################################
+      // Case 2a: Insert vertex on non-segment edge e
+      //##############################################
 
+      // Copy flag whether to refine
       if (pWantRefine != 0) {
         pWantRefine[t1] = pWantRefine[indexInTriangleArray];
         pWantRefine[t2] = pWantRefine[indexInTriangleArray];
@@ -188,7 +178,7 @@ void InsertVertex(int n, int t, int e, int nVertex, int nEdge,
       int te22 = pTe[t2].y;
       int te32 = pTe[t2].z;
 
-      // Edge e is between B and C in t1
+      // Make sure edge e is between B and C in t1
       int B = tv11;
       int C = tv21;
       if (e == te21) {
@@ -200,7 +190,7 @@ void InsertVertex(int n, int t, int e, int nVertex, int nEdge,
         C = tv11;
       }
 
-      // Edge e is between E and F in t2
+      // Make sure edge e is between E and F in t2
       int E = tv12;
       int F = tv22;
       if (e == te22) {
@@ -220,7 +210,7 @@ void InsertVertex(int n, int t, int e, int nVertex, int nEdge,
                                nVertex + nvAdd, maxx - minx, maxy - miny,
                                ax, bx, cx, ay, by, cy);
 
-        // A1: vertex *exactly* on edge of t1?
+        // A1: vertex *exactly* on (extended) edge of t1?
         real A1 = 0.0;
         if (e == te11) A1 = pred->orient2d(ax, ay, bx, by, x, y, pParam);
         if (e == te21) A1 = pred->orient2d(bx, by, cx, cy, x, y, pParam);
@@ -231,14 +221,15 @@ void InsertVertex(int n, int t, int e, int nVertex, int nEdge,
                                nVertex + nvAdd, maxx - minx, maxy - miny,
                                ax, bx, cx, ay, by, cy);
 
-        // A2: vertex *exactly* on edge of t2?
+        // A2: vertex *exactly* on (extended) edge of t2?
         real A2 = 0.0;
         if (e == te12) A2 = pred->orient2d(ax, ay, bx, by, x, y, pParam);
         if (e == te22) A2 = pred->orient2d(bx, by, cx, cy, x, y, pParam);
         if (e == te32) A2 = pred->orient2d(cx, cy, ax, ay, x, y, pParam);
 
+        // Vertex *exactly* on (extended) edges of both t1 and t2
         if (A1 == 0.0 && A2 == 0.0) {
-          // Vertex *exactly* on edges of both t1 and t2
+          // Check whether vertex is in between vertices of t2
           real xmax = max(ax, bx);
           real xmin = min(ax, bx);
           real ymax = max(ay, by);
@@ -258,26 +249,34 @@ void InsertVertex(int n, int t, int e, int nVertex, int nEdge,
             ymin = min(cy, ay);
           }
 
-          int f = (translateVertex == 0);
-          if (x < xmax && x > xmin && y < ymax && y > ymin)
-            f = (translateVertex > 0);
+          // Assume vertex is on t1 edge: no translation of t1
+          int translateT1Flag = 0;//(translateVertex != 0);
 
-          if (f == 1) {
+          // If vertex is on t2 edge: translate t1
+          if (((x < xmax && x > xmin) || xmax == xmin) &&
+              ((y < ymax && y > ymin) || ymax == ymin))
+            translateT1Flag = 1;//(translateVertex == 0);
+
+          if (translateT1Flag == 1) {
+            // Translate t1
             tv11 -= (B - F);
             tv21 -= (B - F);
             tv31 -= (B - F);
           } else {
+            // Translate t2
             tv12 += (B - F);
             tv22 += (B - F);
             tv32 += (B - F);
           }
-
         } else {
+          // Choose to translate triangle with biggest A
           if (fabs(A2) > fabs(A1)) {
+            // Translate t2
             tv12 += (B - F);
             tv22 += (B - F);
             tv32 += (B - F);
           } else {
+            // Translate t1
             tv11 -= (B - F);
             tv21 -= (B - F);
             tv31 -= (B - F);
@@ -288,122 +287,95 @@ void InsertVertex(int n, int t, int e, int nVertex, int nEdge,
         assert(B - F == C - E);
       }
 
-      if (e == te11) {
-        pTv[indexInTriangleArray].x = i + translateVertex;
-        pTv[indexInTriangleArray].y = tv21;
-        pTv[indexInTriangleArray].z = tv31;
+      // Split triangle t1
+      int3 tvs;
+      tvs.x = tv21;
+      tvs.y = tv31;
+      tvs.z = tv11;
+      int2 es;
+      es.x = te21;
+      es.y = te31;
 
-        pTv[t1].x = i + translateVertex;
-        pTv[t1].y = tv31;
-        pTv[t1].z = tv11;
-
-        if (pEt[te21].x == t1) pEt[te21].x = indexInTriangleArray;
-        if (pEt[te21].y == t1) pEt[te21].y = indexInTriangleArray;
-
-        pTe[indexInTriangleArray].x = indexInEdgeArray;
-        pTe[indexInTriangleArray].y = te21;
-        pTe[indexInTriangleArray].z = indexInEdgeArray + 1;
-        pTe[t1].x = indexInEdgeArray + 1;
-        pTe[t1].y = te31;
-        pTe[t1].z = e;
-      }
       if (e == te21) {
-        pTv[indexInTriangleArray].x = i + translateVertex;
-        pTv[indexInTriangleArray].y = tv31;
-        pTv[indexInTriangleArray].z = tv11;
+        tvs.x = tv31;
+        tvs.y = tv11;
+        tvs.z = tv21;
 
-        pTv[t1].x = i + translateVertex;
-        pTv[t1].y = tv11;
-        pTv[t1].z = tv21;
-
-        if (pEt[te31].x == t1) pEt[te31].x = indexInTriangleArray;
-        if (pEt[te31].y == t1) pEt[te31].y = indexInTriangleArray;
-
-        pTe[indexInTriangleArray].x = indexInEdgeArray;
-        pTe[indexInTriangleArray].y = te31;
-        pTe[indexInTriangleArray].z = indexInEdgeArray + 1;
-        pTe[t1].x = indexInEdgeArray + 1;
-        pTe[t1].y = te11;
-        pTe[t1].z = e;
+        es.x = te31;
+        es.y = te11;
       }
+
       if (e == te31) {
-        pTv[indexInTriangleArray].x = i + translateVertex;
-        pTv[indexInTriangleArray].y = tv11;
-        pTv[indexInTriangleArray].z = tv21;
+        tvs.x = tv11;
+        tvs.y = tv21;
+        tvs.z = tv31;
 
-        pTv[t1].x = i + translateVertex;
-        pTv[t1].y = tv21;
-        pTv[t1].z = tv31;
-
-        if (pEt[te11].x == t1) pEt[te11].x = indexInTriangleArray;
-        if (pEt[te11].y == t1) pEt[te11].y = indexInTriangleArray;
-
-        pTe[indexInTriangleArray].x = indexInEdgeArray;
-        pTe[indexInTriangleArray].y = te11;
-        pTe[indexInTriangleArray].z = indexInEdgeArray + 1;
-        pTe[t1].x = indexInEdgeArray + 1;
-        pTe[t1].y = te21;
-        pTe[t1].z = e;
+        es.x = te11;
+        es.y = te21;
       }
 
-      if (e == te12) {
-        pTv[indexInTriangleArray + 1].x = i + translateVertex;
-        pTv[indexInTriangleArray + 1].y = tv32;
-        pTv[indexInTriangleArray + 1].z = tv12;
+      pTv[indexInTriangleArray].x = i + translateVertex;
+      pTv[indexInTriangleArray].y = tvs.x;
+      pTv[indexInTriangleArray].z = tvs.y;
 
-        pTv[t2].x = i + translateVertex;
-        pTv[t2].y = tv22;
-        pTv[t2].z = tv32;
+      pTv[t1].x = i + translateVertex;
+      pTv[t1].y = tvs.y;
+      pTv[t1].z = tvs.z;
 
-        if (pEt[te32].x == t2) pEt[te32].x = indexInTriangleArray + 1;
-        if (pEt[te32].y == t2) pEt[te32].y = indexInTriangleArray + 1;
+      if (pEt[es.x].x == t1) pEt[es.x].x = indexInTriangleArray;
+      if (pEt[es.x].y == t1) pEt[es.x].y = indexInTriangleArray;
 
-        pTe[indexInTriangleArray + 1].x = indexInEdgeArray + 2;
-        pTe[indexInTriangleArray + 1].y = te32;
-        pTe[indexInTriangleArray + 1].z = indexInEdgeArray;
-        pTe[t2].x = e;
-        pTe[t2].y = te22;
-        pTe[t2].z = indexInEdgeArray + 2;
-      }
+      pTe[indexInTriangleArray].x = indexInEdgeArray;
+      pTe[indexInTriangleArray].y = es.x;
+      pTe[indexInTriangleArray].z = indexInEdgeArray + 1;
+      pTe[t1].x = indexInEdgeArray + 1;
+      pTe[t1].y = es.y;
+      pTe[t1].z = e;
+
+      // Split triangle t2
+      tvs.x = tv32;
+      tvs.y = tv12;
+      tvs.z = tv22;
+      es.x = te32;
+      es.y = te22;
+
       if (e == te22) {
-        pTv[indexInTriangleArray + 1].x = i + translateVertex;
-        pTv[indexInTriangleArray + 1].y = tv12;
-        pTv[indexInTriangleArray + 1].z = tv22;
+        tvs.x = tv12;
+        tvs.y = tv22;
+        tvs.z = tv32;
 
-        pTv[t2].x = i + translateVertex;
-        pTv[t2].y = tv32;
-        pTv[t2].z = tv12;
-
-        if (pEt[te12].x == t2) pEt[te12].x = indexInTriangleArray + 1;
-        if (pEt[te12].y == t2) pEt[te12].y = indexInTriangleArray + 1;
-
-        pTe[indexInTriangleArray + 1].x = indexInEdgeArray + 2;
-        pTe[indexInTriangleArray + 1].y = te12;
-        pTe[indexInTriangleArray + 1].z = indexInEdgeArray;
-        pTe[t2].x = e;
-        pTe[t2].y = te32;
-        pTe[t2].z = indexInEdgeArray + 2;
+        es.x = te12;
+        es.y = te32;
       }
+
       if (e == te32) {
-        pTv[indexInTriangleArray + 1].x = i + translateVertex;
-        pTv[indexInTriangleArray + 1].y = tv22;
-        pTv[indexInTriangleArray + 1].z = tv32;
+        tvs.x = tv22;
+        tvs.y = tv32;
+        tvs.z = tv12;
 
-        pTv[t2].x = i + translateVertex;
-        pTv[t2].y = tv12;
-        pTv[t2].z = tv22;
-
-        if (pEt[te22].x == t2) pEt[te22].x = indexInTriangleArray + 1;
-        if (pEt[te22].y == t2) pEt[te22].y = indexInTriangleArray + 1;
-
-        pTe[indexInTriangleArray + 1].x = indexInEdgeArray + 2;
-        pTe[indexInTriangleArray + 1].y = te22;
-        pTe[indexInTriangleArray + 1].z = indexInEdgeArray;
-        pTe[t2].x = e;
-        pTe[t2].y = te12;
-        pTe[t2].z = indexInEdgeArray + 2;
+        es.x = te22;
+        es.y = te12;
       }
 
+      pTv[indexInTriangleArray + 1].x = i + translateVertex;
+      pTv[indexInTriangleArray + 1].y = tvs.x;
+      pTv[indexInTriangleArray + 1].z = tvs.y;
+
+      pTv[t2].x = i + translateVertex;
+      pTv[t2].y = tvs.z;
+      pTv[t2].z = tvs.x;
+
+      if (pEt[es.x].x == t2) pEt[es.x].x = indexInTriangleArray + 1;
+      if (pEt[es.x].y == t2) pEt[es.x].y = indexInTriangleArray + 1;
+
+      pTe[indexInTriangleArray + 1].x = indexInEdgeArray + 2;
+      pTe[indexInTriangleArray + 1].y = es.x;
+      pTe[indexInTriangleArray + 1].z = indexInEdgeArray;
+      pTe[t2].x = e;
+      pTe[t2].y = es.y;
+      pTe[t2].z = indexInEdgeArray + 2;
+
+      // Give new edges neighbouring triangles
       pEt[indexInEdgeArray].x = indexInTriangleArray;
       pEt[indexInEdgeArray].y = indexInTriangleArray + 1;
       pEt[indexInEdgeArray + 1].x = t1;
@@ -411,7 +383,7 @@ void InsertVertex(int n, int t, int e, int nVertex, int nEdge,
       pEt[indexInEdgeArray + 2].x = indexInTriangleArray + 1;
       pEt[indexInEdgeArray + 2].y = t2;
 
-      // PERIODIC
+      // Translate triangles so that indices are valid
       MakeValidIndices(pTv[indexInTriangleArray].x,
                        pTv[indexInTriangleArray].y,
                        pTv[indexInTriangleArray].z,
@@ -423,39 +395,12 @@ void InsertVertex(int n, int t, int e, int nVertex, int nEdge,
       MakeValidIndices(pTv[t1].x, pTv[t1].y, pTv[t1].z, nVertex + nvAdd);
       MakeValidIndices(pTv[t2].x, pTv[t2].y, pTv[t2].z, nVertex + nvAdd);
 
-      if (periodicFlagX) {
-        if (x <= minx) x += (maxx - minx);
-        if (x > maxx) x -= (maxx - minx);
-      }
-      if (periodicFlagY) {
-        if (y <= miny) y += (maxy - miny);
-        if (y > maxy) y -= (maxy - miny);
-      }
-
-      pVc[i].x = x;
-      pVc[i].y = y;
     } else {
-      if (periodicFlagX) {
-        if (x <= minx) {
-          x += (maxx - minx);
-        }
-        if (x > maxx) {
-          x -= (maxx - minx);
-        }
-      }
-      if (periodicFlagY) {
-        if (y <= miny) {
-          y += (maxy - miny);
-        }
-        if (y > maxy) {
-          y -= (maxy - miny);
-        }
-      }
+      //#####################################
+      // Case 2b: Insert vertex on segment e
+      //#####################################
 
-      pVc[i].x = x;
-      pVc[i].y = y;
-
-      // Putting vertex on segment
+      // Single neighbouring triangle t
       int t = t1;
       if (t == -1) t = t2;
 
@@ -522,6 +467,21 @@ void InsertVertex(int n, int t, int e, int nVertex, int nEdge,
       pTe[t].z = indexInEdgeArray + 1;
     }
   }
+
+  // Translate vertex if necessary
+  if (periodicFlagX) {
+    if (x <= minx) x += (maxx - minx);
+    if (x > maxx) x -= (maxx - minx);
+  }
+  if (periodicFlagY) {
+    if (y <= miny) y += (maxy - miny);
+    if (y > maxy) y -= (maxy - miny);
+  }
+
+  // Write to vertex coordinates array
+  pVc[i].x = x;
+  pVc[i].y = y;
+
 }
 
 //######################################################################
