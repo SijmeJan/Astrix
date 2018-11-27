@@ -211,6 +211,7 @@ void Simulation<realNeq, CL>::SetSymmetricBoundaries()
 template void Simulation<real, CL_ADVECT>::SetSymmetricBoundaries();
 template void Simulation<real, CL_BURGERS>::SetSymmetricBoundaries();
 template void Simulation<real3, CL_CART_ISO>::SetSymmetricBoundaries();
+template void Simulation<real3, CL_CYL_ISO>::SetSymmetricBoundaries();
 template void Simulation<real4, CL_CART_EULER>::SetSymmetricBoundaries();
 
 }  // namespace astrix
