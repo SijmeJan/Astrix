@@ -157,6 +157,7 @@ void Simulation<realNeq, CL>::UpdateState(real dt, int RKStep)
 template void Simulation<real, CL_ADVECT>::UpdateState(real dt, int RKStep);
 template void Simulation<real, CL_BURGERS>::UpdateState(real dt, int RKStep);
 template void Simulation<real3, CL_CART_ISO>::UpdateState(real dt, int RKStep);
+template void Simulation<real3, CL_CYL_ISO>::UpdateState(real dt, int RKStep);
 template void Simulation<real4, CL_CART_EULER>::UpdateState(real dt,
                                                             int RKStep);
 
