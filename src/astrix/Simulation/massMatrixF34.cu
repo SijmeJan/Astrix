@@ -1027,6 +1027,8 @@ template void Simulation<real, CL_ADVECT>::MassMatrixF34(real dt,
 template void Simulation<real, CL_BURGERS>::MassMatrixF34(real dt,
                                                           int massMatrix);
 template void Simulation<real3, CL_CART_ISO>::MassMatrixF34(real dt,
+                                                            int massMatrix);
+template void Simulation<real3, CL_CYL_ISO>::MassMatrixF34(real dt,
                                                            int massMatrix);
 template void Simulation<real4, CL_CART_EULER>::MassMatrixF34(real dt,
                                                               int massMatrix);
