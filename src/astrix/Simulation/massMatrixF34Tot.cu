@@ -1018,6 +1018,8 @@ Simulation<real, CL_BURGERS>::MassMatrixF34Tot(real dt, int massMatrix);
 template void
 Simulation<real3, CL_CART_ISO>::MassMatrixF34Tot(real dt, int massMatrix);
 template void
+Simulation<real3, CL_CYL_ISO>::MassMatrixF34Tot(real dt, int massMatrix);
+template void
 Simulation<real4, CL_CART_EULER>::MassMatrixF34Tot(real dt, int massMatrix);
 
 }  // namespace astrix
