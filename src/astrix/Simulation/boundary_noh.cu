@@ -158,6 +158,7 @@ void Simulation<realNeq, CL>::SetNohBoundaries()
 template void Simulation<real, CL_ADVECT>::SetNohBoundaries();
 template void Simulation<real, CL_BURGERS>::SetNohBoundaries();
 template void Simulation<real3, CL_CART_ISO>::SetNohBoundaries();
+template void Simulation<real3, CL_CYL_ISO>::SetNohBoundaries();
 template void Simulation<real4, CL_CART_EULER>::SetNohBoundaries();
 
 }  // namespace astrix
