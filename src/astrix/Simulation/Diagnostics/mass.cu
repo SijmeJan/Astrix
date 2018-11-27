@@ -159,6 +159,9 @@ template
 real Diagnostics<real3, CL_CART_ISO>::TotalMass(Array<real3> *state,
                                                 Mesh *mesh);
 template
+real Diagnostics<real3, CL_CYL_ISO>::TotalMass(Array<real3> *state,
+                                               Mesh *mesh);
+template
 real Diagnostics<real4, CL_CART_EULER>::TotalMass(Array<real4> *state,
                                                   Mesh *mesh);
 
