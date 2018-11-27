@@ -61,7 +61,9 @@ class MeshParameter
   real baseResolution;
   //! Triangle size for adaptive mesh (derived from \a baseResolution and \a maxRefineFactor)
   real maxResolution;
-  //! Filename for input vertices
+  //! Filename for input boundary vertices
+  std::string vertexBoundaryInputFile;
+  //! Filename for input internal vertices
   std::string vertexInputFile;
 
   //! Read in data from file
