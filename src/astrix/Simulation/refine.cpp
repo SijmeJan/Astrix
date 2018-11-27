@@ -54,8 +54,9 @@ void Simulation<realNeq, CL>::Refine()
     if (simulationTime == 0.0) {
       int nVertex   = mesh->GetNVertex();
       vertexPotential->SetSize(nVertex);
+      vertexSoundSpeed->SetSize(nVertex);
       CalcPotential();
-      SetInitial(0.0);
+      SetInitial(0.0, 0);
       ReplaceEnergyWithPressure();
     }
 
@@ -76,8 +77,9 @@ void Simulation<realNeq, CL>::Refine()
       if (simulationTime == 0.0) {
         int nVertex = mesh->GetNVertex();
         vertexPotential->SetSize(nVertex);
+        vertexSoundSpeed->SetSize(nVertex);
         CalcPotential();
-        SetInitial(0.0);
+        SetInitial(0.0, 0);
         ReplaceEnergyWithPressure();
       }
       nCycle++;
@@ -91,6 +93,7 @@ void Simulation<realNeq, CL>::Refine()
     vertexPotential->SetSize(nVertex);
     vertexParameterVector->SetSize(nVertex);
     vertexStateDiff->SetSize(nVertex);
+    vertexSource->SetSize(nVertex);
 
     triangleResidueN->SetSize(nTriangle);
     triangleResidueLDA->SetSize(nTriangle);
@@ -138,7 +141,7 @@ void Simulation<realNeq, CL>::Coarsen(int maxCycle)
       int nVertex = mesh->GetNVertex();
       vertexPotential->SetSize(nVertex);
       CalcPotential();
-      SetInitial(0.0);
+      SetInitial(0.0, 0);
       ReplaceEnergyWithPressure();
     }
   }
@@ -170,6 +173,7 @@ void Simulation<realNeq, CL>::Coarsen(int maxCycle)
 template void Simulation<real, CL_ADVECT>::Refine();
 template void Simulation<real, CL_BURGERS>::Refine();
 template void Simulation<real3, CL_CART_ISO>::Refine();
+template void Simulation<real3, CL_CYL_ISO>::Refine();
 template void Simulation<real4, CL_CART_EULER>::Refine();
 
 //##############################################################################
@@ -177,6 +181,7 @@ template void Simulation<real4, CL_CART_EULER>::Refine();
 template void Simulation<real, CL_ADVECT>::Coarsen(int maxCycle);
 template void Simulation<real, CL_BURGERS>::Coarsen(int maxCycle);
 template void Simulation<real3, CL_CART_ISO>::Coarsen(int maxCycle);
+template void Simulation<real3, CL_CYL_ISO>::Coarsen(int maxCycle);
 template void Simulation<real4, CL_CART_EULER>::Coarsen(int maxCycle);
 
 }  // namespace astrix
