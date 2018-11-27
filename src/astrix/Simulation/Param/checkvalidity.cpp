@@ -45,6 +45,13 @@ void SimulationParameter::CheckValidity(ConservationLaw CL)
       throw std::runtime_error("");
     }
   }
+  if (problemDef == PROBLEM_DISC) {
+    if (CL != CL_CYL_ISO) {
+      std::cout << "Problem requires Conservation law CL_CYL_ISO"
+                << std::endl;
+      throw std::runtime_error("");
+    }
+  }
 
   if (maxSimulationTime < 0.0 ||
       std::isinf(maxSimulationTime) ||
