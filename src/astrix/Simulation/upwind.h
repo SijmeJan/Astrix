@@ -22,9 +22,9 @@ namespace astrix {
 //###########################################################################
 
 __host__ __device__ inline real
-isoK00()
+isoK00(real ny, real Omega)
 {
-  return 0.0;
+  return -Omega*ny;
 }
 
 __host__ __device__ inline real
@@ -46,9 +46,9 @@ isoK10(real nx, real c, real w, real u)
 }
 
 __host__ __device__ inline real
-isoK11(real nx, real w, real u)
+isoK11(real nx, real ny, real w, real u, real Omega)
 {
-  return w + u*nx;
+  return w + u*nx - Omega*ny;
 }
 
 __host__ __device__ inline real
@@ -70,9 +70,9 @@ isoK21(real nx, real v)
 }
 
 __host__ __device__ inline real
-isoK22(real ny, real w, real v)
+isoK22(real ny, real w, real v, real Omega)
 {
-  return w + v*ny;
+  return w + v*ny - Omega*ny;
 }
 
 //#############################################################################
