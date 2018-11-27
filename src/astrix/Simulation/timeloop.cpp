@@ -185,6 +185,10 @@ void Simulation<realNeq, CL>::DoTimeStep()
   if (problemDef == PROBLEM_RIEMANN)
     SetRiemannBoundaries();
 
+  // Set exact inflow boundaries
+  if (problemDef == PROBLEM_SOURCE)
+    SetInitial(simulationTime, 1);
+
   // Boundary conditions for 2D Noh
   if (problemDef == PROBLEM_NOH)
     SetNohBoundaries();
@@ -193,7 +197,8 @@ void Simulation<realNeq, CL>::DoTimeStep()
   vertexStateOld->SetEqual(vertexState);
 
   // Calculate source term
-  if (problemDef == PROBLEM_SOURCE)
+  if (problemDef == PROBLEM_SOURCE ||
+      problemDef == PROBLEM_DISC)
     CalcSource(vertexState);
 
   // Calculate parameter vector Z at nodes
@@ -217,13 +222,12 @@ void Simulation<realNeq, CL>::DoTimeStep()
       problemDef == PROBLEM_BLAST)
     ReflectingBoundaries(dt);
 
-  if ((problemDef == PROBLEM_SOURCE && CL != CL_ADVECT) ||
-      problemDef == PROBLEM_RIEMANN)
+  if (problemDef == PROBLEM_RIEMANN)
     SetSymmetricBoundaries();
 
   // Nonreflecting boundaries
   if (problemDef == PROBLEM_VORTEX ||
-      (problemDef == PROBLEM_SOURCE && CL == CL_ADVECT))
+      problemDef == PROBLEM_DISC)
     SetNonReflectingBoundaries();
 
   if (simulationParameter->integrationOrder == 2) {
@@ -237,12 +241,17 @@ void Simulation<realNeq, CL>::DoTimeStep()
     if (problemDef == PROBLEM_RIEMANN)
       SetRiemannBoundaries();
 
+    // Exact inflow boundaries
+    if (problemDef == PROBLEM_SOURCE)
+      SetInitial(simulationTime + dt, 1);
+
     // Boundary conditions for 2D Noh
     if (problemDef == PROBLEM_NOH)
       SetNohBoundaries();
 
     // Calculate source term
-    if (problemDef == PROBLEM_SOURCE)
+    if (problemDef == PROBLEM_SOURCE ||
+        problemDef == PROBLEM_DISC)
       CalcSource(vertexState);
 
     // Calculate parameter vector Z at nodes
@@ -290,13 +299,12 @@ void Simulation<realNeq, CL>::DoTimeStep()
         problemDef == PROBLEM_BLAST)
       ReflectingBoundaries(dt);
 
-    if ((problemDef == PROBLEM_SOURCE && CL != CL_ADVECT) ||
-        problemDef == PROBLEM_RIEMANN)
+    if (problemDef == PROBLEM_RIEMANN)
       SetSymmetricBoundaries();
 
     // Nonreflecting boundaries
     if (problemDef == PROBLEM_VORTEX ||
-        (problemDef == PROBLEM_SOURCE && CL == CL_ADVECT))
+        problemDef == PROBLEM_DISC)
       SetNonReflectingBoundaries();
   }
 
@@ -347,6 +355,7 @@ void Simulation<realNeq, CL>::DoTimeStep()
 template void Simulation<real, CL_ADVECT>::Run(real maxWallClockHours);
 template void Simulation<real, CL_BURGERS>::Run(real maxWallClockHours);
 template void Simulation<real3, CL_CART_ISO>::Run(real maxWallClockHours);
+template void Simulation<real3, CL_CYL_ISO>::Run(real maxWallClockHours);
 template void Simulation<real4, CL_CART_EULER>::Run(real maxWallClockHours);
 
 }  // namespace astrix
