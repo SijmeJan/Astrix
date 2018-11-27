@@ -434,6 +434,7 @@ void Simulation<realNeq, CL>::CalcErrorEstimate()
 template void Simulation<real, CL_ADVECT>::CalcErrorEstimate();
 template void Simulation<real, CL_BURGERS>::CalcErrorEstimate();
 template void Simulation<real3, CL_CART_ISO>::CalcErrorEstimate();
+template void Simulation<real3, CL_CYL_ISO>::CalcErrorEstimate();
 template void Simulation<real4, CL_CART_EULER>::CalcErrorEstimate();
 
 }  // namespace astrix
