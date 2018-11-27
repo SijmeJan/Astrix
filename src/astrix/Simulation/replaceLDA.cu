@@ -244,6 +244,10 @@ void Simulation<real3,
                 CL_CART_ISO>::ReplaceLDA(Array<int> *vertexUnphysicalFlag,
                                          int RKStep);
 template
+void Simulation<real3,
+                CL_CYL_ISO>::ReplaceLDA(Array<int> *vertexUnphysicalFlag,
+                                        int RKStep);
+template
 void Simulation<real4,
                 CL_CART_EULER>::ReplaceLDA(Array<int> *vertexUnphysicalFlag,
                                            int RKStep);
