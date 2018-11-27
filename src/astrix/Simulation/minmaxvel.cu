@@ -175,6 +175,7 @@ real2 Simulation<realNeq, CL>::FindMinMaxVelocity()
 template real2 Simulation<real, CL_ADVECT>::FindMinMaxVelocity();
 template real2 Simulation<real, CL_BURGERS>::FindMinMaxVelocity();
 template real2 Simulation<real3, CL_CART_ISO>::FindMinMaxVelocity();
+template real2 Simulation<real3, CL_CYL_ISO>::FindMinMaxVelocity();
 template real2 Simulation<real4, CL_CART_EULER>::FindMinMaxVelocity();
 
 }  // namespace astrix
