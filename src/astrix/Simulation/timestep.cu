@@ -36,14 +36,19 @@ namespace astrix {
 \param *pTl Pointer to triangle edge lengths
 \param G Ratio of specific heats
 \param G1 G - 1
-\param *pVp Pointer to external potential at vertices*/
+\param *pVp Pointer to external potential at vertices
+\param *pVc Pointer to vertex coordinates
+\param *pVcs Sound speed at vertices (isothermal case)
+\param frameAngularVelocity Angular velocity coordinate frame (cylindrical geometry)*/
 //######################################################################
 
 template<ConservationLaw CL>
 __host__ __device__
 real FindMaxSignalSpeed(int t, int a, int b, int c,
                         real4 *pState, const real3* __restrict__ pTl,
-                        real G, real G1, real *pVp)
+                        const real G, const real G1, const real *pVp,
+                        const real2 *pVc,
+                        const real *pVcs, const real frameAngularVelocity)
 {
   real zero = (real) 0.0;
   real half = (real) 0.5;
@@ -130,7 +135,9 @@ template<ConservationLaw CL>
 __host__ __device__
 real FindMaxSignalSpeed(int t, int a, int b, int c,
                         real3 *pState, const real3* __restrict__ pTl,
-                        real G, real G1, real *pVp)
+                        const real G, const real G1, const real *pVp,
+                        const real2 *pVc,
+                        const real *pVcs, const real frameAngularVelocity)
 {
   real zero = (real) 0.0;
   real one = (real) 1.0;
@@ -142,13 +149,17 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
   real momx = pState[a].y;
   real momy = pState[a].z;
 
+  real ir4 = one;
+  if (CL == CL_CYL_ISO)
+    ir4 = exp(-(real)4.0*pVc[a].x);
+
   real id = one/dens;
   real u = momx;
   real v = momy;
-  real absv = sqrt(u*u+v*v)*id;
+  real absv = sqrt(u*u+v*v*ir4)*id;
 
   // Sound speed
-  real cs = 1.0;
+  real cs = pVcs[a];
 
   // Maximum signal speed
   vmax = absv + cs;
@@ -158,10 +169,16 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
   momx = pState[b].y;
   momy = pState[b].z;
 
+  if (CL == CL_CYL_ISO)
+    ir4 = exp(-(real)4.0*pVc[b].x);
+
   id = one/dens;
   u = momx;
   v = momy;
-  absv = sqrt(u*u+v*v)*id;
+  absv = sqrt(u*u+v*v*ir4)*id;
+
+  // Sound speed
+  cs = pVcs[b];
 
   vmax = max(vmax, absv + cs);
 
@@ -170,10 +187,16 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
   momx = pState[c].y;
   momy = pState[c].z;
 
+  if (CL == CL_CYL_ISO)
+    ir4 = exp(-(real)4.0*pVc[c].x);
+
   id = one/dens;
   u = momx;
   v = momy;
-  absv = sqrt(u*u+v*v)*id;
+  absv = sqrt(u*u+v*v*ir4)*id;
+
+  // Sound speed
+  cs = pVcs[c];
 
   vmax = max(vmax, absv + cs);
 
@@ -192,7 +215,9 @@ template<ConservationLaw CL>
 __host__ __device__
 real FindMaxSignalSpeed(int t, int a, int b, int c,
                         real *pState, const real3* __restrict__ pTl,
-                        real G, real G1, real *pVp)
+                        const real G, const real G1, const real *pVp,
+                        const real2 *pVc,
+                        const real *pVcs, const real frameAngularVelocity)
 {
   // Triangle edge lengths
   real tl1 = pTl[t].x;
@@ -219,14 +244,19 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
 \param nVertex Total number of vertices in Mesh
 \param G Ratio of specific heats
 \param G1 G - 1
-\param *pVp Pointer to external potential at vertices*/
+\param *pVp Pointer to external potential at vertices
+\param *pVc Pointer to vertex coordinates
+\param *pVcs Sound speed at vertices (isothermal case)
+\param frameAngularVelocity Angular velocity coordinate frame (cylindrical geometry)*/
 //######################################################################
 
 template<class realNeq, ConservationLaw CL>
 __host__ __device__
 void CalcVmaxSingle(int t, const int3* __restrict__ pTv, realNeq *pState,
                     const real3* __restrict__ pTl, real *pVts,
-                    int nVertex, real G, real G1, real *pVp)
+                    int nVertex, const real G, const real G1, const real *pVp,
+                    const real2 *pVc, const real *pVcs,
+                    const real frameAngularVelocity)
 {
   int a = pTv[t].x;
   int b = pTv[t].y;
@@ -238,7 +268,8 @@ void CalcVmaxSingle(int t, const int3* __restrict__ pTv, realNeq *pState,
   while (b < 0) b += nVertex;
   while (c < 0) c += nVertex;
 
-  real vMax = FindMaxSignalSpeed<CL>(t, a, b, c, pState, pTl, G, G1, pVp);
+  real vMax = FindMaxSignalSpeed<CL>(t, a, b, c, pState, pTl, G, G1, pVp,
+                                     pVc, pVcs, frameAngularVelocity);
 
   AtomicAdd(&pVts[a], vMax);
   AtomicAdd(&pVts[b], vMax);
@@ -260,20 +291,26 @@ void CalcVmaxSingle(int t, const int3* __restrict__ pTv, realNeq *pState,
 \param *pVts Pointer to maximum time step at vertex (output)
 \param nVertex Total number of vertices in Mesh
 \param G Ratio of specific heats
-\param *pVp Pointer to external potential at vertices*/
+\param *pVp Pointer to external potential at vertices
+\param *pVc Pointer to vertex coordinates
+\param *pVcs Sound speed at vertices (isothermal case)
+\param frameAngularVelocity Angular velocity coordinate frame (cylindrical geometry)*/
 //######################################################################
 
 template<class realNeq, ConservationLaw CL>
 __global__ void
-devCalcVmax(int nTriangle, const int3* __restrict__ pTv, realNeq *pState,
+devCalcVmax(const int nTriangle, const int3* __restrict__ pTv, realNeq *pState,
             const real3* __restrict__ pTl, real *pVts,
-            int nVertex, real G, real G1, real *pVp)
+            const int nVertex, const real G, const real G1, const real *pVp,
+            const real2 *pVc,
+            const real *pVcs, const real frameAngularVelocity)
 {
   // n = triangle number
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nTriangle) {
-    CalcVmaxSingle<realNeq, CL>(n, pTv, pState, pTl, pVts, nVertex, G, G1, pVp);
+    CalcVmaxSingle<realNeq, CL>(n, pTv, pState, pTl, pVts, nVertex, G, G1, pVp,
+                                pVc, pVcs, frameAngularVelocity);
 
     n += blockDim.x*gridDim.x;
   }
@@ -303,7 +340,7 @@ void CalcVertexTimeStepSingle(int n, real *pVts, const real *pVarea)
 //######################################################################
 
 __global__ void
-devCalcVertexTimeStep(int nVertex, real *pVts, const real *pVarea)
+devCalcVertexTimeStep(const int nVertex, real *pVts, const real *pVarea)
 {
   // n = vertex number
   int n = blockIdx.x*blockDim.x + threadIdx.x;
@@ -329,16 +366,20 @@ real Simulation<realNeq, CL>::CalcVertexTimeStep()
   gpuErrchk( cudaEventCreate(&stop) );
 #endif
 
-  unsigned int nVertex = mesh->GetNVertex();
-  int nTriangle = mesh->GetNTriangle();
+  const unsigned int nVertex = mesh->GetNVertex();
+  const int nTriangle = mesh->GetNTriangle();
 
   realNeq *pState = vertexState->GetPointer();
-  real *pVp = vertexPotential->GetPointer();
-  real G = simulationParameter->specificHeatRatio;
+  const real *pVp = vertexPotential->GetPointer();
+  const real *pVcs = vertexSoundSpeed->GetPointer();
+  const real G = simulationParameter->specificHeatRatio;
 
   const int3 *pTv = mesh->TriangleVerticesData();
   const real3 *pTl = mesh->TriangleEdgeLengthData();
   const real *pVarea = mesh->VertexAreaData();
+  const real2 *pVc = mesh->VertexCoordinatesData();
+
+  const real frameAngularVelocity = 0.0;
 
   Array<real> *vertexTimestep = new Array<real>(1, cudaFlag, nVertex);
   vertexTimestep->SetToValue(0.0);
@@ -359,7 +400,8 @@ real Simulation<realNeq, CL>::CalcVertexTimeStep()
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     devCalcVmax<realNeq, CL><<<nBlocks, nThreads>>>
-      (nTriangle, pTv, pState, pTl, pVts, nVertex, G, G - 1.0, pVp);
+      (nTriangle, pTv, pState, pTl, pVts, nVertex, G, G - 1.0, pVp, pVc, pVcs,
+       frameAngularVelocity);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -373,7 +415,8 @@ real Simulation<realNeq, CL>::CalcVertexTimeStep()
 #endif
     for (int n = 0; n < nTriangle; n++)
       CalcVmaxSingle<realNeq, CL>(n, pTv, pState, pTl, pVts,
-                                  nVertex, G, G - 1.0, pVp);
+                                  nVertex, G, G - 1.0, pVp, pVc, pVcs,
+                                  frameAngularVelocity);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -444,6 +487,7 @@ real Simulation<realNeq, CL>::CalcVertexTimeStep()
 template real Simulation<real, CL_ADVECT>::CalcVertexTimeStep();
 template real Simulation<real, CL_BURGERS>::CalcVertexTimeStep();
 template real Simulation<real3, CL_CART_ISO>::CalcVertexTimeStep();
+template real Simulation<real3, CL_CYL_ISO>::CalcVertexTimeStep();
 template real Simulation<real4, CL_CART_EULER>::CalcVertexTimeStep();
 
 }  // namespace astrix
