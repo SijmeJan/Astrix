@@ -210,6 +210,7 @@ void Simulation<realNeq, CL>::ReplacePressureWithEnergy()
 template void Simulation<real, CL_ADVECT>::ReplacePressureWithEnergy();
 template void Simulation<real, CL_BURGERS>::ReplacePressureWithEnergy();
 template void Simulation<real3, CL_CART_ISO>::ReplacePressureWithEnergy();
+template void Simulation<real3, CL_CYL_ISO>::ReplacePressureWithEnergy();
 template void Simulation<real4, CL_CART_EULER>::ReplacePressureWithEnergy();
 
 //##############################################################################
@@ -217,6 +218,7 @@ template void Simulation<real4, CL_CART_EULER>::ReplacePressureWithEnergy();
 template void Simulation<real, CL_ADVECT>::ReplaceEnergyWithPressure();
 template void Simulation<real, CL_BURGERS>::ReplaceEnergyWithPressure();
 template void Simulation<real3, CL_CART_ISO>::ReplaceEnergyWithPressure();
+template void Simulation<real3, CL_CYL_ISO>::ReplaceEnergyWithPressure();
 template void Simulation<real4, CL_CART_EULER>::ReplaceEnergyWithPressure();
 
 }  // namespace astrix
