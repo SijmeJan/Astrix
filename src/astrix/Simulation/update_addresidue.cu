@@ -709,6 +709,7 @@ void Simulation<realNeq, CL>::AddResidue(real dt)
 template void Simulation<real, CL_ADVECT>::AddResidue(real dt);
 template void Simulation<real, CL_BURGERS>::AddResidue(real dt);
 template void Simulation<real3, CL_CART_ISO>::AddResidue(real dt);
+template void Simulation<real3, CL_CYL_ISO>::AddResidue(real dt);
 template void Simulation<real4, CL_CART_EULER>::AddResidue(real dt);
 
 }  // namespace astrix
