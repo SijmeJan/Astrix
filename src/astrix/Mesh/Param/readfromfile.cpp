@@ -63,6 +63,7 @@ void MeshParameter::ReadFromFile(const char *fileName)
       if (secondWord == "NOH") problemDef = PROBLEM_NOH;
       if (secondWord == "SOURCE") problemDef = PROBLEM_SOURCE;
       if (secondWord == "GAUSS") problemDef = PROBLEM_GAUSS;
+      if (secondWord == "DISC") problemDef = PROBLEM_DISC;
     }
 
     // Equivalent no of points x-direction (check if number)
@@ -133,6 +134,14 @@ void MeshParameter::ReadFromFile(const char *fileName)
       if (!secondWord.empty() &&
           secondWord.find_first_not_of("012") == std::string::npos)
         structuredFlag = atof(secondWord.c_str());
+    }
+    if (firstWord == "vertexBoundaryInputFile") {
+      if (!secondWord.empty()) {
+        vertexBoundaryInputFile = secondWord;
+        std::cout<< "Reading outer boundary vertices from file "
+                 << vertexBoundaryInputFile << "."
+                 << std::endl;
+      }
     }
     if (firstWord == "vertexInputFile") {
       if (!secondWord.empty()) {
