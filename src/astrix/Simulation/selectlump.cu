@@ -206,6 +206,9 @@ template void Simulation<real, CL_BURGERS>::SelectLump(real dt,
 template void Simulation<real3, CL_CART_ISO>::SelectLump(real dt,
                                                          int massMatrix,
                                                          int selectLumpFlag);
+template void Simulation<real3, CL_CYL_ISO>::SelectLump(real dt,
+                                                        int massMatrix,
+                                                        int selectLumpFlag);
 template void Simulation<real4, CL_CART_EULER>::SelectLump(real dt,
                                                            int massMatrix,
                                                            int selectLumpFlag);
