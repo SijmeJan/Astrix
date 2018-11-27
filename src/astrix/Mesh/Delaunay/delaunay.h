@@ -44,6 +44,12 @@ class Delaunay
                       const int nEdgeCheck,
                       const int flopFlag);
 
+  //! Make sure initial segments are part of the triangulation
+  void RecoverSegments(Connectivity * const connectivity,
+                       const Predicates *predicates,
+                       const MeshParameter *meshParameter,
+                       Array<int> * const vertexOrder);
+
  private:
   //! Flag whether to use device or host
   int cudaFlag;
@@ -93,6 +99,13 @@ class Delaunay
                      const Predicates *predicates,
                      const MeshParameter *meshParameter,
                      const int nNonDel);
+
+  //! Check which edges need to be flipped to recover segments
+  void CheckSegments(Connectivity * const connectivity,
+                     const Predicates *predicates,
+                     const MeshParameter *meshParameter,
+                     Array<int> * const vertexOrder);
+
 };
 
 }
