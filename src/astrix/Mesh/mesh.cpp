@@ -57,14 +57,16 @@ Mesh::Mesh(int meshVerboseLevel, int meshDebugLevel, int meshCudaFlag,
   predicates = new Predicates(device);
   morton = new Morton(cudaFlag);
   delaunay = new Delaunay(cudaFlag, debugLevel);
-  refine = new Refine(cudaFlag, 1, verboseLevel);
-  coarsen = new Coarsen(cudaFlag, 1, verboseLevel);
+  refine = new Refine(cudaFlag, std::max(1, debugLevel), verboseLevel);
+  coarsen = new Coarsen(cudaFlag, std::max(1, debugLevel), verboseLevel);
 
   // Define arrays
   vertexBoundaryFlag = new Array<int>(1, cudaFlag);
 
   triangleEdgeNormals = new Array<real2>(3, cudaFlag);
   triangleEdgeLength = new Array<real3>(1, cudaFlag);
+
+  triangleAverageX = new Array<real>(1, cudaFlag);
 
   try {
     Init(fileName, restartNumber);
@@ -77,6 +79,7 @@ Mesh::Mesh(int meshVerboseLevel, int meshDebugLevel, int meshCudaFlag,
 
     delete triangleEdgeNormals;
     delete triangleEdgeLength;
+    delete triangleAverageX;
 
     delete predicates;
     delete morton;
@@ -100,6 +103,7 @@ Mesh::~Mesh()
 
   delete triangleEdgeNormals;
   delete triangleEdgeLength;
+  delete triangleAverageX;
 
   delete predicates;
   delete morton;
@@ -162,22 +166,18 @@ void Mesh::Init(const char *fileName, int restartNumber)
       // Structured mesh
       CreateStructuredMesh();
     } else {
-      // Create unstructured mesh
-      try {
-        // Set up mesh boundaries
-        ConstructBoundaries();
-      }
-      catch (...) {
-        std::cout << "Error constructing mesh boundaries" << std::endl;
-        throw;
-      }
+      Array <real2> *vertexCoordinatesToAdd = 0;
+      Array <real2> *vertexOuterBoundary = 0;
 
-      // If vertex list available...
-      if (!meshParameter->vertexInputFile.empty()) {
+      // If boundary vertex list available...
+      if (!meshParameter->vertexBoundaryInputFile.empty()) {
+        if (verboseLevel > 0)
+          std::cout << "Reading boundary vertex file..." << std::endl;
+
         // Read vertex coordinates into Array
         Array <real> *temp;
         try {
-          temp = new Array <real> (meshParameter->vertexInputFile);
+          temp = new Array <real> (meshParameter->vertexBoundaryInputFile);
         }
         catch (...) {
           throw;
@@ -191,9 +191,118 @@ void Mesh::Init(const char *fileName, int restartNumber)
         }
 
         // Convert to real2
-        Array <real2> *vertexCoordinatesToAdd = new Array <real2>;
+        vertexCoordinatesToAdd = new Array <real2>;
         temp->MakeIntrinsic2D(vertexCoordinatesToAdd);
         delete temp;
+
+        real2 *pVc = vertexCoordinatesToAdd->GetPointer();
+        int nAdd = vertexCoordinatesToAdd->GetSize();
+        for (int i = 0; i < nAdd; i++) {
+          real2 a = pVc[i];
+          int next = i + 1;
+          if (next >= nAdd) next -= nAdd;
+
+          real2 b = pVc[next];
+
+          for (int j = 0; j < nAdd; j++) {
+            real2 v = pVc[j];
+
+            if ((a.x - v.x)*(b.x - v.x) + (a.y - v.y)*(b.y - v.y) < 0.0) {
+              std::cout << "Error: encroached segment detected in input boundary vertices. Possibly due to small input angle." << std::endl;
+              throw std::runtime_error("");
+            }
+          }
+        }
+
+        // If boundary vertices are given, pass these to constructBoundaries
+        vertexOuterBoundary =
+          new Array<real2>(1, 0, vertexCoordinatesToAdd->GetSize());
+        vertexOuterBoundary->SetEqual(vertexCoordinatesToAdd);
+      } else {
+        // If internal vertex list available...
+        if (!meshParameter->vertexInputFile.empty()) {
+          if (verboseLevel > 0)
+            std::cout << "Reading internal vertex file..." << std::endl;
+
+          // Read vertex coordinates into Array
+          Array <real> *temp;
+          try {
+            temp = new Array <real> (meshParameter->vertexInputFile);
+          }
+          catch (...) {
+            throw;
+          }
+
+          // Need array to be 2D
+          if (temp->GetDimension() != 2) {
+            std::cout << "Error: vertex input file should have 2 columns"
+                      << std::endl;
+            throw std::runtime_error("");
+          }
+
+          // Convert to real2
+          vertexCoordinatesToAdd = new Array <real2>;
+          temp->MakeIntrinsic2D(vertexCoordinatesToAdd);
+          delete temp;
+
+          real2 origin;
+          origin.x = 0.5*(meshParameter->maxx + meshParameter->minx);
+          origin.y = 0.5*(meshParameter->maxy + meshParameter->miny);
+
+          vertexCoordinatesToAdd->SortCounterClock<real>(origin);
+
+          // If internal vertices are given, but no boundary vertices,
+          // need convex hull of point set to determine initial triangulation
+          if (verboseLevel > 0)
+            std::cout << "Calculating convex hull..." << std::endl;
+
+          // Gift wrap to find convex hull:
+          // convex hull vertices are removed from vertexCoordinatesAdd!!
+          vertexOuterBoundary = ConvexHull(vertexCoordinatesToAdd);
+        }
+      }
+
+      // Create unstructured mesh. Note that vertexOuterboundary is either 0
+      // or contains either the boundary vertices read from file or the convex
+      // hull of internal vertices read from file.
+      try {
+        // Set up mesh boundaries
+        ConstructBoundaries(vertexOuterBoundary);
+      }
+      catch (...) {
+        std::cout << "Error constructing mesh boundaries" << std::endl;
+        throw;
+      }
+
+      // If internal vertex list available...
+      if (!meshParameter->vertexInputFile.empty()) {
+        // If also boundary vertices available from file, we need
+        if (!meshParameter->vertexBoundaryInputFile.empty()) {
+
+          if (verboseLevel > 0)
+            std::cout << "Reading internal vertex file..." << std::endl;
+
+          // Read vertex coordinates into Array
+          Array <real> *temp;
+          try {
+            temp = new Array <real> (meshParameter->vertexInputFile);
+          }
+          catch (...) {
+            throw;
+          }
+
+          // Need array to be 2D
+          if (temp->GetDimension() != 2) {
+            std::cout << "Error: vertex input file should have 2 columns"
+                      << std::endl;
+            throw std::runtime_error("");
+          }
+
+          // Convert to real2
+          vertexCoordinatesToAdd = new Array <real2>;
+          temp->MakeIntrinsic2D(vertexCoordinatesToAdd);
+          delete temp;
+        }
 
         // Add vertices into mesh
         refine->AddVertices(connectivity,
@@ -209,6 +318,7 @@ void Mesh::Init(const char *fileName, int restartNumber)
         FindBoundaryVertices();
 
         delete vertexCoordinatesToAdd;
+
       } else {
         try {
           // Refine mesh to base resolution
@@ -347,6 +457,11 @@ const int2* Mesh::EdgeTrianglesData()
   return connectivity->edgeTriangles->GetPointer();
 }
 
+const real* Mesh::TriangleAverageXData()
+{
+  return triangleAverageX->GetPointer();
+}
+
 void Mesh::Transform()
 {
   connectivity->Transform();
@@ -355,12 +470,14 @@ void Mesh::Transform()
     vertexBoundaryFlag->TransformToHost();
     triangleEdgeNormals->TransformToHost();
     triangleEdgeLength->TransformToHost();
+    triangleAverageX->TransformToHost();
 
     cudaFlag = 0;
   } else {
     vertexBoundaryFlag->TransformToDevice();
     triangleEdgeNormals->TransformToDevice();
     triangleEdgeLength->TransformToDevice();
+    triangleAverageX->TransformToDevice();
 
     cudaFlag = 1;
   }
