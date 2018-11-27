@@ -259,6 +259,7 @@ void Simulation<realNeq, CL>::KHAddEigenVector()
 template void Simulation<real, CL_ADVECT>::KHAddEigenVector();
 template void Simulation<real, CL_BURGERS>::KHAddEigenVector();
 template void Simulation<real3, CL_CART_ISO>::KHAddEigenVector();
+template void Simulation<real3, CL_CYL_ISO>::KHAddEigenVector();
 template void Simulation<real4, CL_CART_EULER>::KHAddEigenVector();
 
 }  // namespace astrix
