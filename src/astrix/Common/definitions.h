@@ -46,6 +46,7 @@ namespace astrix {
                           PROBLEM_NOH,       /*!< Noh test problem*/
                           PROBLEM_SOURCE,    /*!< Source problem*/
                           PROBLEM_GAUSS,     /*!< Advection pulse*/
+                          PROBLEM_DISC,      /*!< Disc around central object*/
   };
 
   //! Integration schemes
@@ -63,10 +64,9 @@ namespace astrix {
                         CL_ADVECT,     /*!< Linear advection*/
                         CL_BURGERS,    /*!< Burgers equation*/
                         CL_CART_ISO,   /*!< Isothermal Cartesian hydro*/
+                        CL_CYL_ISO,    /*!< Isothermal Cylindrical hydro*/
                         CL_CART_EULER  /*!< Cartesian Euler eqs*/
   };
-
-
 }  // namespace astrix
 
 #endif
