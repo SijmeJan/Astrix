@@ -476,6 +476,9 @@ template void VTK::Write<real, CL_BURGERS>(const char *fileName,
 template void VTK::Write<real3, CL_CART_ISO>(const char *fileName,
                                              Mesh *mesh,
                                              real3 *state);
+template void VTK::Write<real3, CL_CYL_ISO>(const char *fileName,
+                                            Mesh *mesh,
+                                            real3 *state);
 template void VTK::Write<real4, CL_CART_EULER>(const char *fileName,
                                                Mesh *mesh,
                                                real4 *state);
