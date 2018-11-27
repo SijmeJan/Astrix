@@ -87,6 +87,7 @@ int main(int argc, char *argv[])
       if (strcmp(argv[i+1], "advect") == 0) CL = astrix::CL_ADVECT;
       if (strcmp(argv[i+1], "burgers") == 0) CL = astrix::CL_BURGERS;
       if (strcmp(argv[i+1], "cart_iso") == 0) CL = astrix::CL_CART_ISO;
+      if (strcmp(argv[i+1], "cyl_iso") == 0) CL = astrix::CL_CYL_ISO;
       if (strcmp(argv[i+1], "cart_euler") == 0) CL = astrix::CL_CART_EULER;
 
       std::cout << "Conservation law: ";
@@ -100,6 +101,9 @@ int main(int argc, char *argv[])
       case astrix::CL_CART_ISO :
         std::cout << "Cartesian isothermal hydrodynamics" << std::endl;
         break;
+      case astrix::CL_CYL_ISO :
+        std::cout << "Cylindrical isothermal hydrodynamics" << std::endl;
+        break;
       case astrix::CL_CART_EULER :
         std::cout << "Cartesian hydrodynamics" << std::endl;
         break;
@@ -109,6 +113,8 @@ int main(int argc, char *argv[])
         std::cout << "  advect: linear advection" << std::endl;
         std::cout << "  burgers: Burgers equation" << std::endl;
         std::cout << "  cart_iso: Cartesian isothermal hydrodynamics"
+                  << std::endl;
+        std::cout << "  cyl_iso: Cylindrical isothermal hydrodynamics"
                   << std::endl;
         std::cout << "  cart_euler: Cartesian hydrodynamics" << std::endl;
         return 1;
@@ -222,7 +228,7 @@ int main(int argc, char *argv[])
     // Clean up
     delete simulation;
   }
-  // Isothermal hydrodynamics
+  // Cartesian isothermal hydrodynamics
   if (CL == astrix::CL_CART_ISO) {
     astrix::Simulation<astrix::real3, astrix::CL_CART_ISO> *simulation;
     try {
@@ -231,6 +237,35 @@ int main(int argc, char *argv[])
                                astrix::CL_CART_ISO>(verboseLevel, debugLevel,
                                                     fileName, device,
                                                     restartNumber);
+    }
+    catch (...) {
+      std::cout << "Could not create Simulation object, exiting..."
+                << std::endl;
+      delete device;
+      return 1;
+    }
+
+    try {
+      // Run simulation
+      simulation->Run(maxWallClockHours);
+    }
+    catch (...) {
+      std::cout << "Exiting with error!" << std::endl;
+      return 1;
+    }
+
+    // Clean up
+    delete simulation;
+  }
+  // Cylindrical isothermal hydrodynamics
+  if (CL == astrix::CL_CYL_ISO) {
+    astrix::Simulation<astrix::real3, astrix::CL_CYL_ISO> *simulation;
+    try {
+      simulation =
+        new astrix::Simulation<astrix::real3,
+                               astrix::CL_CYL_ISO>(verboseLevel, debugLevel,
+                                                   fileName, device,
+                                                   restartNumber);
     }
     catch (...) {
       std::cout << "Could not create Simulation object, exiting..."
