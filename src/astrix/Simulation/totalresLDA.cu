@@ -46,7 +46,10 @@ namespace astrix {
 \param G Ratio of specific heats
 \param G1 G - 1
 \param G2 G - 2
-\param *pVp Pointer to external potential at vertices*/
+\param *pVp Pointer to external potential at vertices
+\param *pTrad Triangle average x (needed for cylindrical geometry)
+\param *pVcs Sound speed at vertices (isothermal case)
+\param frameAngularVelocity Angular velocity coordinate frame (cylindrical geometry)*/
 //######################################################################
 
 template<ConservationLaw CL>
@@ -61,7 +64,9 @@ void CalcTotalResLDASingle(int n,
                            const real2 *pTn3,
                            const real3* __restrict__ pTl,
                            int nVertex, real G, real G1, real G2,
-                           const real *pVp)
+                           const real *pVp,
+                           const real *pTrad, const real *pVcs,
+                           const real frameAngularVelocity)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -428,6 +433,17 @@ void CalcTotalResLDASingle(int n,
   pTresLDA2[n].w = ResLDA;
 }
 
+
+
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//-----------------------------------------------------------------------------
+// Systems of 3 equations: Cartesian and cylindrical isothermal hydrodynamics
+//-----------------------------------------------------------------------------
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
 template<ConservationLaw CL>
 __host__ __device__
 void CalcTotalResLDASingle(int n,
@@ -440,7 +456,9 @@ void CalcTotalResLDASingle(int n,
                            const real2 *pTn3,
                            const real3* __restrict__ pTl,
                            int nVertex, real G, real G1, real G2,
-                           const real *pVp)
+                           const real *pVp,
+                           const real *pTrad, const real *pVcs,
+                           const real frameAngularVelocity)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -456,6 +474,9 @@ void CalcTotalResLDASingle(int n,
   while (vs1 < 0) vs1 += nVertex;
   while (vs2 < 0) vs2 += nVertex;
   while (vs3 < 0) vs3 += nVertex;
+
+  // Average sound speed
+  real ctilde = onethird*(pVcs[vs1] + pVcs[vs2] + pVcs[vs3]);
 
   // Parameter vector at vertices: 12 uncoalesced loads
   real Zv00 = pVz[vs1].x;
@@ -476,8 +497,19 @@ void CalcTotalResLDASingle(int n,
   real utilde = Z1/Z0;
   real vtilde = Z2/Z0;
 
-  real ctilde = one;
   real ic = one/ctilde;
+
+  // Average radius triangle
+  real r2 = one;
+  real ir2 = one;
+  real Omega = zero;
+
+  if (CL == CL_CYL_ISO) {
+    r2 = pTrad[n];
+    r2 = r2*r2;
+    ir2 = one/r2;
+    Omega = frameAngularVelocity;
+  }
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate Wtemp = Sum(K-*What)
@@ -498,11 +530,11 @@ void CalcTotalResLDASingle(int n,
   real nx = half*tnx1;
   real ny = half*tny1;
   real tl = tl1;
-  real wtilde = (uc*nx + vc*ny)*ctilde;
+  real wtilde = (uc*nx + vc*ny*ir2)*ctilde;
 
-  real l1 = min(zero, wtilde + ctilde);
-  real l2 = min(zero, wtilde - ctilde);
-  real l3 = min(zero, wtilde);
+  real l1 = min(zero, wtilde + ctilde - Omega*ny);
+  real l2 = min(zero, wtilde - ctilde - Omega*ny);
+  real l3 = min(zero, wtilde - Omega*ny);
 
   // Auxiliary variables
   real l1l2l3 = half*(l1 + l2) - l3;
@@ -510,13 +542,13 @@ void CalcTotalResLDASingle(int n,
 
   real nm00 = tl*isoKMP00(ic, wtilde, l1l2, l2);
   real nm01 = tl*isoKMP01(nx, ic, l1l2);
-  real nm02 = tl*isoKMP02(ny, ic, l1l2);
+  real nm02 = tl*isoKMP02(ny*ir2, ic, l1l2);
   real nm10 = tl*isoKMP10(nx, ctilde, uc, wtilde, l1l2l3, l1l2);
   real nm11 = tl*isoKMP11(nx, uc, l1l2l3, l1l2, l3);
-  real nm12 = tl*isoKMP12(nx, ny, uc, l1l2l3, l1l2);
-  real nm20 = tl*isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2);
-  real nm21 = tl*isoKMP21(nx, ny, vc, l1l2l3, l1l2);
-  real nm22 = tl*isoKMP22(ny, vc, l1l2l3, l1l2, l3);
+  real nm12 = tl*isoKMP12(nx, ny*ir2, uc, l1l2l3, l1l2);
+  real nm20 = tl*isoKMP20(ny*r2, ctilde, vc, wtilde, l1l2l3, l1l2);
+  real nm21 = tl*isoKMP21(nx, ny*r2, vc, l1l2l3, l1l2);
+  real nm22 = tl*isoKMP22(ny, vc*ir2, l1l2l3, l1l2, l3);
 
   // Second direction
   real tnx2 = pTn2[n].x;
@@ -525,11 +557,11 @@ void CalcTotalResLDASingle(int n,
   nx = half*tnx2;
   ny = half*tny2;
   tl = tl2;
-  wtilde = (uc*nx + vc*ny)*ctilde;
+  wtilde = (uc*nx + vc*ny*ir2)*ctilde;
 
-  l1 = min(wtilde + ctilde, zero);
-  l2 = min(wtilde - ctilde, zero);
-  l3 = min(wtilde, zero);
+  l1 = min(wtilde + ctilde - Omega*ny, zero);
+  l2 = min(wtilde - ctilde - Omega*ny, zero);
+  l3 = min(wtilde - Omega*ny, zero);
 
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
@@ -537,13 +569,13 @@ void CalcTotalResLDASingle(int n,
 
   nm00 += tl*isoKMP00(ic, wtilde, l1l2, l2);
   nm01 += tl*isoKMP01(nx, ic, l1l2);
-  nm02 += tl*isoKMP02(ny, ic, l1l2);
+  nm02 += tl*isoKMP02(ny*ir2, ic, l1l2);
   nm10 += tl*isoKMP10(nx, ctilde, uc, wtilde, l1l2l3, l1l2);
   nm11 += tl*isoKMP11(nx, uc, l1l2l3, l1l2, l3);
-  nm12 += tl*isoKMP12(nx, ny, uc, l1l2l3, l1l2);
-  nm20 += tl*isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2);
-  nm21 += tl*isoKMP21(nx, ny, vc, l1l2l3, l1l2);
-  nm22 += tl*isoKMP22(ny, vc, l1l2l3, l1l2, l3);
+  nm12 += tl*isoKMP12(nx, ny*ir2, uc, l1l2l3, l1l2);
+  nm20 += tl*isoKMP20(ny*r2, ctilde, vc, wtilde, l1l2l3, l1l2);
+  nm21 += tl*isoKMP21(nx, ny*r2, vc, l1l2l3, l1l2);
+  nm22 += tl*isoKMP22(ny, vc*ir2, l1l2l3, l1l2, l3);
 
   // Third direction
   real tnx3 = pTn3[n].x;
@@ -552,14 +584,11 @@ void CalcTotalResLDASingle(int n,
   nx = half*tnx3;
   ny = half*tny3;
   tl = tl3;
-  wtilde = (uc*nx + vc*ny)*ctilde;
+  wtilde = (uc*nx + vc*ny*ir2)*ctilde;
 
-  l1 = min(wtilde + ctilde, zero);
-  l2 = min(wtilde - ctilde, zero);
-  l3 = min(wtilde, zero);
-  // l1 = half*(wtilde + ctilde - fabs(wtilde + ctilde));
-  // l2 = half*(wtilde - ctilde - fabs(wtilde - ctilde));
-  // l3 = half*(wtilde - fabs(wtilde));
+  l1 = min(wtilde + ctilde - Omega*ny, zero);
+  l2 = min(wtilde - ctilde - Omega*ny, zero);
+  l3 = min(wtilde - Omega*ny, zero);
 
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
@@ -567,13 +596,13 @@ void CalcTotalResLDASingle(int n,
 
   nm00 += tl*isoKMP00(ic, wtilde, l1l2, l2);
   nm01 += tl*isoKMP01(nx, ic, l1l2);
-  nm02 += tl*isoKMP02(ny, ic, l1l2);
+  nm02 += tl*isoKMP02(ny*ir2, ic, l1l2);
   nm10 += tl*isoKMP10(nx, ctilde, uc, wtilde, l1l2l3, l1l2);
   nm11 += tl*isoKMP11(nx, uc, l1l2l3, l1l2, l3);
-  nm12 += tl*isoKMP12(nx, ny, uc, l1l2l3, l1l2);
-  nm20 += tl*isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2);
-  nm21 += tl*isoKMP21(nx, ny, vc, l1l2l3, l1l2);
-  nm22 += tl*isoKMP22(ny, vc, l1l2l3, l1l2, l3);
+  nm12 += tl*isoKMP12(nx, ny*ir2, uc, l1l2l3, l1l2);
+  nm20 += tl*isoKMP20(ny*r2, ctilde, vc, wtilde, l1l2l3, l1l2);
+  nm21 += tl*isoKMP21(nx, ny*r2, vc, l1l2l3, l1l2);
+  nm22 += tl*isoKMP22(ny, vc*ir2, l1l2l3, l1l2, l3);
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate inverse of NM = Sum(K-)
@@ -617,11 +646,14 @@ void CalcTotalResLDASingle(int n,
 
   nx = half*Tnx1;
   ny = half*Tny1;
-  wtilde = (uc*nx + vc*ny)*ctilde;
+  wtilde = (uc*nx + vc*ny*ir2)*ctilde;
 
-  l1 = half*(wtilde + ctilde + fabs(wtilde + ctilde));
-  l2 = half*(wtilde - ctilde + fabs(wtilde - ctilde));
-  l3 = half*(wtilde + fabs(wtilde));
+  l1 = half*(wtilde + ctilde - Omega*ny +
+             fabs(wtilde + ctilde - Omega*ny));
+  l2 = half*(wtilde - ctilde - Omega*ny +
+             fabs(wtilde - ctilde - Omega*ny));
+  l3 = half*(wtilde - Omega*ny +
+             fabs(wtilde - Omega*ny));
 
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
@@ -630,19 +662,19 @@ void CalcTotalResLDASingle(int n,
   ResLDA =
     -Wtilde0*isoKMP00(ic, wtilde, l1l2, l2)
     -Wtilde1*isoKMP01(nx, ic, l1l2)
-    -Wtilde2*isoKMP02(ny, ic, l1l2);
+    -Wtilde2*isoKMP02(ny*ir2, ic, l1l2);
   pTresLDA0[n].x = ResLDA;
 
   ResLDA =
     -Wtilde0*isoKMP10(nx, ctilde, uc, wtilde, l1l2l3, l1l2)
     -Wtilde1*isoKMP11(nx, uc, l1l2l3, l1l2, l3)
-    -Wtilde2*isoKMP12(nx, ny, uc, l1l2l3, l1l2);
+    -Wtilde2*isoKMP12(nx, ny*ir2, uc, l1l2l3, l1l2);
   pTresLDA0[n].y = ResLDA;
 
   ResLDA =
-    -Wtilde0*isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2)
-    -Wtilde1*isoKMP21(nx, ny, vc, l1l2l3, l1l2)
-    -Wtilde2*isoKMP22(ny, vc, l1l2l3, l1l2, l3);
+    -Wtilde0*isoKMP20(ny*r2, ctilde, vc, wtilde, l1l2l3, l1l2)
+    -Wtilde1*isoKMP21(nx, ny*r2, vc, l1l2l3, l1l2)
+    -Wtilde2*isoKMP22(ny, vc*ir2, l1l2l3, l1l2, l3);
   pTresLDA0[n].z = ResLDA;
 
   // Second direction
@@ -651,11 +683,14 @@ void CalcTotalResLDASingle(int n,
 
   nx = half*Tnx2;
   ny = half*Tny2;
-  wtilde = (uc*nx + vc*ny)*ctilde;
+  wtilde = (uc*nx + vc*ny*ir2)*ctilde;
 
-  l1 = half*(wtilde + ctilde + fabs(wtilde + ctilde));
-  l2 = half*(wtilde - ctilde + fabs(wtilde - ctilde));
-  l3 = half*(wtilde + fabs(wtilde));
+  l1 = half*(wtilde + ctilde - Omega*ny +
+             fabs(wtilde + ctilde - Omega*ny));
+  l2 = half*(wtilde - ctilde - Omega*ny +
+             fabs(wtilde - ctilde - Omega*ny));
+  l3 = half*(wtilde - Omega*ny +
+             fabs(wtilde - Omega*ny));
 
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
@@ -664,19 +699,19 @@ void CalcTotalResLDASingle(int n,
   ResLDA =
     -Wtilde0*isoKMP00(ic, wtilde, l1l2, l2)
     -Wtilde1*isoKMP01(nx, ic, l1l2)
-    -Wtilde2*isoKMP02(ny, ic, l1l2);
+    -Wtilde2*isoKMP02(ny*ir2, ic, l1l2);
   pTresLDA1[n].x = ResLDA;
 
   ResLDA =
     -Wtilde0*isoKMP10(nx, ctilde, uc, wtilde, l1l2l3, l1l2)
     -Wtilde1*isoKMP11(nx, uc, l1l2l3, l1l2, l3)
-    -Wtilde2*isoKMP12(nx, ny, uc, l1l2l3, l1l2);
+    -Wtilde2*isoKMP12(nx, ny*ir2, uc, l1l2l3, l1l2);
   pTresLDA1[n].y = ResLDA;
 
   ResLDA =
-    -Wtilde0*isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2)
-    -Wtilde1*isoKMP21(nx, ny, vc, l1l2l3, l1l2)
-    -Wtilde2*isoKMP22(ny, vc, l1l2l3, l1l2, l3);
+    -Wtilde0*isoKMP20(ny*r2, ctilde, vc, wtilde, l1l2l3, l1l2)
+    -Wtilde1*isoKMP21(nx, ny*r2, vc, l1l2l3, l1l2)
+    -Wtilde2*isoKMP22(ny, vc*ir2, l1l2l3, l1l2, l3);
   pTresLDA1[n].z = ResLDA;
 
   // Third direction
@@ -685,11 +720,14 @@ void CalcTotalResLDASingle(int n,
 
   nx = half*Tnx3;
   ny = half*Tny3;
-  wtilde = (uc*nx + vc*ny)*ctilde;
+  wtilde = (uc*nx + vc*ny*ir2)*ctilde;
 
-  l1 = half*(wtilde + ctilde + fabs(wtilde + ctilde));
-  l2 = half*(wtilde - ctilde + fabs(wtilde - ctilde));
-  l3 = half*(wtilde + fabs(wtilde));
+  l1 = half*(wtilde + ctilde - Omega*ny +
+             fabs(wtilde + ctilde - Omega*ny));
+  l2 = half*(wtilde - ctilde - Omega*ny +
+             fabs(wtilde - ctilde - Omega*ny));
+  l3 = half*(wtilde - Omega*ny +
+             fabs(wtilde - Omega*ny));
 
   // Auxiliary variables
   l1l2l3 = half*(l1 + l2) - l3;
@@ -698,21 +736,32 @@ void CalcTotalResLDASingle(int n,
   ResLDA =
     -Wtilde0*isoKMP00(ic, wtilde, l1l2, l2)
     -Wtilde1*isoKMP01(nx, ic, l1l2)
-    -Wtilde2*isoKMP02(ny, ic, l1l2);
+    -Wtilde2*isoKMP02(ny*ir2, ic, l1l2);
   pTresLDA2[n].x = ResLDA;
 
   ResLDA =
     -Wtilde0*isoKMP10(nx, ctilde, uc, wtilde, l1l2l3, l1l2)
     -Wtilde1*isoKMP11(nx, uc, l1l2l3, l1l2, l3)
-    -Wtilde2*isoKMP12(nx, ny, uc, l1l2l3, l1l2);
+    -Wtilde2*isoKMP12(nx, ny*ir2, uc, l1l2l3, l1l2);
   pTresLDA2[n].y = ResLDA;
 
   ResLDA =
-    -Wtilde0*isoKMP20(ny, ctilde, vc, wtilde, l1l2l3, l1l2)
-    -Wtilde1*isoKMP21(nx, ny, vc, l1l2l3, l1l2)
-    -Wtilde2*isoKMP22(ny, vc, l1l2l3, l1l2, l3);
+    -Wtilde0*isoKMP20(ny*r2, ctilde, vc, wtilde, l1l2l3, l1l2)
+    -Wtilde1*isoKMP21(nx, ny*r2, vc, l1l2l3, l1l2)
+    -Wtilde2*isoKMP22(ny, vc*ir2, l1l2l3, l1l2, l3);
   pTresLDA2[n].z = ResLDA;
 }
+
+
+
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//-----------------------------------------------------------------------------
+// Systems of 1 equation: Linear advection and Burgers equation
+//-----------------------------------------------------------------------------
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 
 template<ConservationLaw CL>
 __host__ __device__
@@ -726,7 +775,9 @@ void CalcTotalResLDASingle(int n,
                            const real2 *pTn3,
                            const real3* __restrict__  pTl,
                            int nVertex, real G, real G1, real G2,
-                           const real *pVp)
+                           const real *pVp,
+                           const real *pTrad, const real *pVcs,
+                           const real frameAngularVelocity)
 {
   const real zero  = (real) 0.0;
   const real half  = (real) 0.5;
@@ -847,7 +898,10 @@ void CalcTotalResLDASingle(int n,
 \param G Ratio of specific heats
 \param G1 G - 1
 \param G2 G - 2
-\param *pVp Pointer to external potential at vertices*/
+\param *pVp Pointer to external potential at vertices
+\param *pTrad Triangle average x (needed for cylindrical geometry)
+\param *pVcs Sound speed at vertices (isothermal case)
+\param frameAngularVelocity Angular velocity coordinate frame (cylindrical geometry)*/
 //######################################################################
 
 template<class realNeq, ConservationLaw CL>
@@ -858,14 +912,17 @@ devCalcTotalResLDA(int nTriangle, const int3* __restrict__ pTv,
                    realNeq *pTresTot, const real2 *pTn1, const real2 *pTn2,
                    const real2 *pTn3,
                    const real3* __restrict__ pTl,
-                   int nVertex, real G, real G1, real G2,  const real *pVp)
+                   int nVertex, real G, real G1, real G2,  const real *pVp,
+                   const real *pTrad, const real *pVcs,
+                   const real frameAngularVelocity)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nTriangle) {
     CalcTotalResLDASingle<CL>(n, pTv, pVz, pTresLDA0, pTresLDA1, pTresLDA2,
                               pTresTot, pTn1, pTn2, pTn3, pTl,
-                              nVertex, G, G1, G2, pVp);
+                              nVertex, G, G1, G2, pVp,
+                              pTrad, pVcs, frameAngularVelocity);
 
     // Next triangle
     n += blockDim.x*gridDim.x;
@@ -912,6 +969,7 @@ void Simulation<realNeq, CL>::CalcTotalResLDA()
 
   realNeq *pVz = vertexParameterVector->GetPointer();
   real *pVp = vertexPotential->GetPointer();
+  real *pVcs = vertexSoundSpeed->GetPointer();
   real G = simulationParameter->specificHeatRatio;
 
   realNeq *pTresLDA0 = triangleResidueLDA->GetPointer(0);
@@ -925,6 +983,9 @@ void Simulation<realNeq, CL>::CalcTotalResLDA()
   const real2 *pTn2 = mesh->TriangleEdgeNormalsData(1);
   const real2 *pTn3 = mesh->TriangleEdgeNormalsData(2);
   const real3 *pTl  = mesh->TriangleEdgeLengthData();
+
+  const real *pTrad = mesh->TriangleAverageXData();
+  real frameAngularVelocity = 0.0;
 
   if (cudaFlag == 1) {
     int nBlocks = 128;
@@ -941,7 +1002,8 @@ void Simulation<realNeq, CL>::CalcTotalResLDA()
     devCalcTotalResLDA<realNeq, CL><<<nBlocks, nThreads>>>
       (nTriangle, pTv, pVz,
        pTresLDA0, pTresLDA1, pTresLDA2, pTresTot,
-       pTn1, pTn2, pTn3, pTl, nVertex, G, G - 1.0, G - 2.0, pVp);
+       pTn1, pTn2, pTn3, pTl, nVertex, G, G - 1.0, G - 2.0, pVp,
+       pTrad, pVcs, frameAngularVelocity);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -958,7 +1020,8 @@ void Simulation<realNeq, CL>::CalcTotalResLDA()
       CalcTotalResLDASingle<CL>(n, pTv, pVz,
                                 pTresLDA0, pTresLDA1, pTresLDA2, pTresTot,
                                 pTn1, pTn2, pTn3, pTl, nVertex,
-                                G, G - 1.0, G - 2.0, pVp);
+                                G, G - 1.0, G - 2.0, pVp,
+                                pTrad, pVcs, frameAngularVelocity);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -997,6 +1060,7 @@ void Simulation<realNeq, CL>::CalcTotalResLDA()
 template void Simulation<real, CL_ADVECT>::CalcTotalResLDA();
 template void Simulation<real, CL_BURGERS>::CalcTotalResLDA();
 template void Simulation<real3, CL_CART_ISO>::CalcTotalResLDA();
+template void Simulation<real3, CL_CYL_ISO>::CalcTotalResLDA();
 template void Simulation<real4, CL_CART_EULER>::CalcTotalResLDA();
 
 }  // namespace astrix
