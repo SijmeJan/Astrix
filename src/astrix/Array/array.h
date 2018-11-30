@@ -147,8 +147,9 @@ template <class T> class Array
   //! Create index array for sorting dimension N
   template<class S>
     void SortByKey(Array<S> *indexArray, unsigned int N);
-  //! Sort array (float2/double2) in counterclockwise order around origin  template<class S>
-  void SortCounterClock(T origin);
+  //! Sort array (float2/double2) in counterclockwise order around origin
+  template<class S>
+    void SortCounterClock(T origin);
 
   //! Perform exclusive scan
   T ExclusiveScan(Array<T> *result);
