@@ -137,7 +137,7 @@ void Connectivity::Save(int nSave)
   // Number of edges
   eout.write(reinterpret_cast<char*>(&nEdge), sizeof(nEdge));
 
-  // Output vertices, triangles belonging to edge, and boundary flag
+  // Output triangles belonging to edge
   eout.write(reinterpret_cast<char*>(et1), nEdge*sizeof(int));
   eout.write(reinterpret_cast<char*>(et2), nEdge*sizeof(int));
 
