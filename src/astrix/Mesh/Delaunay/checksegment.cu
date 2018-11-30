@@ -24,6 +24,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../Connectivity/connectivity.h"
 #include "../Param/meshparameter.h"
 #include "../../Common/profile.h"
+#include "../../Common/inlineMath.h"
 
 namespace astrix {
 
@@ -84,9 +85,9 @@ int CheckSegment(int i,
     v2 = NormalizeVertex(v2, nVertex);
 
     int dv =
-      std::min(std::abs(pVo[v1] - pVo[v2]),
-               std::min(std::abs(pVo[v1] - pVo[v2] + nVertex - 4),
-                        std::abs(pVo[v1] - pVo[v2] - nVertex + 4)));
+      min(abs(pVo[v1] - pVo[v2]),
+          min(abs(pVo[v1] - pVo[v2] + nVertex - 4),
+              abs(pVo[v1] - pVo[v2] - nVertex + 4)));
 
     // Vertex of t1 not part of edge i
     int d = (i == e1)*c + (i == e2)*a + (i == e3)*b;
@@ -108,9 +109,9 @@ int CheckSegment(int i,
     f = NormalizeVertex(f, nVertex);
 
     int df =
-      std::min(std::abs(pVo[d] - pVo[f]),
-               std::min(std::abs(pVo[d] - pVo[f] + nVertex - 4),
-                        std::abs(pVo[d] - pVo[f] - nVertex + 4)));
+      min(abs(pVo[d] - pVo[f]),
+          min(abs(pVo[d] - pVo[f] + nVertex - 4),
+              abs(pVo[d] - pVo[f] - nVertex + 4)));
 
     // Edge flippable if nBad == 1
     int nBad =
