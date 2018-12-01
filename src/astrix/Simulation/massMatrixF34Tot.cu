@@ -1,8 +1,8 @@
 // -*-c++-*-
-/*! \file massMatrix.cu
+/*! \file massMatrixF34Tot.cu
 \brief File containing functions for F3 and F4 mass matrix
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

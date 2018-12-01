@@ -4,7 +4,7 @@
 
 When using an adaptive mesh, we have to decide, based on the current state of the flow, where mesh refinement is needed. We use the method outlined in Lapenta (2004), comparing cell-based and node-based operators, which gives an estimate of the local truncation error.
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

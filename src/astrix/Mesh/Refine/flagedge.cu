@@ -2,7 +2,7 @@
 /*! \file flagedge.cu
 \brief File containing functions to flag edges to be checked for Delaunay-hood.
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

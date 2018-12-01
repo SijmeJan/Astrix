@@ -2,7 +2,7 @@
 /*! \file recoversegments.cpp
 \brief Perform edge flips to recover segments.
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

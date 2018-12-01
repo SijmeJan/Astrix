@@ -2,7 +2,7 @@
 /*! \file series.cu
 \brief Functions for setting array to series
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

@@ -2,7 +2,7 @@
 /*! \file flagsegment.cu
 \brief Functions for determining how many and which points to be added will be placed on segments
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

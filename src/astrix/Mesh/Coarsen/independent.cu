@@ -2,7 +2,7 @@
 /*! \file independent.cu
 \brief Functions for finding vertices that can be inserted in parallel
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

@@ -2,7 +2,7 @@
 /*! \file addtoperiodic.cu
 \brief Functions for adjusting indices of periodic vertices when adding new vertices
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

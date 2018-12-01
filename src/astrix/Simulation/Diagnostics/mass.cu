@@ -2,7 +2,7 @@
 /*! \file mass.cu
 \brief Functions to calculate total mass
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

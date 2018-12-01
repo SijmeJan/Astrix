@@ -2,7 +2,7 @@
 /*! \file timestep.cu
 \brief File containing function to calculate the maximum possible time step to take.
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

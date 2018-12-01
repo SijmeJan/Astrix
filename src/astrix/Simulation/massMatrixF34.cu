@@ -2,7 +2,7 @@
 /*! \file massMatrixF34.cu
 \brief File containing functions for F3 and F4 mass matrix
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

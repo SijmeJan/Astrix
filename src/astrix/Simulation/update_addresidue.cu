@@ -2,7 +2,7 @@
 /*! \file update_addresidue.cu
 \brief File containing functions for distributing residue over vertices
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

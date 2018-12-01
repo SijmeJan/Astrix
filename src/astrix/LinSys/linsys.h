@@ -1,7 +1,7 @@
 /*! \file linsys.h
 \brief Header file for LinSys class
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.
@@ -21,6 +21,9 @@ class Mesh;
 template <class T> class Array;
 class Device;
 
+//! LinSys: class supporting solving linear systems
+/*! This is the basic class needed to solve a linear system (in progress).  */
+
 class LinSys
 {
  public:
@@ -29,6 +32,7 @@ class LinSys
   //! Destructor, releases all dynamically allocated memory
   ~LinSys();
 
+  //! Biconjugate Gradient Stabilized method
   void BiCGStab(Array<real> *x, Array<real> *b);
 
  private:
@@ -45,6 +49,7 @@ class LinSys
   //! Mesh on which to do simulation
   Mesh *mesh;
 
+  //! Multiply vector by matrix
   void MultiplyByMatrix(Array<real> *vIn, Array<real> *vOut);
 };
 

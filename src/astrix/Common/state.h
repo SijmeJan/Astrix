@@ -1,7 +1,7 @@
 /*! \file state.h
     \brief Header file for templated operations on state vector.
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

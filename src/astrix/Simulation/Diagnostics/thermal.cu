@@ -2,7 +2,7 @@
 /*! \file thermal.cu
 \brief Functions to calculate total thermal energy
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

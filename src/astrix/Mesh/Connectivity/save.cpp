@@ -1,8 +1,8 @@
 // -*-c++-*-
-/*! \file save.cpp
+/*! \file Mesh/Connectivity/save.cpp
 \brief File containing functions to save and restore mesh to and from disk.
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

@@ -2,7 +2,7 @@
 /*! \file random.cu
 \brief Functions setting entries to random values
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

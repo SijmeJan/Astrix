@@ -2,7 +2,7 @@
 /*! \file blendx.cu
 \brief File containing functions to calculate shock sensor, used in the BX scheme
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

@@ -1,7 +1,7 @@
 /*! \file morton.h
 \brief Header file for Morton class
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

@@ -2,7 +2,7 @@
 /*! \file diagnostics.cpp
 \brief Constructor, destructor and initialization of the Diagnostics class
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

@@ -2,7 +2,7 @@
 /*! \file boundary.cu
 \brief Functions for creating mesh boundaries
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

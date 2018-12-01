@@ -2,7 +2,7 @@
 /*! \file transform.cu
 \brief Functions for transforming Array to host or device
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

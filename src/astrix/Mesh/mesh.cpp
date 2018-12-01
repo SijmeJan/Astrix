@@ -2,7 +2,7 @@
 /*! \file mesh.cpp
 \brief Functions for creating Mesh object
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

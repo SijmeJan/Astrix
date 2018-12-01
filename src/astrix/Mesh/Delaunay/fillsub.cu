@@ -2,7 +2,7 @@
 /*! \file fillsub.cu
 \brief Functions for determining substitution triangles for repairing edges in Mesh after flipping
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

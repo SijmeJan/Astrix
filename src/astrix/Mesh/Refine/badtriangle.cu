@@ -2,7 +2,7 @@
 /*! \file badtriangle.cu
 \brief File containing function to test all triangles for refinement.
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

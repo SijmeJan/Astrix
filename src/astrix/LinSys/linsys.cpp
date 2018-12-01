@@ -2,7 +2,7 @@
 /*! \file linsys.cpp
 \brief Constructor, destructor and initialization of the LinSys class
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

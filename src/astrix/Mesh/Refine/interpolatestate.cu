@@ -1,8 +1,8 @@
 // -*-c++-*-
-/*! \file interpolate.cu
+/*! \file interpolatestate.cu
 \brief Functions for interpolating state when refining Mesh
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

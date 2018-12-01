@@ -1,8 +1,8 @@
 // -*-c++-*-
-/*! \file addvertices.cpp
+/*! \file addvertex.cpp
 \brief Add specific list of vertices to Mesh
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

@@ -1,7 +1,7 @@
-/*! \file readfromfile.cpp
+/*! \file Mesh/Param/readfromfile.cpp
 \brief Function for reading data into MeshParameter object
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

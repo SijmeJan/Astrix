@@ -2,7 +2,7 @@
 /*! \file values.cu
 \brief Functions for calculating Morton values
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

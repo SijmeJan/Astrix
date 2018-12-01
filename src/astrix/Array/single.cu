@@ -2,7 +2,7 @@
 /*! \file single.cu
 \brief Functions for reading and manipulating individual values of Array
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

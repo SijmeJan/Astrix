@@ -1,7 +1,7 @@
 /*! \file simulation.h
 \brief Header file for Simulation class
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

@@ -2,7 +2,7 @@
 /*! \file source.cu
 \brief File containing function to calculate source term contribution to residual.
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

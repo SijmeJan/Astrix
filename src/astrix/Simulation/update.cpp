@@ -1,7 +1,7 @@
 /*! \file update.cpp
 \brief File containing function for updating state using residuals
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

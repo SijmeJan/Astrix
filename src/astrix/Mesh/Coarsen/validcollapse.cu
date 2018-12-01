@@ -2,7 +2,7 @@
 /*! \file validcollapse.cu
 \brief Functions for determining if edge collapses are valid
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

@@ -1,7 +1,7 @@
 /*! \file array.h
 \brief Header file for Array class
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

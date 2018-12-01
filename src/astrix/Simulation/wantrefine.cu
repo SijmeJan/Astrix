@@ -1,8 +1,8 @@
 // -*-c++-*-
-/*! \file refine_wantrefine.cu
+/*! \file wantrefine.cu
 \brief File containing functions to determine which triangles need refining based on an estimate of the local truncation error.
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

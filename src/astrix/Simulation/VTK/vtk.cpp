@@ -2,7 +2,7 @@
 /*! \file vtk.cpp
 \brief File containing functions to save legacy VTK files.
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

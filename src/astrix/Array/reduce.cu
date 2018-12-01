@@ -2,7 +2,7 @@
 /*! \file reduce.cu
 \brief Reduction functions
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.
@@ -128,6 +128,7 @@ T Array<T>::Maximum(int N)
 // Find maximum of dimension n
 //######################################################
 
+//! Compare only x component
 template <class T>
 struct compare_x
 {
@@ -138,6 +139,7 @@ struct compare_x
   }
 };
 
+//! Compare only y component
 template <class T>
 struct compare_y
 {

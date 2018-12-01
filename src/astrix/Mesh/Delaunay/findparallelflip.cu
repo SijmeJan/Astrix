@@ -2,7 +2,7 @@
 /*! \file findparallelflip.cu
 \brief File containing function to find parallel flip set.
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

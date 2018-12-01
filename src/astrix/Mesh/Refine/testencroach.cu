@@ -2,7 +2,7 @@
 /*! \file testencroach.cu
 \brief File containing function to test if any points to add encroaches on a segment.
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

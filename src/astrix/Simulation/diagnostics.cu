@@ -2,7 +2,7 @@
 /*! \file diagnostics.cu
 \brief Calculating various diagnostics for Simulations
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

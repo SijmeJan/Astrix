@@ -2,7 +2,7 @@
 /*! \file redundant.cu
 \brief Function for removing redundant vertices and triangles from initial mesh
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

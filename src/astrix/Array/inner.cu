@@ -2,7 +2,7 @@
 /*! \file inner.cu
 \brief Functions for inner product
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

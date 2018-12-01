@@ -2,7 +2,7 @@
 /*! \file simulation.cpp
 \brief Constructor, destructor and initialization of the Simulation class
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

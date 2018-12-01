@@ -2,7 +2,7 @@
 /*! \file boundary_symmetric.cu
 \brief Functions for setting symmetric boundary conditions
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

@@ -2,7 +2,7 @@
 /*! \file flipedge.cu
 \brief Functions for flipping edges to make trianglation Delaunay
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

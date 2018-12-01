@@ -1,7 +1,7 @@
-/*! \file checkvalidity.cpp
+/*! \file Mesh/Param/checkvalidity.cpp
 \brief Function for checking validity of data in MeshParameter object
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

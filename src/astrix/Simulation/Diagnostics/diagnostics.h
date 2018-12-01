@@ -1,7 +1,7 @@
 /*! \file diagnostics.h
 \brief Header file for Diagnostics class
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.
@@ -20,6 +20,9 @@ namespace astrix {
 template <class T> class Array;
 class Mesh;
 
+//! Diagnostics: class for various Simulation diagnostics
+/*! Class for monitoring various quantities such as total mass in the Simulation.  */
+
 template <class T, ConservationLaw CL> class Diagnostics
 {
  public:
@@ -31,9 +34,13 @@ template <class T, ConservationLaw CL> class Diagnostics
   Array<real> *result;
 
  private:
+  //! Calculate total mass
   real TotalMass(Array<T> *state, Mesh *mesh);
+  //! Calculate total kinetic energy
   real KineticEnergy(Array<T> *state, Mesh *mesh);
+  //! Calculate total thermal energy
   real ThermalEnergy(Array<T> *state, Array<real> *pot, Mesh *mesh);
+  //! Calculate total energy
   real TotalEnergy(Array<T> *state, Mesh *mesh);
 };
 

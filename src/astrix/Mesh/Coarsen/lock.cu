@@ -2,7 +2,7 @@
 /*! \file lock.cu
 \brief Functions for locking vertices surrounding deletion point to decide which can be deleted in parallel
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

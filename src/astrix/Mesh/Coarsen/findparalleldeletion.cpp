@@ -2,7 +2,7 @@
 /*! \file findparalleldeletion.cpp
 \brief File containing function to find parallel deletion set.
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

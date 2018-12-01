@@ -2,7 +2,7 @@
 /*! \file findtriangles.cu
 \brief File containing function to find triangles containing point (x,y).
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

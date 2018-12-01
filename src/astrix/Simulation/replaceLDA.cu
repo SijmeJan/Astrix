@@ -2,7 +2,7 @@
 /*! \file replaceLDA.cu
 \brief File containing functions to replace LDA residue with N in case of unphysical state.
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

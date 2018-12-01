@@ -2,7 +2,7 @@
 /*! \file coarsen_reject.cu
 \brief Functions for rejecting large triangles for coarsening.
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

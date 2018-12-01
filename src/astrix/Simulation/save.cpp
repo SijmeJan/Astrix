@@ -1,8 +1,8 @@
 // -*-c++-*-
-/*! \file save.cpp
+/*! \file Simulation/save.cpp
 \brief File containing functions to save / restore simulation.
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

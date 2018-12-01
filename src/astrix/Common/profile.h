@@ -1,7 +1,7 @@
 /*! \file profile.h
 \brief Header file for writing profile info to file.
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.

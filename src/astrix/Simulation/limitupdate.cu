@@ -2,7 +2,7 @@
 /*! \file limitupdate.cu
 \brief File containing functions flag a vertex as unphysical is the change in one timestep is deemed too large.
 
-\section LICENSE
+*/ /* \section LICENSE
 Copyright (c) 2017 Sijme-Jan Paardekooper
 
 This file is part of Astrix.
