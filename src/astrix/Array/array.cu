@@ -135,7 +135,7 @@ template <class T>
 Array<T>::Array(std::string inputFile)
 {
   // Open input file
-  std::ifstream inFile(inputFile);
+  std::ifstream inFile(inputFile.c_str());
   if (!inFile) {
     std::cout << "Error opening file " << inputFile << std::endl;
     throw std::runtime_error("");
@@ -181,7 +181,7 @@ Array<T>::Array(std::string inputFile)
   memAllocatedHost += nDims*realSize*sizeof(T);
 
   // Re-open input file
-  inFile.open(inputFile);
+  inFile.open(inputFile.c_str());
   if (!inFile) {
     std::cout << "Error opening file " << inputFile << std::endl;
     throw std::runtime_error("");
