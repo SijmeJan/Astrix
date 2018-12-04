@@ -100,8 +100,6 @@ class Mesh
   const real2* TriangleEdgeNormalsData(int dim);
   //! Return triangle edge length data
   const real3* TriangleEdgeLengthData();
-  //! Return triangle average X data
-  const real* TriangleAverageXData();
 
   //! Return edge triangles data
   const int2* EdgeTrianglesData();
@@ -134,9 +132,6 @@ class Mesh
   Array <real2> *triangleEdgeNormals;
   //! Triangle edge lengths
   Array <real3> *triangleEdgeLength;
-
-  //! Average x coordinate triangle (needed in cylindrical geometry)
-  Array <real> *triangleAverageX;
 
   // Runtime flags
 

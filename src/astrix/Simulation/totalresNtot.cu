@@ -51,9 +51,9 @@ namespace astrix {
 \param G2 G - 2
 \param iG 1/G
 \param *pVp Pointer to external potential at vertices
-\param *pTrad Triangle average x (needed for cylindrical geometry)
 \param *pVcs Sound speed at vertices (isothermal case)
-\param frameAngularVelocity Angular velocity coordinate frame (cylindrical geometry)*/
+\param frameAngularVelocity Angular velocity coordinate frame (cylindrical geometry)
+\param *pVc Pointer to vertex coordinates*/
 //######################################################################
 
 template<ConservationLaw CL>
@@ -73,8 +73,9 @@ void CalcTotalResNtotSingle(const int n, const real dt,
                             real4 *pTresTot,
                             int nVertex, const real G, const real G1,
                             const real G2, const real iG, const real *pVp,
-                            const real *pTrad, const real *pVcs,
-                            const real frameAngularVelocity)
+                            const real *pVcs,
+                            const real frameAngularVelocity,
+                            const real2 *pVc)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -908,8 +909,9 @@ void CalcTotalResNtotSingle(const int n, const real dt,
                             real3 *pTresN2, real3 *pTresTot, int nVertex,
                             const real G, const real G1,
                             const real G2, const real iG, const real *pVp,
-                            const real *pTrad, const real *pVcs,
-                            const real frameAngularVelocity)
+                            const real *pVcs,
+                            const real frameAngularVelocity,
+                            const real2 *pVc)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -1034,7 +1036,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real Omega = zero;
 
   if (CL == CL_CYL_ISO) {
-    r2 = pTrad[n];
+    r2 = (pVc[v1].x + pVc[v2].x + pVc[v3].x)*onethird;
     r2 = r2*r2;
     ir2 = one/r2;
     Omega = frameAngularVelocity;
@@ -1596,8 +1598,9 @@ void CalcTotalResNtotSingle(const int n, const real dt,
                             real *pTresN2, real *pTresTot, int nVertex,
                             const real G, const real G1,
                             const real G2, const real iG, const real *pVp,
-                            const real *pTrad, const real *pVcs,
-                            const real frameAngularVelocity)
+                            const real *pVcs,
+                            const real frameAngularVelocity,
+                            const real2 *pVc)
 {
   const real zero  = (real) 0.0;
   const real onethird = (real) (1.0/3.0);
@@ -1838,9 +1841,9 @@ void CalcTotalResNtotSingle(const int n, const real dt,
 \param G2 G - 2
 \param iG 1/G
 \param *pVp Pointer to external potential at vertices
-\param *pTrad Triangle average x (needed for cylindrical geometry)
 \param *pVcs Sound speed at vertices (isothermal case)
-\param frameAngularVelocity Angular velocity coordinate frame (cylindrical geometry)*/
+\param frameAngularVelocity Angular velocity coordinate frame (cylindrical geometry)
+\param *pVc Pointer to vertex coordinates*/
 //######################################################################
 
 template<class realNeq, ConservationLaw CL>
@@ -1853,8 +1856,9 @@ devCalcTotalResNtot(int nTriangle, real dt,
                     realNeq *pTresN0, realNeq *pTresN1, realNeq *pTresN2,
                     realNeq *pTresTot, int nVertex,
                     real G, real G1, real G2, real iG, const real *pVp,
-                    const real *pTrad, const real *pVcs,
-                    const real frameAngularVelocity)
+                    const real *pVcs,
+                    const real frameAngularVelocity,
+                    const real2 *pVc)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -1863,7 +1867,7 @@ devCalcTotalResNtot(int nTriangle, real dt,
                                pTn1, pTn2, pTn3, pTl, pResSource,
                                pTresN0, pTresN1, pTresN2,
                                pTresTot, nVertex, G, G1, G2, iG, pVp,
-                               pTrad, pVcs, frameAngularVelocity);
+                               pVcs, frameAngularVelocity, pVc);
 
     // Next triangle
     n += blockDim.x*gridDim.x;
@@ -1933,8 +1937,8 @@ void Simulation<realNeq, CL>::CalcTotalResNtot(real dt)
   const real2 *pTn2 = mesh->TriangleEdgeNormalsData(1);
   const real2 *pTn3 = mesh->TriangleEdgeNormalsData(2);
   const real3 *pTl  = mesh->TriangleEdgeLengthData();
+  const real2 *pVc  = mesh->VertexCoordinatesData();
 
-  const real *pTrad = mesh->TriangleAverageXData();
   real frameAngularVelocity = 0.0;
 
   if (cudaFlag == 1) {
@@ -1953,8 +1957,8 @@ void Simulation<realNeq, CL>::CalcTotalResNtot(real dt)
       (nTriangle, dt, pTv, pVz, pDstate,
        pTn1, pTn2, pTn3, pTl, pResSource,
        pTresN0, pTresN1, pTresN2,
-       pTresTot, nVertex, G, G - 1.0, G - 2.0, 1.0/G, pVp, pTrad, pVcs,
-       frameAngularVelocity);
+       pTresTot, nVertex, G, G - 1.0, G - 2.0, 1.0/G, pVp, pVcs,
+       frameAngularVelocity, pVc);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -1971,8 +1975,8 @@ void Simulation<realNeq, CL>::CalcTotalResNtot(real dt)
                                  pTn1, pTn2, pTn3, pTl, pResSource,
                                  pTresN0, pTresN1, pTresN2,
                                  pTresTot, nVertex, G, G - 1.0, G - 2.0,
-                                 1.0/G, pVp, pTrad, pVcs,
-                                 frameAngularVelocity);
+                                 1.0/G, pVp, pVcs,
+                                 frameAngularVelocity, pVc);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );

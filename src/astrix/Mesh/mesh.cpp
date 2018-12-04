@@ -66,8 +66,6 @@ Mesh::Mesh(int meshVerboseLevel, int meshDebugLevel, int meshCudaFlag,
   triangleEdgeNormals = new Array<real2>(3, cudaFlag);
   triangleEdgeLength = new Array<real3>(1, cudaFlag);
 
-  triangleAverageX = new Array<real>(1, cudaFlag);
-
   try {
     Init(fileName, restartNumber);
   }
@@ -79,7 +77,6 @@ Mesh::Mesh(int meshVerboseLevel, int meshDebugLevel, int meshCudaFlag,
 
     delete triangleEdgeNormals;
     delete triangleEdgeLength;
-    delete triangleAverageX;
 
     delete predicates;
     delete morton;
@@ -103,7 +100,6 @@ Mesh::~Mesh()
 
   delete triangleEdgeNormals;
   delete triangleEdgeLength;
-  delete triangleAverageX;
 
   delete predicates;
   delete morton;
@@ -457,11 +453,6 @@ const int2* Mesh::EdgeTrianglesData()
   return connectivity->edgeTriangles->GetPointer();
 }
 
-const real* Mesh::TriangleAverageXData()
-{
-  return triangleAverageX->GetPointer();
-}
-
 void Mesh::Transform()
 {
   connectivity->Transform();
@@ -470,14 +461,12 @@ void Mesh::Transform()
     vertexBoundaryFlag->TransformToHost();
     triangleEdgeNormals->TransformToHost();
     triangleEdgeLength->TransformToHost();
-    triangleAverageX->TransformToHost();
 
     cudaFlag = 0;
   } else {
     vertexBoundaryFlag->TransformToDevice();
     triangleEdgeNormals->TransformToDevice();
     triangleEdgeLength->TransformToDevice();
-    triangleAverageX->TransformToDevice();
 
     cudaFlag = 1;
   }

@@ -39,15 +39,13 @@ namespace astrix {
 \param *triL Pointer to array of triangle edge lengths (output)
 \param nVertex Total number of vertices in Mesh
 \param Px Periodic domain size x
-\param Py Periodic domain size y
-\param *pTrad Pointer to average x coordinate (output)*/
+\param Py Periodic domain size y*/
 //######################################################################
 
 __host__ __device__
 void CalcNormalEdgeSingle(int n, int nTriangle, int3 *pTv, real2 *pVc,
                           real2 *pTn1, real2 *pTn2, real2 *pTn3,
-                          real3 *triL, int nVertex, real Px, real Py,
-                          real *pTrad)
+                          real3 *triL, int nVertex, real Px, real Py)
 {
   const real zero  = (real) 0.0;
   const real half  = (real) 0.5;
@@ -133,9 +131,6 @@ void CalcNormalEdgeSingle(int n, int nTriangle, int3 *pTv, real2 *pVc,
   triL[n].x = sqrt(Sq(bx - cx) + Sq(by - cy));
   triL[n].y = sqrt(Sq(ax - cx) + Sq(ay - cy));
   triL[n].z = sqrt(Sq(bx - ax) + Sq(by - ay));
-
-  // Average radius (needed in cylindrical geometry). Note logarithmic x!
-  pTrad[n] = (exp(ax) + exp(bx) + exp(cx))/(real) 3.0;
 }
 
 //######################################################################
@@ -150,15 +145,13 @@ void CalcNormalEdgeSingle(int n, int nTriangle, int3 *pTv, real2 *pVc,
 \param *triL Pointer to array of triangle edge lengths (output)
 \param nVertex Total number of vertices in Mesh
 \param Px Periodic domain size x
-\param Py Periodic domain size y
-\param *pTrad Pointer to average x coordinate (output)*/
+\param Py Periodic domain size y*/
 //######################################################################
 
 __global__ void
 devCalcNormalEdge(int nTriangle, int3 *pTv, real2 *pVc,
                   real2 *pTn1, real2 *pTn2, real2 *pTn3,
-                  real3 *triL, int nVertex,
-                  real Px, real Py, real *pTrad)
+                  real3 *triL, int nVertex, real Px, real Py)
 {
   // n = triangle number
   int n = blockIdx.x*blockDim.x + threadIdx.x;
@@ -166,7 +159,7 @@ devCalcNormalEdge(int nTriangle, int3 *pTv, real2 *pVc,
   while (n < nTriangle) {
     CalcNormalEdgeSingle(n, nTriangle, pTv, pVc,
                          pTn1, pTn2, pTn3,
-                         triL, nVertex, Px, Py, pTrad);
+                         triL, nVertex, Px, Py);
 
     n += blockDim.x*gridDim.x;
   }
@@ -196,9 +189,6 @@ void Mesh::CalcNormalEdge()
   real Px = meshParameter->maxx - meshParameter->minx;
   real Py = meshParameter->maxy - meshParameter->miny;
 
-  triangleAverageX->SetSize(nTriangle);
-  real *pTrad = triangleAverageX->GetPointer();
-
   if (cudaFlag == 1) {
     int nBlocks = 128;
     int nThreads = 128;
@@ -209,7 +199,7 @@ void Mesh::CalcNormalEdge()
                                        (size_t) 0, 0);
 
     devCalcNormalEdge<<<nBlocks, nThreads>>>
-      (nTriangle, pTv, pVc, pTn1, pTn2, pTn3, triL, nVertex, Px, Py, pTrad);
+      (nTriangle, pTv, pVc, pTn1, pTn2, pTn3, triL, nVertex, Px, Py);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -217,7 +207,7 @@ void Mesh::CalcNormalEdge()
     for (int n = 0; n < nTriangle; n++)
       CalcNormalEdgeSingle(n, nTriangle, pTv, pVc,
                            pTn1, pTn2, pTn3, triL,
-                           nVertex, Px, Py, pTrad);
+                           nVertex, Px, Py);
   }
 }
 
