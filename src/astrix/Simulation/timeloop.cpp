@@ -19,7 +19,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <ctime>
 #include <cmath>
 #include <fstream>
-#include <chrono>
+//#include <chrono>
 
 #include "../Common/definitions.h"
 #include "../Array/array.h"
