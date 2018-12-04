@@ -50,7 +50,7 @@ void Array<T>::SetToValue(T value, int startIndex, int endIndex)
   unsigned int ei = (unsigned int) endIndex;
 
   if (startIndex == -1) si = 0;
-  if (endIndex == -1) ei = 0;
+  if (endIndex == -1) ei = size;
 
   if (cudaFlag == 1) {
     int nBlocks = 128;
