@@ -23,6 +23,7 @@ namespace astrix {
   \param *fileName Output file name
   \param X Number of elements processed
   \param T Elapsed time
+  \param cudaFlag Flag whether to use CUDA
 */
 void WriteProfileFile(const char *fileName, int X, float T, int cudaFlag);
 

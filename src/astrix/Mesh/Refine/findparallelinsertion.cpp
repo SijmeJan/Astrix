@@ -30,7 +30,7 @@ namespace astrix {
 //#########################################################################
 /*! \brief Find independent set of insertion points
 
-Upon return, \a elementAdd and \a vertexCoordinatesAdd are compacted to a set that can be inserted in one parallel step. This set is found by finding the cavities of the insertion points, keeping an insertion point \i only if none of the triangles in its cavity are needed by points > \a i. To optimize the set, we randomize the order by assigning a unique random number to each insertion point, and keep insertion point \a i with associated random number \a r only if none of the triangles in its cavity are needed by points with associated random number > \a r.
+Upon return, \a elementAdd and \a vertexCoordinatesAdd are compacted to a set that can be inserted in one parallel step. This set is found by finding the cavities of the insertion points, keeping an insertion point \a i only if none of the triangles in its cavity are needed by points > \a i. To optimize the set, we randomize the order by assigning a unique random number to each insertion point, and keep insertion point \a i with associated random number \a r only if none of the triangles in its cavity are needed by points with associated random number > \a r.
 
 \param *connectivity Pointer to basic Mesh data
 \param *vertexOrder The order in which vertices were inserted. All entries relating to the independent set will be removed

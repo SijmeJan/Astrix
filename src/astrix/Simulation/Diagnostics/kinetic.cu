@@ -24,6 +24,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 namespace astrix {
 
 //##############################################################################
+//! General form of kineetic energy calculation
 //##############################################################################
 
 template<class T, ConservationLaw CL>
@@ -34,6 +35,7 @@ void KineticEnergySingle(unsigned int i, const real *pVarea,
   E[i] = (real) 0.0;
 }
 
+//! Kinetic energy in isothermal case
 template<>
 __host__ __device__
 void KineticEnergySingle<real3, CL_CART_ISO>(unsigned int i, const real *pVarea,
@@ -48,6 +50,7 @@ void KineticEnergySingle<real3, CL_CART_ISO>(unsigned int i, const real *pVarea,
   E[i] = pVarea[i]*half*(m*m + n*n)/d;
 }
 
+//! Kinetic energy in euler case
 template<>
 __host__ __device__
 void KineticEnergySingle<real4, CL_CART_EULER>(unsigned int i,
@@ -64,6 +67,7 @@ void KineticEnergySingle<real4, CL_CART_EULER>(unsigned int i,
 }
 
 //######################################################################
+//! Kernel: Calculate kinetic energy at vertices
 //######################################################################
 
 template<class T, ConservationLaw CL>
@@ -82,6 +86,10 @@ devKineticEnergy(unsigned int nVertex, const real *pVarea,
 }
 
 //######################################################################
+/*! Compute total kinetic energy in simulation.
+
+\param *state Pointer to state vector
+\param *mesh Pointer to Mesh object*/
 //######################################################################
 
 template <class T, ConservationLaw CL>

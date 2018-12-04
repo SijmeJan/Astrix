@@ -25,17 +25,19 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 
 namespace astrix {
 
+//! Bump helper function
 __host__ __device__
-real funcF(real t)
+real funcFbump(real t)
 {
   if (t <= 0.0f) return (real) 0.0;
   return exp(-(real) 1.0/(t + 1.0e-10));
 }
 
+//! Bump main function
 __host__ __device__
 real funcBump(real t)
 {
-  return funcF(t)/(funcF(t) + funcF((real) 1.0 - t));
+  return funcFbump(t)/(funcFbump(t) + funcFbump((real) 1.0 - t));
 }
 
 //##############################################################################
@@ -45,7 +47,7 @@ real funcBump(real t)
 \param *pVc Pointer to coordinates of vertices
 \param problemDef Problem definition
 \param *pVpot Pointer to gravitational potential at vertices
-\param *pState Pointer to state vector (output)
+\param *state Pointer to state vector (output)
 \param G Ratio of specific heats
 \param time Simulation time
 \param Px Length of x domain
@@ -450,6 +452,7 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   state[n].w = ener;
 }
 
+//! Version for three equations
 template <ConservationLaw CL>
 __host__ __device__
 void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
@@ -532,6 +535,7 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
   state[n].z = momy;
 }
 
+//! Version for single equation
 template <ConservationLaw CL>
 __host__ __device__
 void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
@@ -607,9 +611,14 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
 \param nVertex Total number of vertices in Mesh
 \param *pVc Pointer to coordinates of vertices
 \param problemDef Problem definition
-\param *pVpot Pointer to gravitational potential at vertices
-\param *pState Pointer to state vector (output)
-\param G Ratio of specific heats*/
+\param *pVertexPotential Pointer to gravitational potential at vertices
+\param *state Pointer to state vector (output)
+\param G Ratio of specific heats
+\param time Current simulation time
+\param Px Length of x domain
+\param Py Length of y domain
+\param *pVertexFlag Pointer to flags indicating whether vertex is part of boundary
+\param boundaryFlag Flag whether to set only boundary vertices*/
 //######################################################################
 
 template<class realNeq, ConservationLaw CL>
@@ -640,7 +649,7 @@ devSetInitial(int nVertex, const real2 *pVc, ProblemDefinition problemDef,
 /*! Set initial conditions for all vertices based on problemSpecification
 
 \param time Current simulation time, to get exact solution at this time (if available)
-*/
+\param boundaryFlag Flag whether to set only boundary vertices*/
 //######################################################################
 
 template <class realNeq, ConservationLaw CL>

@@ -71,34 +71,17 @@ struct subSubSortCompare
   }
 };
 
-//###################################################
-// Sort array, producing indexing array
-//###################################################
-
-template <class T>
-template <class S>
-void Array<T>::SortByKey(Array<S> *indexArray)
-{
-  S *index = indexArray->GetPointer();
-
-  if (cudaFlag == 1) {
-    thrust::device_ptr<T> dev_ptr(deviceVec);
-    thrust::device_ptr<S> dev_ptr_index(index);
-    thrust::sort_by_key(dev_ptr, dev_ptr + size, dev_ptr_index);
-  }
-  if (cudaFlag == 0) {
-    thrust::sort_by_key(hostVec, &(hostVec[size]), index);
-  }
-}
-
 //##########################################################
 // Sort first N elements of array, producing indexing array
 //##########################################################
 
 template <class T>
 template <class S>
-void Array<T>::SortByKey(Array<S> *indexArray, unsigned int N)
+void Array<T>::SortByKey(Array<S> *indexArray, int nElements)
 {
+  unsigned int N = (unsigned int) nElements;
+  if (nElements == -1) N = size;
+
   S *index = indexArray->GetPointer();
 
   if (cudaFlag == 1) {
@@ -141,33 +124,36 @@ void Array<T>::Sort(Array<T> *arrayB)
 
 //##########################################################################
 
-template void Array<float>::SortByKey(Array<unsigned int> *indexArray);
+template void Array<float>::SortByKey(Array<unsigned int> *indexArray,
+                                      int nElements);
 
 //##########################################################################
 
-template void Array<double>::SortByKey(Array<unsigned int> *indexArray);
+template void Array<double>::SortByKey(Array<unsigned int> *indexArray,
+                                       int nElements);
 
 //##########################################################################
 
 template void Array<int>::Sort(Array<int> *arrayB);
-template void Array<int>::SortByKey(Array<unsigned int> *indexArray);
 template void Array<int>::SortByKey(Array<unsigned int> *indexArray,
-                                    unsigned int N);
-template void Array<int>::SortByKey(Array<int> *indexArray, unsigned int N);
+                                    int nElements);
+template void Array<int>::SortByKey(Array<int> *indexArray,
+                                    int nElements);
 
 //##########################################################################
 
-template void Array<unsigned int>::SortByKey(Array<unsigned int> *indexArray);
 template void Array<unsigned int>::SortByKey(Array<unsigned int> *indexArray,
-                                             unsigned int N);
-
-template void Array<unsigned int>::SortByKey(Array<int> *indexArray);
+                                             int nElements);
 
 //##########################################################################
 
-template void Array<unsigned int>::SortByKey(Array<float2> *indexArray);
-template void Array<unsigned int>::SortByKey(Array<double2> *indexArray);
-template void Array<float>::SortByKey(Array<float2> *indexArray);
-template void Array<double>::SortByKey(Array<double2> *indexArray);
+template void Array<unsigned int>::SortByKey(Array<float2> *indexArray,
+                                             int nElements);
+template void Array<unsigned int>::SortByKey(Array<double2> *indexArray,
+                                             int nElements);
+template void Array<float>::SortByKey(Array<float2> *indexArray,
+                                      int nElements);
+template void Array<double>::SortByKey(Array<double2> *indexArray,
+                                       int nElements);
 
 }  // namespace astrix

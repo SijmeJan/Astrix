@@ -51,7 +51,6 @@ void DensityErrorSingle(unsigned int i, const real *pVarea,
 //######################################################################
 /*! \brief Kernel calculating L1 density errors
 
-\param i Vertex to consider
 \param nVertex Total number of vertices in Mesh
 \param *pVarea Pointer to vertex areas (Voronoi cells)
 \param *pState Pointer to current state at vertices

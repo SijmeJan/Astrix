@@ -131,6 +131,7 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
   return vmax;
 }
 
+//! Version for three equations
 template<ConservationLaw CL>
 __host__ __device__
 real FindMaxSignalSpeed(int t, int a, int b, int c,
@@ -211,6 +212,7 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
   return vmax;
 }
 
+//! Version for single equation
 template<ConservationLaw CL>
 __host__ __device__
 real FindMaxSignalSpeed(int t, int a, int b, int c,
@@ -280,17 +282,13 @@ void CalcVmaxSingle(int t, const int3* __restrict__ pTv, realNeq *pState,
 /*! \brief Kernel finding maximum signal speed for triangles and add it atomically to all of the vertices
 
 \param nTriangle Total number of triangles in Mesh
-\param *tv1 Pointer to first vertex of triangle
-\param *tv2 Pointer to second vertex of triangle
-\param *tv3 Pointer to third vertex of triangle
-\param *dens Pointer to density
-\param *momx Pointer to x momentum
-\param *momy Pointer to y momentum
-\param *ener Pointer to energy
-\param *pTriangleEdgeLengths Pointer to triangle edge lengths
+\param *pTv Pointer to vertices of triangle
+\param *pState Pointer to vertex state vector
+\param *pTl Pointer to triangle edge lengths
 \param *pVts Pointer to maximum time step at vertex (output)
 \param nVertex Total number of vertices in Mesh
 \param G Ratio of specific heats
+\param G1 G - 1
 \param *pVp Pointer to external potential at vertices
 \param *pVc Pointer to vertex coordinates
 \param *pVcs Sound speed at vertices (isothermal case)

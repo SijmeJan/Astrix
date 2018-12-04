@@ -48,7 +48,7 @@ Start at the insertion triangle and move in clockwise direction along the edge o
 \param *pred Pointer to Predicates object
 \param *pParam Pointer to parameter vector associated with Predicates
 \param *warningFlag Pointer to flag whether problems were encountered (output)
-\param *pEnc Pointer to Array edgeNeedsChecking (output)*/
+\param *pEnC Pointer to Array edgeNeedsChecking (output)*/
 //#########################################################################
 
 __host__ __device__
@@ -265,7 +265,7 @@ Upon return, pEnC[i] = i if edge \a i needs to be checked.
 \param *pred Pointer to Predicates object
 \param *pParam Pointer to parameter vector associated with Predicates
 \param *warningFlag Pointer to flag whether problems were encountered (output)
-\param *pEnc Pointer to Array edgeNeedsChecking (output)*/
+\param *pEnC Pointer to Array edgeNeedsChecking (output)*/
 //#########################################################################
 
 __global__ void

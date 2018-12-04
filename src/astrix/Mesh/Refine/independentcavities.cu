@@ -28,7 +28,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 namespace astrix {
 
 //#########################################################################
-/*! \brief Check whether all triangles in cavity \i are available
+/*! \brief Check whether all triangles in cavity \a i are available
 
 Start at the insertion triangle and move in clockwise direction along the edge of the cavity, checking if all triangles are available (i.e. not locked by other insertion point). If all are available, set pUniqueFlag[i] = 1, otherwise pUniqueFlag[i] = 0.
 

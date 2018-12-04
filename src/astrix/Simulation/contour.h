@@ -17,7 +17,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 
 namespace astrix {
 
-// Product of two linear functions
+//! Product of two linear functions
 __host__ __device__ inline real
 c_int(real fa, real fb, real ga, real gb)
 {

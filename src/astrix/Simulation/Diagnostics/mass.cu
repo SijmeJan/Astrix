@@ -42,6 +42,7 @@ void FillMassArraySingle(unsigned int n, T *pState,
   pVm[n] = 0.0;
 }
 
+//! Version for linear advection
 template<>
 __host__ __device__
 void FillMassArraySingle<real, CL_ADVECT>(unsigned int n, real *pState,
@@ -51,6 +52,7 @@ void FillMassArraySingle<real, CL_ADVECT>(unsigned int n, real *pState,
   pVm[n] = pVarea[n]*pState[n];
 }
 
+//! Version for Burgers equation
 template<>
 __host__ __device__
 void FillMassArraySingle<real, CL_BURGERS>(unsigned int n, real *pState,
@@ -60,6 +62,7 @@ void FillMassArraySingle<real, CL_BURGERS>(unsigned int n, real *pState,
   pVm[n] = pVarea[n]*pState[n];
 }
 
+//! Version for isothermal hydrodynamics
 template<>
 __host__ __device__
 void FillMassArraySingle<real3, CL_CART_ISO>(unsigned int n, real3 *pState,
@@ -69,6 +72,7 @@ void FillMassArraySingle<real3, CL_CART_ISO>(unsigned int n, real3 *pState,
   pVm[n] = pVarea[n]*pState[n].x;
 }
 
+//! Version for Euler equations
 template<>
 __host__ __device__
 void FillMassArraySingle<real4, CL_CART_EULER>(unsigned int n, real4 *pState,
@@ -102,7 +106,10 @@ devFillMassArray(unsigned int nVertex, T *pState,
 }
 
 //######################################################################
-/*! \brief Compute total mass in simulation*/
+/*! Compute total mass in simulation.
+
+\param *state Pointer to state vector
+\param *mesh Pointer to Mesh object*/
 //######################################################################
 
 template <class T, ConservationLaw CL>

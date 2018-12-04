@@ -37,7 +37,6 @@ Check edge \a i and write result in \a eNonDel (1 if not Delaunay, 0 otherwise)
 \param *pTv Pointer to triangle vertices
 \param *pTe Pointer to triangle edges
 \param *pEt Pointer to edge triangles
-\param *pEnd Pointer to list of edges that are not Delaunay (output)
 \param *pred Pointer to initialised Predicates object
 \param *pParam Pointer to initialised Predicates parameter vector
 \param nVertex Total number of vertices in Mesh

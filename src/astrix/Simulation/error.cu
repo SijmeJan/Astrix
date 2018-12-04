@@ -144,6 +144,7 @@ void CalcOperatorEnergySingle(int i, int nVertex, int nTriangle,
   AtomicAdd(&pVertexOperator[c], dC);
 }
 
+//! Version for 3 equations
 __host__ __device__
 void CalcOperatorEnergySingle(int i, int nVertex, int nTriangle,
                               const int3 *pTv, real G, const real3 *triL,
@@ -156,6 +157,7 @@ void CalcOperatorEnergySingle(int i, int nVertex, int nTriangle,
   // Dummy, not supported for 3 equations
 }
 
+//! Version for single equation
 __host__ __device__
 void CalcOperatorEnergySingle(int i, int nVertex, int nTriangle,
                               const int3 *pTv, real G, const real3 *triL,
@@ -327,10 +329,7 @@ devCalcErrorEstimate(int nTriangle, int nVertex, const int3 *pTv,
 }
 
 //##############################################################################
-/*! Calculate estimate of discretization error.
-
-\param *vertexState Pointer to state vector (i.e. density, momentum, etc) at vertices
-\param G Ratio of specific heats*/
+/*! Calculate estimate of discretization error.*/
 //##############################################################################
 
 template<class realNeq, ConservationLaw CL>

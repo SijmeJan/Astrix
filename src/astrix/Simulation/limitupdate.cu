@@ -69,6 +69,7 @@ void FlagLimitVertex(const int v, real4 *pState, real4 *pStateOld,
     pVertexLimitFlag[v] = ret;
 }
 
+//! Version for three equations
 __host__ __device__
 void FlagLimitVertex(const int v, real3 *pState, real3 *pStateOld,
                      int *pVertexLimitFlag, const real G1)
@@ -87,6 +88,7 @@ void FlagLimitVertex(const int v, real3 *pState, real3 *pStateOld,
     pVertexLimitFlag[v] = ret;
 }
 
+//! Version for single equation
 __host__ __device__
 void FlagLimitVertex(const int v, real *pState, real *pStateOld,
                      int *pVertexLimitFlag, const real G1)

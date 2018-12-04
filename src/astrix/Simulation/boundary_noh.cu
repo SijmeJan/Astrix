@@ -67,6 +67,7 @@ void SetBoundaryNohVertex(int n, real4 *pState,
   }
 }
 
+//! Version for three equations
 __host__ __device__
 void SetBoundaryNohVertex(int n, real3 *pState,
                           const real2 *pVc, const int *pVbf,
@@ -75,6 +76,7 @@ void SetBoundaryNohVertex(int n, real3 *pState,
   // Dummy function: Noh boundaries are specific to Euler
 }
 
+//! Version for single equation
 __host__ __device__
 void SetBoundaryNohVertex(int n, real *pState,
                           const real2 *pVc, const int *pVbf,

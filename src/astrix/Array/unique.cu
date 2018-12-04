@@ -20,7 +20,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 namespace astrix {
 
 //######################################################################
-//
+//! Kernel: At a unique entry of A, i, (ignoring ignoreValue) set hostVec[B[i]] = value.
 //######################################################################
 
 template<class T>

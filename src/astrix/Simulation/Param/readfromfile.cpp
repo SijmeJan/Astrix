@@ -29,7 +29,8 @@ namespace astrix {
 //#########################################################################
 /*! Read in data from input file. File is read line by line; input parameters can appear in any order but all must be present. An exception is thrown if any parameter is missing or has an invalid value.
 
-\param *fileName Pointer to input file name*/
+\param *fileName Pointer to input file name
+\param CL Conservation law used*/
 //#########################################################################
 
 void SimulationParameter::ReadFromFile(const char *fileName,

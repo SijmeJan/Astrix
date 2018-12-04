@@ -31,6 +31,7 @@ template <class T, ConservationLaw CL> class Diagnostics
   //! Destructor
   ~Diagnostics();
 
+  //! Array holding diagnostics result
   Array<real> *result;
 
  private:

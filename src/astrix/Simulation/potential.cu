@@ -31,7 +31,7 @@ namespace astrix {
 \param problemDef Problem definition
 \param *pVc Pointer to coordinates of vertices
 \param *pVpot Pointer to gravitational potential (output)
-\param *pVcs Pointer to isothermal sound speed (output)*/
+\param *pCs Pointer to isothermal sound speed (output)*/
 //######################################################################
 
 template<ConservationLaw CL>

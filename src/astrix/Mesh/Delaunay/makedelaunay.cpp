@@ -32,7 +32,10 @@ namespace astrix {
 \param *vertexState Pointer to state vector
 \param *predicates Pointer to Predicates object, used to check Delaunay property without roundoff error
 \param *meshParameter Pointer to Mesh parameters
-\param maxCycle Maximum number of cycles. If <= 0, cycle until all edges are Delaunay*/
+\param maxCycle Maximum number of cycles. If <= 0, cycle until all edges are Delaunay
+\param *edgeNeedsChecking Array of edges that need to be checked (0 if all edges can be checked)
+\param nEdgeCheck Number of edges to check
+\param flopFlag Flag whether to flop in stead of flip*/
 //#########################################################################
 
 template<class realNeq>

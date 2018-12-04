@@ -40,6 +40,7 @@ class Device
   //! Return flag whether using CUDA
   int GetCudaFlag();
 
+  //! Device properties
   cudaDeviceProp prop;
  private:
   //! Flag whether using CUDA device

@@ -55,6 +55,7 @@ void SetSymmetricVertex(int a, real2 n, real4 *pState, int nVertex)
   pState[a].z = -d*vPara*n.x;
 }
 
+//! Version for three equations
 __host__ __device__
 void SetSymmetricVertex(int a, real2 n, real3 *pState, int nVertex)
 {
@@ -70,6 +71,7 @@ void SetSymmetricVertex(int a, real2 n, real3 *pState, int nVertex)
   pState[a].z = -d*vPara*n.x;
 }
 
+//! Version for single equation
 __host__ __device__
 void SetSymmetricVertex(int a, real2 n, real *pState, int nVertex)
 {

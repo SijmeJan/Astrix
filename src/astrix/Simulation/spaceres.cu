@@ -56,7 +56,8 @@ namespace astrix {
 \param *pVp Pointer to external potential at vertices
 \param *pTrad Triangle average x (needed for cylindrical geometry)
 \param *pVcs Sound speed at vertices (isothermal case)
-\param frameAngularVelocity Angular velocity coordinate frame (cylindrical geometry)*/
+\param frameAngularVelocity Angular velocity coordinate frame (cylindrical geometry)
+\param *pVc Pointer to vertex coordinates*/
 //######################################################################
 
 
@@ -990,7 +991,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //-----------------------------------------------------------------------------
-// Systems of 3 equations: Cartesian and cylindrical isothermal hydrodynamics
+//! Systems of 3 equations: Cartesian and cylindrical isothermal hydrodynamics
 //-----------------------------------------------------------------------------
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1730,7 +1731,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //-----------------------------------------------------------------------------
-// Systems of 1 equation: Linear advection and Burgers equation
+//! Systems of 1 equation: Linear advection and Burgers equation
 //-----------------------------------------------------------------------------
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1966,7 +1967,8 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
 \param *pVp Pointer to external potential at vertices
 \param *pTrad Pointer to triangle average x coordinate
 \param *pVcs Sound speed at vertices (isothermal case)
-\param frameAngularVelocity Angular velocity coordinate frame (cylindrical geometry)*/
+\param frameAngularVelocity Angular velocity coordinate frame (cylindrical geometry)
+\param *pVc Pointer to vertex coordinates*/
 //######################################################################
 
 template<class realNeq, ConservationLaw CL>

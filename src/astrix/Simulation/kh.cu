@@ -58,13 +58,6 @@ void AddEigenVectorSingleKH(unsigned int i, const real2 *pVc, real4 *pState,
   real dyKH = yKH[1] - yKH[0];
 
   int jj = (int)((y - yKH[0])/dyKH);
-#ifndef __CUDA_ARCH__
-  if (jj < 0 || jj > 128) {
-    std::cout << jj << " " << y << " " << yKH[0] << " " << yKH[129]
-              << std::endl;
-    int qq; std::cin >> qq;
-  }
-#endif
 
   real dRj = dens[jj].x + (y - yKH[jj])*(dens[jj + 1].x - dens[jj].x)/dyKH;
   real dIj = dens[jj].y + (y - yKH[jj])*(dens[jj + 1].y - dens[jj].y)/dyKH;
@@ -78,20 +71,6 @@ void AddEigenVectorSingleKH(unsigned int i, const real2 *pVc, real4 *pState,
   real b0 = pState[i].z;
   real e0 = pState[i].w;
   real p0 = G1*(e0 - 0.5*(a0*a0 + b0*b0)/d0);
-  /*
-#ifndef __CUDA_ARCH__
-  std::cout << "x = " << x
-            << " y = " << y
-            << " a0 = " << a0
-            << " b0 = " << b0
-            << " uRj = " << uRj
-            << " uIj = " << uIj
-            << " vRj = " << vRj
-            << " vIj = " << vIj
-            << std::endl;
-  int qq; std::cin >> qq;
-#endif
-  */
 
   pState[i].x = d0 + dRj*cos(2.0*M_PI*kxKH*x) - dIj*sin(2.0*M_PI*kxKH*x);
   pState[i].y = a0 + d0*uRj*cos(2.0*M_PI*kxKH*x) - d0*uIj*sin(2.0*M_PI*kxKH*x);
@@ -100,6 +79,7 @@ void AddEigenVectorSingleKH(unsigned int i, const real2 *pVc, real4 *pState,
   pState[i].w = 0.5*(Sq(pState[i].y) + Sq(pState[i].z))/pState[i].x + pr/G1;
 }
 
+//! Version for three equations
 __host__ __device__
 void AddEigenVectorSingleKH(unsigned int i, const real2 *pVc, real3 *pState,
                             real2 *dens, real2 *velx, real2 *vely,
@@ -109,6 +89,7 @@ void AddEigenVectorSingleKH(unsigned int i, const real2 *pVc, real3 *pState,
   // Dummy function; no eigenvector to add if solving isothermal equation
 }
 
+//! Version for single equation
 __host__ __device__
 void AddEigenVectorSingleKH(unsigned int i, const real2 *pVc, real *pState,
                             real2 *dens, real2 *velx, real2 *vely,

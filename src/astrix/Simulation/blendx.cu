@@ -137,7 +137,7 @@ void CalcShockSensorSingle(int i, int nVertex,
   pShockSensor[i] = min(one, sc*sc*rsqrtf(iA));
 }
 
-// Version for 3 equations just says shock
+//! Version for 3 equations just says shock
 template<ConservationLaw CL>
 __host__ __device__
 void CalcShockSensorSingle(int i, int nVertex,
@@ -151,7 +151,7 @@ void CalcShockSensorSingle(int i, int nVertex,
   pShockSensor[i] = 1.0;
 }
 
-// Version for 1 equation just says shock
+//! Version for 1 equation just says shock
 template<ConservationLaw CL>
 __host__ __device__
 void CalcShockSensorSingle(int i, int nVertex,

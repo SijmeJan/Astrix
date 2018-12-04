@@ -144,6 +144,25 @@ devCheckEdgeFlop(int nEdge,
   }
 }
 
+//######################################################################
+/*! \brief Kernel checking edges for Delaunay-hood (limited number)
+
+Check edges in *pEnC and write result in \a pEnd (1 if not Delaunay, 0 otherwise)
+
+\param nEdgeCheck Total number of edges to check
+\param *pEnC Pointer to list of edges to check
+\param *pVc Pointer to vertex coordinates
+\param *pTv Pointer to triangle vertices
+\param *pTe Pointer to triangle edges
+\param *pEt Pointer to edge triangles
+\param *pEnd Pointer to list of edges that are not Delaunay (output)
+\param *pred Pointer to initialised Predicates object
+\param *pParam Pointer to initialised Predicates parameter vector
+\param nVertex Total number of vertices in Mesh
+\param Px Periodic domain size x
+\param Py Periodic domain size y*/
+//######################################################################
+
 __global__ void
 devCheckEdgeFlopLimit(int nEdgeCheck,
                       const int *pEnC,
@@ -171,7 +190,9 @@ devCheckEdgeFlopLimit(int nEdgeCheck,
 
 \param *connectivity Pointer to basic Mesh data
 \param *predicates Pointer to exact geometric predicates
-\param *meshParameter Pointer to Mesh parameters*/
+\param *meshParameter Pointer to Mesh parameters
+\param *edgeNeedsChecking Pointer to Array containing edges to be checked
+\param nEdgeCheck Total number of edges to check*/
 //#########################################################################
 
 void Delaunay::CheckEdgesFlop(Connectivity * const connectivity,

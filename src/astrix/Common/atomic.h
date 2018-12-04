@@ -40,10 +40,18 @@ __device__ inline double AstrixAtomicAdd(double* address, double val)
   return __longlong_as_double(old);
 }
 
+//######################################################################
+//! Atomic add for float
+//######################################################################
+
 __device__ inline float AstrixAtomicAdd(float* address, float val)
 {
   return atomicAdd(address, val);
 }
+
+//######################################################################
+//! Atomic add for int
+//######################################################################
 
 __device__ inline int AstrixAtomicAdd(int* address, int val)
 {
@@ -53,7 +61,7 @@ __device__ inline int AstrixAtomicAdd(int* address, int val)
 namespace astrix {
 
 //######################################################################
-// Atomic add wrapper; on host do normal add
+//! Atomic add wrapper for non-intrinsics; on host do normal add
 //######################################################################
 
 template<typename T>
@@ -69,6 +77,10 @@ T AtomicAdd(T *x, T y)
 #endif
 }
 
+//######################################################################
+//! Atomic add for double2 intrinsic
+//######################################################################
+
 template<>
 __host__ __device__
 inline double2 AtomicAdd(double2 *x, double2 y)
@@ -80,6 +92,10 @@ inline double2 AtomicAdd(double2 *x, double2 y)
 
   return ret;
 }
+
+//######################################################################
+//! Atomic add for double3 intrinsic
+//######################################################################
 
 template<>
 __host__ __device__
@@ -93,6 +109,10 @@ inline double3 AtomicAdd(double3 *x, double3 y)
 
   return ret;
 }
+
+//######################################################################
+//! Atomic add for double4 intrinsic
+//######################################################################
 
 template<>
 __host__ __device__
@@ -108,6 +128,10 @@ inline double4 AtomicAdd(double4 *x, double4 y)
   return ret;
 }
 
+//######################################################################
+//! Atomic add for float2 intrinsic
+//######################################################################
+
 template<>
 __host__ __device__
 inline float2 AtomicAdd(float2 *x, float2 y)
@@ -119,6 +143,10 @@ inline float2 AtomicAdd(float2 *x, float2 y)
 
   return ret;
 }
+
+//######################################################################
+//! Atomic add for float3 intrinsic
+//######################################################################
 
 template<>
 __host__ __device__
@@ -132,6 +160,10 @@ inline float3 AtomicAdd(float3 *x, float3 y)
 
   return ret;
 }
+
+//######################################################################
+//! Atomic add for float4 intrinsic
+//######################################################################
 
 template<>
 __host__ __device__
@@ -148,7 +180,7 @@ inline float4 AtomicAdd(float4 *x, float4 y)
 }
 
 //######################################################################
-// Atomic max wrapper; on host do normal max
+//! Atomic max wrapper; on host do normal max
 //######################################################################
 
 template<typename T>
@@ -165,7 +197,7 @@ T AtomicMax(T *x, T y)
 }
 
 //######################################################################
-// Atomic CAS wrapper; on host do normal CAS
+//! Atomic CAS wrapper; on host do normal CAS
 //######################################################################
 
 template<typename T>
@@ -182,7 +214,7 @@ T AtomicCAS(T *x, T cmp, T y)
 }
 
 //######################################################################
-// Atomic Exchange wrapper; on host do normal exchange
+//! Atomic Exchange wrapper; on host do normal exchange
 //######################################################################
 
 template<typename T>

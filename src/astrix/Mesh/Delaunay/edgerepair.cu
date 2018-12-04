@@ -39,8 +39,7 @@ Check if edge is part of both neighbouring triangles. If not, it has been corrup
 
 __host__ __device__
 void SingleEdgeRepair(int i, const int* __restrict__ pTsub,
-                      const int3* __restrict__ pTe, int2 *pEt,
-                      int printFlag)
+                      const int3* __restrict__ pTe, int2 *pEt)
 {
   // Indices of triangles
   int t1 = pEt[i].x;
@@ -92,7 +91,7 @@ devEdgeRepair(int nEdge,
   int i = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (i < nEdge) {
-    SingleEdgeRepair(i, pTsub, pTe, pEt, 1);
+    SingleEdgeRepair(i, pTsub, pTe, pEt);
 
     i += gridDim.x*blockDim.x;
   }
@@ -121,7 +120,7 @@ devEdgeRepairLimit(int nEdgeCheck,
 
   while (i < nEdgeCheck) {
     int e = pEnC[i];
-    SingleEdgeRepair(e, pTsub, pTe, pEt, 0);
+    SingleEdgeRepair(e, pTsub, pTe, pEt);
 
     i += gridDim.x*blockDim.x;
   }
@@ -180,7 +179,7 @@ void Delaunay::EdgeRepair(Connectivity * const connectivity,
       gpuErrchk( cudaEventRecord(start, 0) );
 #endif
       for (int i = 0; i < nEdge; i++)
-        SingleEdgeRepair(i, pTsub, pTe, pEt, 1);
+        SingleEdgeRepair(i, pTsub, pTe, pEt);
 #ifdef TIME_ASTRIX
       gpuErrchk( cudaEventRecord(stop, 0) );
       gpuErrchk( cudaEventSynchronize(stop) );

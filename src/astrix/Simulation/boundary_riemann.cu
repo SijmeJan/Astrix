@@ -110,6 +110,7 @@ void SetBoundaryRiemannVertex(int n, real4 *pState,
   }
 }
 
+//! Version for three equations
 __host__ __device__
 void SetBoundaryRiemannVertex(int n, real3 *pState,
                               const real2 *pVc, const int *pVbf,
@@ -118,6 +119,7 @@ void SetBoundaryRiemannVertex(int n, real3 *pState,
   // Dummy: no Riemann setup for 3 equations
 }
 
+//! Version for single equation
 __host__ __device__
 void SetBoundaryRiemannVertex(int n, real *pState,
                               const real2 *pVc, const int *pVbf,

@@ -35,7 +35,9 @@ namespace astrix {
 \param *pTv Pointer to triangle vertices
 \param *pVz Pointer to parameter vector
 \param *pDstate Pointer to state difference at vertices
-\param *pTresTot Triangle total residue
+\param *pTresLDA0 Triangle LDA residue (vertex 0)
+\param *pTresLDA1 Triangle LDA residue (vertex 1)
+\param *pTresLDA2 Triangle LDA residue (vertex 2)
 \param *pTn1 Pointer first triangle edge normal
 \param *pTn2 Pointer second triangle edge normal
 \param *pTn3 Pointer third triangle edge normal
@@ -460,6 +462,7 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
   pTresLDA2[n].w += ResLDA;
 }
 
+//! Version for three equations
 template<ConservationLaw CL>
 __host__ __device__
 void MassMatrixF34Single(int n, real dt, int massMatrix,
@@ -776,6 +779,7 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
   pTresLDA2[n].z += ResLDA;
 }
 
+//! Version for single equation
 template<ConservationLaw CL>
 __host__ __device__
 void MassMatrixF34Single(int n, real dt, int massMatrix,
@@ -930,7 +934,9 @@ void MassMatrixF34Single(int n, real dt, int massMatrix,
 \param *pTv Pointer to triangle vertices
 \param *pVz Pointer to parameter vector
 \param *pDstate Pointer to state difference at vertices
-\param *pTresTot Triangle total residue
+\param *pTresLDA0 Triangle LDA residue (vertex 0)
+\param *pTresLDA1 Triangle LDA residue (vertex 1)
+\param *pTresLDA2 Triangle LDA residue (vertex 2)
 \param *pTn1 Pointer first triangle edge normal
 \param *pTn2 Pointer second triangle edge normal
 \param *pTn3 Pointer third triangle edge normal
@@ -967,7 +973,10 @@ devMassMatrixF34(int nTriangle, real dt, int massMatrix,
 }
 
 //######################################################################
-/*! Calculate mass matrix contribution F3/F4 to residual.*/
+/*! Calculate mass matrix contribution F3/F4 to residual.
+
+\param dt Time step
+\param massMatrix Mass matrix to use*/
 //######################################################################
 
 template <class realNeq, ConservationLaw CL>

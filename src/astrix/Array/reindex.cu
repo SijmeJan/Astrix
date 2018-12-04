@@ -317,7 +317,7 @@ devInverseReindexInt3(int N, int3 *destArray, int3 *srcArray,
 }
 
 //###################################################
-// Inverse reindex array: a[i] = reindex[a[i]]
+//! Inverse reindex int array: a[i] = reindex[a[i]]
 //###################################################
 
 template <>
@@ -361,9 +361,9 @@ void Array<int>::InverseReindex(int *reindex)
   }
 }
 
-//###################################################
-// Inverse reindex array: a[i] = reindex[a[i]]
-//###################################################
+//######################################################
+//! Inverse reindex int3 array: a[i].xyz = reindex[a[i]]
+//######################################################
 
 template <>
 void Array<int3>::InverseReindex(int *reindex)
@@ -411,7 +411,7 @@ void Array<int3>::InverseReindex(int *reindex)
 }
 
 //###################################################
-// Inverse reindex array: a[i] = reindex[a[i]]
+//! Inverse reindex array: a[i] = reindex[a[i]]
 //###################################################
 
 template <>
@@ -471,7 +471,7 @@ void Array<int>::InverseReindex(unsigned int *reindex,
 }
 
 //###################################################
-// Inverse reindex array: a[i] = reindex[a[i]]
+//! Inverse reindex int2 array: a[i].xy = reindex[a[i]]
 //###################################################
 
 template <>
@@ -545,7 +545,7 @@ void Array<int2>::InverseReindex(unsigned int *reindex,
 }
 
 //###################################################
-// Inverse reindex array: a[i] = reindex[a[i]]
+//! Inverse reindex int3 array: a[i].xyz = reindex[a[i]]
 //###################################################
 
 template <>

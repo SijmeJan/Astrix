@@ -24,6 +24,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 namespace astrix {
 
 //##############################################################################
+//! Generic form of total energy calculation at vertex
 //##############################################################################
 
 template<class T, ConservationLaw CL>
@@ -34,6 +35,7 @@ void TotalEnergySingle(unsigned int i, const real *pVarea,
   E[i] = (real) 0.0;
 }
 
+//! Version for Euler equations
 template<>
 __host__ __device__
 void TotalEnergySingle<real4, CL_CART_EULER>(unsigned int i,
@@ -44,6 +46,7 @@ void TotalEnergySingle<real4, CL_CART_EULER>(unsigned int i,
 }
 
 //######################################################################
+//! Kernel: calculate total energy at vertices
 //######################################################################
 
 template<class T, ConservationLaw CL>
@@ -62,6 +65,10 @@ devTotalEnergy(unsigned int nVertex, const real *pVarea,
 }
 
 //######################################################################
+/*! Calculate total energy at vertices.
+
+\param *state Pointer to state vector
+\param *mesh Pointer to Mesh object*/
 //######################################################################
 
 template <class T, ConservationLaw CL>

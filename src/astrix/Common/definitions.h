@@ -22,11 +22,31 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 namespace astrix {
   //! Use single or double precision
 #if USE_DOUBLE == 1
+  /*! \var typedef double real
+      \brief real means double if using double precision
+      \var typedef double4 real4
+      \brief real4 means double4 intrinsic if using double precision
+      \var typedef double3 real3
+      \brief real3 means double3 intrinsic if using double precision
+      \var typedef double2 real2
+      \brief real2 means double2 intrinsic if using double precision
+  */
+
   typedef double real;
   typedef double4 real4;
   typedef double3 real3;
   typedef double2 real2;
 #else
+  /*! \var typedef float real
+      \brief real means float if using single precision
+      \var typedef float4 real4
+      \brief real4 means float4 intrinsic if using single precision
+      \var typedef float3 real3
+      \brief real3 means float3 intrinsic if using single precision
+      \var typedef float2 real2
+      \brief real2 means float2 intrinsic if using single precision
+  */
+
   typedef float real;
   typedef float4 real4;
   typedef float3 real3;

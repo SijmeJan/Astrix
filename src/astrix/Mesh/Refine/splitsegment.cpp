@@ -28,8 +28,12 @@ namespace astrix {
 //##############################################################################
 /*! If a vertex encroaches a segment, we have moved the vertex onto the encroached segment. Occasionally, this vertex will encroach another segment. This function finds these segments and splits them one by one (not in parallel).
 
-\param *vertexState State vector at vertices
-\param specificHeatRatio Ratio of specific heats*/
+\param *connectivity Pointer to basic Mesh data
+\param *meshParameter Pointer to Mesh parameters
+\param *predicates Pointer to Predicates object
+\param *vertexState Pointer to Array containing state vector. We use this to distinguish whether we are creating a new Mesh (\a vertexState=0) meaning all triangles can be refined always, or whether we are in the middle of a simulation in which case no newly created triangles can be refined in the next step before we have computed the new truncation error.
+\param *triangleWantRefine Pointer to flags if triangle needs to be refined based on current state.
+\param nTriangleOld Current number of tringles in Mesh*/
 //##############################################################################
 
 template<class realNeq>

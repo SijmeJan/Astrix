@@ -22,7 +22,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 namespace astrix {
 
 //###################################################
-//
+//! Kernel: select entries larger than value
 //###################################################
 
 template<class T>
@@ -85,7 +85,7 @@ int Array<T>::SelectLargerThan(T value, Array<S> *A)
 }
 
 //###################################################
-//
+//! Select entries not equal to \a compareData
 //###################################################
 
 template<class T>

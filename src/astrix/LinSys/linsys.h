@@ -28,7 +28,7 @@ class LinSys
 {
  public:
   //! Constructor for LinSys object.
-  LinSys(int _verboseLevel, int _debugLevel, Device *_device);
+  LinSys(int _verboseLevel, int _debugLevel, Device *_device, Mesh *_mesh);
   //! Destructor, releases all dynamically allocated memory
   ~LinSys();
 
@@ -36,6 +36,7 @@ class LinSys
   void BiCGStab(Array<real> *x, Array<real> *b);
 
  private:
+  //! Device object
   Device *device;
 
   //! Flag whether to use CUDA

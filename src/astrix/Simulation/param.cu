@@ -59,6 +59,7 @@ void CalcParamVecSingle(int n, real4 *pState, real4 *pVz, real G1, real *pVp)
   pVz[n].w = d*(ener + p)/dens;
 }
 
+//! Version for three equations
 __host__ __device__
 void CalcParamVecSingle(int n, real3 *pState, real3 *pVz, real G1, real *pVp)
 {
@@ -76,6 +77,7 @@ void CalcParamVecSingle(int n, real3 *pState, real3 *pVz, real G1, real *pVp)
   pVz[n].z = d*v;
 }
 
+//! Version for single equation
 __host__ __device__
 void CalcParamVecSingle(int n, real *pState, real *pVz, real G1, real *pVp)
 {

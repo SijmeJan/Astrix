@@ -257,6 +257,7 @@ void SetReflectingEdge(int n, int e, real dt, real4 *pState,
   }
 }
 
+//! Version for three equations
 __host__ __device__
 void SetReflectingEdge(int n, int e, real dt, real3 *pState,
                        const int3 *pTv, int e1, int e2, int e3,
@@ -368,6 +369,7 @@ void SetReflectingEdge(int n, int e, real dt, real3 *pState,
   }
 }
 
+//! Version for single equation
 __host__ __device__
 void SetReflectingEdge(int n, int e, real dt, real *pState,
                        const int3 *pTv, int e1, int e2, int e3,

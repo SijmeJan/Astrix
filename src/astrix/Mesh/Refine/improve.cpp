@@ -37,7 +37,6 @@ namespace astrix {
 \param *morton Pointer to Morton object, used for sorting to improve data locality
 \param *delaunay Pointer to Delaunay object, used to maintain Delaunay triangulation
 \param *vertexState Pointer to state at vertices. If refining at t > 0, we need to interpolate the state at new vertices. Otherwise, this pointer needs to be 0 and will be ignored.
-\param specificHeatRatio Ratio of specific heats. Needed when interpolating the state.
 \param *triangleWantRefine Pointer to flags if triangle needs to be refined based on current state. Only used when t > 0; otherwise it needs to be 0.*/
 //#########################################################################
 

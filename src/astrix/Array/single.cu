@@ -22,23 +22,6 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 namespace astrix {
 
 //###################################################
-// Set single value
-//###################################################
-
-template <class T>
-void Array<T>::SetSingleValue(T value, int position)
-{
-  T *data = GetPointer();
-  if (cudaFlag == 1) {
-    gpuErrchk(cudaMemcpy(&(data[position]), &value,
-                         sizeof(T),
-                         cudaMemcpyHostToDevice));
-  } else {
-    data[position] = value;
-  }
-}
-
-//###################################################
 // Set single value in dimension N
 //###################################################
 
@@ -52,23 +35,6 @@ void Array<T>::SetSingleValue(T value, int position,
                          sizeof(T), cudaMemcpyHostToDevice));
   } else {
     data[position + N*realSize] = value;
-  }
-}
-
-//###################################################
-// Get single value
-//###################################################
-
-template <class T>
-void Array<T>::GetSingleValue(T *value, int position)
-{
-  T *data = GetPointer();
-  if (cudaFlag == 1) {
-    gpuErrchk(cudaMemcpy(value, &(data[position]),
-                         sizeof(T),
-                         cudaMemcpyDeviceToHost));
-  } else {
-    value[0] = data[position];
   }
 }
 
@@ -95,12 +61,8 @@ void Array<T>::GetSingleValue(T *value, int position,
 //###################################################
 
 template void Array<double>::SetSingleValue(double value,
-                                            int position);
-template void Array<double>::SetSingleValue(double value,
                                             int position,
                                             unsigned int N);
-template void Array<double>::GetSingleValue(double *value,
-                                            int position);
 template void Array<double>::GetSingleValue(double *value,
                                             int position,
                                             unsigned int N);
@@ -108,25 +70,17 @@ template void Array<double>::GetSingleValue(double *value,
 //###################################################
 
 template void Array<float>::SetSingleValue(float value,
-                                           int position);
-template void Array<float>::SetSingleValue(float value,
                                            int position,
                                            unsigned int N);
-template void Array<float>::GetSingleValue(float *value,
-                                           int position);
 template void Array<float>::GetSingleValue(float *value,
                                            int position,
                                            unsigned int N);
 
 //###################################################
 
-template void Array<int>::SetSingleValue(int value,
-                                         int position);
 template void Array<int>::SetSingleValue(int value,
                                          int position,
                                          unsigned int N);
-template void Array<int>::GetSingleValue(int *value,
-                                         int position);
 template void Array<int>::GetSingleValue(int *value,
                                          int position,
                                          unsigned int N);
@@ -134,19 +88,17 @@ template void Array<int>::GetSingleValue(int *value,
 //###################################################
 
 template void Array<unsigned int>::SetSingleValue(unsigned int value,
-                                                  int position);
+                                                  int position,
+                                                  unsigned int N);
 template void Array<unsigned int>::GetSingleValue(unsigned int *value,
-                                                  int position);
+                                                  int position,
+                                                  unsigned int N);
 
 //###################################################
 
 template void Array<int2>::SetSingleValue(int2 value,
-                                          int position);
-template void Array<int2>::SetSingleValue(int2 value,
                                           int position,
                                           unsigned int N);
-template void Array<int2>::GetSingleValue(int2 *value,
-                                          int position);
 template void Array<int2>::GetSingleValue(int2 *value,
                                           int position,
                                           unsigned int N);
@@ -154,12 +106,8 @@ template void Array<int2>::GetSingleValue(int2 *value,
 //###################################################
 
 template void Array<int3>::SetSingleValue(int3 value,
-                                          int position);
-template void Array<int3>::SetSingleValue(int3 value,
                                           int position,
                                           unsigned int N);
-template void Array<int3>::GetSingleValue(int3 *value,
-                                          int position);
 template void Array<int3>::GetSingleValue(int3 *value,
                                           int position,
                                           unsigned int N);
@@ -167,12 +115,8 @@ template void Array<int3>::GetSingleValue(int3 *value,
 //###################################################
 
 template void Array<float2>::SetSingleValue(float2 value,
-                                            int position);
-template void Array<float2>::SetSingleValue(float2 value,
                                             int position,
                                             unsigned int N);
-template void Array<float2>::GetSingleValue(float2 *value,
-                                            int position);
 template void Array<float2>::GetSingleValue(float2 *value,
                                             int position,
                                             unsigned int N);
@@ -180,14 +124,10 @@ template void Array<float2>::GetSingleValue(float2 *value,
 //###################################################
 
 template void Array<double2>::SetSingleValue(double2 value,
-                                            int position);
-template void Array<double2>::SetSingleValue(double2 value,
-                                            int position,
-                                            unsigned int N);
+                                             int position,
+                                             unsigned int N);
 template void Array<double2>::GetSingleValue(double2 *value,
-                                            int position);
-template void Array<double2>::GetSingleValue(double2 *value,
-                                            int position,
-                                            unsigned int N);
+                                             int position,
+                                             unsigned int N);
 
 }  // namespace astrix

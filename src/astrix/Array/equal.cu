@@ -40,7 +40,7 @@ void Array<T>::SetEqual(const Array *B)
 }
 
 //##########################################################
-// Set dimension N of A equal to dimension M of intrinsic B
+//! Set dimension N of A equal to dimension M of intrinsic B
 //##########################################################
 
 template <class T, class S>

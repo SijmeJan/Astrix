@@ -891,7 +891,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //-----------------------------------------------------------------------------
-// Systems of 3 equations: Cartesian and cylindrical isothermal hydrodynamics
+//! Systems of 3 equations: Cartesian and cylindrical isothermal hydrodynamics
 //-----------------------------------------------------------------------------
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1579,7 +1579,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //-----------------------------------------------------------------------------
-// Systems of 1 equation: Linear advection and Burgers equation
+//! Systems of 1 equation: Linear advection and Burgers equation
 //-----------------------------------------------------------------------------
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1827,7 +1827,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
 \param *pTn2 Pointer second triangle edge normal
 \param *pTn3 Pointer third triangle edge normal
 \param *pTl Pointer to triangle edge lengths
-\param *pVpot Pointer to gravitational potential at vertices
+\param *pResSource Pointer to source residuals
 \param *pTresN0 Triangle residue N direction 0 (output)
 \param *pTresN1 Triangle residue N direction 1 (output)
 \param *pTresN2 Triangle residue N direction 2 (output)

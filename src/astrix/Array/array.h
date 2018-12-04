@@ -86,9 +86,9 @@ template <class T> class Array
   void SetSize(unsigned int _size);
 
   //! Set all Array entries to \a value
-  void SetToValue(T value);
+  //void SetToValue(T value);
   //! Set Array entries from \a startIndex to \a endIndex to \a value
-  void SetToValue(T value, unsigned int startIndex, unsigned int endIndex);
+  void SetToValue(T value, int startIndex = -1, int endIndex = -1);
   //! Set \a a[0] = 0, \a a[1] = 1, etc.
   void SetToSeries();
   //! Set \a a[\a i] = \a i for all \a i from \a startIndex to \a endIndex
@@ -98,6 +98,7 @@ template <class T> class Array
   void SetEqual(const Array *B);
   //! Set all entries of dimension N of Array equal to dimension M of Array B
   void SetEqual(const Array *B, unsigned int N, unsigned int M);
+  //! Set dimension N of A equal to dimension M of intrinsic B
   template <class S>
     void SetEqualComb(const Array<S> *B, unsigned int N, unsigned int M);
   //! Set all entries starting from \a startPosition equal to those of Array \a *B, i.e. \a a[\a startPosition] = \a b[0] etc.
@@ -110,6 +111,7 @@ template <class T> class Array
   //! Inverse reindex array: a[i] = reindex[a[i]]
   /*! Set a[i] = reindex[a[i]]. If a[i] = -1, leave it at -1. If a[i] >= maxValue, subtract maxValue n times until a[i] < maxValue, and set a[i] = a[reindex[a[i]-n*maxValue]] + n*maxValue*/
   void InverseReindex(unsigned int *reindex, int maxValue, bool ignoreValue);
+  //! Inverse reindex array: a[i] = reindex[a[i]]
   void InverseReindex(int *reindex);
 
   //! Compact; keep only entries where keepFlag == 1
@@ -121,14 +123,10 @@ template <class T> class Array
   //! Copy data from device to host
   void CopyToHost();
 
-  //! Set a[position] = value
-  void SetSingleValue(T value, int position);
   //! Set a[position] = value for dimension \a N
-  void SetSingleValue(T value, int position, unsigned int N);
-  //! Real a[position] into *value
-  void GetSingleValue(T *value, int position);
+  void SetSingleValue(T value, int position, unsigned int N = 0);
   //! Read a[position] for dimension \a N into *value
-  void GetSingleValue(T *value, int position, unsigned int N);
+  void GetSingleValue(T *value, int position, unsigned int N = 0);
 
   //! Add value to all entries from startIndex to endIndex
   void AddValue(T value, unsigned int startIndex, unsigned int endIndex);
@@ -141,20 +139,15 @@ template <class T> class Array
 
   //! Sort array, together with \a arrayB
   void Sort(Array<T> *arrayB);
-  //! Create index array for sorting
-  template<class S>
-    void SortByKey(Array<S> *indexArray);
   //! Create index array for sorting dimension N
   template<class S>
-    void SortByKey(Array<S> *indexArray, unsigned int N);
+    void SortByKey(Array<S> *indexArray, int nElements = -1);
   //! Sort array (float2/double2) in counterclockwise order around origin
   template<class S>
     void SortCounterClock(T origin);
 
-  //! Perform exclusive scan
-  T ExclusiveScan(Array<T> *result);
-  //! Perform exclusive scan on dimension \a N
-  T ExclusiveScan(Array<T> *result, unsigned int N);
+  //! Perform exclusive scan on first \a nElements elements
+  T ExclusiveScan(Array<T> *result, int nElements = -1);
 
   //! Set out[i] = in[map[i]]
   void Gather(Array<T> *in, Array<int> *map, int maxIndex);
@@ -180,10 +173,13 @@ template <class T> class Array
   T Maximum();
   //! Return maximum of dimension N of array
   T Maximum(int N);
+  //! Return minimum of x or y component of intrinsic
   template <class S>
     S MinimumComb(int N);
+  //! Return maximum of x or y component of intrinsic
   template <class S>
     S MaximumComb(int N);
+  //! Find index of maximum of x or y component of intrinsic
   unsigned int MaximumCombIndex(int N);
 
   //! Return sum of elements
@@ -195,19 +191,18 @@ template <class T> class Array
   //! Join with Array \a A
   void Concat(Array<T> *A);
 
-  //! Remove every entry start+i*step, compact array
-  int RemoveEvery(int start, int step);
   //! Remove every entry start+i*step, compact array and inverse reindex A
   template<class S>
-    int RemoveEvery(int start, int step, Array<S> *A);
+    int RemoveEvery(int start, int step, Array<S> *A=0);
   //! Remove entries equal to \a value from Array
-  int RemoveValue(T value);
-  int RemoveValue(T value, int maxIndex);
+  int RemoveValue(T value, int maxIndex=-1);
   //! Remove range of entries
   void Remove(int start, int end);
 
+  //! Select elements larger than \a value, compact \a A
   template<class S>
     int SelectLargerThan(T value, Array<S> *A);
+  //! Select elements different from \a a, compact \a B
   template<class S>
     int SelectWhereDifferent(Array<T> *A, Array<S> *B);
 
@@ -218,13 +213,12 @@ template <class T> class Array
   //! Shuffle array (non-random!)
   void Shuffle();
 
+  //! Inner product with other array
   T InnerProduct(Array<T> *A);
-  void LinComb(T a1, Array<T> *A1);
+  //! Take linear combination of Arrays
   void LinComb(T a1, Array<T> *A1,
-               T a2, Array<T> *A2);
-  void LinComb(T a1, Array<T> *A1,
-               T a2, Array<T> *A2,
-               T a3, Array<T> *A3);
+               T a2 = 0, Array<T> *A2 = 0,
+               T a3 = 0, Array<T> *A3 = 0);
 
   //! Return pointer to host memory
   T* GetHostPointer() const { return hostVec; }
@@ -253,6 +247,7 @@ template <class T> class Array
     }
   }
 
+  //! Step for which to increase physical size Array
   int dynArrayStep;
  private:
   //! Size of array

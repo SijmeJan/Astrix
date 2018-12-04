@@ -19,7 +19,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 namespace astrix {
 
 //###################################################
-// Return square of number
+//! Return square of number
 //###################################################
 
 template<typename T>
@@ -28,7 +28,7 @@ __host__ __device__ inline T Sq(const T a) {
 }
 
 //###################################################
-// Return cube of number
+//! Return cube of number
 //###################################################
 
 template<typename T>
@@ -37,7 +37,7 @@ __host__ __device__ inline T Cb(const T a) {
 }
 
 //###################################################
-// Return sign of number (Sign(0) = 1)
+//! Return sign of number (Sign(0) = 1)
 //###################################################
 template<typename T>
 __host__ __device__ inline int Sign(const T a) {

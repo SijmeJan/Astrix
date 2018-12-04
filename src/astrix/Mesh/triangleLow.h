@@ -442,8 +442,9 @@ Find vertices belonging to edge \a e. First, find a triangle \a t neighbouring \
 \param *pTv Pointer to triangle vertices
 \param *pTe Pointer to triangle edges
 \param *pEt Pointer to edge triangles
-\param t Place to store output triangle
-\param E Place to store outpud edges
+\param tCollapse Place to store output triangle
+\param V Place to store output vertices
+\param E Place to store output edge
 \param a Place to store first vertex of \a e
 \param b Place to store second vertex of \a e*/
 //######################################################################
@@ -518,7 +519,6 @@ int NextEdgeClockwise(const int e, const int3 E)
 \param eStart Edge to start from
 \param t Triangle to start from (will be updated!)
 \param E Edges for triangle \a t (will be updated!)
-\param *pTv Pointer to triangle vertices
 \param *pTe Pointer to triangle edges
 \param *pEt Pointer to edge triangles*/
 //#########################################################################
@@ -559,7 +559,6 @@ int FindSegmentCounterClock(int eStart, int& t, int3& E,
 \param eStart Edge to start from
 \param t Triangle to start from (will be updated!)
 \param E Edges for triangle \a t (will be updated!)
-\param *pTv Pointer to triangle vertices
 \param *pTe Pointer to triangle edges
 \param *pEt Pointer to edge triangles*/
 //#########################################################################

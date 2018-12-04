@@ -34,7 +34,7 @@ namespace astrix {
   \param _verboseLevel How much information to output to stdout in Astrix.
   \param _debugLevel Level of extra checks for correct mesh.
   \param *fileName Input file name
-  \param *device Device to be used for computation.
+  \param *_device Device to be used for computation.
   \param restartNumber Number of saved file to restore from*/
 //#########################################################################
 

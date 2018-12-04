@@ -209,6 +209,7 @@ void SetCornersToZero(int n, const int *pVbf, real4 *pState)
   }
 }
 
+//! Version for 3 equation
 __host__ __device__
 void SetCornersToZero(int n, const int *pVbf, real3 *pState)
 {
@@ -222,7 +223,7 @@ void SetCornersToZero(int n, const int *pVbf, real3 *pState)
   }
 }
 
-
+//! Version for one equation
 __host__ __device__
 void SetCornersToZero(int n, const int *pVbf, real *pState)
 {

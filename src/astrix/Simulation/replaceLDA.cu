@@ -93,6 +93,7 @@ void SingleReplaceLDA(int n, const int3* __restrict__ pTv,
   }
 }
 
+//! Version for three equations
 __host__ __device__
 void SingleReplaceLDA(int n, const int3* __restrict__ pTv,
                       const int* __restrict__ pVuf,
@@ -126,6 +127,7 @@ void SingleReplaceLDA(int n, const int3* __restrict__ pTv,
   }
 }
 
+//! Version for single equation
 __host__ __device__
 void SingleReplaceLDA(int n, const int3* __restrict__ pTv,
                       const int* __restrict__ pVuf,
@@ -178,7 +180,7 @@ devReplaceLDA(int nTriangle,
 //######################################################################
 /*! If any of the vertices of a triangle has an unphysical state, replace the triangle residue with N only. If we are at the second stage of the Runge Kutta integration, just set all residues to zero, forcing a first-order update.
 
-\param *pVuf Pointer to array of flags indicating whether vertex has an unphysical state
+\param *vertexUnphysicalFlag Pointer to array of flags indicating whether vertex has an unphysical state
 \param RKStep Stage of Runge-Kutta integration*/
 //######################################################################
 

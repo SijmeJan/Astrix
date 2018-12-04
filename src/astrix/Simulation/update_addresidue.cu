@@ -33,9 +33,9 @@ namespace astrix {
 \param *pTv Pointer to triangle vertices
 \param *pTl Pointer to triangle edge lengths
 \param *pVarea Pointer to vertex areas (Voronoi cells)
-\param *pBlend Pointer to blend parameter
 \param *pShock Pointer to shock sensor
 \param *pState Pointer to state vector
+\param *pTresTot Pointer to total residual
 \param *pTresN0 Triangle residue N direction 0
 \param *pTresN1 Triangle residue N direction 1
 \param *pTresN2 Triangle residue N direction 2
@@ -284,6 +284,7 @@ void AddResidueSingle(int n,
   AtomicAdd(&(pState[c].w), dW);
 }
 
+//! Version for three equations
 __host__ __device__
 void AddResidueSingle(int n,
                       const int3* __restrict__ pTv,
@@ -485,6 +486,7 @@ void AddResidueSingle(int n,
   AtomicAdd(&(pState[c].z), dW);
 }
 
+//! Version for single equation
 __host__ __device__
 void AddResidueSingle(int n, const int3* __restrict__ pTv,
                       const real3 *pTl, const real *pVarea,
@@ -581,9 +583,9 @@ void AddResidueSingle(int n, const int3* __restrict__ pTv,
 \param *pTv Pointer to triangle vertices
 \param *pTl Pointer to triangle edge lengths
 \param *pVarea Pointer to vertex areas (Voronoi cells)
-\param *pBlend Pointer to blend parameter
 \param *pShock Pointer to shock sensor
 \param *pState Pointer to state vector
+\param *pTresTot Pointer to total residual
 \param *pTresN0 Triangle residue N direction 0
 \param *pTresN1 Triangle residue N direction 1
 \param *pTresN2 Triangle residue N direction 2

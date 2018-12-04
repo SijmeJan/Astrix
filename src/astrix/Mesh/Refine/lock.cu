@@ -32,7 +32,7 @@ namespace astrix {
 //#########################################################################
 /*! \brief Lock the cavity of insertion point
 
-Start at the insertion triangle and move in clockwise direction along the edge of the cavity, flagging all triangles as part of the cavity of \i by setting pTiC[t] = randomInt. If a triangle is associated with multiple cavities, pick the largest value of randomInt.
+Start at the insertion triangle and move in clockwise direction along the edge of the cavity, flagging all triangles as part of the cavity of \a i by setting pTiC[t] = randomInt. If a triangle is associated with multiple cavities, pick the largest value of randomInt.
 
 \param VcAdd Coordinates of insertion point
 \param elementAdd Insertion triangle or edge

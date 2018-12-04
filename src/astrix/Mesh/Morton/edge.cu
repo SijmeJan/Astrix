@@ -24,7 +24,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 namespace astrix {
 
 //#########################################################################
-/*! \brief Compute Morton value for edge \i
+/*! \brief Compute Morton value for edge \a i
 
 The Morton value for an edge is just the Morton value of the first vertex of one of the neighbouring triangles.
 

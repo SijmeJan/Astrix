@@ -111,7 +111,9 @@ void AddEigenVectorSingleRT(unsigned int i, const real2 *pVc, real4 *pState,
 \param miny Minimum y value in domain
 \param maxy Maximum y value in domain
 \param G Ratio of specific heats
-\param G1 Ratio of specific heats - 1*/
+\param G1 Ratio of specific heats - 1
+\param time Current simulation time
+\param omega2 Frequency squared of eigenmode*/
 //######################################################################
 
 template<class realNeq, ConservationLaw CL>

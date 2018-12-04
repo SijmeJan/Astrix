@@ -458,6 +458,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   pTresTot[n].w += tl3*ResLDA;
 }
 
+//! Version for three equations
 template<ConservationLaw CL>
 __host__ __device__
 void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
@@ -774,6 +775,7 @@ void MassMatrixF34TotSingle(int n, real dt, int massMatrix,
   pTresTot[n].z += tl3*ResLDA;
 }
 
+//! Version for single equation
 template<ConservationLaw CL>
 __host__ __device__
 void MassMatrixF34TotSingle(int n, real dt, int massMatrix,

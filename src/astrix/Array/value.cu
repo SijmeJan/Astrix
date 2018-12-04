@@ -39,44 +39,19 @@ devSetToValue(int N, T *array, T value,
   }
 }
 
-//##########################################
-// Set all array elements to specific value
-//##########################################
-
-template <class T>
-void Array<T>::SetToValue(T value)
-{
-  if (cudaFlag == 1) {
-    int nBlocks = 128;
-    int nThreads = 128;
-
-    // Base nThreads and nBlocks on maximum occupancy
-    cudaOccupancyMaxPotentialBlockSize(&nBlocks, &nThreads,
-                                       devSetToValue<T>,
-                                       (size_t) 0, 0);
-
-    devSetToValue<<<nBlocks, nThreads>>>(size, deviceVec, value,
-                                         0, size,
-                                         realSize, nDims);
-    gpuErrchk( cudaPeekAtLastError() );
-    gpuErrchk( cudaDeviceSynchronize() );
-  }
-
-  if (cudaFlag == 0) {
-    for (unsigned int n = 0; n < nDims; n++)
-      for (unsigned int i = 0; i < size; i++)
-        hostVec[i + n*realSize] = value;
-  }
-}
-
 //##########################################################
 // Set array elements to specific value from certain offset
 //##########################################################
 
 template <class T>
-void Array<T>::SetToValue(T value, unsigned int startIndex,
-                          unsigned int endIndex)
+void Array<T>::SetToValue(T value, int startIndex, int endIndex)
 {
+  unsigned int si = (unsigned int) startIndex;
+  unsigned int ei = (unsigned int) endIndex;
+
+  if (startIndex == -1) si = 0;
+  if (endIndex == -1) ei = 0;
+
   if (cudaFlag == 1) {
     int nBlocks = 128;
     int nThreads = 128;
@@ -87,15 +62,14 @@ void Array<T>::SetToValue(T value, unsigned int startIndex,
                                        (size_t) 0, 0);
 
     devSetToValue<<<nBlocks, nThreads>>>(size, deviceVec, value,
-                                         startIndex, endIndex,
-                                         realSize, nDims);
+                                         si, ei, realSize, nDims);
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   }
 
   if (cudaFlag == 0) {
     for (unsigned int n = 0; n < nDims; n++)
-      for (unsigned int i = startIndex; i < endIndex; i++)
+      for (unsigned int i = si; i < ei; i++)
         hostVec[i + n*realSize] = value;
   }
 }
@@ -104,29 +78,25 @@ void Array<T>::SetToValue(T value, unsigned int startIndex,
 // Instantiate
 //###################################################
 
-template void Array<float>::SetToValue(float value);
 template void Array<float>::SetToValue(float value,
-                                       unsigned int startIndex,
-                                       unsigned int endIndex);
+                                       int startIndex,
+                                       int endIndex);
 
 //###################################################
 
-template void Array<double>::SetToValue(double value);
 template void Array<double>::SetToValue(double value,
-                                        unsigned int startIndex,
-                                        unsigned int endIndex);
+                                        int startIndex,
+                                        int endIndex);
 
 //###################################################
 
-template void Array<int>::SetToValue(int value);
 template void Array<int>::SetToValue(int value,
-                                     unsigned int startIndex,
-                                     unsigned int endIndex);
+                                     int startIndex,
+                                     int endIndex);
 
 //###################################################
 
-template void Array<unsigned int>::SetToValue(unsigned int value);
 template void Array<unsigned int>::SetToValue(unsigned int value,
-                                              unsigned int startIndex,
-                                              unsigned int endIndex);
+                                              int startIndex,
+                                              int endIndex);
 }  // namespace astrix

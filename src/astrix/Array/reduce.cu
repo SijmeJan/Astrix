@@ -132,6 +132,7 @@ T Array<T>::Maximum(int N)
 template <class T>
 struct compare_x
 {
+  //! Compare only x component
   __host__ __device__
   bool operator()(T lhs, T rhs)
   {
@@ -143,12 +144,17 @@ struct compare_x
 template <class T>
 struct compare_y
 {
+  //! Compare only y component
   __host__ __device__
   bool operator()(T lhs, T rhs)
   {
     return lhs.y < rhs.y;
   }
 };
+
+//######################################################
+// Find maximum of x or y component of intrinsic
+//######################################################
 
 template <class T>
 template <class S>
@@ -182,6 +188,10 @@ S Array<T>::MaximumComb(int N)
 
   return result;
 }
+
+//######################################################
+// Find minimum of x or y component of intrinsic
+//######################################################
 
 template <class T>
 template <class S>
@@ -217,6 +227,10 @@ S Array<T>::MinimumComb(int N)
   return result;
 }
 
+//######################################################
+// Find index of maximum of x or y component of intrinsic
+//######################################################
+
 template <class T>
 unsigned int Array<T>::MaximumCombIndex(int N)
 {
@@ -225,7 +239,6 @@ unsigned int Array<T>::MaximumCombIndex(int N)
   if (cudaFlag == 1) {
     thrust::device_ptr<T> dev_ptr(&deviceVec[0]);
 
-    //typename thrust::device_vector<T>::iterator iter;
     thrust::device_ptr<T> iter;
 
     if (N == 0)
@@ -236,7 +249,6 @@ unsigned int Array<T>::MaximumCombIndex(int N)
     result = thrust::distance(dev_ptr, iter);
   }
   if (cudaFlag == 0) {
-    //typename thrust::host_vector<T>::iterator iter;
     T * iter;
 
     if (N == 0)

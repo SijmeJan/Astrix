@@ -44,12 +44,14 @@ void ReplaceEnergyWithPressureSingle(int i, real4 *pState, real G1, real *pVp)
                     pState[i].x*pVp[i]);
 }
 
+//! Version for three equations
 __host__ __device__
 void ReplaceEnergyWithPressureSingle(int i, real3 *pState, real G1, real *pVp)
 {
   // Dummy function, nothing to be done if solving only three equations
 }
 
+//! Version for single equation
 __host__ __device__
 void ReplaceEnergyWithPressureSingle(int i, real *pState, real G1, real *pVp)
 {
@@ -74,12 +76,14 @@ void ReplacePressureWithEnergySingle(int i, real4 *pState, real iG1, real *pVp)
     pState[i].x*pVp[i] + pState[i].w*iG1;
 }
 
+//! Version for three equations
 __host__ __device__
 void ReplacePressureWithEnergySingle(int i, real3 *pState, real iG1, real *pVp)
 {
   // Dummy function, nothing to be done if solving only three equations
 }
 
+//! Version for single equation
 __host__ __device__
 void ReplacePressureWithEnergySingle(int i, real *pState, real iG1, real *pVp)
 {

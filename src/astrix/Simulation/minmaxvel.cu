@@ -29,7 +29,7 @@ namespace astrix {
 \param i Vertex to consider
 \param *pState Pointer to vertex state
 \param *pMinVel Pointer to minimum velocities (output)
-\param *pMinVel Pointer to maximum velocities (output)*/
+\param *pMaxVel Pointer to maximum velocities (output)*/
 //#########################################################################
 
 template<ConservationLaw CL>
@@ -57,6 +57,7 @@ void FillMinMaxVelocitySingle(unsigned int i, real4 *pState,
   pMaxVel[i] = vMax;
 }
 
+//! Version for three equations
 template<ConservationLaw CL>
 __host__ __device__
 void FillMinMaxVelocitySingle(unsigned int i, real3 *pState,
@@ -82,6 +83,7 @@ void FillMinMaxVelocitySingle(unsigned int i, real3 *pState,
   pMaxVel[i] = vMax;
 }
 
+//! Version for single equation
 template<ConservationLaw CL>
 __host__ __device__
 void FillMinMaxVelocitySingle(unsigned int i, real *pState,
@@ -102,7 +104,7 @@ void FillMinMaxVelocitySingle(unsigned int i, real *pState,
 \param nVertex Total number of vertices in Mesh
 \param *pState Pointer to vertex state
 \param *pMinVel Pointer to minimum velocities (output)
-\param *pMinVel Pointer to maximum velocities (output)*/
+\param *pMaxVel Pointer to maximum velocities (output)*/
 //#########################################################################
 
 template<class realNeq, ConservationLaw CL>

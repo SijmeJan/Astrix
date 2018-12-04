@@ -32,8 +32,8 @@ namespace astrix {
 /*! Coarsen mesh. First calculate an estimate of the discretization error and flag triangles that can be coarsened. Then remove as many vertices as possible from mesh.
 
 \param *vertexState Pointer to state vector at vertices
-\param specificHeatRatio Ratio of specific heats
-\param nTimeStep Number of time steps taken so far. Used in combination with \a nStepSkipCoarsen to possibly avoid coarsening every timestep*/
+\param nTimeStep Number of time steps taken so far. Used in combination with \a nStepSkipCoarsen to possibly avoid coarsening every timestep
+\param *triangleWantRefine Pointer to triangles that need to be refined/coarsened*/
 //#########################################################################
 
 template<class realNeq>

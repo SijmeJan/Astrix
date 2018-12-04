@@ -25,7 +25,8 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "./Device/device.h"
 
 //###########################################################################
-// main
+//! Main function: parse command line arguments and run simulation
+/*! First, parse command line arguments, then create and run an Astrix simulation.*/
 //###########################################################################
 
 int main(int argc, char *argv[])

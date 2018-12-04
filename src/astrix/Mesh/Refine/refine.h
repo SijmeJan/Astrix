@@ -25,6 +25,8 @@ class Delaunay;
 class Connectivity;
 class MeshParameter;
 
+//! Class containing functions for refining Mesh
+/*! Refine the Mesh (add new vertices) either until a quality bound is met or add vertices manually.*/
 class Refine
 {
  public:
@@ -89,6 +91,7 @@ class Refine
   //! Adjust indices of periodic vertices for new \a nVertex
   void AddToPeriodic(Connectivity * const connectivity,
                      const int nAdd);
+  //! Determine which vertices can be inserted in parallel
   void FindParallelInsertionSet(Connectivity * const connectivity,
                                 Array<int> * const vertexOrder,
                                 Array<int> * const vertexOrderInsert,
@@ -125,15 +128,18 @@ class Refine
                     const MeshParameter *meshParameter,
                     const int nRefine);
 
+  //! Lock triangles that are in use
   void LockTriangles(Connectivity * const connectivity,
                      const Predicates *predicates,
                      const MeshParameter *meshParameter,
                      Array<int> *triangleInCavity);
+  //! Find non-overlapping cavities
   void FindIndependentCavities(Connectivity * const connectivity,
                                const Predicates *predicates,
                                const MeshParameter *meshParameter,
                                Array<int> * const triangleInCavity,
                                Array<int> *uniqueFlag);
+  //! Flag suspect edges for checking Delaunay-hood later
   void FlagEdgesForChecking(Connectivity * const connectivity,
                             const Predicates *predicates,
                             const MeshParameter *meshParameter);

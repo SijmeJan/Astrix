@@ -40,8 +40,9 @@ namespace astrix {
 
 template<ConservationLaw CL>
 __host__ __device__
-void CalcVertexSourceSingle(int n, ProblemDefinition problemDef, const real2 *pVc,
-                            const real *pVp, const real4 *pState, real4 *pSource)
+void CalcVertexSourceSingle(int n, ProblemDefinition problemDef,
+                            const real2 *pVc, const real *pVp,
+                            const real4 *pState, real4 *pSource)
 {
   pSource[n].x = 0.0;
   pSource[n].y = 0.0;
@@ -60,6 +61,7 @@ void CalcVertexSourceSingle(int n, ProblemDefinition problemDef, const real2 *pV
 
 }
 
+//! Version for three equations
 template<ConservationLaw CL>
 __host__ __device__
 void CalcVertexSourceSingle(int n, ProblemDefinition problemDef, const real2 *pVc,
@@ -83,6 +85,7 @@ void CalcVertexSourceSingle(int n, ProblemDefinition problemDef, const real2 *pV
 
 }
 
+//! Version for single equation
 template<ConservationLaw CL>
 __host__ __device__
 void CalcVertexSourceSingle(int n, ProblemDefinition problemDef, const real2 *pVc,
@@ -147,7 +150,7 @@ devCalcVertexSource(int nVertex, ProblemDefinition problemDef, const real2 *pVc,
 \param *pVp Pointer to external potential at vertices
 \param *pState Pointer to state vector
 \param *pSource Pointer to source vector (output)
-\param *pVc Pointer to vertex source term*/
+\param *pVs Pointer to vertex source term*/
 //######################################################################
 
 template<ConservationLaw CL>
@@ -216,6 +219,7 @@ void CalcSourceSingle(int n, ProblemDefinition problemDef,
 
 }
 
+//! Version for three equations
 template<ConservationLaw CL>
 __host__ __device__
 void CalcSourceSingle(int n, ProblemDefinition problemDef,
@@ -298,6 +302,7 @@ void CalcSourceSingle(int n, ProblemDefinition problemDef,
 
 }
 
+//! Version for single equation
 template<ConservationLaw CL>
 __host__ __device__
 void CalcSourceSingle(int n, ProblemDefinition problemDef,

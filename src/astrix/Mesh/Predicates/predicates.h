@@ -88,7 +88,7 @@ class Predicates
   {
     return ((a) >= (real) 0.0 ? (a) : -(a));
   }
-
+  //! Adaptive incircle computation
   __host__ __device__
   real incircleadapt(real ax, real ay,
                      real bx, real by,
@@ -96,6 +96,7 @@ class Predicates
                      real dx, real dy,
                      real permanent,
                      const real * const pParam) const;
+  //! Adaptive orient2d computation
   __host__ __device__
   real orient2dadapt(real ax, real ay,
                      real bx, real by,
@@ -116,6 +117,7 @@ class Predicates
   /*  properties.                                                            */
   /*                                                                         */
   /***************************************************************************/
+  //! Sum two expansions, eliminating zero components from the output expansion.
   __host__ __device__
     int fast_expansion_sum_zeroelim(int elen, real *e, int flen,
                                     real *f, real *h) const
@@ -201,7 +203,7 @@ class Predicates
   /*  will h.)                                                               */
   /*                                                                         */
   /***************************************************************************/
-
+  //! Multiply an expansion by a scalar, eliminating zero components from the output expansion.
   __host__ __device__
     inline int scale_expansion_zeroelim(int elen, real *e,
                                         real b, real *h,
@@ -250,7 +252,7 @@ class Predicates
   /*  See either version of my paper for details.                            */
   /*                                                                         */
   /***************************************************************************/
-
+  //! Produce a one-word estimate of an expansion's value.
   __host__ __device__
     inline real estimate(int elen, real *e) const
   {
@@ -264,38 +266,36 @@ class Predicates
     return Q;
   }
 
-  // Many of the operations are broken up into two pieces, a main part that
-  // performs an approximate operation, and a "tail" that computes the
-  // roundoff error of that operation.
-
+  // Many of the operations are broken up into two pieces, a main part that performs an approximate operation, and a "tail" that computes the roundoff error of that operation.
+  //! Tail of two sums
   __host__ __device__
     inline void Fast_Two_Sum_Tail(real a, real b, real x, real& y) const
   {
     real bvirt = x - a;
     y = b - bvirt;
   }
-
+  //! Fast two sum
   __host__ __device__
     inline void Fast_Two_Sum(real a, real b, real& x, real& y) const
   {
     x = (real) (a + b);
     Fast_Two_Sum_Tail(a, b, x, y);
   }
-
+  //! Tail of two diff
   __host__ __device__
     inline void Fast_Two_Diff_Tail(real a, real b, real x, real& y) const
   {
     real bvirt = a - x;
     y = bvirt - b;
   }
-
+  //! Fast two diff
   __host__ __device__
     inline void Fast_Two_Diff(real a, real b, real& x, real& y) const
   {
     x = (real) (a - b);
     Fast_Two_Diff_Tail(a, b, x, y);
   }
-
+  //! Two sum tail
   __host__ __device__
     inline void Two_Sum_Tail(real a, real b, real x, real& y) const
   {
@@ -305,14 +305,14 @@ class Predicates
     real around = a - avirt;
     y = around + bround;
   }
-
+  //! Two sum
   __host__ __device__
     inline void Two_Sum(real a, real b, real& x, real& y) const
   {
     x = (real) (a + b);
     Two_Sum_Tail(a, b, x, y);
   }
-
+  //! Two diff tail
   __host__ __device__
     inline void Two_Diff_Tail(real a, real b, real x, real& y) const
   {
@@ -322,14 +322,14 @@ class Predicates
     real around = a - avirt;
     y = around + bround;
   }
-
+  //! Two diff
   __host__ __device__
     inline void Two_Diff(real a, real b, real& x, real& y) const
   {
     x = (real) (a - b);
     Two_Diff_Tail(a, b, x, y);
   }
-
+  //! Split
   __host__ __device__
     inline void Split(real a, real& ahi, real& alo, real splitter) const
   {
@@ -338,7 +338,7 @@ class Predicates
     ahi = c - abig;
     alo = a - ahi;
   }
-
+  //! Tail of two product
   __host__ __device__
     inline void Two_Product_Tail(real a, real b,
                                  real x, real& y,
@@ -353,7 +353,7 @@ class Predicates
     real err3 = err2 - (ahi * blo);
     y = (alo * blo) - err3;
   }
-
+  //! Two product
   __host__ __device__
     inline void Two_Product(real a, real b,
                             real& x, real& y,
@@ -364,7 +364,7 @@ class Predicates
     x = (real) (a * b);
     Two_Product_Tail(a, b, x, y, splitter, ahi, alo, bhi, blo);
   }
-
+  //! Presplit two product
   __host__ __device__
     inline void Two_Product_Presplit(real a, real b,
                                      real bhi, real blo,
@@ -378,7 +378,7 @@ class Predicates
     real err3 = err2 - (ahi * blo);
     y = (alo * blo) - err3;
   }
-
+  //! Presplit two product
   __host__ __device__
     inline void Two_Product_2Presplit(real a, real ahi, real alo,
                                       real b, real bhi, real blo,
@@ -390,7 +390,7 @@ class Predicates
     real err3 = err2 - (ahi * blo);
     y = (alo * blo) - err3;
   }
-
+  //! Square tail
   __host__ __device__
     inline void Square_Tail(real a, real x, real& y, real splitter,
                             real& ahi, real& alo) const
@@ -400,7 +400,7 @@ class Predicates
     real err3 = err1 - ((ahi + ahi) * alo);
     y = (alo * alo) - err3;
   }
-
+  //! Square
   __host__ __device__
     inline void Square(real a, real& x, real& y, real splitter,
                        real& ahi, real& alo) const
@@ -408,7 +408,7 @@ class Predicates
     x = (real) (a * a);
     Square_Tail(a, x, y, splitter, ahi, alo);
   }
-
+  //! Two one sum
   __host__ __device__
     inline void Two_One_Sum(real a1, real a0, real b,
                             real& x2, real& x1, real& x0, real& _i) const
@@ -416,7 +416,7 @@ class Predicates
     Two_Sum(a0, b , _i, x0);
     Two_Sum(a1, _i, x2, x1);
   }
-
+  //! Two two sum
   __host__ __device__
     inline void Two_Two_Sum(real a1, real a0, real b1, real b0,
                             real& x3, real& x2, real& x1, real& x0,
@@ -425,7 +425,7 @@ class Predicates
     Two_One_Sum(a1, a0, b0, _j, _0, x0, _i);
     Two_One_Sum(_j, _0, b1, x3, x2, x1, _i);
   }
-
+  //! Two one diff
   __host__ __device__
     inline void Two_One_Diff(real a1, real a0, real b,
                              real& x2, real& x1, real& x0, real& _i) const
@@ -433,7 +433,7 @@ class Predicates
     Two_Diff(a0, b , _i, x0);
     Two_Sum(a1, _i, x2, x1);
   }
-
+  //! Two two diff
   __host__ __device__
     inline void Two_Two_Diff(real a1, real a0, real b1, real b0,
                              real& x3, real& x2, real& x1, real& x0,

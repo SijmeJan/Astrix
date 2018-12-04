@@ -97,8 +97,7 @@ void InterpolateSingle(int t, int e, int indexInVertexArray, realNeq *state,
 Use linear interpolation to determine state at new vertices.
 
 \param nRefine Total number of points to add
-\param *pTriangleAdd Pointer to array of triangles into which to insert points
-\param *pEdgeAdd Pointer to array of edges onto which to insert points
+\param *pElementAdd Pointer to array of triangles into which to insert points
 \param *state Pointer to state vector
 \param nVertex Total number of vertices in Mesh
 \param nTriangle Total number of triangles in Mesh

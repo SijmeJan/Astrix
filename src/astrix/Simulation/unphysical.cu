@@ -60,6 +60,7 @@ void FlagUnphysicalVertex(const int v, real4 *pState, real *pVp,
   pVertexUnphysicalFlag[v] = ret;
 }
 
+//! Version for three equations
 __host__ __device__
 void FlagUnphysicalVertex(const int v, real3 *pState, real *pVp,
                           int *pVertexUnphysicalFlag, const real G1)
@@ -78,6 +79,7 @@ void FlagUnphysicalVertex(const int v, real3 *pState, real *pVp,
   pVertexUnphysicalFlag[v] = ret;
 }
 
+//! Version for single equation
 __host__ __device__
 void FlagUnphysicalVertex(const int v, real *pState, real *pVp,
                           int *pVertexUnphysicalFlag, const real G1)

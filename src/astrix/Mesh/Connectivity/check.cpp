@@ -85,6 +85,7 @@ void Connectivity::CheckEdgeTriangles()
 //#########################################################################
 /*! Check all triangles for negative areas. If a negative area is detected an exception is thrown.
 
+\param *predicates Pointer to Predicates object
 \param *mp Pointer to MeshParameter object*/
 //#########################################################################
 

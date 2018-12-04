@@ -24,12 +24,12 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 namespace astrix {
 
 //######################################################################
-/*! \brief Flag whether vertex \i will be placed on segment
+/*! \brief Flag whether vertex \a i will be placed on segment
 
 \param i Index of point to be added
 \param *pElementAdd Pointer to array containing triangles and edges onto which to place points
 \param *pEt Pointer edge triangles
-\param *pOnSegmentFlag Pointer to output array, will be 1 if \i will be placed on segment, 0 otherwise
+\param *pOnSegmentFlag Pointer to output array, will be 1 if \a i will be placed on segment, 0 otherwise
 \param nTriangle Total number of triangles in Mesh*/
 //######################################################################
 
@@ -50,7 +50,7 @@ void FlagOnSegmentSingle(int i, int *pElementAdd, int2 *pEt,
 \param nRefine Number of points to be added
 \param *pElementAdd Pointer to array containing triangles and edges onto which to place points
 \param *pEt Pointer edge triangles
-\param *pOnSegmentFlag Pointer to output array, will be 1 if \i will be placed on segment, 0 otherwise
+\param *pOnSegmentFlag Pointer to output array, will be 1 if \a i will be placed on segment, 0 otherwise
 \param nTriangle Total number of triangles in Mesh*/
 //######################################################################
 
