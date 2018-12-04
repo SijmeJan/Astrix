@@ -345,7 +345,7 @@ void Simulation<realNeq, CL>::FineGrainSave()
   outFile << std::setprecision(10)
           << simulationTime << " "
           << DensityError() << " ";
-  for (int i = 0; i < d->result->GetSize(); i++)
+  for (unsigned int i = 0; i < d->result->GetSize(); i++)
     outFile << pResult[i] << " ";
   outFile << std::endl;
 
