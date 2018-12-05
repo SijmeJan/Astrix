@@ -135,6 +135,8 @@ Array<real2>* Mesh::ConvexHull(Array<real2> *pointCoordinates)
   // Remove convex hull coordinates from list
   pointCoordinates->Remove(0, nHull);
 
+  delete hullFlag;
+
   return cHull;
 }
 
