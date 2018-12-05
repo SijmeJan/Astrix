@@ -1093,9 +1093,9 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
 
   if (CL == CL_CYL_ISO) {
     // Radius vertices
-    ra = pVc[v1].x;
-    rb = pVc[v2].x;
-    rc = pVc[v3].x;
+    ra = exp(pVc[v1].x);
+    rb = exp(pVc[v2].x);
+    rc = exp(pVc[v3].x);
 
     r2 = (ra + rb + rc)*onethird;
     r2 = r2*r2;
@@ -1164,24 +1164,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
     What21*isoK21(nx, vtilde) +
     What22*isoK22(ny, wtilde, vtilde*ir2, Omega);
 
-  /*
-#ifndef __CUDA_ARCH__
-  std::cout << pResSource[n].y << " "
-            << ResTot1 - pResSource[n].y << std::endl;
-  int qq; std::cin >> qq;
-#endif
-  */
-
 #else
-  /*
-  real res0 =
-    tl3*(Zv00*Zv01 + (Zv00 + Zv10)*(Zv01 + Zv11) + Zv10*Zv11)*tnx3/6.0 +
-    tl3*(Zv00*Zv02 + (Zv00 + Zv10)*(Zv02 + Zv12) + Zv10*Zv12)*tny3/6.0 +
-    tl1*(Zv10*Zv11 + (Zv10 + Zv20)*(Zv11 + Zv21) + Zv20*Zv21)*tnx1/6.0 +
-    tl1*(Zv10*Zv12 + (Zv10 + Zv20)*(Zv12 + Zv22) + Zv20*Zv22)*tny1/6.0 +
-    tl2*(Zv20*Zv21 + (Zv20 + Zv00)*(Zv21 + Zv01) + Zv00*Zv01)*tnx2/6.0 +
-    tl2*(Zv20*Zv22 + (Zv20 + Zv00)*(Zv22 + Zv02) + Zv00*Zv02)*tny2/6.0;
-  */
 
   real res0 =
     tl3*c_int(Zv00, Zv10, Zv01, Zv11)*tnx3 +
@@ -1196,60 +1179,37 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   ResTot0 -= res0;
   pTresTot[n].x = ResTot0;
   Wtemp0 -= res0;
-  /*
-  real res1 =
-    tl3*(Sq(Zv01) + Sq(Zv00) + Sq(Zv01 + Zv11) + Sq(Zv00 + Zv10) +
-         Sq(Zv11) + Sq(Zv10))*tnx3/6.0 +
-    tl3*(Zv01*Zv02 + (Zv01 + Zv11)*(Zv02 + Zv12) + Zv11*Zv12)*tny3/6.0 +
-    tl1*(Sq(Zv11) + Sq(Zv10) + Sq(Zv11 + Zv21) + Sq(Zv10 + Zv20) +
-         Sq(Zv21) + Sq(Zv20))*tnx1/6.0 +
-    tl1*(Zv11*Zv12 + (Zv11 + Zv21)*(Zv12 + Zv22) + Zv21*Zv22)*tny1/6.0 +
-    tl2*(Sq(Zv01) + Sq(Zv00) + Sq(Zv01 + Zv21) + Sq(Zv00 + Zv20) +
-         Sq(Zv21) + Sq(Zv20))*tnx2/6.0 +
-    tl2*(Zv01*Zv02 + (Zv01 + Zv21)*(Zv02 + Zv22) + Zv21*Zv22)*tny2/6.0;
-  */
 
   real res1 =
     tl3*(c_int(Zv01, Zv11, Zv01, Zv11) +
-         Sq(ctilde)*c_int(Zv00, Zv10, Zv00, Zv10))*tnx3 +
+         Sq(pVcs[v1])*c_int(Zv00, Zv10, Zv00, Zv10))*tnx3 +
     tl3*(c_int(Zv01, Zv11, Zv02, Zv12)/Sq(ra) -
          Omega*c_int(Zv00, Zv10, Zv01, Zv11))*tny3 +
     tl1*(c_int(Zv11, Zv21, Zv11, Zv21) +
-         Sq(ctilde)*c_int(Zv10, Zv20, Zv10, Zv20))*tnx1 +
+         Sq(pVcs[v2])*c_int(Zv10, Zv20, Zv10, Zv20))*tnx1 +
     tl1*(c_int(Zv11, Zv21, Zv12, Zv22)/Sq(rb) -
          Omega*c_int(Zv10, Zv20, Zv11, Zv21))*tny1 +
     tl2*(c_int(Zv21, Zv01, Zv21, Zv01) +
-         Sq(ctilde)*c_int(Zv20, Zv00, Zv20, Zv00))*tnx2 +
+         Sq(pVcs[v3])*c_int(Zv20, Zv00, Zv20, Zv00))*tnx2 +
     tl2*(c_int(Zv21, Zv01, Zv22, Zv02)/Sq(rc) -
          Omega*c_int(Zv20, Zv00, Zv21, Zv01))*tny2;
 
   ResTot1 -= res1;
   pTresTot[n].y = ResTot1;
   Wtemp1 -= res1;
-  /*
-  real res2 =
-    tl3*(Sq(Zv02) + Sq(Zv00) + Sq(Zv02 + Zv12) + Sq(Zv00 + Zv10) +
-         Sq(Zv12) + Sq(Zv10))*tny3/6.0 +
-    tl3*(Zv01*Zv02 + (Zv01 + Zv11)*(Zv02 + Zv12) + Zv11*Zv12)*tnx3/6.0 +
-    tl1*(Sq(Zv12) + Sq(Zv10) + Sq(Zv12 + Zv22) + Sq(Zv10 + Zv20) +
-         Sq(Zv22) + Sq(Zv20))*tny1/6.0 +
-    tl1*(Zv11*Zv12 + (Zv11 + Zv21)*(Zv12 + Zv22) + Zv21*Zv22)*tnx1/6.0 +
-    tl2*(Sq(Zv02) + Sq(Zv00) + Sq(Zv02 + Zv22) + Sq(Zv00 + Zv20) +
-         Sq(Zv22) + Sq(Zv20))*tny2/6.0 +
-    tl2*(Zv01*Zv02 + (Zv01 + Zv21)*(Zv02 + Zv22) + Zv21*Zv22)*tnx2/6.0;
-  */
+
   real res2 =
     tl3*c_int(Zv01, Zv11, Zv02, Zv12)*tnx3 +
     tl3*(c_int(Zv02, Zv12, Zv02, Zv12)/Sq(ra) +
-         Sq(ctilde*ra)*c_int(Zv00, Zv10, Zv00, Zv10) -
+         Sq(pVcs[v1]*ra)*c_int(Zv00, Zv10, Zv00, Zv10) -
          Omega*c_int(Zv00, Zv10, Zv02, Zv12))*tny3 +
     tl1*c_int(Zv11, Zv21, Zv12, Zv22)*tnx1 +
     tl1*(c_int(Zv12, Zv22, Zv12, Zv22)/Sq(rb) +
-         Sq(ctilde*rb)*c_int(Zv10, Zv20, Zv10, Zv20) -
+         Sq(pVcs[v2]*rb)*c_int(Zv10, Zv20, Zv10, Zv20) -
          Omega*c_int(Zv10, Zv20, Zv12, Zv22))*tny1 +
     tl2*c_int(Zv21, Zv01, Zv22, Zv02)*tnx2 +
     tl2*(c_int(Zv22, Zv02, Zv22, Zv02)/Sq(rc) +
-         Sq(ctilde*rc)*c_int(Zv20, Zv00, Zv20, Zv00) -
+         Sq(pVcs[v3]*rc)*c_int(Zv20, Zv00, Zv20, Zv00) -
          Omega*c_int(Zv20, Zv00, Zv22, Zv02))*tny2;
 
   ResTot2 -= res2;
