@@ -64,7 +64,8 @@ void CalcTotalResLDASingle(int n,
                            const real2 *pTn3,
                            const real3* __restrict__ pTl,
                            int nVertex, real G, real G1, real G2,
-                           const real *pVp, const real *pVcs,
+                           const real *pVp,
+                           const real cs0, const real cspow,
                            const real frameAngularVelocity,
                            const real2 *pVc)
 {
@@ -456,7 +457,8 @@ void CalcTotalResLDASingle(int n,
                            const real2 *pTn3,
                            const real3* __restrict__ pTl,
                            int nVertex, real G, real G1, real G2,
-                           const real *pVp, const real *pVcs,
+                           const real *pVp,
+                           const real cs0, const real cspow,
                            const real frameAngularVelocity,
                            const real2 *pVc)
 {
@@ -475,8 +477,6 @@ void CalcTotalResLDASingle(int n,
   while (vs2 < 0) vs2 += nVertex;
   while (vs3 < 0) vs3 += nVertex;
 
-  // Average sound speed
-  real ctilde = onethird*(pVcs[vs1] + pVcs[vs2] + pVcs[vs3]);
 
   // Parameter vector at vertices: 12 uncoalesced loads
   real Zv00 = pVz[vs1].x;
@@ -497,19 +497,29 @@ void CalcTotalResLDASingle(int n,
   real utilde = Z1/Z0;
   real vtilde = Z2/Z0;
 
-  real ic = one/ctilde;
 
+  // Average sound speed
+  real ctilde = cs0;
   // Average radius triangle
   real r2 = one;
   real ir2 = one;
   real Omega = zero;
 
   if (CL == CL_CYL_ISO) {
-    r2 = (pVc[vs1].x + pVc[vs2].x + pVc[vs3].x)*onethird;
-    r2 = r2*r2;
+    real xa = pVc[vs1].x;
+    real xb = pVc[vs2].x;
+    real xc = pVc[vs3].x;
+
+    // Average sound speed
+    ctilde = cs0*exp(cspow*(xa + xb + xc)*onethird);
+
+    // Average radius
+    r2 = exp((real)2.0*(xa + xb + xc)*onethird);
     ir2 = one/r2;
     Omega = frameAngularVelocity;
   }
+
+  real ic = one/ctilde;
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate Wtemp = Sum(K-*What)
@@ -775,7 +785,8 @@ void CalcTotalResLDASingle(int n,
                            const real2 *pTn3,
                            const real3* __restrict__  pTl,
                            int nVertex, real G, real G1, real G2,
-                           const real *pVp, const real *pVcs,
+                           const real *pVp,
+                           const real cs0, const real cspow,
                            const real frameAngularVelocity,
                            const real2 *pVc)
 {
@@ -913,7 +924,8 @@ devCalcTotalResLDA(int nTriangle, const int3* __restrict__ pTv,
                    const real2 *pTn3,
                    const real3* __restrict__ pTl,
                    int nVertex, real G, real G1, real G2,  const real *pVp,
-                   const real *pVcs, const real frameAngularVelocity,
+                   const real cs0, const real cspow,
+                   const real frameAngularVelocity,
                    const real2 *pVc)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
@@ -922,7 +934,7 @@ devCalcTotalResLDA(int nTriangle, const int3* __restrict__ pTv,
     CalcTotalResLDASingle<CL>(n, pTv, pVz, pTresLDA0, pTresLDA1, pTresLDA2,
                               pTresTot, pTn1, pTn2, pTn3, pTl,
                               nVertex, G, G1, G2, pVp,
-                              pVcs, frameAngularVelocity, pVc);
+                              cs0, cspow, frameAngularVelocity, pVc);
 
     // Next triangle
     n += blockDim.x*gridDim.x;
@@ -969,7 +981,6 @@ void Simulation<realNeq, CL>::CalcTotalResLDA()
 
   realNeq *pVz = vertexParameterVector->GetPointer();
   real *pVp = vertexPotential->GetPointer();
-  real *pVcs = vertexSoundSpeed->GetPointer();
   real G = simulationParameter->specificHeatRatio;
 
   realNeq *pTresLDA0 = triangleResidueLDA->GetPointer(0);
@@ -985,7 +996,9 @@ void Simulation<realNeq, CL>::CalcTotalResLDA()
   const real3 *pTl  = mesh->TriangleEdgeLengthData();
   const real2 *pVc  = mesh->VertexCoordinatesData();
 
-  real frameAngularVelocity = 0.0;
+  const real Omega = simulationParameter->frameAngularVelocity;
+  const real cs0 = simulationParameter->soundspeed0;
+  const real cspow = simulationParameter->soundspeedPower;
 
   if (cudaFlag == 1) {
     int nBlocks = 128;
@@ -1003,7 +1016,7 @@ void Simulation<realNeq, CL>::CalcTotalResLDA()
       (nTriangle, pTv, pVz,
        pTresLDA0, pTresLDA1, pTresLDA2, pTresTot,
        pTn1, pTn2, pTn3, pTl, nVertex, G, G - 1.0, G - 2.0, pVp,
-       pVcs, frameAngularVelocity, pVc);
+       cs0, cspow, Omega, pVc);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -1021,7 +1034,7 @@ void Simulation<realNeq, CL>::CalcTotalResLDA()
                                 pTresLDA0, pTresLDA1, pTresLDA2, pTresTot,
                                 pTn1, pTn2, pTn3, pTl, nVertex,
                                 G, G - 1.0, G - 2.0, pVp,
-                                pVcs, frameAngularVelocity, pVc);
+                                cs0, cspow, Omega, pVc);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
