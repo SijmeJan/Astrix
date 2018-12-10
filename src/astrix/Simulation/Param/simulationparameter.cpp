@@ -46,6 +46,11 @@ SimulationParameter::SimulationParameter()
   preferMinMaxBlend = 2;
   minError = 0.0;
   maxError = -1.0;
+
+  // Optional parameters
+  soundspeed0 = 1.0;
+  soundspeedPower = 0.0;
+  frameAngularVelocity = 0.0;
 }
 
 //#########################################################################
