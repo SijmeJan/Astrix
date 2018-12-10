@@ -105,6 +105,12 @@ void SimulationParameter::CheckValidity(ConservationLaw CL)
     std::cout << "Need minError < maxError!" << std::endl;
     throw std::runtime_error("");
   }
+
+  if (soundspeed0 <= 0.0) {
+    std::cout << "Invalid value for soundspeed0" << std::endl;
+    throw std::runtime_error("");
+  }
+
 }
 
 }  // namespace astrix
