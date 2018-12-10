@@ -54,7 +54,6 @@ void Simulation<realNeq, CL>::Refine()
     if (simulationTime == 0.0) {
       int nVertex   = mesh->GetNVertex();
       vertexPotential->SetSize(nVertex);
-      vertexSoundSpeed->SetSize(nVertex);
       CalcPotential();
       SetInitial(0.0, 0);
       ReplaceEnergyWithPressure();
@@ -77,7 +76,6 @@ void Simulation<realNeq, CL>::Refine()
       if (simulationTime == 0.0) {
         int nVertex = mesh->GetNVertex();
         vertexPotential->SetSize(nVertex);
-        vertexSoundSpeed->SetSize(nVertex);
         CalcPotential();
         SetInitial(0.0, 0);
         ReplaceEnergyWithPressure();
