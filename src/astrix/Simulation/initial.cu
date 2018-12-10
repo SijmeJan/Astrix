@@ -514,18 +514,19 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
 
   if (problemDef == PROBLEM_DISC) {
     real x = vertX;
-    //real y = vertY;
+    real y = vertY;
 
     real k = 2.0;
-    real m = 0.0;   // soundspeed power law index
+    real cs0 = 0.05;
+    real cspow = -1.0;
 
     // Cylindrical radius
     real r = exp(x);
     real vx = (real) 1.0e-10;
     // Angular momentum
-    real vy = 0.0; //sqrt(r + (k + 2.0*m)*0.05*0.05*pow(r, 2.0 + 2.0*m));
+    real vy = sqrt(r + (k + 2.0*cspow)*cs0*cs0*pow(r, 2.0 + 2.0*cspow));
 
-    dens = pow(r, k);// + 0.1*exp(-Sq(r-1.0)/0.0025);
+    dens = pow(r, k);
     momx = dens*vx;
     momy = dens*vy;
   }
