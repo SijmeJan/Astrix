@@ -154,6 +154,22 @@ void SimulationParameter::ReadFromFile(const char *fileName,
         maxError = atof(secondWord.c_str());
     }
 
+    if (firstWord == "soundspeed0") {
+      if (!secondWord.empty() &&
+          secondWord.find_first_not_of("0123456789.-e") == std::string::npos)
+        soundspeed0 = atof(secondWord.c_str());
+    }
+    if (firstWord == "soundspeedPower") {
+      if (!secondWord.empty() &&
+          secondWord.find_first_not_of("0123456789.-e") == std::string::npos)
+        soundspeedPower = atof(secondWord.c_str());
+    }
+    if (firstWord == "frameAngularVelocity") {
+      if (!secondWord.empty() &&
+          secondWord.find_first_not_of("0123456789.-e") == std::string::npos)
+        frameAngularVelocity = atof(secondWord.c_str());
+    }
+
   }
 
   inFile.close();
