@@ -21,6 +21,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "../Common/atomic.h"
 #include "../Common/cudaLow.h"
 #include "../Common/profile.h"
+#include "../Common/inlineMath.h"
 #include "./Param/simulationparameter.h"
 
 namespace astrix {
@@ -47,8 +48,8 @@ __host__ __device__
 real FindMaxSignalSpeed(int t, int a, int b, int c,
                         real4 *pState, const real3* __restrict__ pTl,
                         const real G, const real G1, const real *pVp,
-                        const real2 *pVc,
-                        const real *pVcs, const real frameAngularVelocity)
+                        const real2 *pVc, const real cs0, const real cspow,
+                        const real frameAngularVelocity)
 {
   real zero = (real) 0.0;
   real half = (real) 0.5;
@@ -137,8 +138,8 @@ __host__ __device__
 real FindMaxSignalSpeed(int t, int a, int b, int c,
                         real3 *pState, const real3* __restrict__ pTl,
                         const real G, const real G1, const real *pVp,
-                        const real2 *pVc,
-                        const real *pVcs, const real frameAngularVelocity)
+                        const real2 *pVc, const real cs0, const real cspow,
+                        const real frameAngularVelocity)
 {
   real zero = (real) 0.0;
   real one = (real) 1.0;
@@ -150,17 +151,17 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
   real momx = pState[a].y;
   real momy = pState[a].z;
 
-  real ir4 = one;
+  real ir2 = one;
   if (CL == CL_CYL_ISO)
-    ir4 = exp(-(real)4.0*pVc[a].x);
+    ir2 = exp(-(real)2.0*pVc[a].x);
 
   real id = one/dens;
-  real u = momx;
-  real v = momy;
-  real absv = sqrt(u*u+v*v*ir4)*id;
+  real u = momx*id;
+  real v = momy*id;
+  real absv = sqrt(Sq(u) + Sq(v*ir2 - frameAngularVelocity));
 
   // Sound speed
-  real cs = pVcs[a];
+  real cs = cs0*exp(cspow*pVc[a].x);
 
   // Maximum signal speed
   vmax = absv + cs;
@@ -171,15 +172,15 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
   momy = pState[b].z;
 
   if (CL == CL_CYL_ISO)
-    ir4 = exp(-(real)4.0*pVc[b].x);
+    ir2 = exp(-(real)2.0*pVc[b].x);
 
   id = one/dens;
-  u = momx;
-  v = momy;
-  absv = sqrt(u*u+v*v*ir4)*id;
+  u = momx*id;
+  v = momy*id;
+  absv = sqrt(Sq(u) + Sq(v*ir2 - frameAngularVelocity));
 
   // Sound speed
-  cs = pVcs[b];
+  cs = cs0*exp(cspow*pVc[b].x);
 
   vmax = max(vmax, absv + cs);
 
@@ -189,15 +190,15 @@ real FindMaxSignalSpeed(int t, int a, int b, int c,
   momy = pState[c].z;
 
   if (CL == CL_CYL_ISO)
-    ir4 = exp(-(real)4.0*pVc[c].x);
+    ir2 = exp(-(real)2.0*pVc[c].x);
 
   id = one/dens;
-  u = momx;
-  v = momy;
-  absv = sqrt(u*u+v*v*ir4)*id;
+  u = momx*id;
+  v = momy*id;
+  absv = sqrt(Sq(u) + Sq(v*ir2 - frameAngularVelocity));
 
   // Sound speed
-  cs = pVcs[c];
+  cs = cs0*exp(cspow*pVc[c].x);
 
   vmax = max(vmax, absv + cs);
 
@@ -218,8 +219,8 @@ __host__ __device__
 real FindMaxSignalSpeed(int t, int a, int b, int c,
                         real *pState, const real3* __restrict__ pTl,
                         const real G, const real G1, const real *pVp,
-                        const real2 *pVc,
-                        const real *pVcs, const real frameAngularVelocity)
+                        const real2 *pVc, const real cs0, const real cspow,
+                        const real frameAngularVelocity)
 {
   // Triangle edge lengths
   real tl1 = pTl[t].x;
@@ -257,7 +258,7 @@ __host__ __device__
 void CalcVmaxSingle(int t, const int3* __restrict__ pTv, realNeq *pState,
                     const real3* __restrict__ pTl, real *pVts,
                     int nVertex, const real G, const real G1, const real *pVp,
-                    const real2 *pVc, const real *pVcs,
+                    const real2 *pVc, const real cs0, const real cspow,
                     const real frameAngularVelocity)
 {
   int a = pTv[t].x;
@@ -271,7 +272,7 @@ void CalcVmaxSingle(int t, const int3* __restrict__ pTv, realNeq *pState,
   while (c < 0) c += nVertex;
 
   real vMax = FindMaxSignalSpeed<CL>(t, a, b, c, pState, pTl, G, G1, pVp,
-                                     pVc, pVcs, frameAngularVelocity);
+                                     pVc, cs0, cspow, frameAngularVelocity);
 
   AtomicAdd(&pVts[a], vMax);
   AtomicAdd(&pVts[b], vMax);
@@ -300,15 +301,15 @@ __global__ void
 devCalcVmax(const int nTriangle, const int3* __restrict__ pTv, realNeq *pState,
             const real3* __restrict__ pTl, real *pVts,
             const int nVertex, const real G, const real G1, const real *pVp,
-            const real2 *pVc,
-            const real *pVcs, const real frameAngularVelocity)
+            const real2 *pVc, const real cs0, const real cspow,
+            const real frameAngularVelocity)
 {
   // n = triangle number
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nTriangle) {
     CalcVmaxSingle<realNeq, CL>(n, pTv, pState, pTl, pVts, nVertex, G, G1, pVp,
-                                pVc, pVcs, frameAngularVelocity);
+                                pVc, cs0, cspow, frameAngularVelocity);
 
     n += blockDim.x*gridDim.x;
   }
@@ -369,7 +370,6 @@ real Simulation<realNeq, CL>::CalcVertexTimeStep()
 
   realNeq *pState = vertexState->GetPointer();
   const real *pVp = vertexPotential->GetPointer();
-  const real *pVcs = vertexSoundSpeed->GetPointer();
   const real G = simulationParameter->specificHeatRatio;
 
   const int3 *pTv = mesh->TriangleVerticesData();
@@ -377,7 +377,9 @@ real Simulation<realNeq, CL>::CalcVertexTimeStep()
   const real *pVarea = mesh->VertexAreaData();
   const real2 *pVc = mesh->VertexCoordinatesData();
 
-  const real frameAngularVelocity = 0.0;
+  const real Omega = simulationParameter->frameAngularVelocity;
+  const real cs0 = simulationParameter->soundspeed0;
+  const real cspow = simulationParameter->soundspeedPower;
 
   Array<real> *vertexTimestep = new Array<real>(1, cudaFlag, nVertex);
   vertexTimestep->SetToValue(0.0);
@@ -398,8 +400,8 @@ real Simulation<realNeq, CL>::CalcVertexTimeStep()
     gpuErrchk( cudaEventRecord(start, 0) );
 #endif
     devCalcVmax<realNeq, CL><<<nBlocks, nThreads>>>
-      (nTriangle, pTv, pState, pTl, pVts, nVertex, G, G - 1.0, pVp, pVc, pVcs,
-       frameAngularVelocity);
+      (nTriangle, pTv, pState, pTl, pVts, nVertex, G, G - 1.0, pVp, pVc,
+       cs0, cspow, Omega);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -413,8 +415,8 @@ real Simulation<realNeq, CL>::CalcVertexTimeStep()
 #endif
     for (int n = 0; n < nTriangle; n++)
       CalcVmaxSingle<realNeq, CL>(n, pTv, pState, pTl, pVts,
-                                  nVertex, G, G - 1.0, pVp, pVc, pVcs,
-                                  frameAngularVelocity);
+                                  nVertex, G, G - 1.0, pVp, pVc,
+                                  cs0, cspow, Omega);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
