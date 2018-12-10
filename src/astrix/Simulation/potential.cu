@@ -25,33 +25,25 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 namespace astrix {
 
 //######################################################################
-/*! \brief Calculate external gravitational potential and isothermal sound speed at vertex \a i
+/*! \brief Calculate external gravitational potential at vertex \a i
 
 \param i Vertex to calculate gravitational potential at
 \param problemDef Problem definition
 \param *pVc Pointer to coordinates of vertices
-\param *pVpot Pointer to gravitational potential (output)
-\param *pCs Pointer to isothermal sound speed (output)*/
+\param *pVpot Pointer to gravitational potential (output)*/
 //######################################################################
 
 template<ConservationLaw CL>
 __host__ __device__
 void CalcPotentialSingle(int i, ProblemDefinition problemDef,
-                         const real2 *pVc, real *pVpot, real *pCs)
+                         const real2 *pVc, real *pVpot)
 {
   real zero = (real) 0.0;
   real tenth = (real) 0.1;
 
   pVpot[i] = zero;
-  pCs[i] = (real) 1.0;
 
   if (problemDef == PROBLEM_SOURCE) pVpot[i] = tenth*pVc[i].y;
-
-  if (CL == CL_CYL_ISO) {
-    // Constant H/r: c prop to r^{-1.5}
-    //pCs[i] = (real) 0.05;//*exp(-(real) 1.5*pVc[i].x);
-    pCs[i] = (real) 0.05*exp(-pVc[i].x);
-  }
 }
 
 //######################################################################
@@ -60,20 +52,19 @@ void CalcPotentialSingle(int i, ProblemDefinition problemDef,
 \param nVertex Total number of vertices in Mesh
 \param problemDef Problem definition
 \param *pVc Pointer to coordinates of vertices
-\param *pVpot Pointer to gravitational potential (output)
-\param *pVcs Pointer to isothermal sound speed (output)*/
+\param *pVpot Pointer to gravitational potential (output)*/
 //######################################################################
 
 template<ConservationLaw CL>
 __global__ void
 devCalcPotential(int nVertex, ProblemDefinition problemDef,
-                 const real2 *pVc, real *pVpot, real *pVcs)
+                 const real2 *pVc, real *pVpot)
 {
   // n = vertex number
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nVertex) {
-    CalcPotentialSingle<CL>(n, problemDef, pVc, pVpot, pVcs);
+    CalcPotentialSingle<CL>(n, problemDef, pVc, pVpot);
 
     n += blockDim.x*gridDim.x;
   }
@@ -89,7 +80,6 @@ void Simulation<realNeq, CL>::CalcPotential()
 {
   int nVertex = mesh->GetNVertex();
   real *vertPot = vertexPotential->GetPointer();
-  real *vertCs = vertexSoundSpeed->GetPointer();
 
   const real2 *pVc = mesh->VertexCoordinatesData();
   ProblemDefinition p = simulationParameter->problemDef;
@@ -104,13 +94,13 @@ void Simulation<realNeq, CL>::CalcPotential()
                                        (size_t) 0, 0);
 
     devCalcPotential<CL><<<nBlocks, nThreads>>>
-      (nVertex, p, pVc, vertPot, vertCs);
+      (nVertex, p, pVc, vertPot);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int i = 0; i < nVertex; i++)
-      CalcPotentialSingle<CL>(i, p, pVc, vertPot, vertCs);
+      CalcPotentialSingle<CL>(i, p, pVc, vertPot);
   }
 }
 
