@@ -65,8 +65,15 @@ void Delaunay::MakeDelaunay(Connectivity * const connectivity,
 
   int finished = 0;
   int nCycle = 0;
+
+  if (verboseLevel > 10)
+    std::cout << std::endl << "Starting Delaunay..." << std::endl;
+
   while (!finished) {
     nvtxEvent *nvtxTemp = new nvtxEvent("CheckEdge", 1);
+
+    if (verboseLevel > 10)
+      std::cout << "Checking edges..." << std::endl;
 
     if (flopFlag != 1) {
       // Check all edges for Delaunay property
@@ -87,11 +94,14 @@ void Delaunay::MakeDelaunay(Connectivity * const connectivity,
 
     delete nvtxTemp;
 
+
     if (nNonDel == 0) {
       // No more edges to flip: done
       finished = 1;
     } else {
       nvtxTemp = new nvtxEvent("Parallel", 3);
+      if (verboseLevel > 10)
+        std::cout << "Finding parallel flip set..." << std::endl;
 
       // Find edges that can be flipped in parallel
       nNonDel = FindParallelFlipSet(connectivity, nNonDel);
@@ -99,8 +109,14 @@ void Delaunay::MakeDelaunay(Connectivity * const connectivity,
       delete nvtxTemp;
       nvtxTemp = new nvtxEvent("Sub", 4);
 
+      if (verboseLevel > 10)
+        std::cout << "Filling triangle substitute..." << std::endl;
+
       // Fill substitution triangles for repair step
       FillTriangleSubstitute(connectivity, nNonDel);
+
+      if (verboseLevel > 10)
+        std::cout << "Adjusting state..." << std::endl;
 
       // Adjust state for conservation
       if (vertexState != 0)
@@ -110,11 +126,17 @@ void Delaunay::MakeDelaunay(Connectivity * const connectivity,
       delete nvtxTemp;
       nvtxTemp = new nvtxEvent("Flip", 5);
 
+      if (verboseLevel > 10)
+        std::cout << "Flipping edges..." << std::endl;
+
       // Flip edges
       FlipEdge(connectivity, nNonDel);
 
       delete nvtxTemp;
       nvtxTemp = new nvtxEvent("Repair", 6);
+
+      if (verboseLevel > 10)
+        std::cout << "Repairing edges..." << std::endl;
 
       // Repair
       EdgeRepair(connectivity, edgeNeedsChecking, nEdgeCheck);
@@ -126,6 +148,10 @@ void Delaunay::MakeDelaunay(Connectivity * const connectivity,
     if (maxCycle > 0)
       if (nCycle >= maxCycle) finished = 1;
   }
+
+  if (verboseLevel > 10)
+    std::cout << "Finished Delaunay after " << nCycle << " iterations"
+              << std::endl;
 
   delete nvtxDelaunay;
 }

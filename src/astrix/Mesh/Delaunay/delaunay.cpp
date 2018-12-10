@@ -30,10 +30,11 @@ namespace astrix {
 \param _debugLevel Level of extra checks to do*/
 //#########################################################################
 
-Delaunay::Delaunay(int _cudaFlag, int _debugLevel)
+Delaunay::Delaunay(int _cudaFlag, int _debugLevel, int _verboseLevel)
 {
   cudaFlag = _cudaFlag;
   debugLevel = _debugLevel;
+  verboseLevel = _verboseLevel;
 
   // Allocate Arrays of large size
   edgeNonDelaunay = new Array<int>(1, cudaFlag, 0, 128*8192);

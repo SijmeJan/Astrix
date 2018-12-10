@@ -29,7 +29,7 @@ class Delaunay
 {
  public:
   //! Constructor
-  Delaunay(int _cudaFlag, int _debugLevel);
+  Delaunay(int _cudaFlag, int _debugLevel, int _verboseLevel);
   //! Destructor; releases memory.
   ~Delaunay();
 
@@ -55,6 +55,8 @@ class Delaunay
   int cudaFlag;
   //! Level of extra checks
   int debugLevel;
+  //! Level of screen output
+  int verboseLevel;
 
   //! List of edges that are not Delaunay
   Array <int> *edgeNonDelaunay;

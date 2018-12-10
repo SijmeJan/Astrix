@@ -71,6 +71,9 @@ int Refine::AddVertices(Connectivity * const connectivity,
     badTriangles->SetSize(nToAdd);
     badTriangles->SetToValue(-1);
 
+    if (verboseLevel > 10)
+      std::cout << "Finding triangles..." << std::endl;
+
     // Find triangles for all new vertices
     try {
       FindTriangles(connectivity, meshParameter, predicates);
@@ -79,6 +82,9 @@ int Refine::AddVertices(Connectivity * const connectivity,
       std::cout << "Error finding triangles" << std::endl;
       throw;
     }
+
+    if (verboseLevel > 10)
+      std::cout << "Finding parallel insertion set..." << std::endl;
 
     // Find unique triangle set
     FindParallelInsertionSet(connectivity,
@@ -96,12 +102,18 @@ int Refine::AddVertices(Connectivity * const connectivity,
 
     AddToPeriodic(connectivity, nToAdd);
 
+    if (verboseLevel > 10)
+      std::cout << "Inserting vertices..." << std::endl;
+
     // Insert vertices into Mesh
     InsertVertices<real>(connectivity,
                          meshParameter,
                          predicates, (Array<real> *) 0, 0);
 
     nToAdd = vertexCoordinatesToAdd->GetSize();
+
+    if (verboseLevel > 10)
+      std::cout << "Maintaining Delaunay triangulation..." << std::endl;
 
     // Maintain Delaunay triangulation
     delaunay->MakeDelaunay<real>(connectivity, 0, predicates,

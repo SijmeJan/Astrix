@@ -56,7 +56,7 @@ Mesh::Mesh(int meshVerboseLevel, int meshDebugLevel, int meshCudaFlag,
   connectivity = new Connectivity(cudaFlag);
   predicates = new Predicates(device);
   morton = new Morton(cudaFlag);
-  delaunay = new Delaunay(cudaFlag, debugLevel);
+  delaunay = new Delaunay(cudaFlag, debugLevel, verboseLevel);
   refine = new Refine(cudaFlag, std::max(1, debugLevel), verboseLevel);
   coarsen = new Coarsen(cudaFlag, std::max(1, debugLevel), verboseLevel);
 
