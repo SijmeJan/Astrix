@@ -51,7 +51,6 @@ namespace astrix {
 \param G2 G - 2
 \param iG 1/G
 \param *pVp Pointer to external potential at vertices
-\param *pVcs Sound speed at vertices (isothermal case)
 \param frameAngularVelocity Angular velocity coordinate frame (cylindrical geometry)
 \param *pVc Pointer to vertex coordinates*/
 //######################################################################
@@ -73,7 +72,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
                             real4 *pTresTot,
                             int nVertex, const real G, const real G1,
                             const real G2, const real iG, const real *pVp,
-                            const real *pVcs,
+                            const real cs0, const real cspow,
                             const real frameAngularVelocity,
                             const real2 *pVc)
 {
@@ -909,7 +908,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
                             real3 *pTresN2, real3 *pTresTot, int nVertex,
                             const real G, const real G1,
                             const real G2, const real iG, const real *pVp,
-                            const real *pVcs,
+                            const real cs0, const real cspow,
                             const real frameAngularVelocity,
                             const real2 *pVc)
 {
@@ -942,7 +941,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real dW22 = pDstate[v3].z;
 
   // Average sound speed
-  real ctilde = onethird*(pVcs[v1] + pVcs[v2] + pVcs[v3]);
+  real ctilde = cs0;
 
   real Tl1 = pTl[n].x;
   real Tl2 = pTl[n].y;
@@ -1030,6 +1029,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   real utilde = Z1/Z0;
   real vtilde = Z2/Z0;
 
+  /*
   // Average radius triangle
   real r2 = one;
   real ir2 = one;
@@ -1038,6 +1038,29 @@ void CalcTotalResNtotSingle(const int n, const real dt,
   if (CL == CL_CYL_ISO) {
     r2 = (pVc[v1].x + pVc[v2].x + pVc[v3].x)*onethird;
     r2 = r2*r2;
+    ir2 = one/r2;
+    Omega = frameAngularVelocity;
+  }
+  */
+
+  // Average radius triangle
+  real r2 = one;
+  real ir2 = one;
+  real Omega = zero;
+  real xa = one;
+  real xb = one;
+  real xc = one;
+
+  if (CL == CL_CYL_ISO) {
+    xa = pVc[v1].x;
+    xb = pVc[v2].x;
+    xc = pVc[v3].x;
+
+    // Average sound speed
+    ctilde = cs0*exp(cspow*(xa + xb + xc)*onethird);
+
+    // Average radius
+    r2 = exp(two*(xa + xb + xc)*onethird);
     ir2 = one/r2;
     Omega = frameAngularVelocity;
   }
@@ -1110,90 +1133,58 @@ void CalcTotalResNtotSingle(const int n, const real dt,
 
 #else
 
-  /*
   real res0 =
-    tl3*(Zv00*Zv01 + (Zv00 + Zv10)*(Zv01 + Zv11) + Zv10*Zv11)*tnx3/6.0 +
-    tl3*(Zv00*Zv02 + (Zv00 + Zv10)*(Zv02 + Zv12) + Zv10*Zv12)*tny3/6.0 +
-    tl1*(Zv10*Zv11 + (Zv10 + Zv20)*(Zv11 + Zv21) + Zv20*Zv21)*tnx1/6.0 +
-    tl1*(Zv10*Zv12 + (Zv10 + Zv20)*(Zv12 + Zv22) + Zv20*Zv22)*tny1/6.0 +
-    tl2*(Zv20*Zv21 + (Zv20 + Zv00)*(Zv21 + Zv01) + Zv00*Zv01)*tnx2/6.0 +
-    tl2*(Zv20*Zv22 + (Zv20 + Zv00)*(Zv22 + Zv02) + Zv00*Zv02)*tny2/6.0;
-  ResTot0 -= res0;
-  pTresTot[n].x = 0.5*ResTot0;
-  Wtemp0 -= res0;
-  real res1 =
-    tl3*(Sq(Zv01) + Sq(Zv00) + Sq(Zv01 + Zv11) + Sq(Zv00 + Zv10) +
-         Sq(Zv11) + Sq(Zv10))*tnx3/6.0 +
-    tl3*(Zv01*Zv02 + (Zv01 + Zv11)*(Zv02 + Zv12) + Zv11*Zv12)*tny3/6.0 +
-    tl1*(Sq(Zv11) + Sq(Zv10) + Sq(Zv11 + Zv21) + Sq(Zv10 + Zv20) +
-         Sq(Zv21) + Sq(Zv20))*tnx1/6.0 +
-    tl1*(Zv11*Zv12 + (Zv11 + Zv21)*(Zv12 + Zv22) + Zv21*Zv22)*tny1/6.0 +
-    tl2*(Sq(Zv01) + Sq(Zv00) + Sq(Zv01 + Zv21) + Sq(Zv00 + Zv20) +
-         Sq(Zv21) + Sq(Zv20))*tnx2/6.0 +
-    tl2*(Zv01*Zv02 + (Zv01 + Zv21)*(Zv02 + Zv22) + Zv21*Zv22)*tny2/6.0;
-  ResTot1 -= res1;
-  pTresTot[n].y = 0.5*ResTot1;
-  Wtemp1 -= res1;
-  real res2 =
-    tl3*(Sq(Zv02) + Sq(Zv00) + Sq(Zv02 + Zv12) + Sq(Zv00 + Zv10) +
-         Sq(Zv12) + Sq(Zv10))*tny3/6.0 +
-    tl3*(Zv01*Zv02 + (Zv01 + Zv11)*(Zv02 + Zv12) + Zv11*Zv12)*tnx3/6.0 +
-    tl1*(Sq(Zv12) + Sq(Zv10) + Sq(Zv12 + Zv22) + Sq(Zv10 + Zv20) +
-         Sq(Zv22) + Sq(Zv20))*tny1/6.0 +
-    tl1*(Zv11*Zv12 + (Zv11 + Zv21)*(Zv12 + Zv22) + Zv21*Zv22)*tnx1/6.0 +
-    tl2*(Sq(Zv02) + Sq(Zv00) + Sq(Zv02 + Zv22) + Sq(Zv00 + Zv20) +
-         Sq(Zv22) + Sq(Zv20))*tny2/6.0 +
-    tl2*(Zv01*Zv02 + (Zv01 + Zv21)*(Zv02 + Zv22) + Zv21*Zv22)*tnx2/6.0;
-  ResTot2 -= res2;
-  pTresTot[n].z = 0.5*ResTot2;
-  Wtemp2 -= res2;
-  */
+    tl3*c_int(Zv00, Zv10, Zv01, Zv11)*tnx3 +                   // rho*vx
+    tl3*(c_int(Zv00, Zv10, Zv02, Zv12, xa, xb, -two) -         // rho*vy/r^2
+         Omega*c_int(Zv00, Zv10, Zv00, Zv10))*tny3 +           // rho*Omega
+    tl1*c_int(Zv10, Zv20, Zv11, Zv21)*tnx1 +                   // rho*vx
+    tl1*(c_int(Zv10, Zv20, Zv12, Zv22, xb, xc, -two) -         // rho*vy/r^2
+         Omega*c_int(Zv10, Zv20, Zv10, Zv20))*tny1 +           // rho*Omega
+    tl2*c_int(Zv20, Zv00, Zv21, Zv01)*tnx2 +                   // rho*vx
+    tl2*(c_int(Zv20, Zv00, Zv22, Zv02, xc, xa, -two) -         // rho*vy/r^2
+         Omega*c_int(Zv20, Zv00, Zv20, Zv00))*tny2;            // rho*Omega
 
-  real res0 =
-    tl3*c_int(Zv00, Zv10, Zv01, Zv11)*tnx3 +
-    tl3*(c_int(Zv00, Zv10, Zv02, Zv12)*ir2 -
-         Omega*c_int(Zv00, Zv10, Zv00, Zv10))*tny3 +
-    tl1*c_int(Zv10, Zv20, Zv11, Zv21)*tnx1 +
-    tl1*(c_int(Zv10, Zv20, Zv12, Zv22)*ir2 -
-         Omega*c_int(Zv10, Zv20, Zv10, Zv20))*tny1 +
-    tl2*c_int(Zv20, Zv00, Zv21, Zv01)*tnx2 +
-    tl2*(c_int(Zv20, Zv00, Zv22, Zv02)*ir2 -
-         Omega*c_int(Zv20, Zv00, Zv20, Zv00))*tny2;
   ResTot0 -= res0;
   pTresTot[n].x = 0.5*ResTot0;
   Wtemp0 -= res0;
 
   real res1 =
-    tl3*(c_int(Zv01, Zv11, Zv01, Zv11) +
-         Sq(ctilde)*c_int(Zv00, Zv10, Zv00, Zv10))*tnx3 +
-    tl3*(c_int(Zv01, Zv11, Zv02, Zv12)*ir2 -
-         Omega*c_int(Zv00, Zv10, Zv01, Zv11))*tny3 +
-    tl1*(c_int(Zv11, Zv21, Zv11, Zv21) +
-         Sq(ctilde)*c_int(Zv10, Zv20, Zv10, Zv20))*tnx1 +
-    tl1*(c_int(Zv11, Zv21, Zv12, Zv22)*ir2 -
-         Omega*c_int(Zv10, Zv20, Zv11, Zv21))*tny1 +
-    tl2*(c_int(Zv21, Zv01, Zv21, Zv01) +
-         Sq(ctilde)*c_int(Zv20, Zv00, Zv20, Zv00))*tnx2 +
-    tl2*(c_int(Zv21, Zv01, Zv22, Zv02)*ir2 -
-         Omega*c_int(Zv20, Zv00, Zv21, Zv01))*tny2;
+    tl3*(c_int(Zv01, Zv11, Zv01, Zv11) +                       // rho*vx^2
+         Sq(cs0)*c_int(Zv00, Zv10, Zv00, Zv10,
+                       xa, xb, two*cspow))*tnx3 +              // rho*c^2
+    tl3*(c_int(Zv01, Zv11, Zv02, Zv12, xa, xb, -two) -         // rho*vx*vy/r^2
+         Omega*c_int(Zv00, Zv10, Zv01, Zv11))*tny3 +           // rho*vx*Omega
+    tl1*(c_int(Zv11, Zv21, Zv11, Zv21) +                       // rho*vx^2
+         Sq(cs0)*c_int(Zv10, Zv20, Zv10, Zv20,
+                       xb, xc, two*cspow))*tnx1 +              // rho*c^2
+    tl1*(c_int(Zv11, Zv21, Zv12, Zv22, xb, xc, -two) -         // rho*vx*vy/r^2
+         Omega*c_int(Zv10, Zv20, Zv11, Zv21))*tny1 +           // rho*vx*Omega
+    tl2*(c_int(Zv21, Zv01, Zv21, Zv01) +                       // rho*vx^2
+         Sq(cs0)*c_int(Zv20, Zv00, Zv20, Zv00,
+                       xc, xa, two*cspow))*tnx2 +              // rho*c^2
+    tl2*(c_int(Zv21, Zv01, Zv22, Zv02, xc, xa, -two) -         // rho*vx*vy/r^2
+         Omega*c_int(Zv20, Zv00, Zv21, Zv01))*tny2;            // rho*vx*Omega
 
   ResTot1 -= res1;
   pTresTot[n].y = 0.5*ResTot1;
   Wtemp1 -= res1;
 
   real res2 =
-    tl3*c_int(Zv01, Zv11, Zv02, Zv12)*tnx3 +
-    tl3*(c_int(Zv02, Zv12, Zv02, Zv12)*ir2 +
-         Sq(ctilde)*r2*c_int(Zv00, Zv10, Zv00, Zv10) -
-         Omega*c_int(Zv00, Zv10, Zv02, Zv12))*tny3 +
-    tl1*c_int(Zv11, Zv21, Zv12, Zv22)*tnx1 +
-    tl1*(c_int(Zv12, Zv22, Zv12, Zv22)*ir2 +
-         Sq(ctilde)*r2*c_int(Zv10, Zv20, Zv10, Zv20) -
-         Omega*c_int(Zv10, Zv20, Zv12, Zv22))*tny1 +
-    tl2*c_int(Zv21, Zv01, Zv22, Zv02)*tnx2 +
-    tl2*(c_int(Zv22, Zv02, Zv22, Zv02)*ir2 +
-         Sq(ctilde)*r2*c_int(Zv20, Zv00, Zv20, Zv00) -
-         Omega*c_int(Zv20, Zv00, Zv22, Zv02))*tny2;
+    tl3*c_int(Zv01, Zv11, Zv02, Zv12)*tnx3 +                   // rho*vx*vy
+    tl3*(c_int(Zv02, Zv12, Zv02, Zv12, xa, xb, -two) +         // rho*vy^2/r^2
+         Sq(cs0)*c_int(Zv00, Zv10, Zv00, Zv10,
+                       xa, xb, two + two*cspow) -              // r^2*c^2*rho
+         Omega*c_int(Zv00, Zv10, Zv02, Zv12))*tny3 +           // rho*vy*Omega
+    tl1*c_int(Zv11, Zv21, Zv12, Zv22)*tnx1 +                   // rho*vx*vy
+    tl1*(c_int(Zv12, Zv22, Zv12, Zv22, xb, xc, -two) +         // rho*vy^2/r^2
+         Sq(cs0)*c_int(Zv10, Zv20, Zv10, Zv20,
+                       xb, xc, two + two*cspow) -              // r^2*c^2*rho
+         Omega*c_int(Zv10, Zv20, Zv12, Zv22))*tny1 +           // rho*vy*Omega
+    tl2*c_int(Zv21, Zv01, Zv22, Zv02)*tnx2 +                   // rho*vx*vy
+    tl2*(c_int(Zv22, Zv02, Zv22, Zv02, xc, xa, -two) +         // rho*vy^2/r^2
+         Sq(cs0)*c_int(Zv20, Zv00, Zv20, Zv00,
+                       xc, xa, two + two*cspow) -              // r^2*c^2*rho
+         Omega*c_int(Zv20, Zv00, Zv22, Zv02))*tny2;            // rho*vy*Omega
 
   ResTot2 -= res2;
   pTresTot[n].z = 0.5*ResTot2;
@@ -1598,7 +1589,7 @@ void CalcTotalResNtotSingle(const int n, const real dt,
                             real *pTresN2, real *pTresTot, int nVertex,
                             const real G, const real G1,
                             const real G2, const real iG, const real *pVp,
-                            const real *pVcs,
+                            const real cs0, const real cspow,
                             const real frameAngularVelocity,
                             const real2 *pVc)
 {
@@ -1856,7 +1847,7 @@ devCalcTotalResNtot(int nTriangle, real dt,
                     realNeq *pTresN0, realNeq *pTresN1, realNeq *pTresN2,
                     realNeq *pTresTot, int nVertex,
                     real G, real G1, real G2, real iG, const real *pVp,
-                    const real *pVcs,
+                    const real cs0, const real cspow,
                     const real frameAngularVelocity,
                     const real2 *pVc)
 {
@@ -1867,7 +1858,7 @@ devCalcTotalResNtot(int nTriangle, real dt,
                                pTn1, pTn2, pTn3, pTl, pResSource,
                                pTresN0, pTresN1, pTresN2,
                                pTresTot, nVertex, G, G1, G2, iG, pVp,
-                               pVcs, frameAngularVelocity, pVc);
+                               cs0, cspow, frameAngularVelocity, pVc);
 
     // Next triangle
     n += blockDim.x*gridDim.x;
@@ -1919,7 +1910,6 @@ void Simulation<realNeq, CL>::CalcTotalResNtot(real dt)
 
   realNeq *pDstate = vertexStateDiff->GetPointer();
   real *pVp = vertexPotential->GetPointer();
-  real *pVcs = vertexSoundSpeed->GetPointer();
 
   real G = simulationParameter->specificHeatRatio;
 
@@ -1939,7 +1929,9 @@ void Simulation<realNeq, CL>::CalcTotalResNtot(real dt)
   const real3 *pTl  = mesh->TriangleEdgeLengthData();
   const real2 *pVc  = mesh->VertexCoordinatesData();
 
-  real frameAngularVelocity = 0.0;
+  const real Omega = simulationParameter->frameAngularVelocity;
+  const real cs0 = simulationParameter->soundspeed0;
+  const real cspow = simulationParameter->soundspeedPower;
 
   if (cudaFlag == 1) {
     int nBlocks = 128;
@@ -1957,8 +1949,8 @@ void Simulation<realNeq, CL>::CalcTotalResNtot(real dt)
       (nTriangle, dt, pTv, pVz, pDstate,
        pTn1, pTn2, pTn3, pTl, pResSource,
        pTresN0, pTresN1, pTresN2,
-       pTresTot, nVertex, G, G - 1.0, G - 2.0, 1.0/G, pVp, pVcs,
-       frameAngularVelocity, pVc);
+       pTresTot, nVertex, G, G - 1.0, G - 2.0, 1.0/G, pVp,
+       cs0, cspow, Omega, pVc);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -1975,8 +1967,8 @@ void Simulation<realNeq, CL>::CalcTotalResNtot(real dt)
                                  pTn1, pTn2, pTn3, pTl, pResSource,
                                  pTresN0, pTresN1, pTresN2,
                                  pTresTot, nVertex, G, G - 1.0, G - 2.0,
-                                 1.0/G, pVp, pVcs,
-                                 frameAngularVelocity, pVc);
+                                 1.0/G, pVp, cs0, cspow,
+                                 Omega, pVc);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
