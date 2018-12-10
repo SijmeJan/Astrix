@@ -72,8 +72,6 @@ class Simulation
   Array <realNeq> *vertexStateOld;
   //! Gravitational potential at vertex
   Array <real> *vertexPotential;
-  //! Sound speed at vertex
-  Array <real> *vertexSoundSpeed;
   //! Source term at vertex
   Array <realNeq> *vertexSource;
 
