@@ -66,6 +66,14 @@ class SimulationParameter
   //! If discretization error larger than maxError, refine Mesh
   real maxError;
 
+  //! Soundspeed at x = 0 (isothermal only)
+  real soundspeed0;
+  //! Soundspeed exponent (cs = cs0*exp(cs_pow*x))
+  real soundspeedPower;
+
+  //! Angular velocity coordinate frame (cylindrical coordinates only)
+  real frameAngularVelocity;
+
   //! Read in data from file
   void ReadFromFile(const char *fileName, ConservationLaw CL);
 
