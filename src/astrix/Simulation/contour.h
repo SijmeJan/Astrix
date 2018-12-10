@@ -24,6 +24,19 @@ c_int(real fa, real fb, real ga, real gb)
   return ((fa + fb)*(ga + gb) + fa*ga + fb*gb)/(real) 6.0;
 }
 
+//! Product of two linear functions and exp(k*x)
+__host__ __device__ inline real
+c_int(real fa, real fb, real ga, real gb, real xa, real xb, real k)
+{
+  real d = k*(xb - xa);
+
+  real Kaa = 1.0/3.0 + d/12.0 + d*d/60.0 + d*d*d/360.0 + d*d*d*d/2520.0;
+  real Kab = 1.0/6.0 + d/12.0 + d*d/40.0 + d*d*d/180.0 + d*d*d*d/1008.0;
+  real Kbb = 1.0/3.0 + d/4.00 + d*d/10.0 + d*d*d/36.00 + d*d*d*d/168.00;
+
+  return (fa*ga*Kaa + (fa*gb + fb*ga)*Kab + fb*gb*Kbb)*exp(k*xa);
+}
+
 }
 
 #endif  // ASTRIX_CONTOUR_H
