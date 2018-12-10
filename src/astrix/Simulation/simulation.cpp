@@ -85,7 +85,6 @@ Simulation<realNeq, CL>::Simulation(int _verboseLevel,
   vertexStateOld        = new Array<realNeq>(1, cudaFlag);
   vertexPotential       = new Array<real>(1, cudaFlag);
   vertexSource          = new Array<realNeq>(1, cudaFlag);
-  vertexSoundSpeed      = new Array<real>(1, cudaFlag);
   vertexStateDiff       = new Array<realNeq>(1, cudaFlag);
   vertexParameterVector = new Array<realNeq>(1, cudaFlag);
 
@@ -110,7 +109,6 @@ Simulation<realNeq, CL>::Simulation(int _verboseLevel,
     delete vertexStateOld;
     delete vertexPotential;
     delete vertexSource;
-    delete vertexSoundSpeed;
     delete vertexParameterVector;
     delete vertexStateDiff;
 
@@ -141,7 +139,6 @@ Simulation<realNeq, CL>::~Simulation()
   delete vertexStateOld;
   delete vertexPotential;
   delete vertexSource;
-  delete vertexSoundSpeed;
   delete vertexParameterVector;
   delete vertexStateDiff;
 
@@ -175,7 +172,6 @@ void Simulation<realNeq, CL>::Init(int restartNumber)
   vertexStateOld->SetSize(nVertex);
   vertexPotential->SetSize(nVertex);
   vertexSource->SetSize(nVertex);
-  vertexSoundSpeed->SetSize(nVertex);
   vertexStateDiff->SetSize(nVertex);
   vertexParameterVector->SetSize(nVertex);
 
