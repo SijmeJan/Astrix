@@ -75,7 +75,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real4 *pVz,
                         real4 *pTresN0, real4 *pTresN1, real4 *pTresN2,
                         real4 *pTresLDA0, real4 *pTresLDA1, real4 *pTresLDA2,
                         real4 *pTresTot, int nVertex, real G, real G1, real G2,
-                        const real *pVp, const real *pVcs,
+                        const real *pVp, const real cs0, const real cspow,
                         const real frameAngularVelocity, const real2 *pVc)
 {
   const real zero  = (real) 0.0;
@@ -1005,7 +1005,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
                         real3 *pTresN0, real3 *pTresN1, real3 *pTresN2,
                         real3 *pTresLDA0, real3 *pTresLDA1, real3 *pTresLDA2,
                         real3 *pTresTot, int nVertex, real G, real G1, real G2,
-                        const real *pVp, const real *pVcs,
+                        const real *pVp, const real cs0, const real cspow,
                         const real frameAngularVelocity, const real2 *pVc)
 {
   const real zero  = (real) 0.0;
@@ -1036,8 +1036,8 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   real Zv21 = pVz[v3].y;
   real Zv22 = pVz[v3].z;
 
-  // Average sound speed
-  real ctilde = onethird*(pVcs[v1] + pVcs[v2] + pVcs[v3]);
+  // Average sound speed (note: cspow only supported in cylindrical geometry!)
+  real ctilde = cs0;
 
   // Average parameter vector
   real Z0 = (Zv00 + Zv10 + Zv20)*onethird;
@@ -1087,18 +1087,20 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
   real r2 = one;
   real ir2 = one;
   real Omega = zero;
-  real ra = one;
-  real rb = one;
-  real rc = one;
+  real xa = one;
+  real xb = one;
+  real xc = one;
 
   if (CL == CL_CYL_ISO) {
-    // Radius vertices
-    ra = exp(pVc[v1].x);
-    rb = exp(pVc[v2].x);
-    rc = exp(pVc[v3].x);
+    xa = pVc[v1].x;
+    xb = pVc[v2].x;
+    xc = pVc[v3].x;
 
-    r2 = (ra + rb + rc)*onethird;
-    r2 = r2*r2;
+    // Average sound speed
+    ctilde = cs0*exp(cspow*(xa + xb + xc)*onethird);
+
+    // Average radius
+    r2 = exp(two*(xa + xb + xc)*onethird);
     ir2 = one/r2;
     Omega = frameAngularVelocity;
   }
@@ -1167,50 +1169,56 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real3 *pVz,
 #else
 
   real res0 =
-    tl3*c_int(Zv00, Zv10, Zv01, Zv11)*tnx3 +
-    tl3*(c_int(Zv00, Zv10, Zv02, Zv12)/Sq(ra) -
-         Omega*c_int(Zv00, Zv10, Zv00, Zv10))*tny3 +
-    tl1*c_int(Zv10, Zv20, Zv11, Zv21)*tnx1 +
-    tl1*(c_int(Zv10, Zv20, Zv12, Zv22)/Sq(rb) -
-         Omega*c_int(Zv10, Zv20, Zv10, Zv20))*tny1 +
-    tl2*c_int(Zv20, Zv00, Zv21, Zv01)*tnx2 +
-    tl2*(c_int(Zv20, Zv00, Zv22, Zv02)/Sq(rc) -
-         Omega*c_int(Zv20, Zv00, Zv20, Zv00))*tny2;
+    tl3*c_int(Zv00, Zv10, Zv01, Zv11)*tnx3 +                   // rho*vx
+    tl3*(c_int(Zv00, Zv10, Zv02, Zv12, xa, xb, -two) -         // rho*vy/r^2
+         Omega*c_int(Zv00, Zv10, Zv00, Zv10))*tny3 +           // rho*Omega
+    tl1*c_int(Zv10, Zv20, Zv11, Zv21)*tnx1 +                   // rho*vx
+    tl1*(c_int(Zv10, Zv20, Zv12, Zv22, xb, xc, -two) -         // rho*vy/r^2
+         Omega*c_int(Zv10, Zv20, Zv10, Zv20))*tny1 +           // rho*Omega
+    tl2*c_int(Zv20, Zv00, Zv21, Zv01)*tnx2 +                   // rho*vx
+    tl2*(c_int(Zv20, Zv00, Zv22, Zv02, xc, xa, -two) -         // rho*vy/r^2
+         Omega*c_int(Zv20, Zv00, Zv20, Zv00))*tny2;            // rho*Omega
   ResTot0 -= res0;
   pTresTot[n].x = ResTot0;
   Wtemp0 -= res0;
 
   real res1 =
-    tl3*(c_int(Zv01, Zv11, Zv01, Zv11) +
-         Sq(pVcs[v1])*c_int(Zv00, Zv10, Zv00, Zv10))*tnx3 +
-    tl3*(c_int(Zv01, Zv11, Zv02, Zv12)/Sq(ra) -
-         Omega*c_int(Zv00, Zv10, Zv01, Zv11))*tny3 +
-    tl1*(c_int(Zv11, Zv21, Zv11, Zv21) +
-         Sq(pVcs[v2])*c_int(Zv10, Zv20, Zv10, Zv20))*tnx1 +
-    tl1*(c_int(Zv11, Zv21, Zv12, Zv22)/Sq(rb) -
-         Omega*c_int(Zv10, Zv20, Zv11, Zv21))*tny1 +
-    tl2*(c_int(Zv21, Zv01, Zv21, Zv01) +
-         Sq(pVcs[v3])*c_int(Zv20, Zv00, Zv20, Zv00))*tnx2 +
-    tl2*(c_int(Zv21, Zv01, Zv22, Zv02)/Sq(rc) -
-         Omega*c_int(Zv20, Zv00, Zv21, Zv01))*tny2;
+    tl3*(c_int(Zv01, Zv11, Zv01, Zv11) +                       // rho*vx^2
+         Sq(cs0)*c_int(Zv00, Zv10, Zv00, Zv10,
+                       xa, xb, two*cspow))*tnx3 +              // rho*c^2
+    tl3*(c_int(Zv01, Zv11, Zv02, Zv12, xa, xb, -two) -         // rho*vx*vy/r^2
+         Omega*c_int(Zv00, Zv10, Zv01, Zv11))*tny3 +           // rho*vx*Omega
+    tl1*(c_int(Zv11, Zv21, Zv11, Zv21) +                       // rho*vx^2
+         Sq(cs0)*c_int(Zv10, Zv20, Zv10, Zv20,
+                       xb, xc, two*cspow))*tnx1 +              // rho*c^2
+    tl1*(c_int(Zv11, Zv21, Zv12, Zv22, xb, xc, -two) -         // rho*vx*vy/r^2
+         Omega*c_int(Zv10, Zv20, Zv11, Zv21))*tny1 +           // rho*vx*Omega
+    tl2*(c_int(Zv21, Zv01, Zv21, Zv01) +                       // rho*vx^2
+         Sq(cs0)*c_int(Zv20, Zv00, Zv20, Zv00,
+                       xc, xa, two*cspow))*tnx2 +              // rho*c^2
+    tl2*(c_int(Zv21, Zv01, Zv22, Zv02, xc, xa, -two) -         // rho*vx*vy/r^2
+         Omega*c_int(Zv20, Zv00, Zv21, Zv01))*tny2;            // rho*vx*Omega
 
   ResTot1 -= res1;
   pTresTot[n].y = ResTot1;
   Wtemp1 -= res1;
 
   real res2 =
-    tl3*c_int(Zv01, Zv11, Zv02, Zv12)*tnx3 +
-    tl3*(c_int(Zv02, Zv12, Zv02, Zv12)/Sq(ra) +
-         Sq(pVcs[v1]*ra)*c_int(Zv00, Zv10, Zv00, Zv10) -
-         Omega*c_int(Zv00, Zv10, Zv02, Zv12))*tny3 +
-    tl1*c_int(Zv11, Zv21, Zv12, Zv22)*tnx1 +
-    tl1*(c_int(Zv12, Zv22, Zv12, Zv22)/Sq(rb) +
-         Sq(pVcs[v2]*rb)*c_int(Zv10, Zv20, Zv10, Zv20) -
-         Omega*c_int(Zv10, Zv20, Zv12, Zv22))*tny1 +
-    tl2*c_int(Zv21, Zv01, Zv22, Zv02)*tnx2 +
-    tl2*(c_int(Zv22, Zv02, Zv22, Zv02)/Sq(rc) +
-         Sq(pVcs[v3]*rc)*c_int(Zv20, Zv00, Zv20, Zv00) -
-         Omega*c_int(Zv20, Zv00, Zv22, Zv02))*tny2;
+    tl3*c_int(Zv01, Zv11, Zv02, Zv12)*tnx3 +                   // rho*vx*vy
+    tl3*(c_int(Zv02, Zv12, Zv02, Zv12, xa, xb, -two) +         // rho*vy^2/r^2
+         Sq(cs0)*c_int(Zv00, Zv10, Zv00, Zv10,
+                       xa, xb, two + two*cspow) -              // r^2*c^2*rho
+         Omega*c_int(Zv00, Zv10, Zv02, Zv12))*tny3 +           // rho*vy*Omega
+    tl1*c_int(Zv11, Zv21, Zv12, Zv22)*tnx1 +                   // rho*vx*vy
+    tl1*(c_int(Zv12, Zv22, Zv12, Zv22, xb, xc, -two) +         // rho*vy^2/r^2
+         Sq(cs0)*c_int(Zv10, Zv20, Zv10, Zv20,
+                       xb, xc, two + two*cspow) -              // r^2*c^2*rho
+         Omega*c_int(Zv10, Zv20, Zv12, Zv22))*tny1 +           // rho*vy*Omega
+    tl2*c_int(Zv21, Zv01, Zv22, Zv02)*tnx2 +                   // rho*vx*vy
+    tl2*(c_int(Zv22, Zv02, Zv22, Zv02, xc, xa, -two) +         // rho*vy^2/r^2
+         Sq(cs0)*c_int(Zv20, Zv00, Zv20, Zv00,
+                       xc, xa, two + two*cspow) -              // r^2*c^2*rho
+         Omega*c_int(Zv20, Zv00, Zv22, Zv02))*tny2;            // rho*vy*Omega
 
   ResTot2 -= res2;
   pTresTot[n].z = ResTot2;
@@ -1704,7 +1712,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
                         real *pTresN0, real *pTresN1, real *pTresN2,
                         real *pTresLDA0, real *pTresLDA1, real *pTresLDA2,
                         real *pTresTot, int nVertex, real G, real G1, real G2,
-                        const real *pVp, const real *pVcs,
+                        const real *pVp, const real cs0, const real cspow,
                         const real frameAngularVelocity, const real2 *pVc)
 {
   const real zero  = (real) 0.0;
@@ -1937,7 +1945,7 @@ devCalcSpaceRes(int nTriangle, const int3 *pTv, realNeq *pVz,
                 realNeq *pTresN0, realNeq *pTresN1, realNeq *pTresN2,
                 realNeq *pTresLDA0, realNeq *pTresLDA1, realNeq *pTresLDA2,
                 realNeq *pTresTot, int nVertex, real G, real G1, real G2,
-                const real *pVp, const real *pVcs,
+                const real *pVp, const real cs0, const real cspow,
                 const real frameAngularVelocity, const real2 *pVc)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
@@ -1947,7 +1955,7 @@ devCalcSpaceRes(int nTriangle, const int3 *pTv, realNeq *pVz,
     CalcSpaceResSingle<CL>(n, pTv, pVz, pTn1, pTn2, pTn3, pTl, pResSource,
                            pTresN0, pTresN1, pTresN2,
                            pTresLDA0, pTresLDA1, pTresLDA2,
-                           pTresTot, nVertex, G, G1, G2, pVp, pVcs,
+                           pTresTot, nVertex, G, G1, G2, pVp, cs0, cspow,
                            frameAngularVelocity, pVc);
 
     // Next triangle
@@ -1999,7 +2007,6 @@ void Simulation<realNeq, CL>::CalcResidual()
   realNeq *pResSource = triangleResidueSource->GetPointer();
   realNeq *pVz = vertexParameterVector->GetPointer();
   real *pVp = vertexPotential->GetPointer();
-  real *pVcs = vertexSoundSpeed->GetPointer();
   real G = simulationParameter->specificHeatRatio;
 
   realNeq *pTresN0 = triangleResidueN->GetPointer(0);
@@ -2022,7 +2029,9 @@ void Simulation<realNeq, CL>::CalcResidual()
 
   const real2 *pVc = mesh->VertexCoordinatesData();
 
-  real frameAngularVelocity = 0.0;
+  const real Omega = simulationParameter->frameAngularVelocity;
+  const real cs0 = simulationParameter->soundspeed0;
+  const real cspow = simulationParameter->soundspeedPower;
 
   if (cudaFlag == 1) {
     int nBlocks = 128;
@@ -2041,8 +2050,8 @@ void Simulation<realNeq, CL>::CalcResidual()
        pTn1, pTn2, pTn3, pTl, pResSource,
        pTresN0, pTresN1, pTresN2,
        pTresLDA0, pTresLDA1, pTresLDA2,
-       pTresTot, nVertex, G, G - 1.0, G - 2.0, pVp, pVcs,
-       frameAngularVelocity, pVc);
+       pTresTot, nVertex, G, G - 1.0, G - 2.0, pVp,
+       cs0, cspow, Omega, pVc);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
@@ -2060,7 +2069,7 @@ void Simulation<realNeq, CL>::CalcResidual()
                              pTresN0, pTresN1, pTresN2,
                              pTresLDA0, pTresLDA1, pTresLDA2,
                              pTresTot, nVertex, G, G - 1.0, G - 2.0,
-                             pVp, pVcs, frameAngularVelocity, pVc);
+                             pVp, cs0, cspow, Omega, pVc);
 #ifdef TIME_ASTRIX
     gpuErrchk( cudaEventRecord(stop, 0) );
     gpuErrchk( cudaEventSynchronize(stop) );
