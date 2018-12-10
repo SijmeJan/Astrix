@@ -79,8 +79,23 @@ void CalcVertexSourceSingle(int n, ProblemDefinition problemDef, const real2 *pV
     real r = exp(x);
     // Centrifugal, gravity, geometrical
     pSource[n].y =
-      (0.0*Sq(pState[n].z)/Sq(Sq(r)) - Sq(pState[n].y))/pState[n].x -
-      0.0*pState[n].x/Cb(r);
+      (Sq(pState[n].z)/Sq(Sq(r)) - Sq(pState[n].y))/pState[n].x -
+      pState[n].x/Cb(r);
+
+    real q = 1.0e-4;
+    real eps = 0.6*0.05;
+
+    real dpotdx = q*r*(r - cos(y - M_PI))*
+      pow(r*r + 1.0 - 2.0*r*cos(y - M_PI) + eps*eps, -1.5);
+    real dpotdy = q*r*sin(y - M_PI)*
+      pow(r*r + 1.0 - 2.0*r*cos(y - M_PI) + eps*eps, -1.5);
+
+    // Indirect term
+    dpotdx += q*r*cos(y - M_PI);
+    dpotdy -= q*r*sin(y - M_PI);
+
+    pSource[n].y -= pState[n].x*dpotdx/Sq(r);
+    pSource[n].z = -pState[n].x*dpotdy;
   }
 
 }
