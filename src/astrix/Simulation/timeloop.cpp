@@ -19,7 +19,6 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <ctime>
 #include <cmath>
 #include <fstream>
-//#include <chrono>
 
 #include "../Common/definitions.h"
 #include "../Array/array.h"
@@ -60,8 +59,6 @@ void Simulation<realNeq, CL>::Run(real maxWallClockHours)
   if (verboseLevel > 0)
     std::cout << "Starting time loop... " << nSave << std::endl;
 
-  //auto start = std::chrono::high_resolution_clock::now();
-
   while (warning == 0 &&
          simulationTime < simulationParameter->maxSimulationTime &&
          elapsedTimeHours < maxWallClockHours) {
@@ -100,16 +97,6 @@ void Simulation<realNeq, CL>::Run(real maxWallClockHours)
     elapsedTimeHours = difftime(time(NULL), startTime)/3600.0;
   }
 
-  /*
-  auto finish = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> elapsed = finish - start;
-
-  std::cout << std::setprecision(6)
-            << "Time/cell/step (mus): "
-            << 1.0e6*elapsed.count()/(real) (nTimeStep*mesh->GetNVertex())
-            << std::endl;
-  */
-
   try {
     // Save if end of simulation reached
     if (warning == 0 &&
@@ -135,9 +122,6 @@ void Simulation<realNeq, CL>::Run(real maxWallClockHours)
 template <class realNeq, ConservationLaw CL>
 void Simulation<realNeq, CL>::DoTimeStep()
 {
-  //auto start = std::chrono::high_resolution_clock::now();
-  //std::cout << "Mass: " << TotalMass() - 4.0 << " ";
-
   ProblemDefinition problemDef = simulationParameter->problemDef;
 
   // Number of time steps taken
