@@ -133,6 +133,7 @@ void Mesh::MakePeriodic()
 
     // Find edge between two leftmost and to rightmost vertices
     Array<int> *edgeLeftRight = new Array<int>(1, cudaFlag, (unsigned int) 2);
+    edgeLeftRight->SetToValue(-1);
     int *pEdgeLeftRight = edgeLeftRight->GetPointer();
 
     if (cudaFlag == 1) {
