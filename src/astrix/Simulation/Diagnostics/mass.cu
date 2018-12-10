@@ -72,6 +72,16 @@ void FillMassArraySingle<real3, CL_CART_ISO>(unsigned int n, real3 *pState,
   pVm[n] = pVarea[n]*pState[n].x;
 }
 
+//! Version for isothermal hydrodynamics in cylindrical coordinates
+template<>
+__host__ __device__
+void FillMassArraySingle<real3, CL_CYL_ISO>(unsigned int n, real3 *pState,
+                                            const real *pVarea, real *pVm)
+{
+  // Specialization for isothermal Cartesian cylindrical hydro
+  pVm[n] = pVarea[n]*pState[n].x;
+}
+
 //! Version for Euler equations
 template<>
 __host__ __device__
