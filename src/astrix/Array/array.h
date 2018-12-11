@@ -160,7 +160,7 @@ template <class T> class Array
     void ScatterSeries(Array<S> *map, unsigned int maxIndex);
 
   //! Set to random values using rand()
-  void SetToRandom();
+  void SetToRandom(unsigned int seed=3);
 
   //! Set a[i] = a[i] - b[i]
   void SetToDiff(Array<T> *A, Array<T> *B);
@@ -211,7 +211,7 @@ template <class T> class Array
                      int maxIndex, int ignoreValue, T value);
 
   //! Shuffle array (non-random!)
-  void Shuffle();
+  void Shuffle(unsigned int seed=3);
 
   //! Inner product with other array
   T InnerProduct(Array<T> *A);
