@@ -96,112 +96,115 @@ void LockTriangle(const real2 VcAdd,
   int eCrossed = eStart;
   int finished = 0;
 
+  // Apparently this can get stuck. Why?
   while (finished == 0) {
     // Set pTiC to maximum of pTiC and pRandom
     int old = AtomicMax(&(pTiC[t]), randomInt);
-    // Stop if old pTic[t] was larger
+    // Stop if old pTic[t] was larger: triangle in use already
     if (old > randomInt) finished = 1;
 
+    // Choose triangle to move into
     if (finished == 0) {
-    int tNext = -1;
-    int eNext = -1;
+      int tNext = -1;
+      int eNext = -1;
 
-    int e1 = -1, e2 = -1, e3 = -1;
+      int e1 = -1, e2 = -1, e3 = -1;
 
 #ifdef __CUDA_ARCH__
 #pragma unroll
 #endif
-    for (int de = 2; de >= 0; de--) {
-      // Choose eNext clockwise from eCrossed
-      if (eCrossed == e[0]) eNext = e[de % 3];
-      if (eCrossed == e[1]) eNext = e[(1 + de) % 3];
-      if (eCrossed == e[2]) eNext = e[(2 + de) % 3];
+      for (int de = 2; de >= 0; de--) {
+        // Choose eNext clockwise from eCrossed
+        if (eCrossed == e[0]) eNext = e[de % 3];
+        if (eCrossed == e[1]) eNext = e[(1 + de) % 3];
+        if (eCrossed == e[2]) eNext = e[(2 + de) % 3];
 
-      // Triangle sharing eNext
-      int2 tNeighbour = pEt[eNext];
-      tNext = tNeighbour.x;
-      if (tNext == t) tNext = tNeighbour.y;
+        // Triangle sharing eNext
+        int2 tNeighbour = pEt[eNext];
+        tNext = tNeighbour.x;
+        if (tNext == t) tNext = tNeighbour.y;
 
-      if (tNext != -1) {
-        // Check if vertex n lies in circumcircle of triangle tNext
-        int a = pTv[tNext].x;
-        int b = pTv[tNext].y;
-        int c = pTv[tNext].z;
+        if (tNext != -1) {
+          // Check if vertex n lies in circumcircle of triangle tNext
+          int a = pTv[tNext].x;
+          int b = pTv[tNext].y;
+          int c = pTv[tNext].z;
 
-        real ax, bx, cx, ay, by, cy;
-        GetTriangleCoordinates(pVc, a, b, c, nVertex, Px, Py,
-                               ax, bx, cx, ay, by, cy);
+          real ax, bx, cx, ay, by, cy;
+          GetTriangleCoordinates(pVc, a, b, c, nVertex, Px, Py,
+                                 ax, bx, cx, ay, by, cy);
 
-        e1 = pTe[tNext].x;
-        e2 = pTe[tNext].y;
-        e3 = pTe[tNext].z;
+          e1 = pTe[tNext].x;
+          e2 = pTe[tNext].y;
+          e3 = pTe[tNext].z;
 
-        // Translate (dx, dy) so that it lies on the same side as tNext
-        int f = a;
-        if (e2 == eNext) f = b;
-        if (e3 == eNext) f = c;
+          // Translate (dx, dy) so that it lies on the same side as tNext
+          int f = a;
+          if (e2 == eNext) f = b;
+          if (e3 == eNext) f = c;
 
-        int A = pTv[t].x;
-        int B = pTv[t].y;
-        int C = pTv[t].z;
+          int A = pTv[t].x;
+          int B = pTv[t].y;
+          int C = pTv[t].z;
 
-        int F = B;
-        if (e[1] == eNext) F = C;
-        if (e[2] == eNext) F = A;
+          int F = B;
+          if (e[1] == eNext) F = C;
+          if (e[2] == eNext) F = A;
 
-        real dxNew = dx;
-        real dyNew = dy;
+          real dxNew = dx;
+          real dyNew = dy;
 
-        // Indicate that cavity lies across periodic boundary
-        if (f != F) translateFlag = 1;
-        TranslateVertexToVertex(f, F, Px, Py, nVertex, dxNew, dyNew);
+          // Indicate that cavity lies across periodic boundary
+          if (f != F) translateFlag = 1;
+          TranslateVertexToVertex(f, F, Px, Py, nVertex, dxNew, dyNew);
 
+          // Check if (dx, dy) in circumcircle of triangle
+          real det = pred->incircle(ax, ay, bx, by, cx, cy,
+                                    dxNew, dyNew, pParam);
 
-        real det = pred->incircle(ax, ay, bx, by, cx, cy, dxNew, dyNew, pParam);
+          // Check if triangle is part of cavity if we translate triangle
+          // in stead of vertex
+          real det2 = det;
+          // Do this only when cavity lies across periodic boundary
+          if (translateFlag == 1) {
+            real DeltaX = dxOld - dxNew;
+            real DeltaY = dyOld - dyNew;
 
-        // Check if triangle is part of cavity if we translate triangle
-        // in stead of vertex
-        real det2 = det;
-        // Do this only when cavity lies across periodic boundary
-        if (translateFlag == 1) {
-          real DeltaX = dxOld - dxNew;
-          real DeltaY = dyOld - dyNew;
+            det2 = pred->incircle(ax + DeltaX, ay + DeltaY,
+                                  bx + DeltaX, by + DeltaY,
+                                  cx + DeltaX, cy + DeltaY,
+                                  dxOld, dyOld, pParam);
+          }
 
-          det2 = pred->incircle(ax + DeltaX, ay + DeltaY,
-                                bx + DeltaX, by + DeltaY,
-                                cx + DeltaX, cy + DeltaY,
-                                dxOld, dyOld, pParam);
+          // If triangle not part of cavity, do not move into it
+          if (det < (real) 0.0 && det2 < (real) 0.0) {
+            tNext = -1;
+          } else {
+            // Move into tNext; use new coordinates
+            dx = dxNew;
+            dy = dyNew;
+          }
         }
 
-        // If triangle not part of cavity, do not move into it
-        if (det < (real) 0.0 && det2 < (real) 0.0) {
-          tNext = -1;
-        } else {
-          // Move into tNext; use new coordinates
-          dx = dxNew;
-          dy = dyNew;
+        // Done if trying to move across eStart but failing
+        if (eNext == eStart && tNext == -1) {
+          finished = 1;
+          break;
         }
+
+        // Found a triangle to move into
+        if (tNext != -1) break;
       }
 
-      // Done if trying to move across eStart but failing
-      if (eNext == eStart && tNext == -1) {
-        finished = 1;
-        break;
-      }
+      eCrossed = eNext;
+      t = tNext;
+      e[0] = e1;
+      e[1] = e2;
+      e[2] = e3;
 
-      // Found a triangle to move into
-      if (tNext != -1) break;
-    }
-
-    eCrossed = eNext;
-    t = tNext;
-    e[0] = e1;
-    e[1] = e2;
-    e[2] = e3;
-
-    // Done if we are moving back into tStart across eStart or if no
-    // next triangle can be found
-    if ((t == tStart && eCrossed == eStart) || t == -1) finished = 1;
+      // Done if we are moving back into tStart across eStart or if no
+      // next triangle can be found
+      if ((t == tStart && eCrossed == eStart) || t == -1) finished = 1;
     }
   }
 }
