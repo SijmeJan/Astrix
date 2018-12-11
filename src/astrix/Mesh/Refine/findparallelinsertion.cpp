@@ -57,10 +57,16 @@ void Refine::FindParallelInsertionSet(Connectivity * const connectivity,
   Array <int> *uniqueFlag = new Array<int>(1, cudaFlag, nRefine);
   Array <int> *uniqueFlagScan = new Array<int>(1, cudaFlag, nRefine);
 
+  if (verboseLevel > 10)
+    std::cout << "Locking triangles..." << std::endl;
+
   // Set pTriangleInCavity[n] = pRandomPermutation[i] if triangle \a t is part
   // of the cavity of point i and available (i.e. not locked by another
   // insertion point).
   LockTriangles(connectivity, predicates, meshParameter, triangleInCavity);
+
+  if (verboseLevel > 10)
+    std::cout << "Finding independent cavities..." << std::endl;
 
   // Select cavities that are independent
   FindIndependentCavities(connectivity, predicates, meshParameter,
@@ -81,6 +87,9 @@ void Refine::FindParallelInsertionSet(Connectivity * const connectivity,
     vOBCoordinates->Compact(nIgnore, uniqueFlag, uniqueFlagScan);
     vertexOrder->Compact(nIgnore, uniqueFlag, uniqueFlagScan);
   }
+
+  if (verboseLevel > 10)
+    std::cout << "Flagging edges for checking..." << std::endl;
 
   // Flag edges to be checked for Delaunay-hood later
   FlagEdgesForChecking(connectivity, predicates, meshParameter);
