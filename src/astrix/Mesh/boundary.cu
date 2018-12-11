@@ -492,7 +492,7 @@ void Mesh::ConstructBoundaries(Array <real2> *vertexBoundaryCoordinates)
   //-----------------------------------------------------------------
 
   delaunay->RecoverSegments(connectivity, predicates,
-                            meshParameter,vertexOrder);
+                            meshParameter, vertexOrder);
 
   RemoveRedundant(vertexOrder, nVertexOuterBoundary);
   delaunay->MakeDelaunay<real>(connectivity, 0,
