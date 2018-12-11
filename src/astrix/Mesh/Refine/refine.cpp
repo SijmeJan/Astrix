@@ -47,7 +47,7 @@ Refine::Refine(int _cudaFlag, int _debugLevel, int _verboseLevel)
 
   randomUnique = new Array<unsigned int>(1, cudaFlag, 10000000);
   randomUnique->SetToSeries();
-  //randomUnique->Shuffle();
+  randomUnique->Shuffle();
 }
 
 //#########################################################################
