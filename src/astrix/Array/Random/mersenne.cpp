@@ -24,14 +24,9 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 namespace astrix {
 
 //#########################################################################
-/*! Create Mesh with parameters specified in file \a fileName.
+/*! Create Mersenne twister pseudo random number generator.
 
-\param meshVerboseLevel Level of output to stdout
-\param meshDebugLevel Level of debugging in Mesh construction and maintenance
-\param meshCudaFlag Flag whether to use CUDA device
-\param *fileName Input file name
-\param *device Pointer to Device class containing information about any CUDA device present
-\param restartNumber Number of save file to restore from*/
+\param seed Seed value to initialize generator*/
 //#########################################################################
 
 Mersenne::Mersenne(uint32_t seed)
@@ -44,10 +39,16 @@ Mersenne::Mersenne(uint32_t seed)
 
 }
 
+//#########################################################################
+//#########################################################################
+
 Mersenne::~Mersenne()
 {
 }
 
+
+//#########################################################################
+//#########################################################################
 
 uint32_t Mersenne::rand_u32()
 {

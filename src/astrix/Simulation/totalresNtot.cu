@@ -51,6 +51,8 @@ namespace astrix {
 \param G2 G - 2
 \param iG 1/G
 \param *pVp Pointer to external potential at vertices
+\param cs0 Soundspeed at x=0 (cylindrical isothermal only)
+\param cspow Power law index of soundspeed (cylindrical isothermal only)
 \param frameAngularVelocity Angular velocity coordinate frame (cylindrical geometry)
 \param *pVc Pointer to vertex coordinates*/
 //######################################################################
@@ -1832,7 +1834,8 @@ void CalcTotalResNtotSingle(const int n, const real dt,
 \param G2 G - 2
 \param iG 1/G
 \param *pVp Pointer to external potential at vertices
-\param *pVcs Sound speed at vertices (isothermal case)
+\param cs0 Soundspeed at x=0 (cylindrical isothermal only)
+\param cspow Power law index of soundspeed (cylindrical isothermal only)
 \param frameAngularVelocity Angular velocity coordinate frame (cylindrical geometry)
 \param *pVc Pointer to vertex coordinates*/
 //######################################################################

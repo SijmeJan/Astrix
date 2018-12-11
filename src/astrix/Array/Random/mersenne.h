@@ -23,25 +23,36 @@ class Mersenne
  public:
   //! Constructor
   Mersenne(uint32_t seed);
-  //! Destructor; releases memory.
+  //! Destructor; does nothing.
   ~Mersenne();
 
+  //! Generate 32 bit random number
   uint32_t rand_u32();
 
  private:
+  //! Size of Mersenne twister
   static const size_t SIZE   = 624;
+  //! Period of Mersenne twister
   static const size_t PERIOD = 397;
+  //! Difference between SIZE and PERIOD
   static const size_t DIFF = SIZE - PERIOD;
 
+  //! Mersenne twister magic number
   static const uint32_t MAGIC = 0x9908b0df;
 
+  //! Mersenne twister state vector
   uint32_t MT[SIZE];
+  //! Tempered state vector
   uint32_t MT_TEMPERED[SIZE];
+  //! Current index
   size_t index;
 
+  //! Return
   inline uint32_t M32(uint32_t x) { return 0x80000000 & x;}
+  //! Return
   inline uint32_t L31(uint32_t x) { return 0x7FFFFFFF & x;}
 
+  //! Generate
   void generate_numbers();
 };
 

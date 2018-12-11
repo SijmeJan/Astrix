@@ -27,7 +27,8 @@ namespace astrix {
 /*! Constructor for Delaunay class.
 
 \param _cudaFlag Flag indicating whether to use device (1) or host (0)
-\param _debugLevel Level of extra checks to do*/
+\param _debugLevel Level of extra checks to do
+\param _verboseLevel Level of output to screen*/
 //#########################################################################
 
 Delaunay::Delaunay(int _cudaFlag, int _debugLevel, int _verboseLevel)
