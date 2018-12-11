@@ -19,6 +19,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "./array.h"
 #include "../Common/cudaLow.h"
+#include "./Random/mersenne.h"
 
 namespace astrix {
 
@@ -27,14 +28,21 @@ namespace astrix {
 //###################################################
 
 template <class T>
-void Array<T>::SetToRandom()
+void Array<T>::SetToRandom(unsigned int seed)
 {
+  Mersenne *rng = new Mersenne(seed);
+
+  unsigned int *temp = new unsigned int[size];
+  for (unsigned int i = 0; i < size; i++) {
+    temp[i] = rng->rand_u32();
+  }
+  /*
   // Seed random generator
-  srand(3);
+  srand(seed);
 
   T *temp = new T[size];
   for (unsigned int i = 0; i < size; i++) temp[i] = rand();
-
+  */
   if (cudaFlag == 1) {
     gpuErrchk(cudaMemcpy(deviceVec, temp, size*sizeof(T),
                          cudaMemcpyHostToDevice));
@@ -49,6 +57,6 @@ void Array<T>::SetToRandom()
 // Instantiate
 //###################################################
 
-template void Array<unsigned int>::SetToRandom();
+template void Array<unsigned int>::SetToRandom(unsigned int seed);
 
 }  // namespace astrix
