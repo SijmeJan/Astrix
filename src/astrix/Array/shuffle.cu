@@ -23,10 +23,12 @@ namespace astrix {
 //###################################################
 
 template <class T>
-void Array<T>::Shuffle()
+void Array<T>::Shuffle(unsigned int seed)
 {
+  // Generate random numbers on host
   Array<unsigned int> *randomNumbers = new Array<unsigned int>(1, 0, size);
-  randomNumbers->SetToRandom();
+  randomNumbers->SetToRandom(seed);
+  // Copy to device
   if (cudaFlag == 1) randomNumbers->TransformToDevice();
 
   Array<unsigned int> *randomPermutation =
@@ -45,7 +47,7 @@ void Array<T>::Shuffle()
 // Instantiate
 //###################################################
 
-template void Array<int>::Shuffle();
-template void Array<unsigned int>::Shuffle();
+template void Array<int>::Shuffle(unsigned int seed);
+template void Array<unsigned int>::Shuffle(unsigned int seed);
 
 }  // namespace astrix
