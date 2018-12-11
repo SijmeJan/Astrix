@@ -241,11 +241,13 @@ void Mesh::Init(const char *fileName, int restartNumber)
           temp->MakeIntrinsic2D(vertexCoordinatesToAdd);
           delete temp;
 
+          /*
           real2 origin;
-          origin.x = 0.5*(meshParameter->maxx + meshParameter->minx);
-          origin.y = 0.5*(meshParameter->maxy + meshParameter->miny);
+          origin.x = 1.0;//0.5*(meshParameter->maxx + meshParameter->minx);
+          origin.y = 1.0;//0.5*(meshParameter->maxy + meshParameter->miny);
 
           vertexCoordinatesToAdd->SortCounterClock<real>(origin);
+          */
 
           // If internal vertices are given, but no boundary vertices,
           // need convex hull of point set to determine initial triangulation
