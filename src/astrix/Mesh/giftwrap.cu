@@ -95,6 +95,7 @@ Array<real2>* Mesh::ConvexHull(Array<real2> *pointCoordinates)
 
   int prev = startIndex;
   int mid = next;
+  int index = 0;
 
   while (mid != startIndex) {
     mid = next;
@@ -104,7 +105,8 @@ Array<real2>* Mesh::ConvexHull(Array<real2> *pointCoordinates)
                              pC[mid].x, pC[mid].y,
                              pC[next].x, pC[next].y, pParam) != 0) {
       // Add mid to convex hull
-      hFlag[mid] = mid;
+      hFlag[mid] = index;
+      index++;
     }
 
     prev = mid;
