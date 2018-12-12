@@ -157,6 +157,7 @@ void TestEncroachSingle(int i, int *pElementAdd, real2 *pVcAdd,
     }
   }
 
+  // Three vertices to walk around
   int3 vCheck;
   vCheck.x = pTv[tStart].x;
   vCheck.y = pTv[tStart].y;
@@ -204,7 +205,7 @@ void TestEncroachSingle(int i, int *pElementAdd, real2 *pVcAdd,
 
       if (a != vCheckOrig && b != vCheckOrig && c != vCheckOrig) {
         int N = nVertex;
-        if (a > 3*N || b > 3*N || c > 3*N)
+        if (a >= 3*N || b >= 3*N || c >= 3*N)
           y = pVcAdd[i].y + Py;
         if (a < -N || b < -N || c < -N)
           y = pVcAdd[i].y - Py;
