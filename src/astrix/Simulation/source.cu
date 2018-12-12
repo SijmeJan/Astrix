@@ -82,7 +82,7 @@ void CalcVertexSourceSingle(int n, ProblemDefinition problemDef, const real2 *pV
       (Sq(pState[n].z)/Sq(Sq(r)) - Sq(pState[n].y))/pState[n].x -
       pState[n].x/Cb(r);
 
-    real q = 1.0e-4;
+    real q = 0.0e-4;
     real eps = 0.6*0.05;
 
     real dpotdx = q*r*(r - cos(y - M_PI))*
