@@ -527,6 +527,8 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     real vy = sqrt(r + (k + 2.0*cspow)*cs0*cs0*pow(r, 2.0 + 2.0*cspow));
 
     dens = pow(r, k);
+    //if (r > 0.5 && r < 2.4)
+    //  dens *= (1.0 + 0.1*exp(-Sq(y - 3.14)/0.01));
     momx = dens*vx;
     momy = dens*vy;
   }
