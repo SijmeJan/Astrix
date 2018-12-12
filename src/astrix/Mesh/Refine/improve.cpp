@@ -84,7 +84,7 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
       }
     }
 
-    if (verboseLevel > 2)
+    if (verboseLevel > 10)
       std::cout << std::endl << "Testing triangles..." << std::endl;
 
     // Look for low-quality triangles; result in badTriangles
@@ -92,7 +92,7 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
                                        meshParameter,
                                        triangleWantRefine);
 
-    if (verboseLevel > 2)
+    if (verboseLevel > 10)
       std::cout << "Finding circumcentres..." << std::endl;
 
     // New points will be added in circumcentres of bad triangles
@@ -105,7 +105,7 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
       // Adding points on triangle or edge
       elementAdd->SetSize(nRefine);
 
-      if (verboseLevel > 2)
+      if (verboseLevel > 10)
         std::cout << "Finding triangles..." << std::endl;
 
       // Find triangles for all new vertices
@@ -117,7 +117,7 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
         throw;
       }
 
-      if (verboseLevel > 2)
+      if (verboseLevel > 10)
         std::cout << "Testing encroachment..." << std::endl;
 
       // Check if any new vertex encroaches segment
@@ -126,7 +126,7 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
       if (verboseLevel > 1)
         std::cout << ", nBadTriangle = " << nRefine << ", ";
 
-      if (verboseLevel > 2)
+      if (verboseLevel > 10)
         std::cout << std::endl << "Parallel insertion..." << std::endl;
 
       // Find unique triangle set
@@ -147,13 +147,13 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
                                     vertexState,
                                     triangleWantRefine);
 
-        if (verboseLevel > 2)
+        if (verboseLevel > 10)
           std::cout << "Add periodic..." << std::endl;
 
         // Adjust periodic vertices
         AddToPeriodic(connectivity, nRefine);
 
-        if (verboseLevel > 2)
+        if (verboseLevel > 10)
           std::cout << "Inserting vertices..." << std::endl;
 
         // Insert new vertices into Mesh
@@ -190,7 +190,7 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
           }
         }
 
-        if (verboseLevel > 2)
+        if (verboseLevel > 10)
           std::cout << std::endl << "Splitting segments..." << std::endl;
 
         // Check if any of the points inserted on a segment encroach
@@ -216,7 +216,7 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
 
         int nEdgeCheck = edgeNeedsChecking->RemoveValue(-1);
 
-        if (verboseLevel > 2)
+        if (verboseLevel > 10)
           std::cout << "Delaunay..." << std::endl;
 
         // Maintain Delaunay triangulation
@@ -239,7 +239,7 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
           }
         }
 
-        if (verboseLevel > 2)
+        if (verboseLevel > 10)
           std::cout << "Morton..." << std::endl;
 
         // Morton ordering to preserve data locality
