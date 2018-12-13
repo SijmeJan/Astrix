@@ -71,7 +71,8 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
 
     // Check if Mesh is valid
     if (debugLevel > 0) {
-      connectivity->Save(900);
+      if (debugLevel > 1)
+        connectivity->Save(900);
       try {
         connectivity->CheckEdgeTriangles();
         connectivity->CheckTriangleAreas(predicates, meshParameter);
@@ -201,7 +202,8 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
 
         // Check if Mesh is valid
         if (debugLevel > 0) {
-          connectivity->Save(901);
+          if (debugLevel > 1)
+            connectivity->Save(901);
           try {
             connectivity->CheckEdgeTriangles();
             connectivity->CheckTriangleAreas(predicates, meshParameter);
@@ -226,7 +228,8 @@ int Refine::ImproveQuality(Connectivity * const connectivity,
 
         // Check if Mesh is valid
         if (debugLevel > 0) {
-          connectivity->Save(902);
+          if (debugLevel > 1)
+            connectivity->Save(902);
           try {
             connectivity->CheckEdgeTriangles();
             connectivity->CheckTriangleAreas(predicates, meshParameter);

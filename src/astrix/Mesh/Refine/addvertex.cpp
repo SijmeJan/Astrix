@@ -125,7 +125,8 @@ int Refine::AddVertices(Connectivity * const connectivity,
 
   // Check if Mesh is valid
   if (debugLevel > 0) {
-    connectivity->Save(900);
+    if (debugLevel > 1)
+      connectivity->Save(900);
 
     try {
       connectivity->CheckEdgeTriangles();
