@@ -51,7 +51,7 @@ void CalcVertexSourceSingle(int n, ProblemDefinition problemDef,
 
   if (problemDef == PROBLEM_DISC) {
     real x = pVc[n].x;
-    real y = pVc[n].y;
+    //real y = pVc[n].y;
 
     real r = exp(x);
     pSource[n].y =
@@ -73,16 +73,17 @@ void CalcVertexSourceSingle(int n, ProblemDefinition problemDef, const real2 *pV
 
   if (problemDef == PROBLEM_DISC) {
     real x = pVc[n].x;
-    real y = pVc[n].y;
+    //real y = pVc[n].y;
 
     // Cylindrical radius
     real r = exp(x);
     // Centrifugal, gravity, geometrical
     pSource[n].y =
       (Sq(pState[n].z)/Sq(Sq(r)) - Sq(pState[n].y))/pState[n].x -
-      pState[n].x/Cb(r);
+      1.0*pState[n].x/Cb(r);
 
-    real q = 0.0e-4;
+    /*
+    real q = 1.0e-5;
     real eps = 0.6*0.05;
 
     real dpotdx = q*r*(r - cos(y - M_PI))*
@@ -96,6 +97,7 @@ void CalcVertexSourceSingle(int n, ProblemDefinition problemDef, const real2 *pV
 
     pSource[n].y -= pState[n].x*dpotdx/Sq(r);
     pSource[n].z = -pState[n].x*dpotdy;
+    */
   }
 
 }
