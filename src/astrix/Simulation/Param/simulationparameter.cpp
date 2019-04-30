@@ -51,6 +51,7 @@ SimulationParameter::SimulationParameter()
   soundspeed0 = 1.0;
   soundspeedPower = 0.0;
   frameAngularVelocity = 0.0;
+  densityPower = 0.0;
 }
 
 //#########################################################################
