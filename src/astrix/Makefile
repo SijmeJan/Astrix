@@ -29,6 +29,14 @@ ASTRIX_DEBUG ?= 0
 # By default, use single precision (requires rebuild if changed)
 ASTRIX_DOUBLE ?= -1
 
+# Include path to boost library
+BOOST_INCLUDE_PATH ?=
+
+#/Users/sjp/Downloads/boost_1_60_0
+
+# By default, do not link to GNU Scientific Library
+ASTRIX_GSL ?= 0
+
 # Directory to put binaries in
 BINDIR = ../../bin
 
@@ -92,6 +100,10 @@ endif
 ifeq ($(ASTRIX_DEBUG),1)
 	NVCCFLAGS += -g -G
 endif
+# Add GNU Scientific Library flags if needed
+ifeq ($(ASTRIX_GSL),1)
+	LDFLAGS += -lgsl -lgslcblas -lm
+endif
 
 # Double precision support
 NVCCFLAGS += -DUSE_DOUBLE=$(ASTRIX_DOUBLE)
@@ -113,7 +125,7 @@ ALL_LDFLAGS += $(NVCCLDFLAGS)
 ALL_LDFLAGS += $(addprefix -Xlinker ,$(LDFLAGS))
 
 # Common includes and paths for CUDA
-INCLUDES  := -I$(CUDA_INSTALL_PATH)/include
+INCLUDES  := -I$(CUDA_INSTALL_PATH)/include -I$(BOOST_INCLUDE_PATH)
 LIBRARIES := -L$(LIB_PATH)
 
 ################################################################################
@@ -177,10 +189,10 @@ clean:
 
 %.o:%.cu
 	$(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -dc -o $@ -c $<
-	$(NVCC) -Wno-deprecated-gpu-targets -E -Xcompiler "-isystem $(CUDA_INSTALL_PATH)/include -MT $@ -MM" -o $*.d $<
+	$(NVCC) -Wno-deprecated-gpu-targets -E -Xcompiler "-isystem $(CUDA_INSTALL_PATH)/include -isystem $(BOOST_INCLUDE_PATH) -MT $@ -MM" -o $*.d $<
 %.o:%.cpp
 	$(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -dc -o $@ -c $<
-	$(NVCC) -Wno-deprecated-gpu-targets -E -Xcompiler "-isystem $(CUDA_INSTALL_PATH)/include -MT $@ -MM" -o $*.d $<
+	$(NVCC) -Wno-deprecated-gpu-targets -E -Xcompiler "-isystem $(CUDA_INSTALL_PATH)/include -isystem $(BOOST_INCLUDE_PATH) -MT $@ -MM" -o $*.d $<
 
 # Keep .d files
 .PRECIOUS: %.d
