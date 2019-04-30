@@ -154,6 +154,11 @@ void SimulationParameter::ReadFromFile(const char *fileName,
         maxError = atof(secondWord.c_str());
     }
 
+    if (firstWord == "densityPower") {
+      if (!secondWord.empty() &&
+          secondWord.find_first_not_of("0123456789.-e") == std::string::npos)
+        densityPower = atof(secondWord.c_str());
+    }
     if (firstWord == "soundspeed0") {
       if (!secondWord.empty() &&
           secondWord.find_first_not_of("0123456789.-e") == std::string::npos)
