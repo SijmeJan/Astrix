@@ -158,6 +158,7 @@ void Simulation<realNeq, CL>::DoTimeStep()
 
   // Calculate time step
   real dt = CalcVertexTimeStep();
+  //dt = 1.0e-4;
 
   /*
   if (problemDef == PROBLEM_VORTEX ||
@@ -170,7 +171,8 @@ void Simulation<realNeq, CL>::DoTimeStep()
     SetRiemannBoundaries();
 
   // Set exact inflow boundaries
-  if (problemDef == PROBLEM_SOURCE)
+  if (problemDef == PROBLEM_SOURCE ||
+      problemDef == PROBLEM_DISC)
     SetInitial(simulationTime, 1);
 
   // Boundary conditions for 2D Noh
@@ -203,6 +205,7 @@ void Simulation<realNeq, CL>::DoTimeStep()
   // Reflecting boundaries
   if (problemDef == PROBLEM_CYL ||
       problemDef == PROBLEM_SOD ||
+      //problemDef == PROBLEM_DISC ||
       problemDef == PROBLEM_BLAST)
     ReflectingBoundaries(dt);
 
@@ -210,8 +213,8 @@ void Simulation<realNeq, CL>::DoTimeStep()
     SetSymmetricBoundaries();
 
   // Nonreflecting boundaries
-  if (problemDef == PROBLEM_VORTEX ||
-      problemDef == PROBLEM_DISC)
+  if (problemDef == PROBLEM_VORTEX)// ||
+    //problemDef == PROBLEM_DISC)
     SetNonReflectingBoundaries();
 
   if (simulationParameter->integrationOrder == 2) {
@@ -226,7 +229,8 @@ void Simulation<realNeq, CL>::DoTimeStep()
       SetRiemannBoundaries();
 
     // Exact inflow boundaries
-    if (problemDef == PROBLEM_SOURCE)
+    if (problemDef == PROBLEM_SOURCE ||
+        problemDef == PROBLEM_DISC)
       SetInitial(simulationTime + dt, 1);
 
     // Boundary conditions for 2D Noh
@@ -280,6 +284,7 @@ void Simulation<realNeq, CL>::DoTimeStep()
     // Reflecting boundaries
     if (problemDef == PROBLEM_CYL ||
         problemDef == PROBLEM_SOD ||
+        //problemDef == PROBLEM_DISC ||
         problemDef == PROBLEM_BLAST)
       ReflectingBoundaries(dt);
 
@@ -287,8 +292,7 @@ void Simulation<realNeq, CL>::DoTimeStep()
       SetSymmetricBoundaries();
 
     // Nonreflecting boundaries
-    if (problemDef == PROBLEM_VORTEX ||
-        problemDef == PROBLEM_DISC)
+    if (problemDef == PROBLEM_VORTEX)
       SetNonReflectingBoundaries();
   }
 
