@@ -43,7 +43,8 @@ Reflecting boundary conditions are implemented "weakly" by adding a corrective f
 \param *pTn3 Pointer to first edge normal of triangle
 \param nVertex Total number of vertices in Mesh
 \param G1 Ratio of specific heats - 1
-\param *pVp Pointer to external potential at vertices*/
+\param *pVp Pointer to external potential at vertices
+\param *pSource Pointer to vertex source terms*/
 //#########################################################################
 
 __host__ __device__
@@ -52,7 +53,7 @@ void SetReflectingEdge(int n, int e, real dt, real4 *pState,
                        const real *pVarea, const real3 *pTl,
                        const real2 *pTn1, const real2 *pTn2,
                        const real2 *pTn3, int nVertex, real G1,
-                       const real *pVp)
+                       const real *pVp, const real4 *pSource)
 {
   const real half  = (real) 0.5;
   const real one = (real) 1.0;
@@ -263,7 +264,8 @@ void SetReflectingEdge(int n, int e, real dt, real3 *pState,
                        const int3 *pTv, int e1, int e2, int e3,
                        const real *pVarea, const real3 *pTl,
                        const real2 *pTn1, const real2 *pTn2,
-                       const real2 *pTn3, int nVertex, real G1, real *pVp)
+                       const real2 *pTn3, int nVertex, real G1,
+                       real *pVp, const real3 *pSource)
 {
   const real half  = (real) 0.5;
   const real one = (real) 1.0;
@@ -339,6 +341,7 @@ void SetReflectingEdge(int n, int e, real dt, real3 *pState,
 
   real A = (real) 0.75;
   real dtdx = dt*edge_length/pVarea[vj];
+
   pState[vj].x -= half*dtdx*(A*Fcorrj0 + (one - A)*Fcorrk0);
   pState[vj].y -= half*dtdx*(A*Fcorrj1 + (one - A)*Fcorrk1);
   pState[vj].z -= half*dtdx*(A*Fcorrj2 + (one - A)*Fcorrk2);
@@ -375,7 +378,8 @@ void SetReflectingEdge(int n, int e, real dt, real *pState,
                        const int3 *pTv, int e1, int e2, int e3,
                        const real *pVarea, const real3 *pTl,
                        const real2 *pTn1, const real2 *pTn2,
-                       const real2 *pTn3, int nVertex, real G1, real *pVp)
+                       const real2 *pTn3, int nVertex, real G1,
+                       real *pVp, const real *pSource)
 {
   const real half  = (real) 0.5;
   const real one = (real) 1.0;
@@ -465,7 +469,8 @@ Reflecting boundary conditions are implemented "weakly" by adding a corrective f
 \param *pTn3 Pointer to first edge normal of triangle
 \param nVertex Total number of vertices in Mesh
 \param G1 Ratio of specific heats - 1
-\param *pVp Pointer to external potential at vertices*/
+\param *pVp Pointer to external potential at vertices
+\param *pSource Pointer to vertex source terms*/
 //#########################################################################
 
 template<class realNeq, ConservationLaw CL>
@@ -476,7 +481,7 @@ void SetReflectingSingle(int n, real dt, realNeq *pState, const int3 *pTv,
                          const real *pVarea, const real3 *pTl,
                          const real2 *pTn1, const real2 *pTn2,
                          const real2 *pTn3, int nVertex, real G1,
-                         real *pVp)
+                         real *pVp, const realNeq *pSource)
 {
   int e1 = pTe[n].x;
   int e2 = pTe[n].y;
@@ -490,7 +495,7 @@ void SetReflectingSingle(int n, real dt, realNeq *pState, const int3 *pTv,
                       pTv, e1, e2, e3,
                       pVarea, pTl,
                       pTn1, pTn2, pTn3,
-                      nVertex, G1, pVp);
+                      nVertex, G1, pVp, pSource);
 
   int t12 = pEt[e2].x;
   int t22 = pEt[e2].y;
@@ -500,7 +505,7 @@ void SetReflectingSingle(int n, real dt, realNeq *pState, const int3 *pTv,
                       pTv, e1, e2, e3,
                       pVarea, pTl,
                       pTn1, pTn2, pTn3,
-                      nVertex, G1, pVp);
+                      nVertex, G1, pVp, pSource);
 
   int t13 = pEt[e3].x;
   int t23 = pEt[e3].y;
@@ -510,7 +515,7 @@ void SetReflectingSingle(int n, real dt, realNeq *pState, const int3 *pTv,
                       pTv, e1, e2, e3,
                       pVarea, pTl,
                       pTn1, pTn2, pTn3,
-                      nVertex, G1, pVp);
+                      nVertex, G1, pVp, pSource);
 }
 
 //############################################################################
@@ -531,7 +536,8 @@ Reflecting boundary conditions are implemented "weakly" by adding a corrective f
 \param nTriangle Total number of triangles in Mesh
 \param nVertex Total number of vertices in Mesh
 \param G1 Ratio of specific heats - 1
-\param *pVp Pointer to external potential at vertices*/
+\param *pVp Pointer to external potential at vertices
+\param *pSource Pointer to vertex source terms*/
 //############################################################################
 
 template<class realNeq, ConservationLaw CL>
@@ -541,7 +547,8 @@ devSetReflecting(real dt, realNeq *pState, const int3 *pTv,
                  const int2* __restrict__ pEt,
                  const real *pVarea, const real3 *pTl,
                  const real2 *pTn1, const real2 *pTn2, const real2 *pTn3,
-                 int nTriangle, int nVertex, real G1, real *pVp)
+                 int nTriangle, int nVertex, real G1, real *pVp,
+                 const realNeq *pSource)
 {
   unsigned int n = blockIdx.x*blockDim.x + threadIdx.x;
 
@@ -550,7 +557,7 @@ devSetReflecting(real dt, realNeq *pState, const int3 *pTv,
                                      pTv, pTe, pEt,
                                      pVarea, pTl,
                                      pTn1, pTn2, pTn3,
-                                     nVertex, G1, pVp);
+                                     nVertex, G1, pVp, pSource);
 
     n += gridDim.x*blockDim.x;
   }
@@ -567,6 +574,7 @@ void Simulation<realNeq, CL>::ReflectingBoundaries(real dt)
 {
   realNeq *pState = vertexState->GetPointer();
   real *pVp = vertexPotential->GetPointer();
+  const realNeq *pSource = vertexSource->GetPointer();
 
   const int3 *pTv = mesh->TriangleVerticesData();
   const int3 *pTe = mesh->TriangleEdgesData();
@@ -593,7 +601,7 @@ void Simulation<realNeq, CL>::ReflectingBoundaries(real dt)
 
     devSetReflecting<realNeq, CL><<<nBlocks, nThreads>>>
       (dt, pState, pTv, pTe, pEt, pVarea, pTl,
-       pTn1, pTn2, pTn3, nTriangle, nVertex, G - 1.0, pVp);
+       pTn1, pTn2, pTn3, nTriangle, nVertex, G - 1.0, pVp, pSource);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -602,7 +610,7 @@ void Simulation<realNeq, CL>::ReflectingBoundaries(real dt)
       SetReflectingSingle<realNeq, CL>(n, dt, pState,
                                        pTv, pTe, pEt, pVarea, pTl,
                                        pTn1, pTn2, pTn3,
-                                       nVertex, G - 1.0, pVp);
+                                       nVertex, G - 1.0, pVp, pSource);
   }
 }
 
