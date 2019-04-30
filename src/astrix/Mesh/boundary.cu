@@ -131,7 +131,7 @@ void SetVertexOuterBoundarySingle(int n, ProblemDefinition problemDef,
     }
     if (n == 3) {
       pVc[n].x = 0.61*(maxx - minx) + minx;
-      pVc[n].y = 0.40*(maxy - miny) + miny;
+      pVc[n].y = 0.43*(maxy - miny) + miny;
     }
 
     if (periodicFlagX == 0) {
@@ -284,6 +284,7 @@ devSetVertexInnerBoundary(ProblemDefinition problemDef, real2 *pVc,
 
 void Mesh::ConstructBoundaries(Array <real2> *vertexBoundaryCoordinates)
 {
+  // Flag whether vertex positions are read from file
   int fixedVerticesFlag = 0;
   if (vertexBoundaryFlag != 0)
     fixedVerticesFlag = 1;
@@ -294,8 +295,8 @@ void Mesh::ConstructBoundaries(Array <real2> *vertexBoundaryCoordinates)
   int nVertexOuterBoundary = 0;
   int nVertexInnerBoundary = 0;
 
-  // Coordinates of boundary vertices
   if (vertexBoundaryCoordinates == 0) {
+    // Not reading vertex positions from file: create
     vertexBoundaryCoordinates = new Array<real2>(1, cudaFlag);
 
     if (meshParameter->problemDef == PROBLEM_RIEMANN ||
