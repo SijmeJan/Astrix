@@ -153,7 +153,11 @@ void Connectivity::CheckEncroach(const MeshParameter *mp)
   real Px = mp->maxx - mp->minx;
   real Py = mp->maxy - mp->miny;
 
+  int error = 0;
+
+  // Check all edges
   for (int i = 0; i < nEdge; i++) {
+    // Only proceed if edge has only one neighbouring triangle (= t)
     int t1 = pEt[i].x;
     int t2 = pEt[i].y;
 
@@ -185,12 +189,16 @@ void Connectivity::CheckEncroach(const MeshParameter *mp)
           (E.z == i && dot3 < 0.0)) {
         std::cout << "Edge " << i << " is an encroached segment! "
                   << std::endl;
-        std::cout << "Dumping mesh with save index 999" << std::endl;
-        Save(999);
-
-        throw std::runtime_error("");
+        error = 1;
       }
     }
+  }
+
+  if (error == 1) {
+    std::cout << "Dumping mesh with save index 999" << std::endl;
+    Save(999);
+
+    throw std::runtime_error("");
   }
 }
 
