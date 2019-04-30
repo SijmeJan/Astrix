@@ -367,6 +367,7 @@ void Mesh::Init(const char *fileName, int restartNumber)
                   (real)(Array<int4>::memAllocatedDevice) +
                   (real)(Array<unsigned int>::memAllocatedDevice))/
       (real) (1073741824) << " Gb" << std::endl;
+    std::cout << "Total area: " << GetTotalArea() << std::endl;
   }
 }
 
