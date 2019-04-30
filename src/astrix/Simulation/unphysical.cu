@@ -73,7 +73,7 @@ void FlagUnphysicalVertex(const int v, real3 *pState, real *pVp,
   real dens = pState[v].x;
 
   // Flag if negative density or pressure
-  if (dens < zero) ret = 1;
+  if (dens < zero || isnan(dens)) ret = 1;
 
   // Output flag
   pVertexUnphysicalFlag[v] = ret;
