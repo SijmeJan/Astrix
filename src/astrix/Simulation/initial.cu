@@ -15,6 +15,9 @@ You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <iostream>
 
+#include <gsl/gsl_sf_bessel.h>
+#include <boost/math/special_functions/bessel.hpp>
+
 #include "../Common/definitions.h"
 #include "../Array/array.h"
 #include "../Mesh/mesh.h"
@@ -51,14 +54,17 @@ real funcBump(real t)
 \param G Ratio of specific heats
 \param time Simulation time
 \param Px Length of x domain
-\param Py Length of y domain*/
+\param Py Length of y domain
+\param denspow Density power law index (cylindrical isothermal only)
+\param cs0 Soundspeed at x = 0 (cylindrical isothermal only)
+\param cspow Soundspeed power law index (cylindrical isothermal only)*/
 //##############################################################################
 
 template <ConservationLaw CL>
 __host__ __device__
 void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
                       real *pVpot, real4 *state, real G, real time,
-                      real Px, real Py)
+                      real Px, real Py, real denspow, real cs0, real cspow)
 {
   // const real onethird = (real) (1.0/3.0);
   const real zero = (real) 0.0;
@@ -457,7 +463,7 @@ template <ConservationLaw CL>
 __host__ __device__
 void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
                       real *pVpot, real3 *state, real G, real time,
-                      real Px, real Py)
+                      real Px, real Py, real denspow, real cs0, real cspow)
 {
   real zero = (real) 0.0;
   real one = (real) 1.0;
@@ -516,17 +522,89 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     real x = vertX;
     real y = vertY;
 
-    real k = 2.0;
-    real cs0 = 0.05;
-    real cspow = -1.0;
-
     // Cylindrical radius
     real r = exp(x);
-    real vx = (real) 1.0e-10;
-    // Angular momentum
-    real vy = sqrt(r + (k + 2.0*cspow)*cs0*cs0*pow(r, 2.0 + 2.0*cspow));
 
-    dens = pow(r, k);
+    dens = pow(r, denspow);
+    real vx = 0.0e-10;
+    // Angular momentum
+    real vy = sqrt(1.0*r +
+                   (denspow + 2.0*cspow)*cs0*cs0*pow(r, 4.0 + 2.0*cspow));
+
+    // Linear perturbations
+    real A = 1.0e-5;            // Amplitude
+    // Surface density \propto r^{-a}
+    real a = 2.0 - denspow;
+
+    /*
+    // NO GRAVITY
+    real k = 4.0*M_PI/Px;
+    real w = 0.5*sqrt(4.0*k*k + a*a - 20.0*a + 36.0)*cs0;
+    real f = A*sin(k*x);
+    real df = A*k*cos(k*x);
+
+    real u1 = f*cos(w*time)/sqrt(dens);
+    real d1 = -sqrt(dens)*(df + (1.0 - 0.5*a)*f)*sin(w*time)/w;
+    real v1 = -r*r*f*sin(w*time)*2.0*sqrt(2.0-a)*cs0/(w*sqrt(dens));
+
+    */
+
+    /*
+    // GRAVITY: needs denspow=0, soundspeed0=1/sqrt(3), soundspeedPower=-1.5
+    real b0 = 5.40278878940795; //1.3196250078464;
+    real c1 = 2.6674287565997314; //66.561534022766;
+    real w = cs0*b0;
+
+    real q = 2.0*b0*r*sqrt(r)/3.0;
+    real g = A*sqrt(r)*(gsl_sf_bessel_J0(q) + c1*gsl_sf_bessel_Y0(q));
+    real dg = 0.5*g/r - A*b0*r*(gsl_sf_bessel_J1(q) + c1*gsl_sf_bessel_Y1(q));
+
+    real u1 = g*cos(w*time)/sqrt(dens*r);
+    real d1 = sqrt(dens/r)*(0.5*(a - 1.0)*g - r*dg)*sin(w*time)/w;
+    //real v1 = -0.5*g*sqrt(1.0 - (a + 1.0)*cs0*cs0)*sin(w*time)/(w*sqrt(dens));
+    real v1 = 0.0;
+    */
+
+    // DISC: needs denspow=0, soundspeed0=0.1, soundspeedPower=-1.5
+    real b0 = 20.829436532817862;
+    real c1 = 2.831729237113438;
+    real w = cs0*b0;
+
+    real nu = sqrt(1.0 + 4.0/(cs0*cs0) - 8.0*a + a*a - 1.0)/3.0;
+    real q = 2.0*b0*r*sqrt(r)/3.0;
+
+    real Jplus = boost::math::cyl_bessel_j(nu, q);
+    real Jmin  = boost::math::cyl_bessel_j(-nu, q);
+    real dJplus = 0.5*(boost::math::cyl_bessel_j(nu - 1.0, q) -
+                       boost::math::cyl_bessel_j(nu + 1.0, q));
+    real dJmin  = 0.5*(boost::math::cyl_bessel_j(-nu - 1.0, q) -
+                       boost::math::cyl_bessel_j(-nu + 1.0, q));
+
+    real g = A*sqrt(r)*(Jmin + c1*Jplus);
+
+    real dg = 0.5*g/r + A*b0*r*(dJmin + c1*dJplus);
+
+    real u1 = g*cos(w*time)/sqrt(dens*r);
+    real d1 = sqrt(dens/r)*(0.5*(a - 1.0)*g - r*dg)*sin(w*time)/w;
+    real v1 = -0.5*g*sqrt(1.0 - (a + 1.0)*cs0*cs0)*sin(w*time)/(w*sqrt(dens));
+    //real v1 = 0.0;
+
+    /*
+#ifndef __CUDA_ARCH__
+    std::cout << "Period: " << 2.0*M_PI/w << std::endl;
+    std::cout << u1 << " " << d1 << " " << v1 << std::endl;
+    //std::cout << vy << std::endl;
+    //std::cout << r + (denspow + 2.0*cspow)*cs0*cs0*pow(r, 4.0 + 2.0*cspow)
+    //          << std::endl;
+    int qq; std::cin >> qq;
+#endif
+    */
+
+    dens += d1;
+    vx += u1;
+    vy += v1;
+
+
     //if (r > 0.5 && r < 2.4)
     //  dens *= (1.0 + 0.1*exp(-Sq(y - 3.14)/0.01));
     momx = dens*vx;
@@ -543,7 +621,7 @@ template <ConservationLaw CL>
 __host__ __device__
 void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
                       real *pVpot, real *state, real G, real time,
-                      real Px, real Py)
+                      real Px, real Py, real denspow, real cs0, real cspow)
 {
   real vertX = pVc[n].x;
   real vertY = pVc[n].y;
@@ -620,6 +698,9 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
 \param time Current simulation time
 \param Px Length of x domain
 \param Py Length of y domain
+\param denspow Density power law index (cylindrical isothermal only)
+\param cs0 Soundspeed at x = 0 (cylindrical isothermal only)
+\param cspow Soundspeed power law index (cylindrical isothermal only)
 \param *pVertexFlag Pointer to flags indicating whether vertex is part of boundary
 \param boundaryFlag Flag whether to set only boundary vertices*/
 //######################################################################
@@ -629,6 +710,7 @@ __global__ void
 devSetInitial(int nVertex, const real2 *pVc, ProblemDefinition problemDef,
               real *pVertexPotential, realNeq *state,
               real G, real time, real Px, real Py,
+              real denspow, real cs0, real cspow,
               const int *pVertexFlag, int boundaryFlag)
 {
   // n = vertex number
@@ -642,7 +724,7 @@ devSetInitial(int nVertex, const real2 *pVc, ProblemDefinition problemDef,
 
     if (do_flag)
       SetInitialSingle<CL>(n, pVc, problemDef, pVertexPotential, state,
-                           G, time, Px, Py);
+                           G, time, Px, Py, denspow, cs0, cspow);
 
     n += blockDim.x*gridDim.x;
   }
@@ -670,6 +752,10 @@ void Simulation<realNeq, CL>::SetInitial(real time,
   real G = simulationParameter->specificHeatRatio;
   ProblemDefinition p = simulationParameter->problemDef;
 
+  const real denspow = simulationParameter->densityPower;
+  const real cs0 = simulationParameter->soundspeed0;
+  const real cspow = simulationParameter->soundspeedPower;
+
   const int *pVertexFlag = mesh->VertexBoundaryFlagData();
 
   if (cudaFlag == 1) {
@@ -683,6 +769,7 @@ void Simulation<realNeq, CL>::SetInitial(real time,
 
     devSetInitial<realNeq, CL><<<nBlocks, nThreads>>>
       (nVertex, pVc, p, pVertexPotential, state, G, time, Px, Py,
+       denspow, cs0, cspow,
        pVertexFlag, boundaryFlag);
 
     gpuErrchk( cudaPeekAtLastError() );
@@ -697,7 +784,8 @@ void Simulation<realNeq, CL>::SetInitial(real time,
 
       if (do_flag)
         SetInitialSingle<CL>(n, pVc, p, pVertexPotential,
-                             state, G, time, Px, Py);
+                             state, G, time, Px, Py,
+                             denspow, cs0, cspow);
     }
 
   }
