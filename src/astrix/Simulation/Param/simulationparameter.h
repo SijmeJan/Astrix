@@ -71,6 +71,9 @@ class SimulationParameter
   //! Soundspeed exponent (cs = cs0*exp(cs_pow*x))
   real soundspeedPower;
 
+  //! Density exponent (dens = exp(dens_pow*x))
+  real densityPower;
+
   //! Angular velocity coordinate frame (cylindrical coordinates only)
   real frameAngularVelocity;
 
