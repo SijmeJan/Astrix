@@ -40,10 +40,10 @@ namespace astrix {
 
 template <class realNeq, ConservationLaw CL>
 Simulation<realNeq, CL>::Simulation(int _verboseLevel,
-                                int _debugLevel,
-                                char *fileName,
-                                Device *_device,
-                                int restartNumber)
+                                    int _debugLevel,
+                                    char *fileName,
+                                    Device *_device,
+                                    int restartNumber)
 {
   std::cout << "Setting up Astrix simulation using parameter file \'"
             << fileName << "\'" << std::endl;
@@ -191,11 +191,13 @@ void Simulation<realNeq, CL>::Init(int restartNumber)
     // Set initial conditions
     SetInitial(0.0, 0);
 
-    if (mesh->IsAdaptive() == 1) {
+    if (mesh->IsAdaptive() > 0) {
       ReplaceEnergyWithPressure();
-      Coarsen(-1);
-      Refine();
-      Coarsen(-1);
+      if (mesh->IsAdaptive() == 1) {
+        Coarsen(-1);
+        Refine();
+        Coarsen(-1);
+      }
       Refine();
       ReplacePressureWithEnergy();
     }
