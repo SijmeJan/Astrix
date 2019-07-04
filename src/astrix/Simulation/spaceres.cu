@@ -1880,8 +1880,8 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
   ny = Tny1;
   l1 = max(zero, vx*nx + vy*ny);
 
-  ResN   = l1*What0;
-  ResLDA =-l1*Wtemp;
+  ResN   = l1*What0;          // ResN = K^+*What = K^+*(What - N*Sum(K^-*What))
+  ResLDA =-l1*Wtemp;          // ResLDA = -K^+*Wtemp = -K^+*N*ResTot
 
   pTresN0[n]   = half*ResN;
   pTresLDA0[n] = half*ResLDA;
@@ -1903,7 +1903,7 @@ void CalcSpaceResSingle(int n, const int3 *pTv, real *pVz,
 
   l1 = max(zero, vx*nx + vy*ny);
 
-  ResN   = l1*What2;
+  ResN   = l1*What2;   // [ResN] = phi/x
   ResLDA =-l1*Wtemp;
 
   pTresN2[n]   = half*ResN;
