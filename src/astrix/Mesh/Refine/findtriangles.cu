@@ -149,9 +149,12 @@ int FindTriangle(int tStart, real& x, real& y, int nTriangle,
     // Not moving to new triangle: A1, A2, A3 >= 0
     if (tNext == t) {
       // Must have found edge if any of A's are zero
-      if (A1 == zero) edgeIndex = e1;
-      if (A2 == zero) edgeIndex = e2;
-      if (A3 == zero) edgeIndex = e3;
+      //if (A1 == zero) edgeIndex = e1;
+      //if (A2 == zero) edgeIndex = e2;
+      //if (A3 == zero) edgeIndex = e3;
+      if (abs(A1) < 1.0e-10) edgeIndex = e1;
+      if (abs(A2) < 1.0e-10) edgeIndex = e2;
+      if (abs(A3) < 1.0e-10) edgeIndex = e3;
 
       // Otherwise, we have found a triangle
       finished = 1;
