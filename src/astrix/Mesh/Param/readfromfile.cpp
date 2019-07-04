@@ -64,6 +64,7 @@ void MeshParameter::ReadFromFile(const char *fileName)
       if (secondWord == "SOURCE") problemDef = PROBLEM_SOURCE;
       if (secondWord == "GAUSS") problemDef = PROBLEM_GAUSS;
       if (secondWord == "DISC") problemDef = PROBLEM_DISC;
+      if (secondWord == "PLANET") problemDef = PROBLEM_PLANET;
     }
 
     // Equivalent no of points x-direction (check if number)
