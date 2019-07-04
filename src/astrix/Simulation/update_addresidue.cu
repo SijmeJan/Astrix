@@ -154,6 +154,46 @@ void AddResidueSingle(int n,
     lb3 = lb0;
   }
 
+  // Limited N Scheme
+  if (intScheme == SCHEME_NL) {
+    real a0 = max(0.0, pTresN0[n].x*tl1/pTresTot[n].x);
+    real a1 = max(0.0, pTresN0[n].y*tl1/pTresTot[n].y);
+    real a2 = max(0.0, pTresN0[n].z*tl1/pTresTot[n].z);
+    real a3 = max(0.0, pTresN0[n].w*tl1/pTresTot[n].w);
+
+    real b0 = max(0.0, pTresN1[n].x*tl2/pTresTot[n].x);
+    real b1 = max(0.0, pTresN1[n].y*tl2/pTresTot[n].y);
+    real b2 = max(0.0, pTresN1[n].z*tl2/pTresTot[n].z);
+    real b3 = max(0.0, pTresN1[n].w*tl2/pTresTot[n].w);
+
+    real c0 = max(0.0, pTresN2[n].x*tl3/pTresTot[n].x);
+    real c1 = max(0.0, pTresN2[n].y*tl3/pTresTot[n].y);
+    real c2 = max(0.0, pTresN2[n].z*tl3/pTresTot[n].z);
+    real c3 = max(0.0, pTresN2[n].w*tl3/pTresTot[n].w);
+
+    // Replace LDA with limited N
+    pTresLDA0[n].x = a0*pTresTot[n].x/((a0 + b0 + c0)*tl1);
+    pTresLDA0[n].y = a1*pTresTot[n].y/((a1 + b1 + c1)*tl1);
+    pTresLDA0[n].z = a2*pTresTot[n].z/((a2 + b2 + c2)*tl1);
+    pTresLDA0[n].w = a3*pTresTot[n].w/((a3 + b3 + c3)*tl1);
+
+    pTresLDA1[n].x = b0*pTresTot[n].x/((a0 + b0 + c0)*tl2);
+    pTresLDA1[n].y = b1*pTresTot[n].y/((a1 + b1 + c1)*tl2);
+    pTresLDA1[n].z = b2*pTresTot[n].z/((a2 + b2 + c2)*tl2);
+    pTresLDA1[n].w = b3*pTresTot[n].w/((a3 + b3 + c3)*tl2);
+
+    pTresLDA2[n].x = c0*pTresTot[n].x/((a0 + b0 + c0)*tl2);
+    pTresLDA2[n].y = c1*pTresTot[n].y/((a1 + b1 + c1)*tl2);
+    pTresLDA2[n].z = c2*pTresTot[n].z/((a2 + b2 + c2)*tl2);
+    pTresLDA2[n].w = c3*pTresTot[n].w/((a3 + b3 + c3)*tl2);
+
+    // Make sure only LDA (= limited N) is used
+    lb0 = 0.0;
+    lb1 = 0.0;
+    lb2 = 0.0;
+    lb3 = 0.0;
+  }
+
   real res0 = one;
   real res1 = one;
   real res2 = one;
@@ -176,7 +216,9 @@ void AddResidueSingle(int n,
     res3 = pTresLDA0[n].w;
   }
 
-  if (intScheme == SCHEME_B || intScheme == SCHEME_BX) {
+  if (intScheme == SCHEME_B ||
+      intScheme == SCHEME_BX ||
+      intScheme == SCHEME_NL) {
     real resN0 = pTresN0[n].x;
     real resN1 = pTresN0[n].y;
     real resN2 = pTresN0[n].z;
@@ -217,7 +259,9 @@ void AddResidueSingle(int n,
     res3 = pTresLDA1[n].w;
   }
 
-  if (intScheme == SCHEME_B || intScheme == SCHEME_BX) {
+  if (intScheme == SCHEME_B ||
+      intScheme == SCHEME_BX ||
+      intScheme == SCHEME_NL) {
     real resN0 = pTresN1[n].x;
     real resN1 = pTresN1[n].y;
     real resN2 = pTresN1[n].z;
@@ -258,7 +302,9 @@ void AddResidueSingle(int n,
     res3 = pTresLDA2[n].w;
   }
 
-  if (intScheme == SCHEME_B || intScheme == SCHEME_BX) {
+  if (intScheme == SCHEME_B ||
+      intScheme == SCHEME_BX ||
+      intScheme == SCHEME_NL) {
     real resN0 = pTresN2[n].x;
     real resN1 = pTresN2[n].y;
     real resN2 = pTresN2[n].z;
@@ -378,6 +424,39 @@ void AddResidueSingle(int n,
     lb2 = lb0;
   }
 
+  // Limited N Scheme
+  if (intScheme == SCHEME_NL) {
+    real a0 = max(0.0, pTresN0[n].x*tl1/pTresTot[n].x);
+    real a1 = max(0.0, pTresN0[n].y*tl1/pTresTot[n].y);
+    real a2 = max(0.0, pTresN0[n].z*tl1/pTresTot[n].z);
+
+    real b0 = max(0.0, pTresN1[n].x*tl2/pTresTot[n].x);
+    real b1 = max(0.0, pTresN1[n].y*tl2/pTresTot[n].y);
+    real b2 = max(0.0, pTresN1[n].z*tl2/pTresTot[n].z);
+
+    real c0 = max(0.0, pTresN2[n].x*tl3/pTresTot[n].x);
+    real c1 = max(0.0, pTresN2[n].y*tl3/pTresTot[n].y);
+    real c2 = max(0.0, pTresN2[n].z*tl3/pTresTot[n].z);
+
+    // Replace LDA with limited N
+    pTresLDA0[n].x = a0*pTresTot[n].x/((a0 + b0 + c0)*tl1);
+    pTresLDA0[n].y = a1*pTresTot[n].y/((a1 + b1 + c1)*tl1);
+    pTresLDA0[n].z = a2*pTresTot[n].z/((a2 + b2 + c2)*tl1);
+
+    pTresLDA1[n].x = b0*pTresTot[n].x/((a0 + b0 + c0)*tl2);
+    pTresLDA1[n].y = b1*pTresTot[n].y/((a1 + b1 + c1)*tl2);
+    pTresLDA1[n].z = b2*pTresTot[n].z/((a2 + b2 + c2)*tl2);
+
+    pTresLDA2[n].x = c0*pTresTot[n].x/((a0 + b0 + c0)*tl3);
+    pTresLDA2[n].y = c1*pTresTot[n].y/((a1 + b1 + c1)*tl3);
+    pTresLDA2[n].z = c2*pTresTot[n].z/((a2 + b2 + c2)*tl3);
+
+    // Make sure only LDA (= limited N) is used
+    lb0 = 0.0;
+    lb1 = 0.0;
+    lb2 = 0.0;
+  }
+
   real res0 = one;
   real res1 = one;
   real res2 = one;
@@ -397,7 +476,9 @@ void AddResidueSingle(int n,
     res2 = pTresLDA0[n].z;
   }
 
-  if (intScheme == SCHEME_B || intScheme == SCHEME_BX) {
+  if (intScheme == SCHEME_B ||
+      intScheme == SCHEME_BX ||
+      intScheme == SCHEME_NL) {
     real resN0 = pTresN0[n].x;
     real resN1 = pTresN0[n].y;
     real resN2 = pTresN0[n].z;
@@ -431,7 +512,9 @@ void AddResidueSingle(int n,
     res2 = pTresLDA1[n].z;
   }
 
-  if (intScheme == SCHEME_B || intScheme == SCHEME_BX) {
+  if (intScheme == SCHEME_B ||
+      intScheme == SCHEME_BX ||
+      intScheme == SCHEME_NL) {
     real resN0 = pTresN1[n].x;
     real resN1 = pTresN1[n].y;
     real resN2 = pTresN1[n].z;
@@ -465,7 +548,9 @@ void AddResidueSingle(int n,
     res2 = pTresLDA2[n].z;
   }
 
-  if (intScheme == SCHEME_B || intScheme == SCHEME_BX) {
+  if (intScheme == SCHEME_B ||
+      intScheme == SCHEME_BX ||
+      intScheme == SCHEME_NL) {
     real resN0 = pTresN2[n].x;
     real resN1 = pTresN2[n].y;
     real resN2 = pTresN2[n].z;
@@ -532,6 +617,20 @@ void AddResidueSingle(int n, const int3* __restrict__ pTv,
 
   if (intScheme == SCHEME_BX) lb0 = pShock[n];
 
+  // Limited N Scheme
+  if (intScheme == SCHEME_NL) {
+    real a0 = max(0.0, pTresN0[n]*tl1/pTresTot[n]);
+    real b0 = max(0.0, pTresN1[n]*tl2/pTresTot[n]);
+    real c0 = max(0.0, pTresN2[n]*tl3/pTresTot[n]);
+
+    // Replace LDA with limited N
+    pTresLDA0[n] = a0*pTresTot[n]/((a0 + b0 + c0)*tl1);
+    pTresLDA1[n] = b0*pTresTot[n]/((a0 + b0 + c0)*tl2);
+    pTresLDA2[n] = c0*pTresTot[n]/((a0 + b0 + c0)*tl3);
+
+    // Make sure only LDA (= limited N) is used
+    lb0 = 0.0;
+  }
 
   real res0 = one;
 
@@ -540,7 +639,9 @@ void AddResidueSingle(int n, const int3* __restrict__ pTv,
 
   if (intScheme == SCHEME_N) res0 = pTresN0[n];
   if (intScheme == SCHEME_LDA) res0 = pTresLDA0[n];
-  if (intScheme == SCHEME_B || intScheme == SCHEME_BX) {
+  if (intScheme == SCHEME_B ||
+      intScheme == SCHEME_BX ||
+      intScheme == SCHEME_NL) {
     real resN0 = pTresN0[n];
     real resLDA0 = pTresLDA0[n];
     res0 = lb0*resN0 + (one - lb0)*resLDA0;
@@ -553,7 +654,9 @@ void AddResidueSingle(int n, const int3* __restrict__ pTv,
 
   if (intScheme == SCHEME_N) res0 = pTresN1[n];
   if (intScheme == SCHEME_LDA) res0 = pTresLDA1[n];
-  if (intScheme == SCHEME_B || intScheme == SCHEME_BX) {
+  if (intScheme == SCHEME_B ||
+      intScheme == SCHEME_BX ||
+      intScheme == SCHEME_NL) {
     real resN0 = pTresN1[n];
     real resLDA0 = pTresLDA1[n];
     res0 = lb0*resN0 + (one - lb0)*resLDA0;
@@ -566,7 +669,9 @@ void AddResidueSingle(int n, const int3* __restrict__ pTv,
 
   if (intScheme == SCHEME_N) res0 = pTresN2[n];
   if (intScheme == SCHEME_LDA) res0 = pTresLDA2[n];
-  if (intScheme == SCHEME_B || intScheme == SCHEME_BX) {
+  if (intScheme == SCHEME_B ||
+      intScheme == SCHEME_BX ||
+      intScheme == SCHEME_NL) {
     real resN0 = pTresN2[n];
     real resLDA0 = pTresLDA2[n];
     res0 = lb0*resN0 + (one - lb0)*resLDA0;
