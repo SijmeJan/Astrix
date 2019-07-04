@@ -45,7 +45,8 @@ void SimulationParameter::CheckValidity(ConservationLaw CL)
       throw std::runtime_error("");
     }
   }
-  if (problemDef == PROBLEM_DISC) {
+  if (problemDef == PROBLEM_DISC ||
+      problemDef == PROBLEM_PLANET) {
     if (CL != CL_CYL_ISO) {
       std::cout << "Problem requires Conservation law CL_CYL_ISO"
                 << std::endl;
