@@ -132,17 +132,19 @@ void Simulation<realNeq, CL>::DoTimeStep()
               << "Starting time step " << nTimeStep << ", ";
 
   // Refine / coarsen mesh
-  if (mesh->IsAdaptive() == 1) {
+  if (mesh->IsAdaptive() > 0) {
     ReplaceEnergyWithPressure();
 
-    try {
-      Coarsen(-1);
+    // Coarsen only if 1, otherwise only refine
+    if (mesh->IsAdaptive() == 1) {
+      try {
+        Coarsen(-1);
+      }
+      catch (...) {
+        std::cout << "Error coarsening in DoTimeStep()" << std::endl;
+        throw;
+      }
     }
-    catch (...) {
-      std::cout << "Error coarsening in DoTimeStep()" << std::endl;
-      throw;
-    }
-
     try {
       Refine();
     }
@@ -172,7 +174,8 @@ void Simulation<realNeq, CL>::DoTimeStep()
 
   // Set exact inflow boundaries
   if (problemDef == PROBLEM_SOURCE ||
-      problemDef == PROBLEM_DISC)
+      problemDef == PROBLEM_DISC ||
+      problemDef == PROBLEM_PLANET)
     SetInitial(simulationTime, 1);
 
   // Boundary conditions for 2D Noh
@@ -184,7 +187,8 @@ void Simulation<realNeq, CL>::DoTimeStep()
 
   // Calculate source term
   if (problemDef == PROBLEM_SOURCE ||
-      problemDef == PROBLEM_DISC)
+      problemDef == PROBLEM_DISC ||
+      problemDef == PROBLEM_PLANET)
     CalcSource(vertexState);
 
   // Calculate parameter vector Z at nodes
@@ -192,6 +196,12 @@ void Simulation<realNeq, CL>::DoTimeStep()
 
   // Calculate (space) residuals at triangles
   CalcResidual();
+
+  // Stationary extrapolation
+  if (problemDef == PROBLEM_SOURCE ||
+      problemDef == PROBLEM_DISC ||
+      problemDef == PROBLEM_PLANET)
+    StatExp();
 
   // Update state at vertices
   try {
@@ -230,7 +240,8 @@ void Simulation<realNeq, CL>::DoTimeStep()
 
     // Exact inflow boundaries
     if (problemDef == PROBLEM_SOURCE ||
-        problemDef == PROBLEM_DISC)
+        problemDef == PROBLEM_DISC ||
+        problemDef == PROBLEM_PLANET)
       SetInitial(simulationTime + dt, 1);
 
     // Boundary conditions for 2D Noh
@@ -239,7 +250,8 @@ void Simulation<realNeq, CL>::DoTimeStep()
 
     // Calculate source term
     if (problemDef == PROBLEM_SOURCE ||
-        problemDef == PROBLEM_DISC)
+        problemDef == PROBLEM_DISC ||
+        problemDef == PROBLEM_PLANET)
       CalcSource(vertexState);
 
     // Calculate parameter vector Z at nodes
@@ -284,7 +296,6 @@ void Simulation<realNeq, CL>::DoTimeStep()
     // Reflecting boundaries
     if (problemDef == PROBLEM_CYL ||
         problemDef == PROBLEM_SOD ||
-        //problemDef == PROBLEM_DISC ||
         problemDef == PROBLEM_BLAST)
       ReflectingBoundaries(dt);
 
