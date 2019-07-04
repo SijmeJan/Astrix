@@ -35,14 +35,16 @@ namespace astrix {
 \param *pVc Pointer tovertex coordinates
 \param *pVp Pointer to external potential at vertices
 \param *pState Pointer to state vector
-\param *pSource Pointer to source vector (output)*/
+\param *pSource Pointer to source vector (output)
+\param time Simulation time*/
 //######################################################################
 
 template<ConservationLaw CL>
 __host__ __device__
 void CalcVertexSourceSingle(int n, ProblemDefinition problemDef,
                             const real2 *pVc, const real *pVp,
-                            const real4 *pState, real4 *pSource)
+                            const real4 *pState, real4 *pSource,
+                            const real time)
 {
   pSource[n].x = 0.0;
   pSource[n].y = 0.0;
@@ -64,8 +66,10 @@ void CalcVertexSourceSingle(int n, ProblemDefinition problemDef,
 //! Version for three equations
 template<ConservationLaw CL>
 __host__ __device__
-void CalcVertexSourceSingle(int n, ProblemDefinition problemDef, const real2 *pVc,
-                            const real *pVp, const real3 *pState, real3 *pSource)
+void CalcVertexSourceSingle(int n, ProblemDefinition problemDef,
+                            const real2 *pVc, const real *pVp,
+                            const real3 *pState, real3 *pSource,
+                            const real time)
 {
   pSource[n].x = 0.0;
   pSource[n].y = 0.0;
@@ -84,7 +88,7 @@ void CalcVertexSourceSingle(int n, ProblemDefinition problemDef, const real2 *pV
 
     /*
     real q = 1.0e-5;
-    real eps = 0.6*0.05;
+    real eps = 0.6*0.1;
 
     real dpotdx = q*r*(r - cos(y - M_PI))*
       pow(r*r + 1.0 - 2.0*r*cos(y - M_PI) + eps*eps, -1.5);
@@ -100,19 +104,50 @@ void CalcVertexSourceSingle(int n, ProblemDefinition problemDef, const real2 *pV
     */
   }
 
+  if (problemDef == PROBLEM_PLANET) {
+    real x = pVc[n].x;
+    real y = pVc[n].y;
+
+    // Cylindrical radius
+    real r = exp(x);
+    // Centrifugal, gravity, geometrical
+    pSource[n].y =
+      (Sq(pState[n].z)/Sq(Sq(r)) - Sq(pState[n].y))/pState[n].x -
+      1.0*pState[n].x/Cb(r);
+
+    real q = 1.0e-3;
+    real eps = 0.6*0.05;
+
+    real dpotdx = q*r*(r - cos(y - M_PI))*
+      pow(r*r + 1.0 - 2.0*r*cos(y - M_PI) + eps*eps, -1.5);
+    real dpotdy = q*r*sin(y - M_PI)*
+      pow(r*r + 1.0 - 2.0*r*cos(y - M_PI) + eps*eps, -1.5);
+
+    // Indirect term
+    dpotdx += q*r*cos(y - M_PI);
+    dpotdy -= q*r*sin(y - M_PI);
+
+    pSource[n].y -= pState[n].x*dpotdx/Sq(r);
+    pSource[n].z -= pState[n].x*dpotdy;
+  }
+
 }
 
 //! Version for single equation
 template<ConservationLaw CL>
 __host__ __device__
-void CalcVertexSourceSingle(int n, ProblemDefinition problemDef, const real2 *pVc,
-                            const real *pVp, const real *pState, real *pSource)
+void CalcVertexSourceSingle(int n, ProblemDefinition problemDef,
+                            const real2 *pVc, const real *pVp,
+                            const real *pState, real *pSource,
+                            const real time)
 {
   pSource[n] = 0.0;
 
   if (problemDef == PROBLEM_SOURCE) {
     if (CL == CL_ADVECT) {
-      pSource[n] = Sq(pState[n]);
+      //pSource[n] = Sq(pState[n]);
+      //pSource[n] = pState[n];
+      pSource[n] = 1.0;
       //pSource[n] = 8.0*M_PI*cos(8.0*M_PI*pVc[n].x);
 
       //real N = 10.0;
@@ -122,7 +157,8 @@ void CalcVertexSourceSingle(int n, ProblemDefinition problemDef, const real2 *pV
     }
 
     if (CL == CL_BURGERS)
-      pSource[n] = Sq(pState[n]);
+      //pSource[n] = Sq(pState[n]);
+      pSource[n] = pVc[n].x;
 
   }
 }
@@ -135,19 +171,21 @@ void CalcVertexSourceSingle(int n, ProblemDefinition problemDef, const real2 *pV
 \param *pVc Pointer to vertex coordinates
 \param *pVp Pointer to external potential at vertices
 \param *pState Pointer to state vector
-\param *pSource Pointer to source vector (output)*/
+\param *pSource Pointer to source vector (output)
+\param time Simulation time*/
 //######################################################################
 
 template<class realNeq, ConservationLaw CL>
 __global__ void
 devCalcVertexSource(int nVertex, ProblemDefinition problemDef, const real2 *pVc,
-                    const real *pVp, const realNeq *pState, realNeq *pSource)
+                    const real *pVp, const realNeq *pState, realNeq *pSource,
+                    const real time)
 {
   // n = vertex number
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
   while (n < nVertex) {
-    CalcVertexSourceSingle<CL>(n, problemDef, pVc, pVp, pState, pSource);
+    CalcVertexSourceSingle<CL>(n, problemDef, pVc, pVp, pState, pSource, time);
 
     n += blockDim.x*gridDim.x;
   }
@@ -167,7 +205,8 @@ devCalcVertexSource(int nVertex, ProblemDefinition problemDef, const real2 *pVc,
 \param *pVp Pointer to external potential at vertices
 \param *pState Pointer to state vector
 \param *pSource Pointer to source vector (output)
-\param *pVs Pointer to vertex source term*/
+\param *pVs Pointer to vertex source term
+\param time Simulation time*/
 //######################################################################
 
 template<ConservationLaw CL>
@@ -176,64 +215,41 @@ void CalcSourceSingle(int n, ProblemDefinition problemDef,
                       int nVertex, const int3 *pTv,
                       const real2 *pTn1, const real2 *pTn2, const real2 *pTn3,
                       const real3 *pTl, const real *pVp,
-                      const real4 *pState, real4 *pSource, const real4 *pVs)
+                      const real4 *pState, real4 *pSource, const real4 *pVs,
+                      const real time)
 {
   pSource[n].x = 0.0;
   pSource[n].y = 0.0;
   pSource[n].z = 0.0;
   pSource[n].w = 0.0;
 
-  if (problemDef == PROBLEM_SOURCE) {
-    real three = (real) 3.0;
-    real half = (real) 0.5;
+  real three = (real) 3.0;
+  real half = (real) 0.5;
 
-    // Vertices belonging to triangle
-    int v1 = pTv[n].x;
-    int v2 = pTv[n].y;
-    int v3 = pTv[n].z;
-    while (v1 >= nVertex) v1 -= nVertex;
-    while (v2 >= nVertex) v2 -= nVertex;
-    while (v3 >= nVertex) v3 -= nVertex;
-    while (v1 < 0) v1 += nVertex;
-    while (v2 < 0) v2 += nVertex;
-    while (v3 < 0) v3 += nVertex;
+  // Vertices belonging to triangle
+  int v1 = pTv[n].x;
+  int v2 = pTv[n].y;
+  int v3 = pTv[n].z;
+  while (v1 >= nVertex) v1 -= nVertex;
+  while (v2 >= nVertex) v2 -= nVertex;
+  while (v3 >= nVertex) v3 -= nVertex;
+  while (v1 < 0) v1 += nVertex;
+  while (v2 < 0) v2 += nVertex;
+  while (v3 < 0) v3 += nVertex;
 
-    real tl1 = pTl[n].x;
-    real tl2 = pTl[n].y;
-    real tl3 = pTl[n].z;
+  real tl1 = pTl[n].x;
+  real tl2 = pTl[n].y;
+  real tl3 = pTl[n].z;
 
-    real d1 = pState[v1].x;
-    real d2 = pState[v2].x;
-    real d3 = pState[v3].x;
-    real dG = (d1 + d2 + d3)/three;
+  // Average source term
+  real4 S = (pVs[v1] + pVs[v2] + pVs[v3])/three;
 
-    /*
-    real m1 = pState[v1].y;
-    real m2 = pState[v2].y;
-    real m3 = pState[v3].y;
-    real mG = (m1 + m2 + m3)/three;
+  // Triangle area
+  real s = half*(tl1 + tl2 + tl3);
+  real area = sqrt(s*(s - tl1)*(s - tl2)*(s - tl3));
 
-    real n1 = pState[v1].z;
-    real n2 = pState[v2].z;
-    real n3 = pState[v3].z;
-    real nG = (n1 + n2 + n3)/three;
-    */
-
-    real dpotdx = half*
-      (pVp[v1]*pTn1[n].x*tl1 +
-       pVp[v2]*pTn2[n].x*tl2 +
-       pVp[v3]*pTn3[n].x*tl3);
-    real dpotdy = half*
-      (pVp[v1]*pTn1[n].y*tl1 +
-       pVp[v2]*pTn2[n].y*tl2 +
-       pVp[v3]*pTn3[n].y*tl3);
-
-    pSource[n].x = 0.0;
-    pSource[n].y = dG*dpotdx;
-    pSource[n].z = dG*dpotdy;
-    pSource[n].w = 0.0;//mG*dpotdx + nG*dpotdy;
-  }
-
+  // Source contribution to residual (note minus sign!)
+  pSource[n] = -S*area;
 }
 
 //! Version for three equations
@@ -243,80 +259,40 @@ void CalcSourceSingle(int n, ProblemDefinition problemDef,
                       int nVertex, const int3 *pTv,
                       const real2 *pTn1, const real2 *pTn2, const real2 *pTn3,
                       const real3 *pTl, const real *pVp,
-                      const real3 *pState, real3 *pSource, const real3 *pVs)
+                      const real3 *pState, real3 *pSource, const real3 *pVs,
+                      const real time)
 {
   pSource[n].x = 0.0;
   pSource[n].y = 0.0;
   pSource[n].z = 0.0;
 
-  if (problemDef == PROBLEM_SOURCE) {
-    real three = (real) 3.0;
-    real half = (real) 0.5;
+  real three = (real) 3.0;
+  real half = (real) 0.5;
 
-    // Vertices belonging to triangle
-    int v1 = pTv[n].x;
-    int v2 = pTv[n].y;
-    int v3 = pTv[n].z;
-    while (v1 >= nVertex) v1 -= nVertex;
-    while (v2 >= nVertex) v2 -= nVertex;
-    while (v3 >= nVertex) v3 -= nVertex;
-    while (v1 < 0) v1 += nVertex;
-    while (v2 < 0) v2 += nVertex;
-    while (v3 < 0) v3 += nVertex;
+  // Vertices belonging to triangle
+  int v1 = pTv[n].x;
+  int v2 = pTv[n].y;
+  int v3 = pTv[n].z;
+  while (v1 >= nVertex) v1 -= nVertex;
+  while (v2 >= nVertex) v2 -= nVertex;
+  while (v3 >= nVertex) v3 -= nVertex;
+  while (v1 < 0) v1 += nVertex;
+  while (v2 < 0) v2 += nVertex;
+  while (v3 < 0) v3 += nVertex;
 
-    real tl1 = pTl[n].x;
-    real tl2 = pTl[n].y;
-    real tl3 = pTl[n].z;
+  real tl1 = pTl[n].x;
+  real tl2 = pTl[n].y;
+  real tl3 = pTl[n].z;
 
-    real d1 = pState[v1].x;
-    real d2 = pState[v2].x;
-    real d3 = pState[v3].x;
-    real dG = (d1 + d2 + d3)/three;
+  // Average source term
+  real3 S = (pVs[v1] + pVs[v2] + pVs[v3])/three;
 
-    real dpotdx = half*
-      (pVp[v1]*pTn1[n].x*tl1 +
-       pVp[v2]*pTn2[n].x*tl2 +
-       pVp[v3]*pTn3[n].x*tl3);
-    real dpotdy = half*
-      (pVp[v1]*pTn1[n].y*tl1 +
-       pVp[v2]*pTn2[n].y*tl2 +
-       pVp[v3]*pTn3[n].y*tl3);
+  // Triangle area
+  real s = half*(tl1 + tl2 + tl3);
+  real area = sqrt(s*(s - tl1)*(s - tl2)*(s - tl3));
 
-    pSource[n].x = 0.0;
-    pSource[n].y = dG*dpotdx;
-    pSource[n].z = dG*dpotdy;
-  }
-
-  if (problemDef == PROBLEM_DISC) {
-    real three = (real) 3.0;
-    real half = (real) 0.5;
-
-    // Vertices belonging to triangle
-    int v1 = pTv[n].x;
-    int v2 = pTv[n].y;
-    int v3 = pTv[n].z;
-    while (v1 >= nVertex) v1 -= nVertex;
-    while (v2 >= nVertex) v2 -= nVertex;
-    while (v3 >= nVertex) v3 -= nVertex;
-    while (v1 < 0) v1 += nVertex;
-    while (v2 < 0) v2 += nVertex;
-    while (v3 < 0) v3 += nVertex;
-
-    real tl1 = pTl[n].x;
-    real tl2 = pTl[n].y;
-    real tl3 = pTl[n].z;
-
-    // Average source term
-    real3 S = (pVs[v1] + pVs[v2] + pVs[v3])/three;
-
-    // Triangle area
-    real s = half*(tl1 + tl2 + tl3);
-    real area = sqrt(s*(s - tl1)*(s - tl2)*(s - tl3));
-
-    // Source contribution to residual (note minus sign!)
-    pSource[n] = -S*area;
-  }
-
+  // Source contribution to residual (note minus sign!)
+  pSource[n] = -S*area;
 }
 
 //! Version for single equation
@@ -326,7 +302,8 @@ void CalcSourceSingle(int n, ProblemDefinition problemDef,
                       int nVertex, const int3 *pTv,
                       const real2 *pTn1, const real2 *pTn2, const real2 *pTn3,
                       const real3 *pTl, const real *pVp,
-                      const real *pState, real *pSource, const real *pVs)
+                      const real *pState, real *pSource, const real *pVs,
+                      const real time)
 {
   pSource[n] = 0.0;
 
@@ -408,7 +385,8 @@ void CalcSourceSingle(int n, ProblemDefinition problemDef,
 \param *pVp Pointer to external potential at vertices
 \param *pState Pointer to state vector
 \param *pSource Pointer to source vector (output)
-\param *pVs Pointer to vertex source term */
+\param *pVs Pointer to vertex source term
+\param time Simulation time*/
 //######################################################################
 
 template<class realNeq, ConservationLaw CL>
@@ -417,7 +395,8 @@ devCalcSource(int nTriangle, ProblemDefinition problemDef,
               int nVertex, const int3 *pTv,
               const real2 *pTn1, const real2 *pTn2, const real2 *pTn3,
               const real3 *pTl, const real *pVp,
-              const realNeq *pState, realNeq *pSource, const realNeq *pVs)
+              const realNeq *pState, realNeq *pSource, const realNeq *pVs,
+              const real time)
 {
   // n = vertex number
   int n = blockIdx.x*blockDim.x + threadIdx.x;
@@ -425,7 +404,7 @@ devCalcSource(int nTriangle, ProblemDefinition problemDef,
   while (n < nTriangle) {
     CalcSourceSingle<CL>(n, problemDef, nVertex,
                          pTv, pTn1, pTn2, pTn3,
-                         pTl, pVp, pState, pSource, pVs);
+                         pTl, pVp, pState, pSource, pVs, time);
 
     n += blockDim.x*gridDim.x;
   }
@@ -469,13 +448,14 @@ void Simulation<realNeq, CL>::CalcSource(Array<realNeq> *state)
                                        (size_t) 0, 0);
 
     devCalcVertexSource<realNeq, CL><<<nBlocks, nThreads>>>
-      (nVertex, problemDef, pVc, pVp, pState, pVs);
+      (nVertex, problemDef, pVc, pVp, pState, pVs, simulationTime);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
     for (int i = 0; i < nVertex; i++)
-      CalcVertexSourceSingle<CL>(i, problemDef, pVc, pVp, pState, pVs);
+      CalcVertexSourceSingle<CL>(i, problemDef, pVc, pVp, pState, pVs,
+                                 simulationTime);
   }
 
   // Average over triangles
@@ -490,7 +470,7 @@ void Simulation<realNeq, CL>::CalcSource(Array<realNeq> *state)
 
     devCalcSource<realNeq, CL><<<nBlocks, nThreads>>>
       (nTriangle, problemDef, nVertex,
-       pTv, pTn1, pTn2, pTn3, pTl, pVp, pState, pSource, pVs);
+       pTv, pTn1, pTn2, pTn3, pTl, pVp, pState, pSource, pVs, simulationTime);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
@@ -498,7 +478,8 @@ void Simulation<realNeq, CL>::CalcSource(Array<realNeq> *state)
     for (int i = 0; i < nTriangle; i++)
       CalcSourceSingle<CL>(i, problemDef, nVertex,
                            pTv, pTn1, pTn2, pTn3, pTl,
-                           pVp, pState, pSource, pVs);
+                           pVp, pState, pSource, pVs,
+                           simulationTime);
   }
 }
 
