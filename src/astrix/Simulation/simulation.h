@@ -16,6 +16,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #define ASTRIX_SIMULATION_H
 
 #define CONTOUR
+#define POT_IN_ENERGY 0.0f
 
 namespace astrix {
 
@@ -154,6 +155,8 @@ class Simulation
   void MassMatrixF34Tot(real dt, int massMatrix);
   //! Add contribution F3/F4 mass matrix to residual
   void MassMatrixF34(real dt, int massMatrix);
+  //! Stationary extrapolation
+  void StatExp();
 
   //! Update state at nodes
   void UpdateState(real dt, int RKStep);
