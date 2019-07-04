@@ -67,6 +67,7 @@ namespace astrix {
                           PROBLEM_SOURCE,    /*!< Source problem*/
                           PROBLEM_GAUSS,     /*!< Advection pulse*/
                           PROBLEM_DISC,      /*!< Disc around central object*/
+                          PROBLEM_PLANET,    /*!< Disc-planet interaction*/
   };
 
   //! Integration schemes
@@ -75,7 +76,8 @@ namespace astrix {
                           SCHEME_N,         /*!< N scheme, diffusive 1st order*/
                           SCHEME_LDA,       /*!< LDA scheme, 2nd order*/
                           SCHEME_B,         /*!< Blended N-LDA scheme*/
-                          SCHEME_BX         /*!< Blended X scheme*/
+                          SCHEME_BX,        /*!< Blended X scheme*/
+                          SCHEME_NL         /*!< Limited N scheme*/
   };
 
   //! Conservation laws
