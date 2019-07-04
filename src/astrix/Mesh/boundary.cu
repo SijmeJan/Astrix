@@ -116,22 +116,23 @@ void SetVertexOuterBoundarySingle(int n, ProblemDefinition problemDef,
       problemDef == PROBLEM_VORTEX ||
       problemDef == PROBLEM_NOH ||
       problemDef == PROBLEM_SOURCE ||
-      problemDef == PROBLEM_DISC) {
+      problemDef == PROBLEM_DISC ||
+      problemDef == PROBLEM_PLANET) {
     if (n == 0) {
-      pVc[n].x = 0.63*(maxx - minx) + minx;
-      pVc[n].y = 0.60*(maxy - miny) + miny;
+      pVc[n].x = 0.63689475*(maxx - minx) + minx;
+      pVc[n].y = 0.60565906*(maxy - miny) + miny;
     }
     if (n == 1) {
-      pVc[n].x = 0.38*(maxx - minx) + minx;
-      pVc[n].y = 0.62*(maxy - miny) + miny;
+      pVc[n].x = 0.38659404*(maxx - minx) + minx;
+      pVc[n].y = 0.62345630*(maxy - miny) + miny;
     }
     if (n == 2) {
-      pVc[n].x = 0.43*(maxx - minx) + minx;
-      pVc[n].y = 0.41*(maxy - miny) + miny;
+      pVc[n].x = 0.43564807*(maxx - minx) + minx;
+      pVc[n].y = 0.41564785*(maxy - miny) + miny;
     }
     if (n == 3) {
-      pVc[n].x = 0.61*(maxx - minx) + minx;
-      pVc[n].y = 0.43*(maxy - miny) + miny;
+      pVc[n].x = 0.61678539*(maxx - minx) + minx;
+      pVc[n].y = 0.43436738*(maxy - miny) + miny;
     }
 
     if (periodicFlagX == 0) {
@@ -150,20 +151,20 @@ void SetVertexOuterBoundarySingle(int n, ProblemDefinition problemDef,
 
   if (problemDef == PROBLEM_CYL) {
     if (n == 0) {
-      pVc[n].x = 0.93*(maxx - minx) + minx;
-      pVc[n].y = 0.97*(maxy - miny) + miny;
+      pVc[n].x = 0.9340376*(maxx - minx) + minx;
+      pVc[n].y = 0.9743867*(maxy - miny) + miny;
     }
     if (n == 1) {
-      pVc[n].x = 0.06*(maxx - minx) + minx;
-      pVc[n].y = 0.92*(maxy - miny) + miny;
+      pVc[n].x = 0.06438064*(maxx - minx) + minx;
+      pVc[n].y = 0.92467259*(maxy - miny) + miny;
     }
     if (n == 2) {
-      pVc[n].x = 0.05*(maxx - minx) + minx;
-      pVc[n].y = 0.07*(maxy - miny) + miny;
+      pVc[n].x = 0.050386*(maxx - minx) + minx;
+      pVc[n].y = 0.075728*(maxy - miny) + miny;
     }
     if (n == 3) {
-      pVc[n].x = 0.91*(maxx - minx) + minx;
-      pVc[n].y = 0.04*(maxy - miny) + miny;
+      pVc[n].x = 0.91567*(maxx - minx) + minx;
+      pVc[n].y = 0.04357*(maxy - miny) + miny;
     }
 
     if (periodicFlagX == 0) {
@@ -208,6 +209,13 @@ void SetVertexInnerBoundarySingle(int n, ProblemDefinition problemDef,
 
     pVc[n + nVertexOuterBoundary].x = 0.5*cos(phi);
     pVc[n + nVertexOuterBoundary].y = 0.5*sin(phi);
+  }
+
+  if (problemDef == PROBLEM_PLANET) {
+    real phi = -2.0*M_PI*(real) n/(real) nVertexInnerBoundary;
+
+    pVc[n + nVertexOuterBoundary].x = 0.0005*cos(phi);
+    pVc[n + nVertexOuterBoundary].y = M_PI + 0.0005*sin(phi);
   }
 
   return;
@@ -312,9 +320,10 @@ void Mesh::ConstructBoundaries(Array <real2> *vertexBoundaryCoordinates)
       nVertexOuterBoundary = 4;
       nVertexInnerBoundary = 0;
     }
-    if (meshParameter->problemDef == PROBLEM_CYL) {
+    if (meshParameter->problemDef == PROBLEM_CYL ||
+        meshParameter->problemDef == PROBLEM_PLANET) {
       nVertexOuterBoundary = 4;
-      nVertexInnerBoundary = 100;
+      nVertexInnerBoundary = 0;
     }
 
     // Happens if problem is not defined
