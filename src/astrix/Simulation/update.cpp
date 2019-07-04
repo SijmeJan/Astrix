@@ -103,8 +103,6 @@ void Simulation<realNeq, CL>::UpdateState(real dt, int RKStep)
     // Check if unphysical state anywhere
     failFlag = vertexUnphysicalFlag->Maximum();
 
-
-
     if (failFlag > 0) {
       if (simulationParameter->intScheme == SCHEME_N) {
         nCycle = maxCycle;
