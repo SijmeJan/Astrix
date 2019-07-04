@@ -66,6 +66,7 @@ void SimulationParameter::ReadFromFile(const char *fileName,
       if (secondWord == "SOURCE") problemDef = PROBLEM_SOURCE;
       if (secondWord == "GAUSS") problemDef = PROBLEM_GAUSS;
       if (secondWord == "DISC") problemDef = PROBLEM_DISC;
+      if (secondWord == "PLANET") problemDef = PROBLEM_PLANET;
     }
 
     // Time to stop simulation; check that secondWord is number
@@ -100,6 +101,7 @@ void SimulationParameter::ReadFromFile(const char *fileName,
       if (secondWord == "LDA") intScheme = SCHEME_LDA;
       if (secondWord == "B") intScheme = SCHEME_B;
       if (secondWord == "BX") intScheme = SCHEME_BX;
+      if (secondWord == "NL") intScheme = SCHEME_NL;
     }
 
     // Integration order (should be 1 or 2)
