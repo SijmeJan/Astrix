@@ -154,7 +154,85 @@ void CalcOperatorEnergySingle(int i, int nVertex, int nTriangle,
                               real *pVertexOperator,
                               real *pTriangleOperator)
 {
-  // Dummy, not supported for 3 equations
+  const real sixth = (real) (1.0/6.0);
+  const real tenth = (real) 0.1;
+  const real third = (real) (1.0/3.0);
+  const real half  = (real) 0.5;
+
+  int a = pTv[i].x;
+  int b = pTv[i].y;
+  int c = pTv[i].z;
+  while (a >= nVertex) a -= nVertex;
+  while (b >= nVertex) b -= nVertex;
+  while (c >= nVertex) c -= nVertex;
+  while (a < 0) a += nVertex;
+  while (b < 0) b += nVertex;
+  while (c < 0) c += nVertex;
+
+  // Triangle edge lengths
+  real tl1 = triL[i].x;
+  real tl2 = triL[i].y;
+  real tl3 = triL[i].z;
+
+  // Triangle inward pointing normals
+  real nx1 = pTn1[i].x;
+  real nx2 = pTn2[i].x;
+  real nx3 = pTn3[i].x;
+  real ny1 = pTn1[i].y;
+  real ny2 = pTn2[i].y;
+  real ny3 = pTn3[i].y;
+
+  // State at vertex a
+  real d1 = state[a].x;
+  real u1 = state[a].y/d1;
+  real v1 = state[a].z/d1;
+
+  // State at vertex b
+  real d2 = state[b].x;
+  real u2 = state[b].y/d2;
+  real v2 = state[b].z/d2;
+
+  // State at vertex c
+  real d3 = state[c].x;
+  real u3 = state[c].y/d3;
+  real v3 = state[c].z/d3;
+
+  // Make sure error is finite when velocity is zero
+  // TODO: make this sound speed
+  u1 += tenth*tenth;
+  u2 += tenth*tenth;
+  u3 += tenth*tenth;
+
+  // Cell centred velocity divergence
+  real divuc =
+    (u1*nx1 + v1*ny1)*tl1 + (u2*nx2 + v2*ny2)*tl2 + (u3*nx3 + v3*ny3)*tl3;
+
+  // Cell centred density gradient
+  real gradEx = d1*nx1*tl1 + d2*nx2*tl2 + d3*nx3*tl3;
+  real gradEy = d1*ny1*tl1 + d2*ny2*tl2 + d3*ny3*tl3;
+
+  // Cell-averaged state
+  real dc = third*(d1 + d2 + d3);
+  real uc = third*(u1 + u2 + u3);
+  real vc = third*(v1 + v2 + v3);
+
+  real s = half*(tl1 + tl2 + tl3);
+  // Triangle area
+  real A = sqrt(s*(s - tl1)*(s - tl2)*(s - tl3));
+
+  // Cell-centred operator
+  real operatorTriangle = dc*divuc + uc*gradEx + vc*gradEy;
+  pTriangleOperator[i] = operatorTriangle*sqrt(half/A)/dc;
+
+  // Contribution to vertex operator
+  real dA = (d1*divuc + u1*gradEx + v1*gradEy)*sqrt(sixth/pVertexArea[a])/dc;
+  real dB = (d2*divuc + u2*gradEx + v2*gradEy)*sqrt(sixth/pVertexArea[b])/dc;
+  real dC = (d3*divuc + u3*gradEx + v3*gradEy)*sqrt(sixth/pVertexArea[c])/dc;
+
+  // Construct vertex-centred operator
+  AtomicAdd(&pVertexOperator[a], dA);
+  AtomicAdd(&pVertexOperator[b], dB);
+  AtomicAdd(&pVertexOperator[c], dC);
 }
 
 //! Version for single equation
