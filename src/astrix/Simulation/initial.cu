@@ -15,8 +15,8 @@ You should have received a copy of the GNU General Public License
 along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include <iostream>
 
-#include <gsl/gsl_sf_bessel.h>
-#include <boost/math/special_functions/bessel.hpp>
+//#include <gsl/gsl_sf_bessel.h>
+//#include <boost/math/special_functions/bessel.hpp>
 
 #include "../Common/definitions.h"
 #include "../Array/array.h"
@@ -564,7 +564,7 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     //real v1 = -0.5*g*sqrt(1.0 - (a + 1.0)*cs0*cs0)*sin(w*time)/(w*sqrt(dens));
     real v1 = 0.0;
     */
-
+    /*
     // DISC: needs denspow=0, soundspeed0=0.1, soundspeedPower=-1.5
     real b0 = 20.829436532817862;
     real c1 = 2.831729237113438;
@@ -588,7 +588,7 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
     real d1 = sqrt(dens/r)*(0.5*(a - 1.0)*g - r*dg)*sin(w*time)/w;
     real v1 = -0.5*g*sqrt(1.0 - (a + 1.0)*cs0*cs0)*sin(w*time)/(w*sqrt(dens));
     //real v1 = 0.0;
-
+    */
     /*
 #ifndef __CUDA_ARCH__
     std::cout << "Period: " << 2.0*M_PI/w << std::endl;
@@ -600,13 +600,30 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
 #endif
     */
 
-    dens += d1;
-    vx += u1;
-    vy += v1;
+    //dens += d1;
+    //vx += u1;
+    //vy += v1;
 
 
     //if (r > 0.5 && r < 2.4)
     //  dens *= (1.0 + 0.1*exp(-Sq(y - 3.14)/0.01));
+    momx = dens*vx;
+    momy = dens*vy;
+  }
+
+  if (problemDef == PROBLEM_PLANET) {
+    real x = vertX;
+    real y = vertY;
+
+    // Cylindrical radius
+    real r = exp(x);
+
+    dens = pow(r, denspow);
+    real vx = 1.0e-10;
+    // Angular momentum
+    real vy = sqrt(1.0*r +
+                   (denspow + 2.0*cspow)*cs0*cs0*pow(r, 4.0 + 2.0*cspow));
+
     momx = dens*vx;
     momy = dens*vy;
   }
@@ -671,7 +688,10 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
       //dens = exp(0.5*(vertX + time));
 
       // Source = u^2, not periodic
-      dens = -(real) 2.0/(vertX + time + 2.0);
+      //dens = -(real) 2.0/(vertX + time + 2.0);
+
+      // Source = 1, not periodic
+      dens = vertX + 0.001*exp(-Sq(vertX - time - 1.5)/0.01);
     }
     if (CL == CL_BURGERS) {
       // Source = u
@@ -679,7 +699,10 @@ void SetInitialSingle(int n, const real2 *pVc, ProblemDefinition problemDef,
       //dens = 0.5*exp(2.0*time)*(sqrt(1.0 + 4.0*vertX*exp(-2.0*time)) - 1.0);
 
       // Source = u^2
-      dens = -((real) 1.0 + exp(vertX))/((real) 1.0 + time);
+      //dens = -((real) 1.0 + exp(vertX))/((real) 1.0 + time);
+
+      // Source = x, linear solution, not periodic
+      dens = vertX + 0.001*exp(time)/Sq(vertX);
     }
   }
 
