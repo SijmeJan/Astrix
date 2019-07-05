@@ -30,9 +30,7 @@ ASTRIX_DEBUG ?= 0
 ASTRIX_DOUBLE ?= -1
 
 # Include path to boost library
-BOOST_INCLUDE_PATH ?=
-
-#/Users/sjp/Downloads/boost_1_60_0
+BOOST_INCLUDE_PATH ?= .
 
 # By default, do not link to GNU Scientific Library
 ASTRIX_GSL ?= 0
@@ -135,7 +133,7 @@ LIBRARIES := -L$(LIB_PATH)
 # Virtual architecture, as low as possible (compute_20 is deprecated)
 CUDA_ARCH := compute_30
 
-# By default, generate code for all architectures
+# By default, generate code for Kepler
 CUDA_SM_ARCH := compute_30,sm_30,sm_32,sm_35
 
 # If CUDA_COMPUTE is set, specialize appropriately
@@ -163,8 +161,32 @@ ifeq ($(CUDA_COMPUTE),53)
 	CUDA_ARCH := compute_53
 	CUDA_SM_ARCH := sm_53
 endif
+ifeq ($(CUDA_COMPUTE),60)
+	CUDA_ARCH := compute_60
+	CUDA_SM_ARCH := sm_60
+endif
+ifeq ($(CUDA_COMPUTE),61)
+	CUDA_ARCH := compute_61
+	CUDA_SM_ARCH := sm_61
+endif
+ifeq ($(CUDA_COMPUTE),62)
+	CUDA_ARCH := compute_62
+	CUDA_SM_ARCH := sm_62
+endif
+ifeq ($(CUDA_COMPUTE),70)
+	CUDA_ARCH := compute_70
+	CUDA_SM_ARCH := sm_70
+endif
+ifeq ($(CUDA_COMPUTE),72)
+	CUDA_ARCH := compute_72
+	CUDA_SM_ARCH := sm_72
+endif
+ifeq ($(CUDA_COMPUTE),75)
+	CUDA_ARCH := compute_75
+	CUDA_SM_ARCH := sm_75
+endif
 
-GENCODE_FLAGS := -arch=$(CUDA_ARCH) -code=$(CUDA_SM_ARCH)
+GENCODE_FLAGS := --gpu-architecture=$(CUDA_ARCH) --gpu-code=$(CUDA_SM_ARCH)
 
 ################################################################################
 # Target rules
