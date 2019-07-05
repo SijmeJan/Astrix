@@ -43,6 +43,9 @@ template <class T, ConservationLaw CL> class Diagnostics
   real ThermalEnergy(Array<T> *state, Array<real> *pot, Mesh *mesh);
   //! Calculate total energy
   real TotalEnergy(Array<T> *state, Mesh *mesh);
+  //! Calculate torque
+  real Torque(Array<T> *state, Mesh *mesh);
+
 };
 
 }  // namespace astrix
