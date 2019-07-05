@@ -85,23 +85,6 @@ void CalcVertexSourceSingle(int n, ProblemDefinition problemDef,
     pSource[n].y =
       (Sq(pState[n].z)/Sq(Sq(r)) - Sq(pState[n].y))/pState[n].x -
       1.0*pState[n].x/Cb(r);
-
-    /*
-    real q = 1.0e-5;
-    real eps = 0.6*0.1;
-
-    real dpotdx = q*r*(r - cos(y - M_PI))*
-      pow(r*r + 1.0 - 2.0*r*cos(y - M_PI) + eps*eps, -1.5);
-    real dpotdy = q*r*sin(y - M_PI)*
-      pow(r*r + 1.0 - 2.0*r*cos(y - M_PI) + eps*eps, -1.5);
-
-    // Indirect term
-    dpotdx += q*r*cos(y - M_PI);
-    dpotdy -= q*r*sin(y - M_PI);
-
-    pSource[n].y -= pState[n].x*dpotdx/Sq(r);
-    pSource[n].z = -pState[n].x*dpotdy;
-    */
   }
 
   if (problemDef == PROBLEM_PLANET) {
@@ -115,8 +98,8 @@ void CalcVertexSourceSingle(int n, ProblemDefinition problemDef,
       (Sq(pState[n].z)/Sq(Sq(r)) - Sq(pState[n].y))/pState[n].x -
       1.0*pState[n].x/Cb(r);
 
-    real q = 1.0e-3;
-    real eps = 0.6*0.05;
+    real q = 1.0e-5;
+    real eps = 0.4*0.05;
 
     real dpotdx = q*r*(r - cos(y - M_PI))*
       pow(r*r + 1.0 - 2.0*r*cos(y - M_PI) + eps*eps, -1.5);
