@@ -27,6 +27,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "./contour.h"
 #include "../Common/profile.h"
 #include "./Param/simulationparameter.h"
+#include "./triangle_normals.h"
 
 namespace astrix {
 
@@ -36,18 +37,11 @@ namespace astrix {
 \param n Triangle to consider
 \param *pTv Pointer to triangle vertices
 \param *pVz Pointer to parameter vector
-\param *pTn1 Pointer first triangle edge normal
-\param *pTn2 Pointer second triangle edge normal
-\param *pTn3 Pointer third triangle edge normal
-\param *pTl Pointer to triangle edge lengths
+\param Tn Class containing triangle normals
 \param *pResSource Pointer to source term contribution to residual
 \param *pTresN0 Triangle residue N direction 0
 \param *pTresN1 Triangle residue N direction 1
 \param *pTresN2 Triangle residue N direction 2
-\param *pTresLDA0 Triangle residue LDA direction 0
-\param *pTresLDA1 Triangle residue LDA direction 1
-\param *pTresLDA2 Triangle residue LDA direction 2
-\param *pTresTot Triangle total residue
 \param nVertex Total number of vertices in Mesh
 \param G Ratio of specific heats
 \param G1 G - 1
@@ -69,12 +63,10 @@ namespace astrix {
 template<ConservationLaw CL>
 __host__ __device__
 void StatExpSingle(int n, const int3 *pTv, real4 *pVz,
-                   const real2 *pTn1, const real2 *pTn2,
-                   const real2 *pTn3, const real3 *pTl,
+                   TriangleNormals Tn,
                    real4 *pResSource,
                    real4 *pTresN0, real4 *pTresN1, real4 *pTresN2,
-                   real4 *pTresLDA0, real4 *pTresLDA1, real4 *pTresLDA2,
-                   real4 *pTresTot, int nVertex, real G, real G1, real G2,
+                   int nVertex, real G, real G1, real G2,
                    const real *pVp, const real cs0, const real cspow,
                    const real frameAngularVelocity, const real2 *pVc)
 {
@@ -130,9 +122,9 @@ void StatExpSingle(int n, const int3 *pTv, real4 *pVz,
   // Assume hydrostatic stationary state, pressure balancing source term
   //######################################################################
 
-  real tl1 = pTl[n].x;
-  real tl2 = pTl[n].y;
-  real tl3 = pTl[n].z;
+  real tl1 = Tn.pTl[n].x;
+  real tl2 = Tn.pTl[n].y;
+  real tl3 = Tn.pTl[n].z;
 
   // Triangle area
   real s = half*(tl1 + tl2 + tl3);
@@ -151,21 +143,6 @@ void StatExpSingle(int n, const int3 *pTv, real4 *pVz,
     G1*(Zv13*Zv10 - half*(Zv11*Zv11 + Zv12*Zv12) - pot1*Sq(Zv10))/G;
   real dp2 = p2 -
     G1*(Zv23*Zv20 - half*(Zv21*Zv21 + Zv22*Zv22) - pot2*Sq(Zv20))/G;
-
-  /*
-#ifndef __CUDA_ARCH__
-  std::cout << p0 << " "
-            << G1*(Zv13*Zv10 - half*(Zv11*Zv11 + Zv12*Zv12) - pot1*Sq(Zv10))/G << " "
-            << G1*(Zv23*Zv20 - half*(Zv21*Zv21 + Zv22*Zv22) - pot2*Sq(Zv20))/G << " "
-            << std::endl
-            << p0 << " "
-            << p1 << " "
-            << p2 << std::endl
-            << Zv13 << " " << G*dp1/(Zv10*G1) << " "
-            << Zv23 << " " << G*dp2/(Zv20*G1) << std::endl;
-  int qq; std::cin >> qq;
-#endif
-  */
 
   // Adjust parameter vector:
   // Z3  = sqrt(rho)*(u*u/2 + v*v/2 + pot + G*p/(G-1)/rho)
@@ -197,12 +174,12 @@ void StatExpSingle(int n, const int3 *pTv, real4 *pVz,
   real Wtemp2 = zero;
   real Wtemp3 = zero;
 
-  real tnx1 = pTn1[n].x;
-  real tnx2 = pTn2[n].x;
-  real tnx3 = pTn3[n].x;
-  real tny1 = pTn1[n].y;
-  real tny2 = pTn2[n].y;
-  real tny3 = pTn3[n].y;
+  real tnx1 = Tn.pTn1[n].x;
+  real tnx2 = Tn.pTn2[n].x;
+  real tnx3 = Tn.pTn3[n].x;
+  real tny1 = Tn.pTn1[n].y;
+  real tny2 = Tn.pTn2[n].y;
+  real tny3 = Tn.pTn3[n].y;
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate Wtemp = Sum(K+*What)
@@ -520,12 +497,12 @@ void StatExpSingle(int n, const int3 *pTv, real4 *pVz,
   // PhiN = Kp*(What - Ninv*Sum(Km*What))
   real ResN, kp;
 
-  real Tnx1 = pTn1[n].x;
-  real Tnx2 = pTn2[n].x;
-  real Tnx3 = pTn3[n].x;
-  real Tny1 = pTn1[n].y;
-  real Tny2 = pTn2[n].y;
-  real Tny3 = pTn3[n].y;
+  real Tnx1 = Tn.pTn1[n].x;
+  real Tnx2 = Tn.pTn2[n].x;
+  real Tnx3 = Tn.pTn3[n].x;
+  real Tny1 = Tn.pTn1[n].y;
+  real Tny2 = Tn.pTn2[n].y;
+  real Tny3 = Tn.pTn3[n].y;
 
   real4 ResBefore0 = pTresN0[n];
   real4 ResBefore1 = pTresN1[n];
@@ -738,24 +715,6 @@ void StatExpSingle(int n, const int3 *pTv, real4 *pVz,
 
   pTresN2[n].w -= half*ResN;
 
-  /*
-#ifndef __CUDA_ARCH__
-  std::cout << pTresN0[n].x << " "
-            << pTresN0[n].y << " "
-            << pTresN0[n].z << " "
-            << pTresN0[n].w << std::endl;
-  std::cout << ResBefore0.x << " "
-            << ResBefore0.y << " "
-            << ResBefore0.z << " "
-            << ResBefore0.w << std::endl;
-  std::cout << pTresTot[n].x << " "
-            << pTresTot[n].y << " "
-            << pTresTot[n].z << " "
-            << pTresTot[n].w << std::endl;
-  int qq; std::cin >> qq;
-#endif
-  */
-
   real dvxdx = (pVz[v1].y*Tnx1*tl1/pVz[v1].x +
                 pVz[v2].y*Tnx2*tl2/pVz[v2].x +
                 pVz[v3].y*Tnx3*tl3/pVz[v3].x)/area;
@@ -784,12 +743,10 @@ void StatExpSingle(int n, const int3 *pTv, real4 *pVz,
 template<ConservationLaw CL>
 __host__ __device__
 void StatExpSingle(int n, const int3 *pTv, real3 *pVz,
-                   const real2 *pTn1, const real2 *pTn2,
-                   const real2 *pTn3, const real3 *pTl,
+                   TriangleNormals Tn,
                    real3 *pResSource,
                    real3 *pTresN0, real3 *pTresN1, real3 *pTresN2,
-                   real3 *pTresLDA0, real3 *pTresLDA1, real3 *pTresLDA2,
-                   real3 *pTresTot, int nVertex, real G, real G1, real G2,
+                   int nVertex, real G, real G1, real G2,
                    const real *pVp, const real cs0, const real cspow,
                    const real frameAngularVelocity, const real2 *pVc)
 {
@@ -835,9 +792,9 @@ void StatExpSingle(int n, const int3 *pTv, real3 *pVz,
   real Z1 = (Zv01 + Zv11 + Zv21)*onethird;
   real Z2 = (Zv02 + Zv12 + Zv22)*onethird;
 
-  real tl1 = pTl[n].x;
-  real tl2 = pTl[n].y;
-  real tl3 = pTl[n].z;
+  real tl1 = Tn.pTl[n].x;
+  real tl2 = Tn.pTl[n].y;
+  real tl3 = Tn.pTl[n].z;
 
   real utilde = Z1/Z0;
   real vtilde = Z2/Z0;
@@ -949,12 +906,12 @@ void StatExpSingle(int n, const int3 *pTv, real3 *pVz,
   real What21 = Z1*Zv20 + Z0*Zv21;
   real What22 = Z2*Zv20 + Z0*Zv22;
 
-  real tnx1 = pTn1[n].x;
-  real tnx2 = pTn2[n].x;
-  real tnx3 = pTn3[n].x;
-  real tny1 = pTn1[n].y;
-  real tny2 = pTn2[n].y;
-  real tny3 = pTn3[n].y;
+  real tnx1 = Tn.pTn1[n].x;
+  real tnx2 = Tn.pTn2[n].x;
+  real tnx3 = Tn.pTn3[n].x;
+  real tny1 = Tn.pTn1[n].y;
+  real tny2 = Tn.pTn2[n].y;
+  real tny3 = Tn.pTn3[n].y;
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate Wtemp = Sum(K+*What)
@@ -1188,12 +1145,12 @@ void StatExpSingle(int n, const int3 *pTv, real3 *pVz,
   // PhiN = Kp*(What - Ninv*Sum(Km*What))
   real ResN, kp;
 
-  real Tnx1 = pTn1[n].x;
-  real Tnx2 = pTn2[n].x;
-  real Tnx3 = pTn3[n].x;
-  real Tny1 = pTn1[n].y;
-  real Tny2 = pTn2[n].y;
-  real Tny3 = pTn3[n].y;
+  real Tnx1 = Tn.pTn1[n].x;
+  real Tnx2 = Tn.pTn2[n].x;
+  real Tnx3 = Tn.pTn3[n].x;
+  real Tny1 = Tn.pTn1[n].y;
+  real Tny2 = Tn.pTn2[n].y;
+  real Tny3 = Tn.pTn3[n].y;
 
   real3 ResBefore0 = pTresN0[n];
   real3 ResBefore1 = pTresN1[n];
@@ -1366,6 +1323,7 @@ void StatExpSingle(int n, const int3 *pTv, real3 *pVz,
   pTresN2[n].z -= half*ResN;
 
   // It is not always wise to do stationary extrapolation
+  /*
   if (CL == CL_CYL_ISO) {
     // Not stationary extrapolation too close to the planet
     real rp2 = r2 + one - two*sqrt(r2)*cos(pVc[v3].y - M_PI);
@@ -1375,6 +1333,7 @@ void StatExpSingle(int n, const int3 *pTv, real3 *pVz,
       pTresN2[n] = ResBefore2;
     }
   }
+  */
 
   // Triangle area
   real s = half*(tl1 + tl2 + tl3);
@@ -1404,12 +1363,10 @@ void StatExpSingle(int n, const int3 *pTv, real3 *pVz,
 template<ConservationLaw CL>
 __host__ __device__
 void StatExpSingle(int n, const int3 *pTv, real *pVz,
-                   const real2 *pTn1, const real2 *pTn2,
-                   const real2 *pTn3, const real3 *pTl,
+                   TriangleNormals Tn,
                    real *pResSource,
                    real *pTresN0, real *pTresN1, real *pTresN2,
-                   real *pTresLDA0, real *pTresLDA1, real *pTresLDA2,
-                   real *pTresTot, int nVertex, real G, real G1, real G2,
+                   int nVertex, real G, real G1, real G2,
                    const real *pVp, const real cs0, const real cspow,
                    const real frameAngularVelocity, const real2 *pVc)
 {
@@ -1443,9 +1400,9 @@ void StatExpSingle(int n, const int3 *pTv, real *pVz,
     vy = Z0;
   }
 
-  real tl1 = pTl[n].x;
-  real tl2 = pTl[n].y;
-  real tl3 = pTl[n].z;
+  real tl1 = Tn.pTl[n].x;
+  real tl2 = Tn.pTl[n].y;
+  real tl3 = Tn.pTl[n].z;
 
   // Triangle area
   real s = half*(tl1 + tl2 + tl3);
@@ -1459,12 +1416,12 @@ void StatExpSingle(int n, const int3 *pTv, real *pVz,
   real What1 = Zv0 + S*(pVc[v2].x - pVc[v1].x)/vx;
   real What2 = Zv0 + S*(pVc[v3].x - pVc[v1].x)/vx;
 
-  real tnx1 = pTn1[n].x;
-  real tnx2 = pTn2[n].x;
-  real tnx3 = pTn3[n].x;
-  real tny1 = pTn1[n].y;
-  real tny2 = pTn2[n].y;
-  real tny3 = pTn3[n].y;
+  real tnx1 = Tn.pTn1[n].x;
+  real tnx2 = Tn.pTn2[n].x;
+  real tnx3 = Tn.pTn3[n].x;
+  real tny1 = Tn.pTn1[n].y;
+  real tny2 = Tn.pTn2[n].y;
+  real tny3 = Tn.pTn3[n].y;
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Calculate Wtemp = Sum(K+*What)
@@ -1513,12 +1470,12 @@ void StatExpSingle(int n, const int3 *pTv, real *pVz,
 
   real ResN;
 
-  real Tnx1 = pTn1[n].x;
-  real Tnx2 = pTn2[n].x;
-  real Tnx3 = pTn3[n].x;
-  real Tny1 = pTn1[n].y;
-  real Tny2 = pTn2[n].y;
-  real Tny3 = pTn3[n].y;
+  real Tnx1 = Tn.pTn1[n].x;
+  real Tnx2 = Tn.pTn2[n].x;
+  real Tnx3 = Tn.pTn3[n].x;
+  real Tny1 = Tn.pTn1[n].y;
+  real Tny2 = Tn.pTn2[n].y;
+  real Tny3 = Tn.pTn3[n].y;
 
   nx = Tnx1;
   ny = Tny1;
@@ -1549,24 +1506,16 @@ void StatExpSingle(int n, const int3 *pTv, real *pVz,
 }
 
 //######################################################################
-/*! \brief Kernel calculating spacial residue for all triangles
+/*! \brief Kernel adjusting N residuals for stationary flows
 
-\param nTriangle Total number of triangles in Mesh
+\param Ms Object containing mesh size (number of vertices, triangles,edges)
 \param *pTv Pointer to triangle vertices
 \param *pVz Pointer to parameter vector
-\param *pTn1 Pointer first triangle edge normal
-\param *pTn2 Pointer second triangle edge normal
-\param *pTn3 Pointer third triangle edge normal
-\param *pTl Pointer to triangle edge lengths
+\param Tn Class containing triangle normals
 \param *pResSource Pointer to residual due to source terms
 \param *pTresN0 Triangle residue N direction 0
 \param *pTresN1 Triangle residue N direction 1
 \param *pTresN2 Triangle residue N direction 2
-\param *pTresLDA0 Triangle residue LDA direction 0
-\param *pTresLDA1 Triangle residue LDA direction 1
-\param *pTresLDA2 Triangle residue LDA direction 2
-\param *pTresTot Triangle total residue
-\param nVertex Total number of vertices in Mesh
 \param G Ratio of specific heats
 \param G1 G - 1
 \param G2 G - 2
@@ -1579,23 +1528,22 @@ void StatExpSingle(int n, const int3 *pTv, real *pVz,
 
 template<class realNeq, ConservationLaw CL>
 __global__ void
-devStatExp(int nTriangle, const int3 *pTv, realNeq *pVz,
-           const real2 *pTn1, const real2 *pTn2,
-           const real2 *pTn3, const real3 *pTl, realNeq *pResSource,
+devStatExp(MeshSize Ms, const int3 *pTv, realNeq *pVz,
+           TriangleNormals Tn,
+           realNeq *pResSource,
            realNeq *pTresN0, realNeq *pTresN1, realNeq *pTresN2,
-           realNeq *pTresLDA0, realNeq *pTresLDA1, realNeq *pTresLDA2,
-           realNeq *pTresTot, int nVertex, real G, real G1, real G2,
+           real G, real G1, real G2,
            const real *pVp, const real cs0, const real cspow,
            const real frameAngularVelocity, const real2 *pVc)
 {
   int n = blockIdx.x*blockDim.x + threadIdx.x;
 
 
-  while (n < nTriangle) {
-    StatExpSingle<CL>(n, pTv, pVz, pTn1, pTn2, pTn3, pTl, pResSource,
+  while (n < Ms.nTriangle) {
+    StatExpSingle<CL>(n, pTv, pVz, Tn,
+                      pResSource,
                       pTresN0, pTresN1, pTresN2,
-                      pTresLDA0, pTresLDA1, pTresLDA2,
-                      pTresTot, nVertex, G, G1, G2, pVp, cs0, cspow,
+                      Ms.nVertex, G, G1, G2, pVp, cs0, cspow,
                       frameAngularVelocity, pVc);
 
     // Next triangle
@@ -1604,16 +1552,12 @@ devStatExp(int nTriangle, const int3 *pTv, realNeq *pVz,
 }
 
 //######################################################################
-/*! Calculate spatial residue for all triangles; result in \a triangleResidueN,
-\a triangleResidueLDA and \a triangleResidueTotal.*/
+/*! Adjust spatial N residuals to reduce unwanted numerical diffusion in stationary flows. */
 //######################################################################
 
 template <class realNeq, ConservationLaw CL>
 void Simulation<realNeq, CL>::StatExp()
 {
-  int nTriangle = mesh->GetNTriangle();
-  int nVertex = mesh->GetNVertex();
-
   realNeq *pResSource = triangleResidueSource->GetPointer();
   realNeq *pVz = vertexParameterVector->GetPointer();
   real *pVp = vertexPotential->GetPointer();
@@ -1623,19 +1567,10 @@ void Simulation<realNeq, CL>::StatExp()
   realNeq *pTresN1 = triangleResidueN->GetPointer(1);
   realNeq *pTresN2 = triangleResidueN->GetPointer(2);
 
-  realNeq *pTresLDA0 = triangleResidueLDA->GetPointer(0);
-  realNeq *pTresLDA1 = triangleResidueLDA->GetPointer(1);
-  realNeq *pTresLDA2 = triangleResidueLDA->GetPointer(2);
-
-  realNeq *pTresTot = triangleResidueTotal->GetPointer();
-
   const int3 *pTv = mesh->TriangleVerticesData();
 
-  const real2 *pTn1 = mesh->TriangleEdgeNormalsData(0);
-  const real2 *pTn2 = mesh->TriangleEdgeNormalsData(1);
-  const real2 *pTn3 = mesh->TriangleEdgeNormalsData(2);
-
-  const real3 *pTl = mesh->TriangleEdgeLengthData();
+  MeshSize Ms(mesh);
+  TriangleNormals Tn(mesh);
 
   const real2 *pVc = mesh->VertexCoordinatesData();
 
@@ -1653,22 +1588,20 @@ void Simulation<realNeq, CL>::StatExp()
                                        (size_t) 0, 0);
 
     devStatExp<realNeq, CL><<<nBlocks, nThreads>>>
-      (nTriangle, pTv, pVz,
-       pTn1, pTn2, pTn3, pTl, pResSource,
+      (Ms, pTv, pVz, Tn,
+       pResSource,
        pTresN0, pTresN1, pTresN2,
-       pTresLDA0, pTresLDA1, pTresLDA2,
-       pTresTot, nVertex, G, G - 1.0, G - 2.0, pVp,
+       G, G - 1.0, G - 2.0, pVp,
        cs0, cspow, Omega, pVc);
 
     gpuErrchk( cudaPeekAtLastError() );
     gpuErrchk( cudaDeviceSynchronize() );
   } else {
-    for (int n = 0; n < nTriangle; n++)
-      StatExpSingle<CL>(n, pTv, pVz,
-                        pTn1, pTn2, pTn3, pTl, pResSource,
+    for (int n = 0; n < Ms.nTriangle; n++)
+      StatExpSingle<CL>(n, pTv, pVz, Tn,
+                        pResSource,
                         pTresN0, pTresN1, pTresN2,
-                        pTresLDA0, pTresLDA1, pTresLDA2,
-                        pTresTot, nVertex, G, G - 1.0, G - 2.0,
+                        Ms.nVertex, G, G - 1.0, G - 2.0,
                         pVp, cs0, cspow, Omega, pVc);
   }
 }
