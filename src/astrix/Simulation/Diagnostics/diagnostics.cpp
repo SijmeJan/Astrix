@@ -35,11 +35,13 @@ Diagnostics<T, CL>::Diagnostics(Array<T> *state,
   // Size of output for various conservation laws
   int diagSize = 1;
   if (CL == CL_CART_ISO) diagSize = 2;
+  if (CL == CL_CYL_ISO) diagSize = 2;
   if (CL == CL_CART_EULER) diagSize = 4;
 
   // Create result vector on host
   result = new Array<real>(1, 0, diagSize);
   real *pResult = result->GetPointer();
+
 
   pResult[0] = TotalMass(state, mesh);
   if (CL == CL_CART_ISO || CL == CL_CART_EULER)
@@ -47,6 +49,9 @@ Diagnostics<T, CL>::Diagnostics(Array<T> *state,
   if (CL == CL_CART_EULER) {
     pResult[2] = ThermalEnergy(state, pot, mesh);
     pResult[3] = TotalEnergy(state, mesh);
+  }
+  if (CL == CL_CYL_ISO) {
+    pResult[1] = Torque(state, mesh);
   }
 }
 
