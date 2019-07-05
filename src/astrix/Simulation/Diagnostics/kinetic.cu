@@ -24,7 +24,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 namespace astrix {
 
 //##############################################################################
-//! General form of kineetic energy calculation
+//! General form of kinetic energy calculation
 //##############################################################################
 
 template<class T, ConservationLaw CL>
