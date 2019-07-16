@@ -97,7 +97,7 @@ Array<real2>* Mesh::ConvexHull(Array<real2> *pointCoordinates)
   int mid = next;
   int index = 0;
 
-  while (mid != startIndex) {
+  while ((unsigned int) mid != startIndex) {
     mid = next;
     next = FindNextHull(next, nPoint, pC, predicates, pParam);
 

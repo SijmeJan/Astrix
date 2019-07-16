@@ -220,7 +220,7 @@ void RemoveVertex(int3 *pTv, int3 *pTe, int2 *pEt, real2 *pVc,
 
   int2 tCollapse;
   int3 V, E;
-  int v1, v2;
+  int v1 = -1, v2 = -1;
   GetEdgeVertices(eTarget, pTv, pTe, pEt,
                   tCollapse, V, E, v1, v2);
 

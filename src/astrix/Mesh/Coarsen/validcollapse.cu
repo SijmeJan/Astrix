@@ -157,7 +157,7 @@ int2 MinMaxAlpha(int N, int eTest, int3 *pTv, int3 *pTe, int2 *pEt,
 
   // Find vertices belonging to first segment
   int2 T;
-  int vs1, vs2;
+  int vs1 = -1, vs2 = -1;
   GetEdgeVertices(segment1, pTv, pTe, pEt, T, V, E, vs1, vs2);
 
   // One vertex is on segment
@@ -261,7 +261,7 @@ void TestEdgeCollapseSingle(int n, int3 *pTv, int3 *pTe, int2 *pEt,
   int eTest = pEdgeCollapse[n];
 
   int Nmax = 3;      // alpha = 0, 1/2, 1
-  int v1, v2;        // Vertices belonging to eTest
+  int v1=-1, v2=-1;  // Vertices belonging to eTest
   int2 tCollapse;    // Triangles neighbouring eTest
 
   real v1x, v1y, v2x, v2y;
@@ -291,7 +291,7 @@ void TestEdgeCollapseSingle(int n, int3 *pTv, int3 *pTe, int2 *pEt,
 #endif
 
   int validCollapse = 0;
-  real xTarget, yTarget;
+  real xTarget = v1x, yTarget = v1y;
   for (int i = minMaxAlpha.x; i < minMaxAlpha.y; i++) {
     validCollapse = 1;
 
@@ -401,7 +401,7 @@ void TestEdgeCollapseSingle(int n, int3 *pTv, int3 *pTe, int2 *pEt,
                 T.x = T.y;
                 T.y = -1;
               }
-              int a, b;
+              int a = -1, b = -1;
               GetEdgeVertices(e, T.x, V, E, a, b);
 
               real ax, ay, bx, by;

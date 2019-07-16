@@ -157,7 +157,7 @@ Array<T>::Array(std::string inputFile)
       nDims = nColumns;
     } else {
       // Check if number of columns is constant
-      if (nColumns != nDims) {
+      if ((unsigned int) nColumns != nDims) {
         std::cout << "Error: number of columns in input ASCII file "
                   << inputFile << " must be constant" << std::endl;
         throw std::runtime_error("");
@@ -193,7 +193,7 @@ Array<T>::Array(std::string inputFile)
     std::string word;
     std::istringstream iss(line);
 
-    for (int n = 0; n < nDims; n++) {
+    for (int n = 0; n < (int) nDims; n++) {
       iss >> word;
       T value = (T) atof(word.c_str());
       SetSingleValue(value, nLines, n);

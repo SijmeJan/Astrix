@@ -64,7 +64,7 @@ void IndependentSingle(int n, int3 *pTv, int3 *pTe, int2 *pEt,
 
   int ret = eTarget;
   while (1) {
-    if (pTriangleLock[t] != randomInt) {
+    if ((unsigned int) pTriangleLock[t] != randomInt) {
       ret = -1;
       break;
     }
@@ -129,8 +129,6 @@ void Coarsen::FindIndependent(Connectivity *connectivity,
                               Array<int> *triangleLock)
 {
   int nRemove = edgeCollapseList->GetSize();
-  int nVertex = connectivity->vertexCoordinates->GetSize();
-  int nTriangle = connectivity->triangleVertices->GetSize();
 
   int *pEdgeCollapseList = edgeCollapseList->GetPointer();
   int *pTriangleLock = triangleLock->GetPointer();

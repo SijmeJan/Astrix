@@ -59,7 +59,7 @@ void AdjustStateCoarsenSingle(int3 *pTv, int3 *pTe, int2 *pEt,
 
   int2 tCollapse;
   int3 V, E;
-  int v1, v2;
+  int v1=-1, v2=-1;
   GetEdgeVertices(eTarget, pTv, pTe, pEt, tCollapse, V, E, v1, v2);
   while (v1 >= nVertex) v1 -= nVertex;
   while (v2 >= nVertex) v2 -= nVertex;

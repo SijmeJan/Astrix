@@ -234,7 +234,7 @@ S Array<T>::MinimumComb(int N)
 template <class T>
 unsigned int Array<T>::MaximumCombIndex(int N)
 {
-  int result;
+  int result = -1;
 
   if (cudaFlag == 1) {
     thrust::device_ptr<T> dev_ptr(&deviceVec[0]);
@@ -249,7 +249,7 @@ unsigned int Array<T>::MaximumCombIndex(int N)
     result = thrust::distance(dev_ptr, iter);
   }
   if (cudaFlag == 0) {
-    T * iter;
+    T * iter = 0;
 
     if (N == 0)
       iter = thrust::max_element(hostVec, hostVec + size, compare_x<T>());
