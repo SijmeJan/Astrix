@@ -27,7 +27,7 @@ along with Astrix.  If not, see <http://www.gnu.org/licenses/>.*/
 #include "./contour.h"
 #include "../Common/profile.h"
 #include "./Param/simulationparameter.h"
-#include "./triangle_normals.h"
+#include "./parameter_groups.h"
 
 namespace astrix {
 
